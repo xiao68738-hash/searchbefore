@@ -15,13 +15,16 @@ assert.ok(inlineScripts.length >= 2, "應找到主程式的 inline scripts");
 inlineScripts.forEach((code, index) => new vm.Script(code, { filename: `index-inline-${index + 1}.js` }));
 
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="1\.3\.0"/);
+assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
+assert.match(html, /const APP_VERSION="1\.4\.0"/);
+assert.match(html, /const SCHEMA_VERSION=3/);
 assert.match(html, /PQC_SAFETY\.shouldShowVolumeApprox\(unit\)/);
 assert.match(html, /PQC_SAFETY\.directCropLevels\(crop,DATA\)/);
 assert.match(html, /id="rNotify" disabled/);
 assert.doesNotMatch(html, /pre\.phi==null\|\|pre\.phi===""/);
 assert.match(sw, /"\.\/safety\.js"/);
-assert.match(sw, /v1\.3\.0-safety/);
+assert.match(sw, /"\.\/farm-records\.js"/);
+assert.match(sw, /v1\.4\.0-farm-records/);
 
 console.log("✓ index.html 所有程式區塊語法正確");
 console.log("✓ 安全核心載入、版本與離線快取設定正確");
