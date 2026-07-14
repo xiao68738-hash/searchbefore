@@ -2,18 +2,19 @@
    目標:整支 App(含農藥資料庫)離線可用,果園沒訊號也能查。
 
    ── 換版流程 ──
-   每次重新 build_app.py 後,把下面的 CACHE_VERSION 改掉(通常跟 DATA_VERSION 同步)。
+   每次更新 index.html、safety.js 或農藥資料後,把下面的 CACHE_VERSION 改掉。
    舊快取會在新版 activate 時自動清掉,使用者會看到「有新版資料」提示。
    注意:sw.js 的內容只要有一個位元不同,瀏覽器就會視為新版本 —— 所以「改版號」
    這個動作本身就是觸發更新的開關,不要忘記。
 */
 
-const CACHE_VERSION = "v1.3.0-2026-07";
+const CACHE_VERSION = "v1.3.0-safety-2026-07-14";
 const CACHE_NAME = "pqc-" + CACHE_VERSION;
 
 /* 只放骨架。App 本體(index.html)約 1MB gzip,用 reload 強制繞過 HTTP 快取抓最新版。 */
 const PRECACHE = [
   "./",
+  "./safety.js",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png",
