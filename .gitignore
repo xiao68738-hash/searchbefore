@@ -1,0 +1,9 @@
+# 私密授權金鑰絕不可上傳
+*.pem
+private_key.*
+
+# 作業系統與編輯器暫存檔
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
