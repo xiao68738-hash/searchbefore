@@ -8,13 +8,14 @@
    這個動作本身就是觸發更新的開關,不要忘記。
 */
 
-const CACHE_VERSION = "v1.3.0-safety-2026-07-14";
+const CACHE_VERSION = "v1.4.0-farm-records-2026-07-14";
 const CACHE_NAME = "pqc-" + CACHE_VERSION;
 
 /* 只放骨架。App 本體(index.html)約 1MB gzip,用 reload 強制繞過 HTTP 快取抓最新版。 */
 const PRECACHE = [
   "./",
   "./safety.js",
+  "./farm-records.js",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png",
