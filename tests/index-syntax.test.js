@@ -16,7 +16,7 @@ inlineScripts.forEach((code, index) => new vm.Script(code, { filename: `index-in
 
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="1\.5\.0"/);
+assert.match(html, /const APP_VERSION="1\.6\.0"/);
 assert.match(html, /const SCHEMA_VERSION=3/);
 assert.match(html, /PQC_SAFETY\.shouldShowVolumeApprox\(unit\)/);
 assert.match(html, /PQC_SAFETY\.directCropLevels\(crop,DATA\)/);
@@ -27,10 +27,15 @@ assert.match(html, /PQC_SAFETY\.harvestStatus\(records,input\.plotId,input\.date
 assert.match(html, /PQC_FARM\.buildTimeline\(list,farmList,p\.id\)/);
 assert.match(html, /PQC_FARM\.exportCombinedCsv\(pesticideList,farmList/);
 assert.match(html, /href="\$\{TRIAL_FORM_URL\}"[^>]*>開啟試用申請表<\/a>/);
+assert.match(html, /id="homeFeatures"/);
+assert.match(html, /function focusHomeSearch\(\)/);
+assert.match(html, /從噴藥前，一路接到採收後/);
+assert.match(html, /合法用藥查詢/);
+assert.match(html, /安全採收連動/);
 assert.doesNotMatch(html, /pre\.phi==null\|\|pre\.phi===""/);
 assert.match(sw, /"\.\/safety\.js"/);
 assert.match(sw, /"\.\/farm-records\.js"/);
-assert.match(sw, /v1\.5\.0-connected-records/);
+assert.match(sw, /v1\.6\.0-homepage-guide/);
 
 console.log("✓ index.html 所有程式區塊語法正確");
 console.log("✓ 安全核心載入、版本與離線快取設定正確");
