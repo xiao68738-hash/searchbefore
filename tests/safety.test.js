@@ -74,6 +74,17 @@ test("未校驗群組前只查作物直接登記", () => {
   assert.deepEqual(safety.directCropLevels("苦瓜", { 苦瓜: {}, 瓜菜類: {} }), ["苦瓜"]);
 });
 
+test("採收紀錄可連動同田區用藥安全狀態", () => {
+  const records = [
+    { id: "r1", plotId: "plot-a", crop: "番茄", date: "2026-07-01", phi: 7 },
+    { id: "r2", plotId: "plot-a", crop: "番茄", date: "2026-07-03", phi: 3 }
+  ];
+  assert.equal(safety.harvestStatus(records, "plot-a", "2026-07-08").status, "waiting");
+  assert.equal(safety.harvestStatus(records, "plot-a", "2026-07-09").status, "safe");
+  assert.equal(safety.harvestStatus(records.concat({ id: "r3", plotId: "plot-a", crop: "番茄", date: "2026-07-04", phi: null }), "plot-a", "2026-07-20").status, "unknown");
+  assert.equal(safety.harvestStatus(records, "plot-b", "2026-07-20").status, "none");
+});
+
 let failed = 0;
 for (const item of tests) {
   try {
