@@ -98,7 +98,7 @@
     const makeId = typeof idFactory === "function"
       ? idFactory
       : function () { return "farm-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10); };
-    return {
+    const record = {
       id: required(makeId("farm"), "紀錄編號"),
       plotId: required(source.plotId, "田區／種植批次"),
       type: type,
@@ -108,6 +108,19 @@
       details: makeDetails(type, source.details),
       createdAt: text(source.createdAt) || new Date().toISOString()
     };
+    if (type === "harvest" && source.safetyCheck && typeof source.safetyCheck === "object") {
+      const status = text(source.safetyCheck.status);
+      if (["none", "safe", "waiting", "unknown"].indexOf(status) >= 0) {
+        record.safetyCheck = {
+          status: status,
+          safeDate: text(source.safetyCheck.safeDate),
+          daysRemaining: source.safetyCheck.daysRemaining == null ? null : Number(source.safetyCheck.daysRemaining),
+          recordCount: Number(source.safetyCheck.recordCount) || 0,
+          checkedAt: text(source.safetyCheck.checkedAt) || new Date().toISOString()
+        };
+      }
+    }
+    return record;
   }
 
   function summary(record) {
@@ -144,6 +157,58 @@
     return "\uFEFF" + head.join(",") + "\n" + rows.join("\n");
   }
 
+  function buildTimeline(pesticideRecords, farmRecords, plotId) {
+    const events = [];
+    (Array.isArray(pesticideRecords) ? pesticideRecords : []).forEach(function (record) {
+      if (!plotId || record.plotId === plotId) events.push({ kind: "pesticide", date: text(record.date), id: text(record.id), source: record });
+    });
+    (Array.isArray(farmRecords) ? farmRecords : []).forEach(function (record) {
+      if (!plotId || record.plotId === plotId) events.push({ kind: "farm", date: text(record.date), id: text(record.id), source: record });
+    });
+    return events.sort(function (a, b) {
+      const byDate = b.date.localeCompare(a.date);
+      if (byDate) return byDate;
+      return String(b.source.createdAt || "").localeCompare(String(a.source.createdAt || ""));
+    });
+  }
+
+  function recordCoverage(pesticideRecords, farmRecords, plotId) {
+    const counts = { pesticide: 0, cultivation: 0, fertilizer: 0, harvest: 0, postharvest: 0, materialPurchase: 0 };
+    (Array.isArray(pesticideRecords) ? pesticideRecords : []).forEach(function (record) {
+      if (!plotId || record.plotId === plotId) counts.pesticide += 1;
+    });
+    (Array.isArray(farmRecords) ? farmRecords : []).forEach(function (record) {
+      if ((!plotId || record.plotId === plotId) && Object.prototype.hasOwnProperty.call(counts, record.type)) counts[record.type] += 1;
+    });
+    const recordedTypes = Object.keys(counts).filter(function (key) { return counts[key] > 0; });
+    return { counts: counts, recordedTypes: recordedTypes, total: recordedTypes.reduce(function (sum, key) { return sum + counts[key]; }, 0) };
+  }
+
+  function exportCombinedCsv(pesticideRecords, farmRecords, options) {
+    const opts = options || {};
+    const plotName = typeof opts.plotName === "function" ? opts.plotName : function (id) { return id || ""; };
+    const safeDate = typeof opts.safeDate === "function" ? opts.safeDate : function () { return ""; };
+    const plotId = text(opts.plotId);
+    const timeline = buildTimeline(pesticideRecords, farmRecords, plotId).slice().reverse();
+    const head = ["田區/作物紀錄區", "日期", "事件類型", "作物/作業/品項", "病蟲害/方法", "藥劑/資材", "用量/稀釋", "安全採收期", "安全採收日/狀態", "批號/追溯碼", "供應商/去向", "執行人", "備註", "來源紀錄編號"];
+    const rows = timeline.map(function (event) {
+      const r = event.source || {};
+      if (event.kind === "pesticide") {
+        const phi = r.phi == null ? "未提供" : String(r.phi) + " 天";
+        return [plotName(r.plotId), r.date, "用藥", r.crop, r.pest, r.agent, r.dil ? r.dil + " 倍" : "", phi, safeDate(r), "", "", "", "", r.id];
+      }
+      const d = r.details || {};
+      let item = "", method = "", material = "", quantity = "", lot = "", party = "", safety = "";
+      if (r.type === "cultivation") { item = d.activity; method = d.method; }
+      if (r.type === "fertilizer") { item = "施肥"; method = d.method; material = d.materialName; quantity = [d.quantity, d.unit].filter(Boolean).join(" "); lot = d.lotNo; }
+      if (r.type === "harvest") { item = d.grade || "採收"; quantity = [d.quantity, d.unit].filter(Boolean).join(" "); lot = d.batchNo; safety = r.safetyCheck ? r.safetyCheck.status + (r.safetyCheck.safeDate ? " / " + r.safetyCheck.safeDate : "") : "未連動檢查"; }
+      if (r.type === "postharvest") { item = d.process; method = d.process; quantity = [d.quantity, d.unit].filter(Boolean).join(" "); party = d.destination; }
+      if (r.type === "materialPurchase") { item = d.category; material = d.materialName; quantity = [d.quantity, d.unit].filter(Boolean).join(" "); lot = d.lotNo; party = d.supplier; }
+      return [plotName(r.plotId), r.date, RECORD_TYPES[r.type] || r.type, item, method, material, quantity, "", safety, lot, party, r.operator, r.notes, r.id];
+    });
+    return "\uFEFF" + head.map(csvCell).join(",") + "\n" + rows.map(function (row) { return row.map(csvCell).join(","); }).join("\n");
+  }
+
   function buildBackup(data, appVersion) {
     return {
       product: BACKUP_PRODUCT,
@@ -172,6 +237,9 @@
     createRecord: createRecord,
     summary: summary,
     exportCsv: exportCsv,
+    buildTimeline: buildTimeline,
+    recordCoverage: recordCoverage,
+    exportCombinedCsv: exportCombinedCsv,
     buildBackup: buildBackup,
     readBackup: readBackup,
     validDate: validDate

@@ -111,6 +111,40 @@
     return groups;
   }
 
+  function isoDate(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+    return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
+  }
+
+  /*
+   * 將「實際採收紀錄」和同田區的用藥倒數接起來。
+   * waiting/unknown 仍允許留下事實紀錄，但 UI 必須明確警告並要求確認。
+   */
+  function harvestStatus(records, plotId, harvestDate) {
+    const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(harvestDate || ""));
+    if (!dateMatch) return { status: "invalid", safeDate: "", daysRemaining: null, recordCount: 0 };
+    const date = new Date(Number(dateMatch[1]), Number(dateMatch[2]) - 1, Number(dateMatch[3]));
+    if (Number.isNaN(date.getTime())) return { status: "invalid", safeDate: "", daysRemaining: null, recordCount: 0 };
+    const relevant = (Array.isArray(records) ? records : []).filter(function (record) {
+      return plotId ? record && record.plotId === plotId : !record || !record.plotId;
+    });
+    if (!relevant.length) return { status: "none", safeDate: "", daysRemaining: null, recordCount: 0 };
+    const groups = aggregateHarvest(relevant);
+    const info = groups[plotId ? "plot:" + plotId : recordGroupKey(relevant[0])];
+    if (!info) return { status: "none", safeDate: "", daysRemaining: null, recordCount: 0 };
+    if (info.unknown) {
+      return { status: "unknown", safeDate: info.latestKnown ? isoDate(info.latestKnown) : "", daysRemaining: null, recordCount: info.records.length };
+    }
+    const safeDate = info.ok;
+    const diff = Math.ceil((safeDate.getTime() - date.getTime()) / 86400000);
+    return {
+      status: diff <= 0 ? "safe" : "waiting",
+      safeDate: isoDate(safeDate),
+      daysRemaining: Math.max(0, diff),
+      recordCount: info.records.length
+    };
+  }
+
   return {
     normalizeDigits: normalizeDigits,
     numericPhi: numericPhi,
@@ -121,6 +155,7 @@
     directCropLevels: directCropLevels,
     safeHarvestDate: safeHarvestDate,
     recordGroupKey: recordGroupKey,
-    aggregateHarvest: aggregateHarvest
+    aggregateHarvest: aggregateHarvest,
+    harvestStatus: harvestStatus
   };
 });
