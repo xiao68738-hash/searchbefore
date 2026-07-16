@@ -12,6 +12,13 @@
    }
 */
 window.PQC_PUBLIC_CONFIG = {
-  firebase: null,
+  firebase: {
+    apiKey: "AIzaSyA_ScvpfeS7HmBzVWkoi51F9FKsujcOwa4",
+    authDomain: "searchbefore-4648b.firebaseapp.com",
+    projectId: "searchbefore-4648b",
+    storageBucket: "searchbefore-4648b.firebasestorage.app",
+    messagingSenderId: "934300362639",
+    appId: "1:934300362639:web:a96c41c1a7e6cd5ea5cdfa"
+  },
   supportUrl: ""
 };

@@ -11,7 +11,10 @@ new vm.Script(account, { filename: "account.js" });
 const sandbox = { window: {} };
 vm.runInNewContext(configSource, sandbox, { filename: "service-config.js" });
 
-assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.firebase, null);
+assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.firebase.projectId, "searchbefore-4648b");
+assert.match(sandbox.window.PQC_PUBLIC_CONFIG.firebase.authDomain, /\.firebaseapp\.com$/);
+assert.ok(sandbox.window.PQC_PUBLIC_CONFIG.firebase.apiKey);
+assert.ok(sandbox.window.PQC_PUBLIC_CONFIG.firebase.appId);
 assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.supportUrl, "");
 assert.match(account, /firebasejs\/"\+FIREBASE_VERSION\+"\/firebase-auth\.js/);
 assert.match(account, /signInWithPopup\(instance,provider\)/);
