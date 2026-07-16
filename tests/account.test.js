@@ -20,6 +20,8 @@ assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.supportUrl, "");
 assert.match(account, /firebasejs\/"\+FIREBASE_VERSION\+"\/firebase-auth\.js/);
 assert.match(account, /signInWithPopup\(instance,provider\)/);
 assert.match(account, /browserLocalPersistence/);
+assert.match(account, /document\.getElementById\("homeAccountInner"\)/);
+assert.match(account, /accountBoxes\(\)\.forEach/);
 assert.match(account, /location\.protocol==="file:"/);
 assert.match(account, /田區、用藥與農務紀錄仍保存在這台裝置/);
 assert.doesNotMatch(account, /firestore|storage|databaseURL/i);
