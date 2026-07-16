@@ -8,14 +8,17 @@
    這個動作本身就是觸發更新的開關,不要忘記。
 */
 
-const CACHE_VERSION = "v1.7.1-remove-profile-shop-link-2026-07-16";
+const CACHE_VERSION = "v1.8.0-account-payment-preview-2026-07-16";
 const CACHE_NAME = "pqc-" + CACHE_VERSION;
 
 /* 只放骨架。App 本體(index.html)約 1MB gzip,用 reload 強制繞過 HTTP 快取抓最新版。 */
 const PRECACHE = [
   "./",
+  "./service-config.js",
+  "./account.js",
   "./safety.js",
   "./farm-records.js",
+  "./privacy.html",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png",
