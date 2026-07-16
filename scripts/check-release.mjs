@@ -8,7 +8,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..");
 const outDir = path.join(root, "dist");
 const expected = [
-  "about.html", "account.js", "brand-logo-120.png", "farm-records.js", "icon-180.png", "icon-192.png", "icon-512.png",
+  "about.html", "account.js", "brand-lockup.png", "brand-logo-120.png", "farm-records.js", "icon-180.png", "icon-192.png", "icon-512.png",
   "icon-maskable-512.png", "index.html", "manifest.webmanifest", "privacy.html",
   "safety.js", "service-config.js", "sw.js"
 ].sort();

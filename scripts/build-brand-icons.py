@@ -1,62 +1,40 @@
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
-MASTER = 1024
-GREEN = "#2E6B3F"
-DEEP = "#17331F"
-CREAM = "#F7F4EB"
-ORANGE = "#D97A22"
+SOURCE = ROOT / "brand-lockup.png"
 
 
-def font(size):
-    candidates = [
-        Path(r"C:\Windows\Fonts\arialbd.ttf"),
-        Path(r"C:\Windows\Fonts\segoeuib.ttf"),
-    ]
-    for candidate in candidates:
-        if candidate.exists():
-            return ImageFont.truetype(str(candidate), size)
-    return ImageFont.load_default()
+def emblem_source():
+    image = Image.open(SOURCE).convert("RGB")
+    width, height = image.size
+    # 取出上半部的放大鏡、植物與噴頭；比例以生成的品牌母圖為基準。
+    left = round(width * 0.315)
+    top = round(height * 0.015)
+    side = round(height * 0.69)
+    return image.crop((left, top, left + side, top + side))
 
 
-def build_master():
-    image = Image.new("RGBA", (MASTER, MASTER), GREEN)
-    draw = ImageDraw.Draw(image)
-    draw.rounded_rectangle((0, 0, MASTER - 1, MASTER - 1), radius=200, fill=GREEN)
-
-    # 橘色握柄先畫在鏡面後方，維持 maskable icon 的安全留白。
-    draw.line((624, 614, 846, 836), fill=ORANGE, width=104)
-    draw.ellipse((794, 784, 898, 888), fill=ORANGE)
-
-    # 搜尋鏡與柔和陰影。
-    draw.ellipse((136, 128, 740, 732), fill=(23, 51, 31, 64))
-    draw.ellipse((136, 120, 704, 688), fill=CREAM)
-
-    # 嫩芽，延續農業識別並用雙色增加專屬感。
-    draw.line((420, 250, 420, 334), fill=GREEN, width=24)
-    draw.polygon([(410, 292), (320, 282), (300, 202), (386, 216)], fill=GREEN)
-    draw.polygon([(430, 292), (520, 282), (540, 202), (454, 216)], fill=ORANGE)
-
-    label_font = font(232)
-    label = "SB"
-    box = draw.textbbox((0, 0), label, font=label_font, stroke_width=0)
-    width = box[2] - box[0]
-    draw.text(((420 - width / 2), 338), label, font=label_font, fill=DEEP, spacing=0)
-    return image
+def icon_canvas(emblem, size, coverage):
+    canvas = Image.new("RGB", (size, size), "#FFFFFF")
+    logo_size = round(size * coverage)
+    logo = emblem.resize((logo_size, logo_size), Image.Resampling.LANCZOS)
+    offset = (size - logo_size) // 2
+    canvas.paste(logo, (offset, offset))
+    return canvas
 
 
 def main():
-    master = build_master()
-    targets = {
-        "brand-logo-120.png": 120,
-        "icon-180.png": 180,
-        "icon-192.png": 192,
-        "icon-512.png": 512,
-        "icon-maskable-512.png": 512,
-    }
-    for filename, size in targets.items():
-        output = master.resize((size, size), Image.Resampling.LANCZOS)
+    emblem = emblem_source()
+    targets = [
+        ("brand-logo-120.png", 120, 0.94),
+        ("icon-180.png", 180, 0.90),
+        ("icon-192.png", 192, 0.90),
+        ("icon-512.png", 512, 0.90),
+        ("icon-maskable-512.png", 512, 0.72),
+    ]
+    for filename, size, coverage in targets:
+        output = icon_canvas(emblem, size, coverage)
         output.save(ROOT / filename, "PNG", optimize=True)
         print(f"created {filename} ({size}x{size})")
 

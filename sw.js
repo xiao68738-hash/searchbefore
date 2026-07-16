@@ -21,6 +21,7 @@ const PRECACHE = [
   "./about.html",
   "./privacy.html",
   "./manifest.webmanifest",
+  "./brand-lockup.png",
   "./brand-logo-120.png",
   "./icon-192.png",
   "./icon-512.png",

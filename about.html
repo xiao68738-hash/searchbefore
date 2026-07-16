@@ -21,8 +21,8 @@ body{margin:0;background:var(--paper);color:#22301F;font-family:"Noto Sans TC",s
 a{color:var(--green)}
 .wrap{max-width:760px;margin:0 auto;padding:44px 24px 72px}
 .hero{background:var(--deep);color:#fff;border-radius:24px;padding:30px;box-shadow:0 14px 36px rgba(23,51,31,.18)}
-.brand{display:flex;align-items:center;gap:16px}
-.brand img{width:88px;height:88px;border-radius:22px;box-shadow:0 6px 18px rgba(0,0,0,.18)}
+.brand{display:flex;flex-direction:column;align-items:flex-start;gap:18px}
+.brand img{display:block;width:min(100%,440px);height:auto;border-radius:18px;box-shadow:0 6px 18px rgba(0,0,0,.18)}
 .brand h1{font-size:30px;line-height:1.25;margin:0;font-weight:900}
 .brand h1 span{display:block;color:#F4B26E;font-size:18px;letter-spacing:.03em;margin-top:2px}
 .hero>p{font-size:17px;color:#E2EBE3;margin:22px 0 0}
@@ -43,14 +43,14 @@ p{margin:8px 0;color:#3E4B3A}
 .source{font-size:14px;color:var(--soft)}
 footer{text-align:center;color:var(--soft);font-size:13px;margin-top:28px}
 footer a{margin:0 7px;font-weight:700}
-@media(max-width:560px){.wrap{padding:24px 16px 52px}.hero{padding:24px 20px}.brand{align-items:flex-start}.brand img{width:72px;height:72px;border-radius:18px}.brand h1{font-size:25px}.brand h1 span{font-size:15px}.features{grid-template-columns:1fr}}
+@media(max-width:560px){.wrap{padding:24px 16px 52px}.hero{padding:20px}.brand img{width:100%;border-radius:14px}.brand h1{font-size:25px}.brand h1 span{font-size:15px}.features{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <main class="wrap">
   <div class="hero">
     <div class="brand">
-      <img src="./icon-192.png" alt="噴前查 SearchBefore 應用程式標誌">
+      <img src="./brand-lockup.png" alt="SearchBefore 品牌標誌">
       <h1>噴前查<span>SearchBefore</span></h1>
     </div>
     <p>協助台灣農友在田間快速查詢合法登記藥劑、完成配藥換算，並把用藥與日常農務依田區整理留下來。</p>
