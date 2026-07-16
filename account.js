@@ -14,7 +14,12 @@
       return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char];
     });
   }
-  function accountBox(){return document.getElementById("accountInner")}
+  function accountBoxes(){
+    return [
+      {el:document.getElementById("accountInner"),compact:false},
+      {el:document.getElementById("homeAccountInner"),compact:true}
+    ].filter(function(item){return !!item.el});
+  }
   function isFilePreview(){return location.protocol==="file:"}
   function userMessage(error){
     const code=error&&error.code||"";
@@ -24,17 +29,18 @@
     if(!navigator.onLine)return "目前沒有網路；查詢與本機紀錄仍可離線使用。";
     return "Google 登入暫時無法使用，請稍後再試。";
   }
-  function render(){
-    const el=accountBox();
-    if(!el)return;
+  function renderBox(el,compact){
     const cfg=firebaseConfig();
     if(!cfg){
+      if(compact){el.innerHTML="";return}
       el.innerHTML='<div class="account-state"><div class="account-placeholder">G</div><div class="account-copy"><b>Google 登入準備中</b><span>完成 Firebase 設定後即可啟用；目前不會傳送帳號或田間資料。</span></div></div>'
         +'<button class="btn btn-ghost" type="button" disabled style="width:100%;margin-top:10px">尚未啟用 Google 登入</button>';
       return;
     }
     if(isFilePreview()){
-      el.innerHTML='<div class="account-state"><div class="account-placeholder">G</div><div class="account-copy"><b>請到正式網站測試登入</b><span>本機檔案預覽不執行 Google 登入，避免授權網域錯誤。</span></div></div>';
+      el.innerHTML=compact
+        ?'<p class="hint">請到正式網站測試 Google 登入；本機檔案預覽不執行授權。</p>'
+        :'<div class="account-state"><div class="account-placeholder">G</div><div class="account-copy"><b>請到正式網站測試登入</b><span>本機檔案預覽不執行 Google 登入，避免授權網域錯誤。</span></div></div>';
       return;
     }
     if(lastError){
@@ -47,8 +53,9 @@
         ?'<img class="account-avatar" src="'+esc(currentUser.photoURL)+'" alt="" referrerpolicy="no-referrer">'
         :'<div class="account-placeholder">G</div>';
       el.innerHTML='<div class="account-state">'+avatar+'<div class="account-copy"><b>'+esc(currentUser.displayName||"Google 使用者")+'</b><span>'+esc(currentUser.email||"")+'</span></div></div>'
-        +'<p class="hint" style="margin:10px 0">登入目前只用於帳號識別；田區、用藥與農務紀錄仍保存在這台裝置。</p>'
-        +'<button class="btn btn-ghost" type="button" style="width:100%" onclick="PQC_ACCOUNT.signOut()">登出 Google 帳號</button>';
+        +(compact
+          ?'<p class="hint" style="margin:9px 0 0">Google 帳號已登入；田間資料仍只保存在這台裝置。</p>'
+          :'<p class="hint" style="margin:10px 0">登入目前只用於帳號識別；田區、用藥與農務紀錄仍保存在這台裝置。</p><button class="btn btn-ghost" type="button" style="width:100%" onclick="PQC_ACCOUNT.signOut()">登出 Google 帳號</button>');
       return;
     }
     if(started&&!auth){
@@ -58,6 +65,7 @@
     el.innerHTML='<button class="btn btn-main google-signin" type="button" onclick="PQC_ACCOUNT.signIn()"><span class="google-mark">G</span>使用 Google 帳號登入</button>'
       +'<p class="hint" style="margin:9px 0 0">登入為選用功能；不登入仍可使用目前所有功能與本機紀錄。</p>';
   }
+  function render(){accountBoxes().forEach(function(item){renderBox(item.el,item.compact)})}
   function loadSdk(){
     if(!sdkPromise){
       sdkPromise=Promise.all([

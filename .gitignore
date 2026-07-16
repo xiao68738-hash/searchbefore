@@ -1,6 +1,18 @@
 # 私密授權金鑰絕不可上傳
 *.pem
 private_key.*
+*-firebase-adminsdk-*.json
+service-account*.json
+.env
+.env.*
+!.env.example
+
+# 套件、Firebase 暫存與正式發布成品
+node_modules/
+dist/
+.firebase/
+firebase-debug.log*
+*.map
 
 # 作業系統與編輯器暫存檔
 .DS_Store
