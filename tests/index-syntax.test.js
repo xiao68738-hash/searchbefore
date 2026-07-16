@@ -16,7 +16,7 @@ inlineScripts.forEach((code, index) => new vm.Script(code, { filename: `index-in
 
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="1\.7\.0"/);
+assert.match(html, /const APP_VERSION="1\.7\.1"/);
 assert.match(html, /const SCHEMA_VERSION=3/);
 assert.match(html, /PQC_SAFETY\.shouldShowVolumeApprox\(unit\)/);
 assert.match(html, /PQC_SAFETY\.directCropLevels\(crop,DATA\)/);
@@ -37,10 +37,13 @@ assert.match(html, /cropSource:linkedCrop\?"registered":"custom"/);
 assert.match(html, /從噴藥前，一路接到採收後/);
 assert.match(html, /合法用藥查詢/);
 assert.match(html, /安全採收連動/);
+assert.doesNotMatch(html, /id="shopLinkInner"/);
+assert.doesNotMatch(html, /function (?:renderShopLink|saveShopLink|disconnectShop)\(/);
+assert.doesNotMatch(html, /linkedShop:store\.get\("linkedShop"\)/);
 assert.doesNotMatch(html, /pre\.phi==null\|\|pre\.phi===""/);
 assert.match(sw, /"\.\/safety\.js"/);
 assert.match(sw, /"\.\/farm-records\.js"/);
-assert.match(sw, /v1\.7\.0-plot-crop-autocomplete/);
+assert.match(sw, /v1\.7\.1-remove-profile-shop-link/);
 
 console.log("✓ index.html 所有程式區塊語法正確");
 console.log("✓ 安全核心載入、版本與離線快取設定正確");
