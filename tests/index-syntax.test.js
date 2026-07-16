@@ -6,6 +6,15 @@ const vm = require("node:vm");
 const root = path.join(__dirname, "..");
 const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const sw = fs.readFileSync(path.join(root, "sw.js"), "utf8");
+const about = fs.readFileSync(path.join(root, "about.html"), "utf8");
+const privacy = fs.readFileSync(path.join(root, "privacy.html"), "utf8");
+const manifest = JSON.parse(fs.readFileSync(path.join(root, "manifest.webmanifest"), "utf8"));
+
+function pngSize(filename){
+  const png=fs.readFileSync(path.join(root,filename));
+  assert.equal(png.subarray(1,4).toString("ascii"),"PNG",filename+" 必須是 PNG");
+  return {width:png.readUInt32BE(16),height:png.readUInt32BE(20)};
+}
 
 const inlineScripts = [];
 const scriptRe = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi;
@@ -19,6 +28,8 @@ assert.ok(html.indexOf('<script src="./account.js"></script>') < html.indexOf("c
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.match(html, /const APP_VERSION="0\.1\.9\.0"/);
+assert.match(html, /<title>噴前查 SearchBefore/);
+assert.match(html, /href="\.\/about\.html"/);
 assert.match(html, /<link rel="canonical" href="https:\/\/searchbefore\.tw\/">/);
 assert.match(html, /const PRIVACY_URL="https:\/\/searchbefore\.tw\/privacy\.html"/);
 assert.match(html, /const SCHEMA_VERSION=3/);
@@ -87,9 +98,21 @@ assert.match(sw, /"\.\/safety\.js"/);
 assert.match(sw, /"\.\/farm-records\.js"/);
 assert.match(sw, /"\.\/service-config\.js"/);
 assert.match(sw, /"\.\/account\.js"/);
+assert.match(sw, /"\.\/about\.html"/);
+assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0\.1\.9\.0-entry-polish-back/);
+assert.match(sw, /v0\.1\.9\.0-brand-verification/);
+assert.match(about, /<h1>噴前查<span>SearchBefore<\/span><\/h1>/);
+assert.match(about, /Google 登入與資料使用/);
+assert.match(about, /只取得 Google 提供的基本帳號識別資料/);
+assert.match(about, /不會因 Google 登入而自動上傳至 Google 或 Firebase 資料庫/);
+assert.match(about, /href="\.\/privacy\.html"/);
+assert.match(privacy, /噴前查 SearchBefore 隱私權政策/);
+assert.match(manifest.name, /^噴前查 SearchBefore/);
+assert.deepEqual(pngSize("brand-logo-120.png"),{width:120,height:120});
+assert.deepEqual(pngSize("icon-192.png"),{width:192,height:192});
+assert.deepEqual(pngSize("icon-512.png"),{width:512,height:512});
 
 console.log("✓ index.html 所有程式區塊語法正確");
 console.log("✓ 安全核心載入、版本與離線快取設定正確");

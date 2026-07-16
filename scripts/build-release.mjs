@@ -8,9 +8,9 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..");
 const outDir = path.join(root, "dist");
 
-const htmlFiles = ["index.html", "privacy.html"];
+const htmlFiles = ["index.html", "about.html", "privacy.html"];
 const jsFiles = ["service-config.js", "account.js", "safety.js", "farm-records.js", "sw.js"];
-const imageFiles = ["icon-180.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
+const imageFiles = ["brand-logo-120.png", "icon-180.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 
 await rm(outDir, { recursive: true, force: true });
 await mkdir(outDir, { recursive: true });
