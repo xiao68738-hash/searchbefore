@@ -16,8 +16,9 @@
   }
   function accountBoxes(){
     return [
-      {el:document.getElementById("accountInner"),compact:false},
-      {el:document.getElementById("homeAccountInner"),compact:true}
+      {el:document.getElementById("accountInner"),compact:false,entry:false},
+      {el:document.getElementById("homeAccountInner"),compact:true,entry:false},
+      {el:document.getElementById("entryAccountInner"),compact:true,entry:true}
     ].filter(function(item){return !!item.el});
   }
   function isFilePreview(){return location.protocol==="file:"}
@@ -29,16 +30,23 @@
     if(!navigator.onLine)return "目前沒有網路；查詢與本機紀錄仍可離線使用。";
     return "Google 登入暫時無法使用，請稍後再試。";
   }
-  function renderBox(el,compact){
+  function renderBox(el,compact,entry){
     const cfg=firebaseConfig();
     if(!cfg){
-      if(compact){el.innerHTML="";return}
+      if(compact&&!entry){el.innerHTML="";return}
+      if(entry){
+        el.innerHTML='<button class="btn btn-ghost" type="button" disabled style="width:100%">Google 登入暫時未啟用</button>'
+          +'<p class="hint" style="margin:9px 0 0">仍可選擇下方的訪客身分使用全部現有功能。</p>';
+        return;
+      }
       el.innerHTML='<div class="account-state"><div class="account-placeholder">G</div><div class="account-copy"><b>Google 登入準備中</b><span>完成 Firebase 設定後即可啟用；目前不會傳送帳號或田間資料。</span></div></div>'
         +'<button class="btn btn-ghost" type="button" disabled style="width:100%;margin-top:10px">尚未啟用 Google 登入</button>';
       return;
     }
     if(isFilePreview()){
-      el.innerHTML=compact
+      el.innerHTML=entry
+        ?'<button class="btn btn-ghost" type="button" disabled style="width:100%">請到正式網站測試 Google 登入</button><p class="hint" style="margin:9px 0 0">本機預覽仍可選擇訪客身分。</p>'
+        :compact
         ?'<p class="hint">請到正式網站測試 Google 登入；本機檔案預覽不執行授權。</p>'
         :'<div class="account-state"><div class="account-placeholder">G</div><div class="account-copy"><b>請到正式網站測試登入</b><span>本機檔案預覽不執行 Google 登入，避免授權網域錯誤。</span></div></div>';
       return;
@@ -52,6 +60,11 @@
       const avatar=currentUser.photoURL
         ?'<img class="account-avatar" src="'+esc(currentUser.photoURL)+'" alt="" referrerpolicy="no-referrer">'
         :'<div class="account-placeholder">G</div>';
+      if(entry){
+        el.innerHTML='<div class="account-state">'+avatar+'<div class="account-copy"><b>'+esc(currentUser.displayName||"Google 使用者")+'</b><span>'+esc(currentUser.email||"")+'</span></div></div>'
+          +'<button class="btn btn-main" type="button" style="width:100%;margin-top:11px" onclick="completeEntryWithGoogle()">使用這個 Google 帳號繼續</button>';
+        return;
+      }
       el.innerHTML='<div class="account-state">'+avatar+'<div class="account-copy"><b>'+esc(currentUser.displayName||"Google 使用者")+'</b><span>'+esc(currentUser.email||"")+'</span></div></div>'
         +(compact
           ?'<p class="hint" style="margin:9px 0 0">Google 帳號已登入；田間資料仍只保存在這台裝置。</p>'
@@ -63,9 +76,9 @@
       return;
     }
     el.innerHTML='<button class="btn btn-main google-signin" type="button" onclick="PQC_ACCOUNT.signIn()"><span class="google-mark">G</span>使用 Google 帳號登入</button>'
-      +'<p class="hint" style="margin:9px 0 0">登入為選用功能；不登入仍可使用目前所有功能與本機紀錄。</p>';
+      +'<p class="hint" style="margin:9px 0 0">'+(entry?'登入只用於帳號識別；田間資料仍保存在這台裝置。':'登入為選用功能；不登入仍可使用目前所有功能與本機紀錄。')+'</p>';
   }
-  function render(){accountBoxes().forEach(function(item){renderBox(item.el,item.compact)})}
+  function render(){accountBoxes().forEach(function(item){renderBox(item.el,item.compact,item.entry)})}
   function loadSdk(){
     if(!sdkPromise){
       sdkPromise=Promise.all([
@@ -98,8 +111,11 @@
     try{
       const provider=new authApi.GoogleAuthProvider();
       provider.setCustomParameters({prompt:"select_account"});
-      await authApi.signInWithPopup(instance,provider);
-    }catch(error){lastError=userMessage(error);render()}
+      const result=await authApi.signInWithPopup(instance,provider);
+      const user=result&&result.user||currentUser||null;
+      if(user&&typeof window.completeEntryWithGoogle==="function")window.completeEntryWithGoogle();
+      return user;
+    }catch(error){lastError=userMessage(error);render();return null}
   }
   async function signOutUser(){
     if(!auth)return;
