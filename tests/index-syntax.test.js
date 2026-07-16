@@ -18,7 +18,7 @@ assert.ok(html.indexOf('<script src="./service-config.js"></script>') < html.ind
 assert.ok(html.indexOf('<script src="./account.js"></script>') < html.indexOf("const DATA="), "account.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="1\.9\.0"/);
+assert.match(html, /const APP_VERSION="0\.1\.9\.0"/);
 assert.match(html, /const SCHEMA_VERSION=3/);
 assert.match(html, /PQC_SAFETY\.shouldShowVolumeApprox\(unit\)/);
 assert.match(html, /PQC_SAFETY\.directCropLevels\(crop,DATA\)/);
@@ -36,7 +36,7 @@ assert.match(html, /function pickPlotCrop\(crop\)/);
 assert.match(html, /function useCustomPlotCrop\(\)/);
 assert.match(html, /data-crop="" data-custom="0" oninput="searchPlotCrops\(this\.value\)"/);
 assert.match(html, /cropSource:linkedCrop\?"registered":"custom"/);
-assert.match(html, /從噴藥前，一路接到採收後/);
+assert.doesNotMatch(html, /一條完整工作流程|從噴藥前，一路接到採收後|最近更新|產品正在持續變好/);
 assert.match(html, /合法用藥查詢/);
 assert.match(html, /安全採收連動/);
 assert.match(html, /id="accountInner" aria-live="polite"/);
@@ -53,7 +53,7 @@ assert.match(sw, /"\.\/safety\.js"/);
 assert.match(sw, /"\.\/farm-records\.js"/);
 assert.match(sw, /"\.\/service-config\.js"/);
 assert.match(sw, /"\.\/account\.js"/);
-assert.match(sw, /v1\.9\.0-open-trial-support-only/);
+assert.match(sw, /v0\.1\.9\.0-open-trial-support-only/);
 
 console.log("✓ index.html 所有程式區塊語法正確");
 console.log("✓ 安全核心載入、版本與離線快取設定正確");
