@@ -19,6 +19,8 @@ assert.ok(html.indexOf('<script src="./account.js"></script>') < html.indexOf("c
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.match(html, /const APP_VERSION="0\.1\.9\.0"/);
+assert.match(html, /<link rel="canonical" href="https:\/\/searchbefore\.tw\/">/);
+assert.match(html, /const PRIVACY_URL="https:\/\/searchbefore\.tw\/privacy\.html"/);
 assert.match(html, /const SCHEMA_VERSION=3/);
 assert.match(html, /PQC_SAFETY\.shouldShowVolumeApprox\(unit\)/);
 assert.match(html, /PQC_SAFETY\.directCropLevels\(crop,DATA\)/);

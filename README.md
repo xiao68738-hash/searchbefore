@@ -2,7 +2,7 @@
 
 台灣農友的農藥登記查詢、配藥計算與田間作業紀錄工具。
 
-正式網站：https://xiao68738-hash.github.io/searchbefore/
+正式網站：https://searchbefore.tw/
 
 ## 新手版工作方式
 
@@ -28,6 +28,14 @@ node tests/run-all.js
 - 自願贊助不影響任何功能；填入 `service-config.js` 的 HTTPS 贊助網址後才顯示可點擊連結。
 - 正式曝光前需在 `service-config.js` 填入回饋信箱與贊助網址；未填入時不會寄往範例信箱或顯示假的贊助連結。
 - 設定步驟與安全界線見 `docs/帳號與付款設定.md`。
+
+## 正式發布
+
+- 原始碼、測試與文件保留在專案中；Firebase Hosting 只發布 `dist/` 內的必要成品。
+- `npm run release:check` 會先執行測試、產生壓縮成品，再確認沒有文件、Source Map 或私密金鑰混入。
+- `dist/` 是可重建的發布成品，不提交至 Git；確認檢查通過後才執行 `npm run deploy:hosting`。
+- 第一次部署前使用 `npm run firebase:login` 登入；也可以先執行 `npm run deploy:preview` 產生暫時預覽網址。Firebase CLI 僅在部署時暫時取得，不列入專案常駐依賴。
+- 正式網域為 `https://searchbefore.tw/`，切換 DNS 前須先用 Firebase 預設網址驗證功能。
 
 ## 首頁功能導覽（v1.6.0）
 
