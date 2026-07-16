@@ -52,6 +52,9 @@ assert.match(html, /其他田區紀錄/);
 assert.match(html, /用藥歷史／匯出用藥紀錄/);
 assert.match(html, /function openRecordHub\(section\)/);
 assert.match(html, /function showRecordHub\(\)/);
+assert.match(html, /id="navSearch" onclick="go\('search',this\)"/);
+assert.match(html, /function openHomeOnLaunch\(\)\{\s*go\("search",document\.getElementById\("navSearch"\)\);\s*\}/);
+assert.match(html, /renderPlotRecordBox\(\);openHomeOnLaunch\(\);/);
 assert.match(html, /id="supportLink"[^>]*rel="noopener noreferrer"/);
 assert.match(html, /id="supportCard" style="display:none/);
 assert.match(html, /是否贊助都不影響任何功能或服務/);
@@ -70,7 +73,7 @@ assert.match(sw, /"\.\/safety\.js"/);
 assert.match(sw, /"\.\/farm-records\.js"/);
 assert.match(sw, /"\.\/service-config\.js"/);
 assert.match(sw, /"\.\/account\.js"/);
-assert.match(sw, /v0\.1\.9\.0-records-hub-navigation/);
+assert.match(sw, /v0\.1\.9\.0-records-hub-home-launch/);
 
 console.log("✓ index.html 所有程式區塊語法正確");
 console.log("✓ 安全核心載入、版本與離線快取設定正確");
