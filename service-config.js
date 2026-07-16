@@ -1,7 +1,8 @@
 /* 公開服務設定（可安全隨網站發布，不得放入私鑰或付款密鑰）
 
    1. Google 登入：將 Firebase 控制台提供的 Web 設定物件填入 firebase。
-   2. 贊助連結：建立自己的贊助頁後，將完整 https 網址填入 supportUrl。
+   2. 回饋信箱：填入專門接收測試回饋的 email。
+   3. 贊助連結：建立自己的贊助頁後，將完整 https 網址填入 supportUrl。
 
    範例：
    firebase: {
@@ -20,5 +21,6 @@ window.PQC_PUBLIC_CONFIG = {
     messagingSenderId: "934300362639",
     appId: "1:934300362639:web:a96c41c1a7e6cd5ea5cdfa"
   },
+  feedbackEmail: "",
   supportUrl: ""
 };

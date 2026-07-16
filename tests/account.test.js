@@ -15,6 +15,7 @@ assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.firebase.projectId, "searchbefore-
 assert.match(sandbox.window.PQC_PUBLIC_CONFIG.firebase.authDomain, /\.firebaseapp\.com$/);
 assert.ok(sandbox.window.PQC_PUBLIC_CONFIG.firebase.apiKey);
 assert.ok(sandbox.window.PQC_PUBLIC_CONFIG.firebase.appId);
+assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.feedbackEmail, "");
 assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.supportUrl, "");
 assert.match(account, /firebasejs\/"\+FIREBASE_VERSION\+"\/firebase-auth\.js/);
 assert.match(account, /signInWithPopup\(instance,provider\)/);
