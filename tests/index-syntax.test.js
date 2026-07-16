@@ -30,6 +30,8 @@ assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.index
 assert.match(html, /const APP_VERSION="0\.1\.9\.0"/);
 assert.match(html, /<title>噴前查 SearchBefore/);
 assert.match(html, /href="\.\/about\.html"/);
+assert.match(html, /id="entryTitle">噴前查 SearchBefore<\/h1>/);
+assert.match(html, /協助台灣農友查詢合法登記藥劑、完成配藥換算/);
 assert.match(html, /<link rel="canonical" href="https:\/\/searchbefore\.tw\/">/);
 assert.match(html, /const PRIVACY_URL="https:\/\/searchbefore\.tw\/privacy\.html"/);
 assert.match(html, /const SCHEMA_VERSION=3/);
@@ -104,7 +106,7 @@ assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
 assert.match(sw, /v0\.1\.9\.0-brand-verification/);
-assert.match(about, /<h1>噴前查<span>SearchBefore<\/span><\/h1>/);
+assert.match(about, /<h1>噴前查 <span>SearchBefore<\/span><\/h1>/);
 assert.match(about, /src="\.\/brand-lockup\.png"/);
 assert.match(about, /Google 登入與資料使用/);
 assert.match(about, /只取得 Google 提供的基本帳號識別資料/);
