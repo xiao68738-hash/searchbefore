@@ -87,7 +87,9 @@ assert.match(sw, /"\.\/safety\.js"/);
 assert.match(sw, /"\.\/farm-records\.js"/);
 assert.match(sw, /"\.\/service-config\.js"/);
 assert.match(sw, /"\.\/account\.js"/);
-assert.match(sw, /v0\.1\.9\.0-entry-polish/);
+assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
+assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
+assert.match(sw, /v0\.1\.9\.0-entry-polish-back/);
 
 console.log("✓ index.html 所有程式區塊語法正確");
 console.log("✓ 安全核心載入、版本與離線快取設定正確");
