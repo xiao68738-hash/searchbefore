@@ -47,7 +47,7 @@
         ?'<img class="account-avatar" src="'+esc(currentUser.photoURL)+'" alt="" referrerpolicy="no-referrer">'
         :'<div class="account-placeholder">G</div>';
       el.innerHTML='<div class="account-state">'+avatar+'<div class="account-copy"><b>'+esc(currentUser.displayName||"Google 使用者")+'</b><span>'+esc(currentUser.email||"")+'</span></div></div>'
-        +'<p class="hint" style="margin:10px 0">登入只用於帳號識別與未來的方案權限；田區、用藥與農務紀錄仍保存在這台裝置。</p>'
+        +'<p class="hint" style="margin:10px 0">登入目前只用於帳號識別；田區、用藥與農務紀錄仍保存在這台裝置。</p>'
         +'<button class="btn btn-ghost" type="button" style="width:100%" onclick="PQC_ACCOUNT.signOut()">登出 Google 帳號</button>';
       return;
     }
@@ -56,7 +56,7 @@
       return;
     }
     el.innerHTML='<button class="btn btn-main google-signin" type="button" onclick="PQC_ACCOUNT.signIn()"><span class="google-mark">G</span>使用 Google 帳號登入</button>'
-      +'<p class="hint" style="margin:9px 0 0">登入為選用功能；不登入仍可使用基本查詢與本機紀錄。</p>';
+      +'<p class="hint" style="margin:9px 0 0">登入為選用功能；不登入仍可使用目前所有功能與本機紀錄。</p>';
   }
   function loadSdk(){
     if(!sdkPromise){
