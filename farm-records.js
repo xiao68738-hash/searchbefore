@@ -139,7 +139,8 @@
     return /[",\n\r]/.test(raw) ? '"' + raw.replace(/"/g, '""') + '"' : raw;
   }
 
-  function exportCsv(records, plotName) {
+  // 結構化表格（head + rows），供 CSV、Excel、列印/PDF 共用同一份欄位邏輯
+  function buildRecordsTable(records, plotName) {
     const label = typeof plotName === "function" ? plotName : function (id) { return id || ""; };
     const head = ["田區/作物紀錄區", "紀錄日期", "紀錄類型", "作業/品項", "數量", "單位", "方法/處理", "供應商/去向", "批號", "憑證號碼", "執行人", "備註"];
     const rows = (Array.isArray(records) ? records : []).slice().sort(function (a, b) {
@@ -152,9 +153,16 @@
       if (r.type === "harvest") { item = d.grade || "採收"; quantity = d.quantity; unit = d.unit; lot = d.batchNo; }
       if (r.type === "postharvest") { item = d.process; quantity = d.quantity; unit = d.unit; method = d.process; party = d.destination; }
       if (r.type === "materialPurchase") { item = d.materialName; quantity = d.quantity; unit = d.unit; method = d.category; party = d.supplier; lot = d.lotNo; receipt = d.receiptNo; }
-      return [label(r.plotId), r.date, RECORD_TYPES[r.type] || r.type, item, quantity, unit, method, party, lot, receipt, r.operator, r.notes].map(csvCell).join(",");
+      return [label(r.plotId), r.date, RECORD_TYPES[r.type] || r.type, item, quantity, unit, method, party, lot, receipt, r.operator, r.notes]
+        .map(function (v) { return v == null ? "" : v; });
     });
-    return "\uFEFF" + head.join(",") + "\n" + rows.join("\n");
+    return { head: head, rows: rows };
+  }
+
+  function exportCsv(records, plotName) {
+    const table = buildRecordsTable(records, plotName);
+    return "\uFEFF" + table.head.map(csvCell).join(",") + "\n"
+      + table.rows.map(function (row) { return row.map(csvCell).join(","); }).join("\n");
   }
 
   function buildTimeline(pesticideRecords, farmRecords, plotId) {
@@ -184,7 +192,7 @@
     return { counts: counts, recordedTypes: recordedTypes, total: recordedTypes.reduce(function (sum, key) { return sum + counts[key]; }, 0) };
   }
 
-  function exportCombinedCsv(pesticideRecords, farmRecords, options) {
+  function buildCombinedTable(pesticideRecords, farmRecords, options) {
     const opts = options || {};
     const plotName = typeof opts.plotName === "function" ? opts.plotName : function (id) { return id || ""; };
     const safeDate = typeof opts.safeDate === "function" ? opts.safeDate : function () { return ""; };
@@ -206,7 +214,13 @@
       if (r.type === "materialPurchase") { item = d.category; material = d.materialName; quantity = [d.quantity, d.unit].filter(Boolean).join(" "); lot = d.lotNo; party = d.supplier; }
       return [plotName(r.plotId), r.date, RECORD_TYPES[r.type] || r.type, item, method, material, quantity, "", safety, lot, party, r.operator, r.notes, r.id];
     });
-    return "\uFEFF" + head.map(csvCell).join(",") + "\n" + rows.map(function (row) { return row.map(csvCell).join(","); }).join("\n");
+    return { head: head, rows: rows };
+  }
+
+  function exportCombinedCsv(pesticideRecords, farmRecords, options) {
+    const table = buildCombinedTable(pesticideRecords, farmRecords, options);
+    return "\uFEFF" + table.head.map(csvCell).join(",") + "\n"
+      + table.rows.map(function (row) { return row.map(csvCell).join(","); }).join("\n");
   }
 
   function buildBackup(data, appVersion) {
@@ -236,9 +250,11 @@
     BACKUP_FORMAT_VERSION: BACKUP_FORMAT_VERSION,
     createRecord: createRecord,
     summary: summary,
+    buildRecordsTable: buildRecordsTable,
     exportCsv: exportCsv,
     buildTimeline: buildTimeline,
     recordCoverage: recordCoverage,
+    buildCombinedTable: buildCombinedTable,
     exportCombinedCsv: exportCombinedCsv,
     buildBackup: buildBackup,
     readBackup: readBackup,
