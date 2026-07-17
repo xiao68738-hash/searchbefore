@@ -35,7 +35,7 @@ for (const name of ["account.js", "farm-records.js", "safety.js", "service-confi
 
 const html = await readFile(path.join(outDir, "index.html"), "utf8");
 const inlineScripts = [];
-const scriptRe = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi;
+const scriptRe = /<script(?![^>]*\bsrc=)(?![^>]*type=["']application\/ld\+json["'])[^>]*>([\s\S]*?)<\/script>/gi;
 let match;
 while ((match = scriptRe.exec(html))) inlineScripts.push(match[1]);
 assert.ok(inlineScripts.length >= 2);
