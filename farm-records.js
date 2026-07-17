@@ -52,6 +52,7 @@
     if (type === "fertilizer") {
       return {
         materialName: required(d.materialName, "肥料或資材名稱"),
+        dressing: text(d.dressing),
         quantity: numberText(required(d.quantity, "施用量")),
         unit: required(d.unit, "施用量單位"),
         method: text(d.method),
@@ -127,7 +128,7 @@
     const r = record || {};
     const d = r.details || {};
     if (r.type === "cultivation") return [d.activity, d.method].filter(Boolean).join(" · ");
-    if (r.type === "fertilizer") return [d.materialName, d.quantity && d.unit ? d.quantity + " " + d.unit : "", d.method].filter(Boolean).join(" · ");
+    if (r.type === "fertilizer") return [d.materialName, d.dressing, d.quantity && d.unit ? d.quantity + " " + d.unit : "", d.method].filter(Boolean).join(" · ");
     if (r.type === "harvest") return [d.quantity && d.unit ? d.quantity + " " + d.unit : "", d.grade, d.batchNo ? "批號 " + d.batchNo : ""].filter(Boolean).join(" · ");
     if (r.type === "postharvest") return [d.process, d.quantity && d.unit ? d.quantity + " " + d.unit : "", d.destination].filter(Boolean).join(" · ");
     if (r.type === "materialPurchase") return [d.materialName, d.quantity && d.unit ? d.quantity + " " + d.unit : "", d.supplier].filter(Boolean).join(" · ");
@@ -149,7 +150,7 @@
       const d = r.details || {};
       let item = "", quantity = "", unit = "", method = "", party = "", lot = "", receipt = "";
       if (r.type === "cultivation") { item = d.activity; method = d.method; }
-      if (r.type === "fertilizer") { item = d.materialName; quantity = d.quantity; unit = d.unit; method = d.method; lot = d.lotNo; }
+      if (r.type === "fertilizer") { item = d.materialName; quantity = d.quantity; unit = d.unit; method = [d.dressing, d.method].filter(Boolean).join(" · "); lot = d.lotNo; }
       if (r.type === "harvest") { item = d.grade || "採收"; quantity = d.quantity; unit = d.unit; lot = d.batchNo; }
       if (r.type === "postharvest") { item = d.process; quantity = d.quantity; unit = d.unit; method = d.process; party = d.destination; }
       if (r.type === "materialPurchase") { item = d.materialName; quantity = d.quantity; unit = d.unit; method = d.category; party = d.supplier; lot = d.lotNo; receipt = d.receiptNo; }
@@ -203,12 +204,12 @@
       const r = event.source || {};
       if (event.kind === "pesticide") {
         const phi = r.phi == null ? "未提供" : String(r.phi) + " 天";
-        return [plotName(r.plotId), r.date, "用藥", r.crop, r.pest, r.agent, r.dil ? r.dil + " 倍" : "", phi, safeDate(r), "", "", "", "", r.id];
+        return [plotName(r.plotId), r.date, "用藥", r.crop, r.pest, r.agent, r.dil ? r.dil + " 倍" : "", phi, safeDate(r), "", "", r.operator || "", "", r.id];
       }
       const d = r.details || {};
       let item = "", method = "", material = "", quantity = "", lot = "", party = "", safety = "";
       if (r.type === "cultivation") { item = d.activity; method = d.method; }
-      if (r.type === "fertilizer") { item = "施肥"; method = d.method; material = d.materialName; quantity = [d.quantity, d.unit].filter(Boolean).join(" "); lot = d.lotNo; }
+      if (r.type === "fertilizer") { item = "施肥"; method = [d.dressing, d.method].filter(Boolean).join(" · "); material = d.materialName; quantity = [d.quantity, d.unit].filter(Boolean).join(" "); lot = d.lotNo; }
       if (r.type === "harvest") { item = d.grade || "採收"; quantity = [d.quantity, d.unit].filter(Boolean).join(" "); lot = d.batchNo; safety = r.safetyCheck ? r.safetyCheck.status + (r.safetyCheck.safeDate ? " / " + r.safetyCheck.safeDate : "") : "未連動檢查"; }
       if (r.type === "postharvest") { item = d.process; method = d.process; quantity = [d.quantity, d.unit].filter(Boolean).join(" "); party = d.destination; }
       if (r.type === "materialPurchase") { item = d.category; material = d.materialName; quantity = [d.quantity, d.unit].filter(Boolean).join(" "); lot = d.lotNo; party = d.supplier; }
