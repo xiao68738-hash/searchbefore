@@ -71,7 +71,8 @@
         :'<div class="account-placeholder">'+googleLogo()+'</div>';
       if(entry){
         el.innerHTML='<div class="account-state">'+avatar+'<div class="account-copy"><b>'+esc(currentUser.displayName||"Google 使用者")+'</b><span>'+esc(currentUser.email||"")+'</span></div></div>'
-          +'<button class="btn btn-main" type="button" style="width:100%;margin-top:11px" onclick="completeEntryWithGoogle()">使用這個 Google 帳號繼續</button>';
+          +'<button class="btn btn-main" type="button" style="width:100%;margin-top:11px" onclick="completeEntryWithGoogle()">使用先前登入的帳號</button>'
+          +'<button class="btn btn-ghost" type="button" style="width:100%;margin-top:8px" onclick="PQC_ACCOUNT.signIn()">使用其他帳號登入</button>';
         return;
       }
       el.innerHTML='<div class="account-state">'+avatar+'<div class="account-copy"><b>'+esc(currentUser.displayName||"Google 使用者")+'</b><span>'+esc(currentUser.email||"")+'</span></div></div>'
@@ -87,7 +88,12 @@
     el.innerHTML='<button class="btn btn-main google-signin" type="button" onclick="PQC_ACCOUNT.signIn()">'+googleMark()+'<span>使用 Google 帳號登入</span></button>'
       +(entry?'':'<p class="hint" style="margin:9px 0 0">登入為選用功能；不登入仍可使用目前所有功能與本機紀錄。</p>');
   }
-  function render(){accountBoxes().forEach(function(item){renderBox(item.el,item.compact,item.entry)})}
+  function render(){
+    accountBoxes().forEach(function(item){renderBox(item.el,item.compact,item.entry)});
+    // 已登入就不再提供訪客入口（入口頁專用）
+    const guestBlock=document.getElementById("entryGuestBlock");
+    if(guestBlock)guestBlock.style.display=currentUser?"none":"";
+  }
   function loadSdk(){
     if(!sdkPromise){
       sdkPromise=Promise.all([
