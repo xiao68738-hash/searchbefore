@@ -17,10 +17,12 @@ const fertilizer = farm.createRecord({
   type: "fertilizer",
   date: "2026-07-15",
   notes: "雨後施用",
-  details: { materialName: "有機質肥料", quantity: "20", unit: "kg", method: "撒施", lotNo: "A123" }
+  details: { materialName: "有機質肥料", dressing: "基肥", quantity: "20", unit: "kg", method: "撒施", lotNo: "A123" }
 }, () => "farm-2");
 assert.equal(fertilizer.details.quantity, "20");
+assert.equal(fertilizer.details.dressing, "基肥");
 assert.match(farm.summary(fertilizer), /有機質肥料/);
+assert.match(farm.summary(fertilizer), /基肥/);
 
 const harvest = farm.createRecord({
   plotId: "plot-1",
@@ -52,7 +54,7 @@ assert.match(csv, /番茄 \/ A區/);
 assert.match(csv, /施肥/);
 assert.ok(csv.indexOf("2026-07-14") < csv.indexOf("2026-07-15"));
 
-const pesticide = { id: "rec-1", plotId: "plot-1", crop: "番茄", pest: "疫病", agent: "測試藥", date: "2026-07-16", phi: 3, dil: "1000" };
+const pesticide = { id: "rec-1", plotId: "plot-1", crop: "番茄", pest: "疫病", agent: "測試藥", date: "2026-07-16", phi: 3, dil: "1000", operator: "王小明" };
 const timeline = farm.buildTimeline([pesticide], [cultivation, fertilizer, harvest], "plot-1");
 assert.equal(timeline.length, 4);
 assert.equal(timeline[0].id, "farm-3");
@@ -69,6 +71,8 @@ assert.match(combined, /事件類型/);
 assert.match(combined, /用藥/);
 assert.match(combined, /H001/);
 assert.match(combined, /safe \/ 2026-07-18/);
+assert.match(combined, /基肥/);
+assert.match(combined, /王小明/);
 
 const backup = farm.buildBackup({ records: [], farmRecords: [fertilizer], fieldPlots: [] }, "1.4.0");
 assert.equal(backup.product, "searchbefore-backup");
