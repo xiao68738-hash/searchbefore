@@ -107,7 +107,7 @@ assert.match(sw, /"\.\/brand-lockup\.png"/);
 assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0\.1\.9\.0-sponsor-spot/);
+assert.match(sw, /v0\.1\.9\.0-sponsor-tiers/);
 assert.match(about, /<h1>噴前查 <span>SearchBefore<\/span><\/h1>/);
 assert.match(about, /src="\.\/brand-lockup\.png"/);
 assert.match(about, /Google 登入與資料使用/);
