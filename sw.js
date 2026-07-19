@@ -8,7 +8,7 @@
    這個動作本身就是觸發更新的開關,不要忘記。
 */
 
-const CACHE_VERSION = "v0.1.9.0-crop-forms-2026-07-19";
+const CACHE_VERSION = "v0.1.9.0-pest-aids-2026-07-19";
 const CACHE_NAME = "pqc-" + CACHE_VERSION;
 
 /* 只放骨架。App 本體(index.html)約 1MB gzip,用 reload 強制繞過 HTTP 快取抓最新版。 */
@@ -19,6 +19,7 @@ const PRECACHE = [
   "./safety.js",
   "./farm-records.js",
   "./crop-forms.js",
+  "./query-aids.js",
   "./export-formats.js",
   "./about.html",
   "./privacy.html",
