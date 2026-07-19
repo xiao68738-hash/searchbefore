@@ -1,0 +1,1607 @@
+{
+  "generatedAt": "2026-07-19T13:44:20.269Z",
+  "sourceSnapshots": {
+    "mrl": "2026-07-19T13-43-39-026Z",
+    "pesticides": "2026-07-19T13-43-54-694Z",
+    "cropCategories": "2026-07-19T13-43-54-694Z",
+    "exempt": "2026-07-19T13-43-54-694Z"
+  },
+  "rows": [
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "貝萊斯芽孢桿菌BF",
+      "uses": 147,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "液化澱粉芽孢桿菌Tcba05",
+      "uses": 30,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "殺紋依得利",
+      "uses": 26,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "枯草桿菌KHY8",
+      "uses": 14,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "銅合硫磺",
+      "uses": 8,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "波爾多",
+      "uses": 8,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "達滅克絕",
+      "uses": 8,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "液化澱粉芽孢桿菌CL3",
+      "uses": 5,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "因汀氟滅",
+      "uses": 4,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "苦參鹼",
+      "uses": 4,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "小菜蛾性費洛蒙",
+      "uses": 3,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "白殭菌A1",
+      "uses": 3,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "克蠅香",
+      "uses": 3,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "液化澱粉芽孢桿菌Ba-BPD1",
+      "uses": 3,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "硫黃芬胺",
+      "uses": 2,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "滅芬百速隆",
+      "uses": 2,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "發光光桿菌0805-P2R",
+      "uses": 1,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "賽氟菲克利",
+      "uses": 1,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "嘉賜圃",
+      "uses": 1,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "果收生長素",
+      "uses": 1,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "貝萊斯芽孢桿菌N17",
+      "uses": 1,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "官方許可證名稱查無",
+      "appName": "待克三元銅",
+      "uses": 1,
+      "detail": "尚未解析，不可推論法規狀態"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "賽洛寧",
+      "uses": 1042,
+      "detail": "LAMBDA-CYHALOTHRIN"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "礦物油",
+      "uses": 137,
+      "detail": "PETROLEUM OIL"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "氫氧化銅",
+      "uses": 58,
+      "detail": "COPPER HYDROXIDE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "鋅錳乃浦",
+      "uses": 56,
+      "detail": "MANCOZEB"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "甲基多保淨",
+      "uses": 50,
+      "detail": "THIOPHANATE-METHYL"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "鮎澤蘇力菌ABTS-1857",
+      "uses": 38,
+      "detail": "BACILLUS THURINGIENSIS SUBSP. AIZAWAI STRAIN ABTS-1857"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "鋅錳座賽胺",
+      "uses": 33,
+      "detail": "MANCOZEB"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "維利黴素",
+      "uses": 33,
+      "detail": "VALIDAMYCIN"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "亞滅寧",
+      "uses": 33,
+      "detail": "ALPHA-CYPERMETHRIN"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "斜紋夜蛾費洛蒙",
+      "uses": 31,
+      "detail": "SPODOPTERA LITURA SEX PHEROMONE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "庫斯蘇力菌ABTS-351",
+      "uses": 31,
+      "detail": "BACILLUS THURINGIENSIS SUBSP. KURSTAKI STRAIN ABTS-351"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "克熱淨(烷苯磺酸鹽)",
+      "uses": 31,
+      "detail": "IMINOCTADINE TRIS(ALBESILATE)"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "免得爛",
+      "uses": 29,
+      "detail": "METIRAM"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "甜菜夜蛾費洛蒙",
+      "uses": 28,
+      "detail": "SEX PHEROMONES OF SPODOPTERA EXIQUA"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "鮎澤蘇力菌NB-200",
+      "uses": 27,
+      "detail": "BACILLUS THURINGIENSIS SUBSP. AIZAWAI STRAIN NB-200"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "免賴得",
+      "uses": 26,
+      "detail": "BENOMYL"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "銅右滅達樂",
+      "uses": 24,
+      "detail": "METALAXYL-M"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "錳乃浦",
+      "uses": 24,
+      "detail": "MANEB"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "鋅錳克絕",
+      "uses": 24,
+      "detail": "MANCOZEB"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "賽速洛寧",
+      "uses": 23,
+      "detail": "LAMBDA-CYHALOTHRIN"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "貝他-賽扶寧",
+      "uses": 22,
+      "detail": "BETA-CYFLUTHRIN"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "嘉磷塞異丙胺鹽",
+      "uses": 21,
+      "detail": "GLYPHOSATE IPA"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "蓋棘木黴菌ICC080/012",
+      "uses": 20,
+      "detail": "TRICHODERMA GAMSII ICC 080 + TRICHODERMA ASPERELLUM ICC 012"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "福化利",
+      "uses": 20,
+      "detail": "TAU-FLUVALINATE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "快伏草",
+      "uses": 19,
+      "detail": "QUIZALOFOP-P-ETHYL"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "庫斯蘇力菌E-911",
+      "uses": 18,
+      "detail": "BACILLUS THURINGIENSIS SUBSP. KURSTAKI STRAIN E-911"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "庫斯蘇力菌SA-12",
+      "uses": 18,
+      "detail": "BACILLUS THURINGIENSIS SUBSP. KURSTAKI STRAIN SA-12"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "枯草桿菌Y1336",
+      "uses": 17,
+      "detail": "BACILLUS SUBTILIS Y1336"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "庫斯蘇力菌SA-11",
+      "uses": 14,
+      "detail": "BACILLUS THURINGIENSIS SUBSP. KURSTAKI STRAIN SA-11"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "賽洛安勃",
+      "uses": 13,
+      "detail": "LAMBDA-CYHALOTHRIN"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "右滅達樂",
+      "uses": 13,
+      "detail": "METALAXYL-M"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "多保鏈黴素",
+      "uses": 12,
+      "detail": "THIOPHANATE-METHYL"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "甲基鋅乃浦",
+      "uses": 11,
+      "detail": "PROPINEB"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "免得克敏",
+      "uses": 11,
+      "detail": "METIRAM"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "碳酸氫鉀",
+      "uses": 11,
+      "detail": "POTASSIUM HYDROGENCARBONATE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "鋅錳滅達樂",
+      "uses": 10,
+      "detail": "MANCOZEB"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "克熱淨",
+      "uses": 10,
+      "detail": "IMINOCTADINE TRIACETATE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "益洛寧",
+      "uses": 10,
+      "detail": "LAMBDA-CYHALOTHRIN"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "撲克拉錳",
+      "uses": 9,
+      "detail": "PROCHLORAZ-MANGANESE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "本達亞喜芬",
+      "uses": 8,
+      "detail": "BENTAZON"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "克凡洛寧",
+      "uses": 8,
+      "detail": "LAMBDA-CYHALOTHRIN"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "福賽亞汰尼",
+      "uses": 8,
+      "detail": "FOSETYL-ALUMINIUM"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "得恩地",
+      "uses": 8,
+      "detail": "THIRAM"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "快得保淨",
+      "uses": 5,
+      "detail": "THIOPHANATE-METHYL"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "嘉磷塞 (胺鹽 )",
+      "uses": 5,
+      "detail": "GLYPHOSATE AMMONIUM"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "保粒黴素 丁",
+      "uses": 5,
+      "detail": "POLYOXORIM"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "鹼氯氫氧銅",
+      "uses": 5,
+      "detail": "COPPER HYDROXIDE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "綠木黴菌R42",
+      "uses": 4,
+      "detail": "TRICHODERMA VIRENS STRAIN R42"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "左旋莫多草",
+      "uses": 4,
+      "detail": "S-METOLACHLOR"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "銅快得寧",
+      "uses": 4,
+      "detail": "COPPER HYDROXIDE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "邁隆",
+      "uses": 4,
+      "detail": "DAZOMET"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "移植生長素",
+      "uses": 4,
+      "detail": "NAD"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "甜菜夜蛾核多角體病毒",
+      "uses": 4,
+      "detail": "SPODOPTERA EXIGUA NUCLEOPOLYHEDROVIRUS"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "磷化鎂",
+      "uses": 3,
+      "detail": "MAGNESIUM PHOSPHIDE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "本達隆",
+      "uses": 3,
+      "detail": "BENTAZON"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "四氯保淨",
+      "uses": 3,
+      "detail": "THIOPHANATE-METHYL"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "硫酸快得寧",
+      "uses": 3,
+      "detail": "COPPER SULPHATE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "四氯賽得",
+      "uses": 3,
+      "detail": "FOSETYL AL"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "克美素",
+      "uses": 3,
+      "detail": "CHLORMEQUAT CHLORIDE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "氟比賽得",
+      "uses": 2,
+      "detail": "FOSETYL-ALUMINIUM"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "益化利",
+      "uses": 2,
+      "detail": "ESFENVALERATE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "四氯右滅達樂",
+      "uses": 2,
+      "detail": "METALAXYL-M"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "萘乙酸鈉",
+      "uses": 2,
+      "detail": "NAA-SODIUM"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "納得亞滅寧",
+      "uses": 2,
+      "detail": "ALPHA-CYPERMETHRIN"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "氟氯比",
+      "uses": 2,
+      "detail": "FLUROXYPYR-MEPTYL"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "艾維激素",
+      "uses": 2,
+      "detail": "AMINOETHOXYVINYLGLYCINE HYDROCHLORIDE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "保粒快得寧",
+      "uses": 2,
+      "detail": "POLYOXIN B"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "克熱賜圃",
+      "uses": 2,
+      "detail": "IMINOCTADINE TRIACETATE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "蕈狀芽孢桿菌AGB01",
+      "uses": 2,
+      "detail": "BACILLUS MYCOIDES AGB01"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "鮎澤蘇力菌GC-91",
+      "uses": 2,
+      "detail": "BACILLUS THURINGIENSIS SUBSP. AIZAWAI STRAIN GC-91"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "福芬素",
+      "uses": 2,
+      "detail": "FORCHLORFENURON"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "保粒保淨",
+      "uses": 2,
+      "detail": "THIOPHANATE-METHYL"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "克絕波爾多",
+      "uses": 2,
+      "detail": "BORDEAUX"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "鮎澤蘇力菌Ab12",
+      "uses": 2,
+      "detail": "BACILLUS THURINGIENSIS SUBSP. AIZAWAI STRAIN AB12"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "貝萊斯芽孢桿菌 BACY",
+      "uses": 2,
+      "detail": "BACILLUS VELEZENSIS BACY"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "甲鋅保粒素",
+      "uses": 2,
+      "detail": "PROPINEB + POLYOXIN B"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "美賜平",
+      "uses": 1,
+      "detail": "S-METHOPRENE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "伏滅鼠",
+      "uses": 1,
+      "detail": "FLOCOUMAFEN"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "可滅鼠",
+      "uses": 1,
+      "detail": "BRODIFACOUM"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "含毒甲基丁香油",
+      "uses": 1,
+      "detail": "METHYL EUGENOL-NALED"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "布芬益化利",
+      "uses": 1,
+      "detail": "ESFENVALERATE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "貝萊斯芽孢桿菌WG6-14",
+      "uses": 1,
+      "detail": "BACILLUS VELEZENSIS WG6-14"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "耐克螺",
+      "uses": 1,
+      "detail": "NICLOSAMIDE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "丁拉汰草",
+      "uses": 1,
+      "detail": "DAIMURON"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "本達快克草",
+      "uses": 1,
+      "detail": "BENTAZON"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "汰硫免速隆",
+      "uses": 1,
+      "detail": "BENSULFURON METHYL"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "汰草龍",
+      "uses": 1,
+      "detail": "DAIMURON"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "滅芬免速隆",
+      "uses": 1,
+      "detail": "BENSULFURONMETHYL"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "甲鋅保淨",
+      "uses": 1,
+      "detail": "PROPINEB + THIOPHANATE-METHYL"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "賽福保淨",
+      "uses": 1,
+      "detail": "THIOPHANATE-METHYL"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "銅合腐絕",
+      "uses": 1,
+      "detail": "COPPER HYDROXIDE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "二、四－地胺鹽",
+      "uses": 1,
+      "detail": "2,4-D(AMINE)"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "二、四－地鈉鹽",
+      "uses": 1,
+      "detail": "2,4-D(SODIUM)"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "生長寧素",
+      "uses": 1,
+      "detail": "NAA + KINETIN"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "傑他賽滅寧",
+      "uses": 1,
+      "detail": "ZETA-CYPERMETHRIN"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "畢克草",
+      "uses": 1,
+      "detail": "CLOPYRALID"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "普拔草",
+      "uses": 1,
+      "detail": "PROPAQUIZAFOP"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "番茄生長素",
+      "uses": 1,
+      "detail": "4-CPA"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "伽瑪賽洛寧",
+      "uses": 1,
+      "detail": "GAMMA-CYHALOTHRIN"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "合速隆",
+      "uses": 1,
+      "detail": "HALOSULFURON-METHYL"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "單克素",
+      "uses": 1,
+      "detail": "UNICONAZOLE-P"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "開寧激素",
+      "uses": 1,
+      "detail": "KINETIN"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "氰滿素",
+      "uses": 1,
+      "detail": "CYANAMIDE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "鋅錳右本達樂",
+      "uses": 1,
+      "detail": "MANCOZEB + BENALAXYL-M"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "鋅錳本達樂",
+      "uses": 1,
+      "detail": "MANCOZEB"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "鋅錳曼普胺",
+      "uses": 1,
+      "detail": "MANCOZEB"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "勃寧激素",
+      "uses": 1,
+      "detail": "GIBBERELLIN A4 WITH A7 + 6-BENZYLAMINOPURINE"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "亞培松",
+      "uses": 1,
+      "detail": "TEMEPHOS"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "百里酚",
+      "uses": 1,
+      "detail": "THYMOL"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "左固殺草",
+      "uses": 1,
+      "detail": "GLUFOSINATE-P"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "不結球萵苣與半結球萵苣",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "丹參",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "亞洲棕櫚",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "亞麻",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "人心果",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "休閒地",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "作物園",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "倉庫",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "刺桐屬植物",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "十字花科乾豆類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "十字花科根菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "可可",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "向日葵",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "咖啡",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "唇形花科小葉菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "唐菖蒲",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "嘉寶果",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "嘉德麗雅蘭",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "土肉桂",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "地黃",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "太平洋榅桲",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "婆羅門參",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "山茶",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "山茶科茶類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "山防風",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "康乃馨",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "愛玉子",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "旋花科小葉菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "旋花科根菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "晚香玉",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "木虌果",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "松樹",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "果樹",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "果苗",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "柿樹科梨果類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "根菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "桉屬植物",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "桑樹",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "桑科大漿果類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "桑科小漿果類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "棉",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "樹木",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "樹豆",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "檬果",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "檳榔",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "油茶",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "洋桔梗",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "火鶴花",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "無患子科核果類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "特用",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "狗尾草",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "狼尾草",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "獼猴桃",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "甜菜",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "當歸",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "百合",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "百慕達草",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "睡蓮",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "破布子",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "禾本科雜糧類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "稻穀",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "穀倉",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "竹",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "紅龍果",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "結縷草",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "繖形花科小葉菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "繖形花科根菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "胡麻",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "臺灣欒樹",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "臺灣藜",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "芋",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "花木",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "花豆",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "茄科小葉菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "茄科果菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "茄科根菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "茉莉",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "茴香",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "草皮",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "荖藤",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "莧科小葉菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "菊",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "菊科乾豆類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "菊科包葉菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "菊科小葉菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "菊科根菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "菠蘿蜜",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "菸草倉庫",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "萬代蘭",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "葫蘆科小葉菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "蒟蒻",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "蓖麻",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "蓮",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "蔥",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "蔥科小葉菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "蔥科根菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "蔥韭",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "蔬菜",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "薏苡",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "薔薇科梨果類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "藜科小葉菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "藜科根菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "蘇鐵",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "蘭",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "蘭科作物",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "虱目魚塭",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "蛇麻",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "蛋黃果",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "蜜蜂",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "觀賞植物",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "豆科乾豆類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "豆科小葉菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "豆科根菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "豆科豆菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "豇豆",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "輸入植物檢疫物",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "造林地",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "野薑",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "金線連",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "銀柳",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "錦葵科果菜類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "鐘麻",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "闊葉大豆",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "非耕作農地",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "韭",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "風茹",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "鳳仙",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "麥蔥",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "黃耆",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "黃麻",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "黑婆羅門參",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "鼠李科梨果類",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "龍葵",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    },
+    {
+      "type": "作物尚未分類",
+      "appName": "龍骨瓣莕菜",
+      "uses": "",
+      "detail": "可能需對到官方分類，或屬非食用／非作物項目"
+    }
+  ]
+}
