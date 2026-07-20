@@ -17,3 +17,5 @@ scripts/**
 *.pem
 service-account*.json
 *-firebase-adminsdk-*.json
+mrl-data
+mrl-data/**
