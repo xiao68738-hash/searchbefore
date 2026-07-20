@@ -8,9 +8,9 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..");
 const outDir = path.join(root, "dist");
 const expected = [
-  "about.html", "account.js", "brand-lockup.png", "brand-logo-120.png", "farm-records.js", "icon-180.png", "icon-192.png", "icon-512.png",
+  "about.html", "account.js", "brand-lockup.png", "brand-logo-120.png", "crop-forms.js", "export-formats.js", "farm-records.js", "icon-180.png", "icon-192.png", "icon-512.png",
   "icon-maskable-512.png", "index.html", "manifest.webmanifest", "privacy.html",
-  "safety.js", "service-config.js", "sw.js"
+  "query-aids.js", "safety.js", "service-config.js", "sw.js"
 ].sort();
 
 const actual = (await readdir(outDir)).sort();
@@ -29,11 +29,19 @@ assert.match(combined, /https:\/\/searchbefore\.tw\/privacy\.html/);
 assert.match(combined, /https:\/\/searchbefore\.tw\/about\.html/);
 assert.match(combined, /噴前查 SearchBefore/);
 
-for (const name of ["account.js", "farm-records.js", "safety.js", "service-config.js", "sw.js"]) {
+for (const name of ["account.js", "crop-forms.js", "export-formats.js", "farm-records.js", "query-aids.js", "safety.js", "service-config.js", "sw.js"]) {
   new vm.Script(await readFile(path.join(outDir, name), "utf8"), { filename: `dist/${name}` });
 }
 
 const html = await readFile(path.join(outDir, "index.html"), "utf8");
+const referencedScripts = [...html.matchAll(/<script[^>]+\bsrc=["']\.\/([^"'?#]+)["']/gi)].map(match => match[1]);
+assert.ok(referencedScripts.length >= 7, "index.html 應載入必要的外部程式");
+for (const name of referencedScripts) assert.ok(actual.includes(name), `dist 缺少 index.html 引用的 ${name}`);
+
+const sw = await readFile(path.join(outDir, "sw.js"), "utf8");
+const precacheFiles = [...sw.matchAll(/["']\.\/([^"'?#]*)["']/g)].map(match => match[1]).filter(Boolean);
+for (const name of precacheFiles) assert.ok(actual.includes(name), `dist 缺少 Service Worker 快取的 ${name}`);
+
 const inlineScripts = [];
 const scriptRe = /<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi;
 let match;
