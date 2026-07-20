@@ -19,3 +19,10 @@ firebase-debug.log*
 Thumbs.db
 *.tmp
 *.bak
+
+# Android 簽章金鑰:遺失或外洩都無法挽回,絕不可進版控
+*.keystore
+*.jks
+*.pepk
+android-signing*
+signing-key*
