@@ -137,5 +137,43 @@ assert.deepEqual(pngSize("brand-logo-120.png"),{width:120,height:120});
 assert.deepEqual(pngSize("icon-192.png"),{width:192,height:192});
 assert.deepEqual(pngSize("icon-512.png"),{width:512,height:512});
 
+/* ── TWA(Google Play)上架前置 ── */
+/* GitHub Pages 預設以 Jekyll 建置,會忽略 . 開頭的資料夾,
+   少了 .nojekyll 會導致 /.well-known/assetlinks.json 部署後 404,
+   且無任何錯誤訊息。此檔不可刪除。 */
+assert.ok(fs.existsSync(path.join(root, ".nojekyll")),
+  ".nojekyll 必須存在,否則 GitHub Pages 會忽略 .well-known 導致 TWA 驗證失敗");
+
+/* PWA manifest 必備欄位(TWA 封裝與 Play 上架都會檢查) */
+for (const key of ["name", "short_name", "start_url", "scope", "display", "icons"]) {
+  assert.ok(manifest[key], `manifest 缺少 TWA 必要欄位:${key}`);
+}
+assert.equal(manifest.display, "standalone", "TWA 需要 display: standalone");
+const iconSizes = manifest.icons.map(i => i.sizes);
+assert.ok(iconSizes.includes("512x512"), "manifest 必須含 512x512 圖示");
+assert.ok(manifest.icons.some(i => String(i.purpose || "").includes("maskable")),
+  "manifest 必須含 maskable 圖示,否則 Android 桌面圖示會被裁切");
+
+/* assetlinks.json 若已放入,格式必須正確——格式錯誤會讓 App 出現網址列 */
+const assetlinksPath = path.join(root, ".well-known", "assetlinks.json");
+if (fs.existsSync(assetlinksPath)) {
+  const links = JSON.parse(fs.readFileSync(assetlinksPath, "utf8"));
+  assert.ok(Array.isArray(links) && links.length, "assetlinks.json 應為非空陣列");
+  for (const entry of links) {
+    assert.ok(Array.isArray(entry.relation) && entry.relation.includes("delegate_permission/common.handle_all_urls"),
+      "assetlinks.json 缺少正確的 relation");
+    assert.equal(entry.target?.namespace, "android_app");
+    assert.ok(entry.target?.package_name, "assetlinks.json 缺少 package_name");
+    const fps = entry.target?.sha256_cert_fingerprints;
+    assert.ok(Array.isArray(fps) && fps.length, "assetlinks.json 缺少 sha256_cert_fingerprints");
+    for (const fp of fps) {
+      assert.match(fp, /^([0-9A-F]{2}:){31}[0-9A-F]{2}$/i,
+        "SHA-256 指紋格式須為 32 組冒號分隔的十六進位:" + fp);
+    }
+  }
+  console.log("✓ assetlinks.json 格式正確");
+}
+
 console.log("✓ index.html 所有程式區塊語法正確");
 console.log("✓ 安全核心載入、版本與離線快取設定正確");
+console.log("✓ TWA 上架前置:.nojekyll 存在、manifest 欄位完整");
