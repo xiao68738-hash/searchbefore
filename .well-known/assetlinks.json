@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "tw.searchbefore.app",
+    "sha256_cert_fingerprints": ["D7:49:13:3D:6C:22:AA:BB:0E:48:65:4A:42:46:52:F4:5D:BF:92:20:C2:C5:86:81:3A:93:47:CD:A7:BF:2F:BE"]
+  }
+}]
