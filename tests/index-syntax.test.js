@@ -28,7 +28,7 @@ assert.ok(html.indexOf('<script src="./account.js"></script>') < html.indexOf("c
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="0\.1\.11\.0"/);
+assert.match(html, /const APP_VERSION="0\.1\.12\.0"/);
 assert.match(html, /<title>噴前查 SearchBefore/);
 assert.match(html, /href="\.\/about\.html"/);
 assert.match(html, /id="entryTitle">噴前查 SearchBefore<\/h1>/);
@@ -48,6 +48,15 @@ assert.match(html, /<script src="\.\/cloud-sync\.js"><\/script>/);
    同步開啟時說「只存在這台裝置」會讓農友重複手動備份;
    未登入時說「已備份」則會讓他們以為有備援而其實沒有。 */
 assert.match(html, /id="backupNote"/);
+
+/* 殘留容許量說明:必須維持中性陳述。
+   衛福部資料中沒有「不得檢出」這個值(8,258 筆容許量全為數字),
+   不得檢出是「查無此筆」的預設結果 —— 因此比對失敗與真正未訂容許量
+   在系統中無法區分。一旦把查無結果講成「風險」,合法登記藥劑會被誤報,
+   農友被誤報一次就會忽略所有警告,包括真正該注意的。 */
+assert.match(html, /殘留容許量尚未納入/);
+assert.match(html, /未涵蓋衛福部訂定的農產品殘留容許量標準/);
+assert.doesNotMatch(html, /殘留超標風險|有超標風險|不得檢出風險|禁用藥劑警告/);
 assert.match(html, /function renderBackupNote\(\)/);
 assert.match(html, /常用配方與偏好設定仍只存在這台裝置/);
 assert.match(html, /用藥、田間作業、田區與配方只存在這台裝置/);
@@ -124,7 +133,7 @@ assert.match(sw, /"\.\/brand-lockup\.png"/);
 assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0\.1\.11\.0-batch-calendar/);
+assert.match(sw, /v0\.1\.12\.0-mrl-scope-note/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.ok(html.indexOf('<script src="./query-aids.js"></script>') < html.indexOf("const DATA="), "query-aids.js 必須在主程式前載入");
 assert.match(html, /function renderPestRelated\(\)/);
