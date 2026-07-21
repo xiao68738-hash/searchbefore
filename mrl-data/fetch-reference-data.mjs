@@ -40,6 +40,26 @@ async function fetchJson(url, attempts = 3) {
   throw new Error(`下載失敗 ${url}: ${lastError?.message || lastError}`);
 }
 
+/* 農業部端點單頁上限 9,999 筆,直接抓會靜默少資料 —— 不會報錯,
+   只是回傳剛好 9,999 筆。已實測 $skip 有效,逐頁抓到回傳空陣列為止。
+   PAGE 刻意小於上限,若日後官方調整上限也不會又被截斷。 */
+const PAGE = 5_000;
+async function fetchAllPaged(url, label) {
+  const all = [];
+  for (let skip = 0; ; skip += PAGE) {
+    const sep = url.includes("?") ? "&" : "?";
+    const page = await fetchJson(`${url}${sep}$top=${PAGE}&$skip=${skip}`);
+    const rows = Array.isArray(page) ? page : [];
+    all.push(...rows);
+    if (rows.length < PAGE) break;
+    if (all.length > 500_000) throw new Error(`${label} 分頁未收斂,已取得 ${all.length} 筆`);
+  }
+  if (all.length === 9_999) {
+    throw new Error(`${label} 恰為 9,999 筆,分頁可能未生效,請確認端點參數`);
+  }
+  return all;
+}
+
 function assertRows(rows, required, label, minimum = 1) {
   if (!Array.isArray(rows) || rows.length < minimum) {
     throw new Error(`${label} 筆數異常，預期至少 ${minimum} 筆，實際 ${rows?.length ?? "非陣列"}`);
@@ -49,12 +69,12 @@ function assertRows(rows, required, label, minimum = 1) {
 }
 
 const [rawPesticides, cropCategories, exempt] = await Promise.all([
-  fetchJson(SOURCES.pesticides.url),
+  fetchAllPaged(SOURCES.pesticides.url, "農藥許可證"),
   fetchJson(SOURCES.cropCategories.url),
   fetchJson(SOURCES.exempt.url)
 ]);
 
-assertRows(rawPesticides, ["許可證字", "許可證號", "中文名稱", "英文名稱", "農藥代號"], "農藥許可證", 5_000);
+assertRows(rawPesticides, ["許可證字", "許可證號", "中文名稱", "英文名稱", "農藥代號"], "農藥許可證", 10_000);
 assertRows(cropCategories, ["類別", "農作物類農產品"], "作物分類", 10);
 assertRows(exempt, ["農藥名稱", "英文名稱"], "免訂容許量清單", 10);
 
