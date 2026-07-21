@@ -1,0 +1,733 @@
+{
+  "generatedAt": "2026-07-21T13:21:18.201Z",
+  "note": "混合劑只要有一個成分未涵蓋,整筆不得視為已解決。農友噴的是整瓶藥,每個成分都會殘留。",
+  "total": 25,
+  "allHit": 1,
+  "partial": 24,
+  "none": 0,
+  "rows": [
+    {
+      "appName": "鋅錳座賽胺",
+      "uses": 33,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「座賽胺」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) manganese ethylenebis(dithiocarbamate) (polymeric) complex with zinc salt...66.7%(2) (RS)-3,5-dichloro-N-(3-chloro-1-ethyl-1-methyl-2-oxopropyl)-p-toluamide...8.3%",
+      "components": [
+        {
+          "name": "座賽胺",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "座賽胺"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "鋅錳",
+          "hit": null,
+          "cand": [
+            "鋅錳乃浦"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "銅右滅達樂",
+      "uses": 24,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「滅達樂」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) methyl N-(methoxyacetyl)-N-(2,6-xylyl)-D-alaninate...2.5%(2) copper oxychloride...69.1%",
+      "components": [
+        {
+          "name": "右滅達樂",
+          "hit": {
+            "where": "法規群組",
+            "target": "滅達樂"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "銅",
+          "hit": null,
+          "cand": [
+            "銅合浦"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "鋅錳克絕",
+      "uses": 24,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「克絕」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) 1-(2-cyano-2-methoxyiminoacetyl)-3-ethylurea…8%\r\n(2) manganese ethylenebis(dithiocarbamate) (polymeric) complex with zinc salt…64%",
+      "components": [
+        {
+          "name": "克絕",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "克絕"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "鋅錳",
+          "hit": null,
+          "cand": [
+            "鋅錳乃浦"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "鋅錳滅達樂",
+      "uses": 10,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「滅達樂」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) manganese ethylenebis(dithiocarbamate) (polymeric) complex with zinc salt...48%(2) methyl N-(methoxyacetyl)-N-(2,6-xylyl)-DL-alaninate...10%",
+      "components": [
+        {
+          "name": "滅達樂",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "滅達樂"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "鋅錳",
+          "hit": null,
+          "cand": [
+            "鋅錳乃浦"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "撲克拉錳",
+      "uses": 9,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「撲克拉」,須逐一拆解",
+      "caution": "",
+      "chem": "N-propyl-N-[2-(2,4,6-trichlorophenoxy)ethyl]imidazole-1-carboxamide complex with manganese(II) chloride",
+      "components": [
+        {
+          "name": "撲克拉",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "撲克拉"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "錳",
+          "hit": null,
+          "cand": [
+            "錳乃浦"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "銅合硫磺",
+      "uses": 8,
+      "tier": "疑似混合劑",
+      "level": 4,
+      "target": "",
+      "basis": "名稱由多個成分組合而成,須逐一拆解後分別對照",
+      "caution": "",
+      "chem": "(1) sulfur .....14.85%\r\n(2) copper oxychloride .....20.3%",
+      "components": [
+        {
+          "name": "sulfur",
+          "hit": {
+            "where": "免訂容許量",
+            "target": "可濕性硫黃"
+          },
+          "from": "化學成分"
+        },
+        {
+          "name": "copper oxychloride",
+          "hit": {
+            "where": "免訂容許量",
+            "target": "鹼性氯氧化銅"
+          },
+          "from": "化學成分"
+        }
+      ],
+      "allHit": true
+    },
+    {
+      "appName": "本達亞喜芬",
+      "uses": 8,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「亞喜芬」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) 3-isopropyl-1H-2,1,3-benzothiadiazin-4(3H)-one 2,2-dioxide...30.3%\r\n(2) 5-(2-chloro-α,α,α-trifluoro-p-tolyloxy)-2-nitrobenzoate...6.7%",
+      "components": [
+        {
+          "name": "亞喜芬",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "亞喜芬"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "本達",
+          "hit": null,
+          "cand": [
+            "本達樂",
+            "本達隆"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "福賽亞汰尼",
+      "uses": 8,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「亞汰尼」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) aluminium tris-O-ethylphosphonate.....70%  (2) 3,4-dichloro-2’-cyano-1,2-thiazole-5-carboxanilide.....7%",
+      "components": [
+        {
+          "name": "亞汰尼",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "亞汰尼"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "福賽",
+          "hit": null,
+          "cand": [
+            "福賽得",
+            "福賽絕"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "嘉磷塞 (胺鹽 )",
+      "uses": 5,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「嘉磷塞」,須逐一拆解",
+      "caution": "",
+      "chem": "monoammonium salt of N-(phosphonomethyl)glycine",
+      "components": [
+        {
+          "name": "嘉磷塞",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "嘉磷塞"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": " (胺鹽 )",
+          "hit": null,
+          "cand": [],
+          "from": "中文名切分"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "銅快得寧",
+      "uses": 4,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「快得寧」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) bis(quinolin-8-olato-O,N)copper...30%\r\n(2) copper(2+) hydroxide...10%",
+      "components": [
+        {
+          "name": "快得寧",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "快得寧"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "銅",
+          "hit": null,
+          "cand": [
+            "銅合浦"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "硫酸快得寧",
+      "uses": 3,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「快得寧」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) bis(quinolin-8-olato-O,N)copper .....10%                                  (2) basic copper sulfate (Cu 16%).....29%",
+      "components": [
+        {
+          "name": "快得寧",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "快得寧"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "硫酸",
+          "hit": null,
+          "cand": [
+            "硫酸銅"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "四氯右滅達樂",
+      "uses": 2,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「滅達樂」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) tetrachloroisophthalonitrile...40.000%(W/V)\r\n(2) methyl N-(methoxyacetyl)-N-(2,6-xylyl)-D-alaninate...4.000%(W/V)",
+      "components": [
+        {
+          "name": "右滅達樂",
+          "hit": {
+            "where": "法規群組",
+            "target": "滅達樂"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "四氯",
+          "hit": null,
+          "cand": [
+            "四氯異苯?"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "保粒快得寧",
+      "uses": 2,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「快得寧」,須逐一拆解",
+      "caution": "",
+      "chem": "(1)5-(2-amino-5-O-carbamoyl-2-deoxy-L-xylonamido)-1,5-dideoxy-1-(1,2,3,4-tetrahydro-5-hydroxymethyl-2,4-dioxopyrimidin-1-yl)-β-D-allofuranuronic acid  ...5%                            \r\n(2) bis(quinolin-8-olato-O,N)copper ...45%",
+      "components": [
+        {
+          "name": "快得寧",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "快得寧"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "保粒",
+          "hit": null,
+          "cand": [
+            "保粒黴素"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "克絕波爾多",
+      "uses": 2,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「克絕」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) 1-(2-cyano-2-methoxyiminoacetyl)-3-ethylurea...3%\r\n(2) Bordeaux mixture...90%",
+      "components": [
+        {
+          "name": "克絕",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "克絕"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "波爾多",
+          "hit": null,
+          "cand": [],
+          "from": "中文名切分"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "本達快克草",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「克草、快克草」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) 3,7-dichloroquinoline-8-carboxylic acid .....6.7%          \r\n(2) 3-isopropyl-1H-2,1,3-benzothiadiazin-4(3H)-one 2,2-dioxide .....48%",
+      "components": [
+        {
+          "name": "快克草",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "快克草"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "本達",
+          "hit": null,
+          "cand": [
+            "本達樂",
+            "本達隆"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "汰硫免速隆",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「免速隆」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) S,S’-dimethyl 2-difluoromethyl-4-isobutyl-6-trifluoromethylpyridine-3,5-dicarbothioate…0.3%                  \r\n(2) methyl α-(4,6-dimethoxypyrimidin-2-ylcarbamoylsulfamoyl)-o-toluate…0.1%",
+      "components": [
+        {
+          "name": "免速隆",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "免速隆"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "汰硫",
+          "hit": null,
+          "cand": [
+            "汰硫草"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "滅芬免速隆",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「免速隆」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) 2-(1,3-benzothiazol-2-yloxy)-N-methylacetanilide .....3.5%  \r\n(2) methyl α-(4,6-dimethoxypyrimidin-2-ylcarbamoyl-sulfamoyl)-o-toluate .....0.13%",
+      "components": [
+        {
+          "name": "免速隆",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "免速隆"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "滅芬",
+          "hit": null,
+          "cand": [
+            "滅芬草",
+            "滅芬座",
+            "滅芬諾",
+            "滅芬農"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "銅合腐絕",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「腐絕」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) copper(2+) hydroxide ...50%                                  (2) 2-(thiazol-4-yl)benzimidazole...10%",
+      "components": [
+        {
+          "name": "腐絕",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "腐絕"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "銅合",
+          "hit": null,
+          "cand": [
+            "銅合浦"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "傑他賽滅寧",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「賽滅寧」,須逐一拆解",
+      "caution": "",
+      "chem": "(S)-α-cyano-3-phenoxybenzyl (1RS,3RS:1RS,3SR)-3-(2,2-dichlorovinyl)-2,2-dimethylcyclopropanecarboxylate",
+      "components": [
+        {
+          "name": "賽滅寧",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "賽滅寧"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "傑他",
+          "hit": null,
+          "cand": [],
+          "from": "中文名切分"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "畢克草",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「克草」,須逐一拆解",
+      "caution": "",
+      "chem": "3, 6-dichloropyridine-2-carboxylic acid",
+      "components": [
+        {
+          "name": "克草",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "克草"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "畢",
+          "hit": null,
+          "cand": [
+            "畢芬寧",
+            "畢達本",
+            "畢汰芬"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "伽瑪賽洛寧",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「賽洛寧」,須逐一拆解",
+      "caution": "",
+      "chem": "(S)-α-cyano-3-phenoxybenzyl (Z)-(1R,3R)-3-(2-chloro-3,3,3-trifluoroprop-1-enyl)-2,2-dimethylcyclopropanecarboxylate",
+      "components": [
+        {
+          "name": "賽洛寧",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "賽洛寧"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "伽瑪",
+          "hit": null,
+          "cand": [],
+          "from": "中文名切分"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "鋅錳右本達樂",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「本達樂」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) manganese ethylenebis(dithiocarbamate) (polymeric) complex with zinc salt...65%\r\n(2) methyl N-phenylacetyl-N-2,6-xylyl-D-alaninate...4%",
+      "components": [
+        {
+          "name": "本達樂",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "本達樂"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "鋅錳右",
+          "hit": null,
+          "cand": [],
+          "from": "中文名切分"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "鋅錳本達樂",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「本達樂」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) manganese ethylenebis(dithiocarbamate) (polymeric) complex with zinc salt .....65% (2) methyl N-phenylacetyl-N-2,6-xylyl-DL-alaninate .....8%",
+      "components": [
+        {
+          "name": "本達樂",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "本達樂"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "鋅錳",
+          "hit": null,
+          "cand": [
+            "鋅錳乃浦"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "鋅錳曼普胺",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「曼普胺」,須逐一拆解",
+      "caution": "",
+      "chem": "(1) manganese ethylenebis(dithiocarbamate) (polymeric) complex with zinc salt...60%\r\n(2) (RS)-2-(4-chlorophenyl)-N-[3-methoxy-4-(prop-2-ynyloxy)phenethyl]-2-(prop-2-ynyloxy)acetamide...5%",
+      "components": [
+        {
+          "name": "曼普胺",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "曼普胺"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "鋅錳",
+          "hit": null,
+          "cand": [
+            "鋅錳乃浦"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    },
+    {
+      "appName": "左固殺草",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「固殺草」,須逐一拆解",
+      "caution": "",
+      "chem": "(2S)-2-amino-4-[hydroxy(methyl)phosphinoyl]butyric acid; L-homoalanin-4-yl(methyl)phosphinic acid",
+      "components": [
+        {
+          "name": "固殺草",
+          "hit": {
+            "where": "MRL 有訂容許量",
+            "target": "固殺草"
+          },
+          "from": "中文名切分"
+        },
+        {
+          "name": "左",
+          "hit": null,
+          "cand": [
+            "左旋莫多草"
+          ],
+          "from": "前綴候選"
+        }
+      ],
+      "allHit": false
+    }
+  ]
+}
