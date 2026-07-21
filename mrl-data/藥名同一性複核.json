@@ -1,0 +1,2555 @@
+{
+  "generatedAt": "2026-07-21T12:14:58.979Z",
+  "note": "名稱同一不代表殘留物定義同一。MRL 的檢驗標的仍可能是代謝物或群組總量。",
+  "mrlNames": 358,
+  "ambiguousEnToZh": [],
+  "shared": 318,
+  "englishDiffers": 25,
+  "risky": 3,
+  "rows": [
+    {
+      "zh": "撲殺熱",
+      "permitEn": "PROBENAZOLE",
+      "mrlEn": "PROBENAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "加保利",
+      "permitEn": "CARBARYL",
+      "mrlEn": "CARBARYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "護粒松",
+      "permitEn": "EDIFENPHOS",
+      "mrlEn": "EDIFENPHOS",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "托福松",
+      "permitEn": "TERBUFOS",
+      "mrlEn": "TERBUFOS",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "達馬松",
+      "permitEn": "METHAMIDOPHOS",
+      "mrlEn": "METHAMIDOPHOS",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "加保扶",
+      "permitEn": "CARBOFURAN",
+      "mrlEn": "CARBOFURAN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "丁基拉草",
+      "permitEn": "BUTACHLOR",
+      "mrlEn": "BUTACHLOR",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "必芬松",
+      "permitEn": "PYRIDAPHENTHION",
+      "mrlEn": "PYRIDAPHENTHION",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "安丹",
+      "permitEn": "PROPOXUR",
+      "mrlEn": "PROPOXUR",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅必蝨",
+      "permitEn": "ISOPROCARB",
+      "mrlEn": "ISOPROCARB",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "納乃得",
+      "permitEn": "METHOMYL",
+      "mrlEn": "METHOMYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "本達隆",
+      "permitEn": "BENTAZON",
+      "mrlEn": "BENTAZONE",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "丁基滅必蝨",
+      "permitEn": "FENOBUCARB",
+      "mrlEn": "FENOBUCARB",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "抑芽素",
+      "permitEn": "MALEIC HYDRAZIDE,MH",
+      "mrlEn": "MALEIC HYDRAZIDE",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "亞特松",
+      "permitEn": "PIRMIPHOS-METHYL",
+      "mrlEn": "PIRIMIPHOS-METHYL",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "芬佈賜",
+      "permitEn": "FENBUTATIN-OXIDE",
+      "mrlEn": "FENBUTATIN-OXIDE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "三氯松",
+      "permitEn": "TRICHLORFON",
+      "mrlEn": "TRICHLORFON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "快得寧",
+      "permitEn": "OXINE-COPPER",
+      "mrlEn": "OXINE-COPPER",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "撲滅松",
+      "permitEn": "FENITROTHION",
+      "mrlEn": "FENITROTHION",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "拉草",
+      "permitEn": "ALACHLOR",
+      "mrlEn": "ALACHLOR",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "達有龍",
+      "permitEn": "DIURON",
+      "mrlEn": "DIURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "巴拉刈",
+      "permitEn": "PARAQUAT",
+      "mrlEn": "PARAQUAT",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "芬化利",
+      "permitEn": "FENVALERATE",
+      "mrlEn": "FENVALERATE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "甲基巴拉松",
+      "permitEn": "METHYL-PARATHION",
+      "mrlEn": "PARATHION-METHYL",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "貝芬替",
+      "permitEn": "CARBENDAZIM",
+      "mrlEn": "CARBENDAZIM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "草滅淨",
+      "permitEn": "SIMAZINE",
+      "mrlEn": "SIMAZINE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "乃力松",
+      "permitEn": "NALED",
+      "mrlEn": "NALED",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "大滅松",
+      "permitEn": "DIMETHOATE",
+      "mrlEn": "DIMETHOATE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "氰乃松",
+      "permitEn": "CYANOPHOS",
+      "mrlEn": "CYANOPHOS",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "依普同",
+      "permitEn": "IPRODIONE",
+      "mrlEn": "IPRODIONE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "培丹",
+      "permitEn": "CARTAP",
+      "mrlEn": "CARTAP",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "毆殺松",
+      "permitEn": "ACEPHATE",
+      "mrlEn": "ACEPHATE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "克絕",
+      "permitEn": "CYMOXANIL",
+      "mrlEn": "CYMOXANIL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "歐滅松",
+      "permitEn": "OMETHOATE",
+      "mrlEn": "OMETHOATE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賽滅寧",
+      "permitEn": "CYPERMETHRIN",
+      "mrlEn": "CYPERMETHRIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "百滅寧",
+      "permitEn": "PERMETHRIN",
+      "mrlEn": "PERMETHRIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "亞賜圃",
+      "permitEn": "ISOPROTHIOLANE",
+      "mrlEn": "ISOPROTHIOLANE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "樂滅草",
+      "permitEn": "OXADIAZON",
+      "mrlEn": "OXADIAZON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "三泰芬",
+      "permitEn": "TRIADIMEFON",
+      "mrlEn": "TRIADIMEFON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "愛殺松",
+      "permitEn": "ETHION",
+      "mrlEn": "ETHION",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "比多農",
+      "permitEn": "BITERTANOL",
+      "mrlEn": "BITERTANOL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "福瑞松",
+      "permitEn": "PHORATE",
+      "mrlEn": "PHORATE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "免克寧",
+      "permitEn": "VINCLOZOLIN",
+      "mrlEn": "VINCLOZOLIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "加撲草",
+      "permitEn": "KAYAETHYL",
+      "mrlEn": "MCPB",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "芬殺松",
+      "permitEn": "FENTHION",
+      "mrlEn": "FENTHION",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "馬拉松",
+      "permitEn": "MALATHION",
+      "mrlEn": "MALATHION",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "免敵克",
+      "permitEn": "BENDIOCARB",
+      "mrlEn": "BENDIOCARB",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅普寧",
+      "permitEn": "MEPRONIL",
+      "mrlEn": "MEPRONIL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "丙基喜樂松",
+      "permitEn": "IPROBENFOS",
+      "mrlEn": "IPROBENFOS",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅多松",
+      "permitEn": "OXYDEMETON METHYL",
+      "mrlEn": "OXYDEMETON METHYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "嘉賜黴素",
+      "permitEn": "KASUGAMYCIN",
+      "mrlEn": "KASUGAMYCIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "熱必斯",
+      "permitEn": "PHTHALIDE",
+      "mrlEn": "FTHALIDE",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "草殺淨",
+      "permitEn": "AMETRYN",
+      "mrlEn": "AMETRYN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "聚乙醛",
+      "permitEn": "METALDEHYDE",
+      "mrlEn": "METALDEHYDE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "撲滅寧",
+      "permitEn": "PROCYMIDONE",
+      "mrlEn": "PROCYMIDONE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "大利松",
+      "permitEn": "DIAZINON",
+      "mrlEn": "DIAZINON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賽達松",
+      "permitEn": "PHENTHOATE",
+      "mrlEn": "PHENTHOATE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "拜裕松",
+      "permitEn": "QUINALPHOS",
+      "mrlEn": "QUINALPHOS",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "嘉保信",
+      "permitEn": "OXYCARBOXIN",
+      "mrlEn": "OXYCARBOXIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "脫克松",
+      "permitEn": "TOLCLOFOS-METHYL",
+      "mrlEn": "TOLCLOFOS-METHYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅大松",
+      "permitEn": "METHIDATHION",
+      "mrlEn": "METHIDATHION",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "比達寧",
+      "permitEn": "BUTRALIN",
+      "mrlEn": "BUTRALIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "克熱淨",
+      "permitEn": "IMINOCTADINE TRIACETATE",
+      "mrlEn": "GUAZATINE",
+      "identical": false,
+      "risk": "同名前綴",
+      "note": "⚠️ MRL 另有「克熱淨(醋酸鹽或烷苯磺酸鹽)」,兩者是不同物質,不可只憑中文名對應"
+    },
+    {
+      "zh": "益滅松",
+      "permitEn": "PHOSMET",
+      "mrlEn": "PHOSMET",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "多寧",
+      "permitEn": "DODINE",
+      "mrlEn": "DODINE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "福化利",
+      "permitEn": "TAU-FLUVALINATE",
+      "mrlEn": "FLUVALINATE",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "撲克拉",
+      "permitEn": "PROCHLORAZ",
+      "mrlEn": "PROCHLORAZ",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "普拉草",
+      "permitEn": "PRETILACHLOR",
+      "mrlEn": "PRETILACHLOR",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "草脫淨",
+      "permitEn": "ATRAZINE",
+      "mrlEn": "ATRAZINE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅克蝨",
+      "permitEn": "XMC",
+      "mrlEn": "XMC",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "普伏松",
+      "permitEn": "ETHOPROPHOS",
+      "mrlEn": "ETHOPROPHOS",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "必克蝨",
+      "permitEn": "BUFENCARB",
+      "mrlEn": "BUFENCARB",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "嘉磷塞",
+      "permitEn": "GLYPHOSATE",
+      "mrlEn": "GLYPHOSATE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "勃激素A3",
+      "permitEn": "GIBBERELLIC ACID",
+      "mrlEn": "GIBBERELLIC ACID",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "克草",
+      "permitEn": "BROMACIL",
+      "mrlEn": "BROMACIL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅賜克",
+      "permitEn": "METHIOCARB",
+      "mrlEn": "METHIOCARB",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "益收生長素",
+      "permitEn": "ETHEPHON",
+      "mrlEn": "ETHEPHON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "裕必松",
+      "permitEn": "PHOSALONE",
+      "mrlEn": "PHOSALONE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "丁基加保扶",
+      "permitEn": "CARBOSULFAN",
+      "mrlEn": "CARBOSULFAN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "益達胺",
+      "permitEn": "IMIDACLOPRID",
+      "mrlEn": "IMIDACLOPRID",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "蓋普丹",
+      "permitEn": "CAPTAN",
+      "mrlEn": "CAPTAN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "稻得壯",
+      "permitEn": "MOLINATE",
+      "mrlEn": "MOLINATE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "施得圃",
+      "permitEn": "PENDIMETHALIN",
+      "mrlEn": "PENDIMETHALIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "福賽得",
+      "permitEn": "FOSETYL-AL",
+      "mrlEn": "FOSETYL-AL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅落脫",
+      "permitEn": "NAPROPAMIDE",
+      "mrlEn": "NAPROPAMIDE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "硫敵克",
+      "permitEn": "THIODICARB",
+      "mrlEn": "THIODICARB",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "菲克利",
+      "permitEn": "HEXACONAZOLE",
+      "mrlEn": "HEXACONAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "汰草龍",
+      "permitEn": "DAIMURON",
+      "mrlEn": "DYMRON",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "大克爛",
+      "permitEn": "DICLORAN",
+      "mrlEn": "DICLORAN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "二福隆",
+      "permitEn": "DIFLUBENZURON",
+      "mrlEn": "DIFLUBENZURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "免速隆",
+      "permitEn": "BENSULFURON-METHYL",
+      "mrlEn": "BENSULFURON-METHYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "布芬淨",
+      "permitEn": "BUPROFEZIN",
+      "mrlEn": "BUPROFEZIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "伏寄普",
+      "permitEn": "FLUAZIFOP-P-BUTYL",
+      "mrlEn": "FLUAZIFOP-P-BUTYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "依普座",
+      "permitEn": "EPOXICONAZOLE",
+      "mrlEn": "EPOXICONAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "芬滅松",
+      "permitEn": "FENAMIPHOS",
+      "mrlEn": "FENAMIPHOS",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "阿巴汀",
+      "permitEn": "ABAMECTIN",
+      "mrlEn": "ABAMECTIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "邁克尼",
+      "permitEn": "MYCLOBUTANIL",
+      "mrlEn": "MYCLOBUTANIL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "因滅汀",
+      "permitEn": "EMAMECTIN BENZOATE",
+      "mrlEn": "EMAMECTIN BENZOATE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "得克利",
+      "permitEn": "TEBUCONAZOLE",
+      "mrlEn": "TEBUCONAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "得芬諾",
+      "permitEn": "TEBUFENOZIDE",
+      "mrlEn": "TEBUFENOZIDE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "待克利",
+      "permitEn": "DIFENOCONAZOLE",
+      "mrlEn": "DIFENOCONAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賽洛寧",
+      "permitEn": "LAMBDA-CYHALOTHRIN",
+      "mrlEn": "CYHALOTHRIN",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "賓克隆",
+      "permitEn": "PENCYCURON",
+      "mrlEn": "PENCYCURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "亞托敏",
+      "permitEn": "AZOXYSTROBIN",
+      "mrlEn": "AZOXYSTROBIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "三賽唑",
+      "permitEn": "TRICYCLAZOLE",
+      "mrlEn": "TRICYCLAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "固殺草",
+      "permitEn": "GLUFOSINATE-AMMONIUM",
+      "mrlEn": "GLUFOSINATE-AMMONIUM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "繁米松",
+      "permitEn": "VAMIDOTHION",
+      "mrlEn": "VAMIDOTHION",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "百利普芬",
+      "permitEn": "PYRIPROXYFEN",
+      "mrlEn": "PYRIPROXYFEN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "脫禾草",
+      "permitEn": "PHENOTHIOL",
+      "mrlEn": "PHENOTHIOL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "理有龍",
+      "permitEn": "LINURON",
+      "mrlEn": "LINURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "除草靈",
+      "permitEn": "PROPANIL",
+      "mrlEn": "PROPANIL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "毆殺滅",
+      "permitEn": "OXAMYL",
+      "mrlEn": "OXAMYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "第滅寧",
+      "permitEn": "DELTAMETHRIN",
+      "mrlEn": "DELTAMETHRIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "克枯爛",
+      "permitEn": "TECLOFTALAM",
+      "mrlEn": "TECLOFTALAM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "芬普寧",
+      "permitEn": "FENPROPATHRIN",
+      "mrlEn": "FENPROPATHRIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "佈飛松",
+      "permitEn": "PROFENOFOS",
+      "mrlEn": "PROFENOFOS",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賜派滅",
+      "permitEn": "SPIROTETRAMAT",
+      "mrlEn": "SPIROTETRAMAT",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "剋安勃",
+      "permitEn": "CHLORANTRANILIPROLE",
+      "mrlEn": "CHLORANTRANILIPROLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "免扶克",
+      "permitEn": "BENFURACARB",
+      "mrlEn": "BENFURACARB",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "莫多草",
+      "permitEn": "METOLACHLOR",
+      "mrlEn": "METOLACHLOR",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "巴賽松",
+      "permitEn": "PHOXIM",
+      "mrlEn": "PHOXIM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "亞汰草",
+      "permitEn": "ALLOXYDIM-SODIUM",
+      "mrlEn": "ALLOXYDIM (SODIUM)",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "百快隆",
+      "permitEn": "PYROQUILON",
+      "mrlEn": "PYROQUILON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "克福隆",
+      "permitEn": "CHLORFLUAZURON",
+      "mrlEn": "CHLORFLUAZURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "福多寧",
+      "permitEn": "FLUTOLANIL",
+      "mrlEn": "FLUTOLANIL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅線蟲",
+      "permitEn": "DCIP",
+      "mrlEn": "DCIP(NEMAMORT)",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "菲殺淨",
+      "permitEn": "HEXAZINONE",
+      "mrlEn": "HEXAZINONE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "三福林",
+      "permitEn": "TRIFLURALIN",
+      "mrlEn": "TRIFLURALIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "依得利",
+      "permitEn": "ETRIDIAZOLE",
+      "mrlEn": "ETRIDIAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "治滅蝨",
+      "permitEn": "METOLCARB",
+      "mrlEn": "METOLCARB",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "殺丹",
+      "permitEn": "THIOBENCARB",
+      "mrlEn": "THIOBENCARB",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "腐絕",
+      "permitEn": "THIABENDAZOLE",
+      "mrlEn": "THIABENDAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "比加普",
+      "permitEn": "PIRIMICARB",
+      "mrlEn": "PIRIMICARB",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "西殺草",
+      "permitEn": "SETHOXYDIM",
+      "mrlEn": "SETHOXYDIM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅爾蝨",
+      "permitEn": "XYLYLCARB",
+      "mrlEn": "MPMC",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "三得芬",
+      "permitEn": "TRIDEMORPH",
+      "mrlEn": "TRIDEMORPH",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "畢芬寧",
+      "permitEn": "BIFENTHRIN",
+      "mrlEn": "BIFENTHRIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "依滅草",
+      "permitEn": "IMAZAPYR",
+      "mrlEn": "IMAZAPYR",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "益發靈",
+      "permitEn": "DICHLOFLUANID",
+      "mrlEn": "DICHLOFLUANID",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "大克草",
+      "permitEn": "DCPA",
+      "mrlEn": "CHLORTHAL",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "依芬寧",
+      "permitEn": "ETOFENPROX",
+      "mrlEn": "ETOFENPROX",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "甲基合氯氟",
+      "permitEn": "HALOXYFOP-METHYL",
+      "mrlEn": "HALOXYFOP-METHYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賽福座",
+      "permitEn": "TRIFLUMIZOLE",
+      "mrlEn": "TRIFLUMIZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "合賽多",
+      "permitEn": "HEXYTHIAZOX",
+      "mrlEn": "HEXYTHIAZOX",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "普拔克",
+      "permitEn": "PROPAMOCARB HYDROCHLORIDE",
+      "mrlEn": "PROPAMOCARB HYDROCHLORIDE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "芬硫克",
+      "permitEn": "FENOTHIOCARB",
+      "mrlEn": "FENOTHIOCARB",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "硫伐隆",
+      "permitEn": "THIOFANOX",
+      "mrlEn": "THIOFANOX",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "普克利",
+      "permitEn": "PROPICONAZOLE",
+      "mrlEn": "PROPICONAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "撲多草",
+      "permitEn": "METOBROMURON + METOLACHLOR",
+      "mrlEn": "METOBROMURON",
+      "identical": false,
+      "risk": "混合劑",
+      "note": "⚠️ 許可證為混合劑(METOBROMURON + METOLACHLOR),MRL 只列其中一個成分,另一成分未涵蓋"
+    },
+    {
+      "zh": "必芬諾",
+      "permitEn": "BIFENOX",
+      "mrlEn": "BIFENOX",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅達樂",
+      "permitEn": "METALAXYL",
+      "mrlEn": "METALAXYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "殺紋寧",
+      "permitEn": "HYMEXAZOL",
+      "mrlEn": "HYMEXAZOL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "氟氯比",
+      "permitEn": "FLUROXYPYR-MEPTYL",
+      "mrlEn": "FLUROXYPYR",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "硫滅松",
+      "permitEn": "THIOMETON",
+      "mrlEn": "THIOMETON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "達克利",
+      "permitEn": "DINICONAZOLE-M",
+      "mrlEn": "DINICONAZOLE",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "白粉松",
+      "permitEn": "PYRAZOPHOS",
+      "mrlEn": "PYRAZOPHOS",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "硫賜安",
+      "permitEn": "THIOCYCLAM HYDROGENOXALATE",
+      "mrlEn": "THIOCYCLAM",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "亞芬松",
+      "permitEn": "ISOFENPHOS",
+      "mrlEn": "ISOFENPHOS",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "白克松",
+      "permitEn": "PYRACLOFOS",
+      "mrlEn": "PYRACLOFOS",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "免速達",
+      "permitEn": "BENSULTAP",
+      "mrlEn": "BENSULTAP",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "毆殺斯",
+      "permitEn": "OXADIXYL",
+      "mrlEn": "OXADIXYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "三泰隆",
+      "permitEn": "TRIADIMENOL",
+      "mrlEn": "TRIADIMENOL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賽扶寧",
+      "permitEn": "CYFLUTHRIN",
+      "mrlEn": "CYFLUTHRIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "依滅列",
+      "permitEn": "IMAZALIL",
+      "mrlEn": "IMAZALIL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "護賽寧",
+      "permitEn": "FLUCYTHRINATE",
+      "mrlEn": "FLUCYTHRINATE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "三落松",
+      "permitEn": "TRIAZOPHOS",
+      "mrlEn": "TRIAZOPHOS",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "快伏草",
+      "permitEn": "QUIZALOFOP-P-ETHYL",
+      "mrlEn": "QUIZALOFOP-ETHYL",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "克美素",
+      "permitEn": "CHLORMEQUAT CHLORIDE",
+      "mrlEn": "CHLORMEQUAT",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "滅必淨",
+      "permitEn": "METRIBUZIN",
+      "mrlEn": "METRIBUZIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "蝨必殺",
+      "permitEn": "CPMC",
+      "mrlEn": "CPMC",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "福賽絕",
+      "permitEn": "FOSTHIAZATE",
+      "mrlEn": "FOSTHIAZATE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "除蟲菊精",
+      "permitEn": "PYRETHRINS",
+      "mrlEn": "PYRETHRINS",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "汰硫草",
+      "permitEn": "DITHIOPYR",
+      "mrlEn": "DITHIOPYR",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "富米綜",
+      "permitEn": "FERIMZONE",
+      "mrlEn": "FERIMZONE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "平克座",
+      "permitEn": "PENCONAZOLE",
+      "mrlEn": "PENCONAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "得拉本",
+      "permitEn": "DALAPON",
+      "mrlEn": "DALAPON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "依速隆",
+      "permitEn": "IMAZOSULFURON",
+      "mrlEn": "IMAZOSULFURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅芬草",
+      "permitEn": "MEFENACET",
+      "mrlEn": "MEFENACET",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "派滅淨",
+      "permitEn": "PYMETROZINE",
+      "mrlEn": "PYMETROZINE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "汰芬隆",
+      "permitEn": "DIAFENTHIURON",
+      "mrlEn": "DIAFENTHIURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "泰滅寧",
+      "permitEn": "TRALOMETHRIN",
+      "mrlEn": "TRALOMETHRIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "亞烈寧",
+      "permitEn": "ALLETHRIN",
+      "mrlEn": "ALLETHRIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "依殺松",
+      "permitEn": "ISAZOFOS",
+      "mrlEn": "ISAZOFOS",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "比芬諾",
+      "permitEn": "PYRIFENOX",
+      "mrlEn": "PYRIFENOX",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "阿納寧",
+      "permitEn": "ACRINATHRIN",
+      "mrlEn": "ACRINATHRIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "芬諾克",
+      "permitEn": "FENOXYCARB",
+      "mrlEn": "FENOXYCARB",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賽滅淨",
+      "permitEn": "CYROMAZINE",
+      "mrlEn": "CYROMAZINE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "扶吉胺",
+      "permitEn": "FLUAZINAM",
+      "mrlEn": "FLUAZINAM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "布瑞莫",
+      "permitEn": "BUPIRIMATE",
+      "mrlEn": "BUPIRIMATE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "易胺座",
+      "permitEn": "IMIBENCONAZOLE",
+      "mrlEn": "IMIBENCONAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "撻乃安",
+      "permitEn": "DINITRAMINE",
+      "mrlEn": "DINITRAMINE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "亞滅培",
+      "permitEn": "ACETAMIPRID",
+      "mrlEn": "ACETAMIPRID",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "伏速隆",
+      "permitEn": "FLAZASULFURON",
+      "mrlEn": "FLAZASULFURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "祿芬隆",
+      "permitEn": "LUFENURON",
+      "mrlEn": "LUFENURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "西速隆",
+      "permitEn": "CINOSULFURON",
+      "mrlEn": "CINOSULFURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "三氯比",
+      "permitEn": "TRICLOPYR",
+      "mrlEn": "TRICLOPYR",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "氟硫滅",
+      "permitEn": "FLUSULFAMIDE",
+      "mrlEn": "FLUSULFAMIDE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "福拉比",
+      "permitEn": "FURAMETPYR",
+      "mrlEn": "FURAMETPYR",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賽普洛",
+      "permitEn": "CYPRODINIL",
+      "mrlEn": "CYPRODINIL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "本達樂",
+      "permitEn": "BENALAXYL",
+      "mrlEn": "BENALAXYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "乙基克繁草",
+      "permitEn": "CARFENTRAZONE-ETHYL",
+      "mrlEn": "CARFENTRAZONE-ETHYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賽座滅",
+      "permitEn": "CYAZOFAMID",
+      "mrlEn": "CYAZOFAMID",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "百速隆",
+      "permitEn": "PYRAZOSULFURON-ETHYL",
+      "mrlEn": "PYRAZOSULFURON-ETHYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "可尼丁",
+      "permitEn": "CLOTHIANIDIN",
+      "mrlEn": "CLOTHIANIDIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "依瑞莫",
+      "permitEn": "ETHIRIMOL",
+      "mrlEn": "ETHIRIMOL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賽氟滅",
+      "permitEn": "THIFLUZAMIDE",
+      "mrlEn": "THIFLUZAMIDE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "因得克",
+      "permitEn": "INDOXACARB",
+      "mrlEn": "INDOXACARB",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅草胺",
+      "permitEn": "METAZACHLOR",
+      "mrlEn": "METAZACHLOR",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "芬瑞莫",
+      "permitEn": "FENARIMOL",
+      "mrlEn": "FENARIMOL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅派林",
+      "permitEn": "MEPANIPYRIM",
+      "mrlEn": "MEPANIPYRIM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "亞速爛",
+      "permitEn": "ASULAM",
+      "mrlEn": "ASULAM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "護矽得",
+      "permitEn": "FLUSILAZOLE",
+      "mrlEn": "FLUSILAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "達滅芬",
+      "permitEn": "DIMETHOMORPH",
+      "mrlEn": "DIMETHOMORPH",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "克收欣",
+      "permitEn": "KRESOXIM-METHYL",
+      "mrlEn": "KRESOXIM-METHYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "斯美地",
+      "permitEn": "METHAM-SODIUM",
+      "mrlEn": "METHAM-SODIUM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "克凡派",
+      "permitEn": "CHLORFENAPYR",
+      "mrlEn": "CHLORFENAPYR",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "巴克素",
+      "permitEn": "PACLOBUTRAZOL",
+      "mrlEn": "PACLOBUTRAZOL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "氟尼胺",
+      "permitEn": "FLONICAMID",
+      "mrlEn": "FLONICAMID",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "平速爛",
+      "permitEn": "PENOXSULAM",
+      "mrlEn": "PENOXSULAM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "芬普尼",
+      "permitEn": "FIPRONIL",
+      "mrlEn": "FIPRONIL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "得芬瑞",
+      "permitEn": "TEBUFENPYRAD",
+      "mrlEn": "TEBUFENPYRAD",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "鈉得爛",
+      "permitEn": "NAPTALAM",
+      "mrlEn": "NAPTALAM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "脫芬瑞",
+      "permitEn": "TOLFENPYRAD",
+      "mrlEn": "TOLFENPYRAD",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅特座",
+      "permitEn": "METCONAZOLE",
+      "mrlEn": "METCONAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "復祿芬",
+      "permitEn": "OXYFLUORFEN",
+      "mrlEn": "OXYFLUORFEN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "安美速",
+      "permitEn": "AMISULBROM",
+      "mrlEn": "AMISULBROM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "剋草同",
+      "permitEn": "CLETHODIM",
+      "mrlEn": "CLETHODIM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "氟芬隆",
+      "permitEn": "FLUFENOXURON",
+      "mrlEn": "FLUFENOXURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賽芬胺",
+      "permitEn": "CYFLUFENAMID",
+      "mrlEn": "CYFLUFENAMID",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賽速安",
+      "permitEn": "THIAMETHOXAM",
+      "mrlEn": "THIAMETHOXAM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賽福寧",
+      "permitEn": "TRIFORINE",
+      "mrlEn": "TRIFORINE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "畢達本",
+      "permitEn": "PYRIDABEN",
+      "mrlEn": "PYRIDABEN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "得福隆",
+      "permitEn": "TEFLUBENZURON",
+      "mrlEn": "TEFLUBENZURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "丁基賽伏草",
+      "permitEn": "CYHALOFOP-BUTYL",
+      "mrlEn": "CYHALOFOP-BUTYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "護汰芬",
+      "permitEn": "FLUTRIAFOL",
+      "mrlEn": "FLUTRIAFOL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "環克座",
+      "permitEn": "CYPROCONAZOLE",
+      "mrlEn": "CYPROCONAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "快克草",
+      "permitEn": "QUINCLORAC",
+      "mrlEn": "QUINCLORAC",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "氟大滅",
+      "permitEn": "FLUBENDIAMIDE",
+      "mrlEn": "FLUBENDIAMIDE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "溴化甲烷",
+      "permitEn": "METHYL-BROMIDE",
+      "mrlEn": "METHYL BROMIDE",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "亞喜芬",
+      "permitEn": "ACIFLUORFEN",
+      "mrlEn": "ACIFLUORFEN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賜派芬",
+      "permitEn": "SPIRODICLOFEN",
+      "mrlEn": "SPIRODICLOFEN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賽果培",
+      "permitEn": "THIACLOPRID",
+      "mrlEn": "THIACLOPRID",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "佈嘉信",
+      "permitEn": "BUTOCARBOXIM",
+      "mrlEn": "BUTOCARBOXIM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "四克利",
+      "permitEn": "TETRACONAZOLE",
+      "mrlEn": "TETRACONAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "芬殺草",
+      "permitEn": "FENOXAPROP-ETHYL",
+      "mrlEn": "FENOXAPROP-ETHYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "可滅蹤",
+      "permitEn": "CLOMAZONE",
+      "mrlEn": "CLOMAZONE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "三氟敏",
+      "permitEn": "TRIFLOXYSTROBIN",
+      "mrlEn": "TRIFLOXYSTROBIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "加福松",
+      "permitEn": "ISOXATHION",
+      "mrlEn": "ISOXATHION",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "百克敏",
+      "permitEn": "PYRACLOSTROBIN",
+      "mrlEn": "PYRACLOSTROBIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "白克列",
+      "permitEn": "BOSCALID",
+      "mrlEn": "BOSCALID",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "環殺草",
+      "permitEn": "CYCLOXYDIM",
+      "mrlEn": "CYCLOXYDIM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "魚藤精",
+      "permitEn": "ROTENONE",
+      "mrlEn": "ROTENONE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "達特南",
+      "permitEn": "DINOTEFURAN",
+      "mrlEn": "DINOTEFURAN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅芬農",
+      "permitEn": "METRAFENONE",
+      "mrlEn": "METRAFENONE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "曼普胺",
+      "permitEn": "MANDIPROPAMID",
+      "mrlEn": "MANDIPROPAMID",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅芬諾",
+      "permitEn": "METHOXYFENOZIDE",
+      "mrlEn": "METHOXYFENOZIDE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "尼瑞莫",
+      "permitEn": "NUARIMOL",
+      "mrlEn": "NUARIMOL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "護汰寧",
+      "permitEn": "FLUDIOXONIL",
+      "mrlEn": "FLUDIOXONIL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "美氟綜",
+      "permitEn": "METAFLUMIZONE",
+      "mrlEn": "METAFLUMIZONE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賜諾殺",
+      "permitEn": "SPINOSAD",
+      "mrlEn": "SPINOSAD",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "氟比來",
+      "permitEn": "FLUOPICOLIDE",
+      "mrlEn": "FLUOPICOLIDE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "殺芬草",
+      "permitEn": "SAFLUFENACIL",
+      "mrlEn": "SAFLUFENACIL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "芬諾尼",
+      "permitEn": "FENOXANIL",
+      "mrlEn": "FENOXANIL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "益斯普",
+      "permitEn": "ETHIPROLE",
+      "mrlEn": "ETHIPROLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "凡殺同",
+      "permitEn": "FAMOXADONE",
+      "mrlEn": "FAMOXADONE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "派美尼",
+      "permitEn": "PYRIMETHANIL",
+      "mrlEn": "PYRIMETHANIL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "亞速隆",
+      "permitEn": "ETHOXYSULFURON",
+      "mrlEn": "ETHOXYSULFURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賜滅芬",
+      "permitEn": "SPIROMESIFEN",
+      "mrlEn": "SPIROMESIFEN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "溴克座",
+      "permitEn": "BROMUCONAZOLE",
+      "mrlEn": "BROMUCONAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "六伏隆",
+      "permitEn": "HEXAFLUMURON",
+      "mrlEn": "HEXAFLUMURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "密滅汀",
+      "permitEn": "MILBEMECTIN",
+      "mrlEn": "MILBEMECTIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "達滅淨",
+      "permitEn": "DICLOMEZINE",
+      "mrlEn": "DICLOMEZINE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "芬普福",
+      "permitEn": "FENPROPIMORPH",
+      "mrlEn": "FENPROPIMORPH",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "矽護芬",
+      "permitEn": "SILAFLUOFEN",
+      "mrlEn": "SILAFLUOFEN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "治滅寧",
+      "permitEn": "MTMC + TETRAMETHRIN",
+      "mrlEn": "TETRAMETHRIN",
+      "identical": false,
+      "risk": "混合劑",
+      "note": "⚠️ 許可證為混合劑(MTMC + TETRAMETHRIN),MRL 只列其中一個成分,另一成分未涵蓋"
+    },
+    {
+      "zh": "畢汰芬",
+      "permitEn": "PYRIMIDIFEN",
+      "mrlEn": "PYRIMIDIFEN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "佈生",
+      "permitEn": "TCMTB",
+      "mrlEn": "BENTHIAZOLE",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "加普胺",
+      "permitEn": "CARPROPAMID",
+      "mrlEn": "CARPROPAMID",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "歐索林酸",
+      "permitEn": "OXOLINIC ACID",
+      "mrlEn": "OXOLINIC ACID",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "合芬寧",
+      "permitEn": "HALFENPROX",
+      "mrlEn": "HALFENPROX",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "汰草滅",
+      "permitEn": "DIMETHENAMID",
+      "mrlEn": "DIMETHENAMID",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "快諾芬",
+      "permitEn": "QUINOXYFEN",
+      "mrlEn": "QUINOXYFEN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "得殺草",
+      "permitEn": "TEPRALOXYDIM",
+      "mrlEn": "TEPRALOXYDIM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "艾維激素",
+      "permitEn": "AMINOETHOXYVINYLGLYCINE HYDROCHLORIDE",
+      "mrlEn": "AMINOETHOXYVINYL- GLYCINE",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "環磺隆",
+      "permitEn": "CYCLOSULFAMURON",
+      "mrlEn": "CYCLOSULFAMURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "諾伐隆",
+      "permitEn": "NOVALURON",
+      "mrlEn": "NOVALURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "美賜平",
+      "permitEn": "S-METHOPRENE",
+      "mrlEn": "METHOPRENE",
+      "identical": false,
+      "risk": "",
+      "note": "英文不同,但主管機關以同一中文通用名指稱"
+    },
+    {
+      "zh": "可芬諾",
+      "permitEn": "CHROMAFENOZIDE",
+      "mrlEn": "CHROMAFENOZIDE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賜諾特",
+      "permitEn": "SPINETORAM",
+      "mrlEn": "SPINETORAM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "亞汰尼",
+      "permitEn": "ISOTIANIL",
+      "mrlEn": "ISOTIANIL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "拔敵草",
+      "permitEn": "BUTYLATE",
+      "mrlEn": "BUTYLATE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "平氟芬",
+      "permitEn": "PENFLUFEN",
+      "mrlEn": "PENFLUFEN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "氟克殺",
+      "permitEn": "FLUXAPYROXAD",
+      "mrlEn": "FLUXAPYROXAD",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "速殺氟",
+      "permitEn": "SULFOXAFLOR",
+      "mrlEn": "SULFOXAFLOR",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "亞派占",
+      "permitEn": "ISOPYRAZAM",
+      "mrlEn": "ISOPYRAZAM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "氟速芬",
+      "permitEn": "FLUENSULFONE",
+      "mrlEn": "FLUENSULFONE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "普快淨",
+      "permitEn": "PROQUINAZID",
+      "mrlEn": "PROQUINAZID",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "氟派瑞",
+      "permitEn": "FLUOPYRAM",
+      "mrlEn": "FLUOPYRAM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賽派芬",
+      "permitEn": "CYENOPYRAFEN",
+      "mrlEn": "CYENOPYRAFEN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賽安勃",
+      "permitEn": "CYANTRANILIPROLE",
+      "mrlEn": "CYANTRANILIPROLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "平硫瑞",
+      "permitEn": "PENTHIOPYRAD",
+      "mrlEn": "PENTHIOPYRAD",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "美速隆",
+      "permitEn": "METAZOSULFURON",
+      "mrlEn": "METAZOSULFURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "比拉芬",
+      "permitEn": "FLORPYRAUXIFEN-BENZYL",
+      "mrlEn": "FLORPYRAUXIFEN-BENZYL",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "特安勃",
+      "permitEn": "TETRANILIPROLE",
+      "mrlEn": "TETRANILIPROLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "滅芬座",
+      "permitEn": "MEFENTRIFLUCONAZOLE",
+      "mrlEn": "MEFENTRIFLUCONAZOLE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "派本克",
+      "permitEn": "PYRIBENCARB",
+      "mrlEn": "PYRIBENCARB",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "氟美派",
+      "permitEn": "TRIFLUMEZOPYRIM",
+      "mrlEn": "TRIFLUMEZOPYRIM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "歐西比",
+      "permitEn": "OXATHIAPIPROLIN",
+      "mrlEn": "OXATHIAPIPROLIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "派滅芬",
+      "permitEn": "PYDIFLUMETOFEN",
+      "mrlEn": "PYDIFLUMETOFEN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "艾繁草",
+      "permitEn": "IPFENCARBAZONE",
+      "mrlEn": "IPFENCARBAZONE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "派芬農",
+      "permitEn": "PYRIOFENONE",
+      "mrlEn": "PYRIOFENONE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "普速隆",
+      "permitEn": "PROPYRISULFURON",
+      "mrlEn": "PROPYRISULFURON",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "阿扶平",
+      "permitEn": "AFIDOPYROPEN",
+      "mrlEn": "AFIDOPYROPEN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "亞克瑞",
+      "permitEn": "ISOCYCLOSERAM",
+      "mrlEn": "ISOCYCLOSERAM",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "賜派地",
+      "permitEn": "SPIROPIDION",
+      "mrlEn": "SPIROPIDION",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "氟印淨",
+      "permitEn": "FLUAZAINDOLIZINE",
+      "mrlEn": "FLUAZAINDOLIZINE",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "氟殺比",
+      "permitEn": "FLUOXAPIPROLIN",
+      "mrlEn": "FLUOXAPIPROLIN",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    },
+    {
+      "zh": "扶比胺",
+      "permitEn": "FLORYLPICOXAMID",
+      "mrlEn": "FLORYLPICOXAMID",
+      "identical": true,
+      "risk": "",
+      "note": "英文亦相同"
+    }
+  ]
+}
