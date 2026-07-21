@@ -1,0 +1,550 @@
+{
+  "generatedAt": "2026-07-21T12:49:34.886Z",
+  "ruleSource": "農藥殘留容許量標準 附表一 備註",
+  "amendedOn": "民國115年4月21日(2026-04-21)",
+  "sourceUrl": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=L0040083",
+  "resolved": 14,
+  "resolvedUses": 312,
+  "remaining": 106,
+  "remainingUses": 1954,
+  "rows": [
+    {
+      "appName": "鋅錳乃浦",
+      "uses": 56,
+      "target": "二硫代胺基甲酸鹽類",
+      "kind": "群組總量",
+      "note": "註一",
+      "caution": ""
+    },
+    {
+      "appName": "甲基多保淨",
+      "uses": 50,
+      "target": "貝芬替",
+      "kind": "代謝物",
+      "note": "註二",
+      "caution": ""
+    },
+    {
+      "appName": "亞滅寧",
+      "uses": 33,
+      "target": "賽滅寧",
+      "kind": "異構物總量",
+      "note": "註四之1",
+      "caution": ""
+    },
+    {
+      "appName": "克熱淨(烷苯磺酸鹽)",
+      "uses": 31,
+      "target": "克熱淨(醋酸鹽或烷苯磺酸鹽)",
+      "kind": "鹽類",
+      "note": "註三",
+      "caution": "MRL 另有「克熱淨」對應 GUAZATINE,是不同物質。本規則只涵蓋標明鹽型者"
+    },
+    {
+      "appName": "免得爛",
+      "uses": 29,
+      "target": "二硫代胺基甲酸鹽類",
+      "kind": "群組總量",
+      "note": "註一",
+      "caution": ""
+    },
+    {
+      "appName": "免賴得",
+      "uses": 26,
+      "target": "貝芬替",
+      "kind": "代謝物",
+      "note": "註二",
+      "caution": ""
+    },
+    {
+      "appName": "錳乃浦",
+      "uses": 24,
+      "target": "二硫代胺基甲酸鹽類",
+      "kind": "群組總量",
+      "note": "註一",
+      "caution": ""
+    },
+    {
+      "appName": "貝他-賽扶寧",
+      "uses": 22,
+      "target": "賽扶寧",
+      "kind": "異構物總量",
+      "note": "註四之2",
+      "caution": ""
+    },
+    {
+      "appName": "右滅達樂",
+      "uses": 13,
+      "target": "滅達樂",
+      "kind": "異構物總量",
+      "note": "註四之4",
+      "caution": ""
+    },
+    {
+      "appName": "甲基鋅乃浦",
+      "uses": 11,
+      "target": "二硫代胺基甲酸鹽類",
+      "kind": "群組總量",
+      "note": "註一",
+      "caution": ""
+    },
+    {
+      "appName": "得恩地",
+      "uses": 8,
+      "target": "二硫代胺基甲酸鹽類",
+      "kind": "群組總量",
+      "note": "註一",
+      "caution": ""
+    },
+    {
+      "appName": "左旋莫多草",
+      "uses": 4,
+      "target": "莫多草",
+      "kind": "異構物總量",
+      "note": "註四之5",
+      "caution": ""
+    },
+    {
+      "appName": "磷化鎂",
+      "uses": 3,
+      "target": "磷化氫",
+      "kind": "衍生物",
+      "note": "註七",
+      "caution": ""
+    },
+    {
+      "appName": "益化利",
+      "uses": 2,
+      "target": "芬化利",
+      "kind": "異構物總量",
+      "note": "註四之3",
+      "caution": ""
+    }
+  ],
+  "pending": [
+    {
+      "appName": "賽洛寧",
+      "uses": 1042
+    },
+    {
+      "appName": "礦物油",
+      "uses": 137
+    },
+    {
+      "appName": "氫氧化銅",
+      "uses": 58
+    },
+    {
+      "appName": "鮎澤蘇力菌ABTS-1857",
+      "uses": 38
+    },
+    {
+      "appName": "鋅錳座賽胺",
+      "uses": 33
+    },
+    {
+      "appName": "維利黴素",
+      "uses": 33
+    },
+    {
+      "appName": "斜紋夜蛾費洛蒙",
+      "uses": 31
+    },
+    {
+      "appName": "庫斯蘇力菌ABTS-351",
+      "uses": 31
+    },
+    {
+      "appName": "甜菜夜蛾費洛蒙",
+      "uses": 28
+    },
+    {
+      "appName": "鮎澤蘇力菌NB-200",
+      "uses": 27
+    },
+    {
+      "appName": "銅右滅達樂",
+      "uses": 24
+    },
+    {
+      "appName": "鋅錳克絕",
+      "uses": 24
+    },
+    {
+      "appName": "賽速洛寧",
+      "uses": 23
+    },
+    {
+      "appName": "嘉磷塞異丙胺鹽",
+      "uses": 21
+    },
+    {
+      "appName": "蓋棘木黴菌ICC080/012",
+      "uses": 20
+    },
+    {
+      "appName": "福化利",
+      "uses": 20
+    },
+    {
+      "appName": "快伏草",
+      "uses": 19
+    },
+    {
+      "appName": "庫斯蘇力菌E-911",
+      "uses": 18
+    },
+    {
+      "appName": "庫斯蘇力菌SA-12",
+      "uses": 18
+    },
+    {
+      "appName": "枯草桿菌Y1336",
+      "uses": 17
+    },
+    {
+      "appName": "庫斯蘇力菌SA-11",
+      "uses": 14
+    },
+    {
+      "appName": "枯草桿菌KHY8",
+      "uses": 14
+    },
+    {
+      "appName": "賽洛安勃",
+      "uses": 13
+    },
+    {
+      "appName": "多保鏈黴素",
+      "uses": 12
+    },
+    {
+      "appName": "免得克敏",
+      "uses": 11
+    },
+    {
+      "appName": "碳酸氫鉀",
+      "uses": 11
+    },
+    {
+      "appName": "鋅錳滅達樂",
+      "uses": 10
+    },
+    {
+      "appName": "克熱淨",
+      "uses": 10
+    },
+    {
+      "appName": "益洛寧",
+      "uses": 10
+    },
+    {
+      "appName": "撲克拉錳",
+      "uses": 9
+    },
+    {
+      "appName": "銅合硫磺",
+      "uses": 8
+    },
+    {
+      "appName": "波爾多",
+      "uses": 8
+    },
+    {
+      "appName": "本達亞喜芬",
+      "uses": 8
+    },
+    {
+      "appName": "克凡洛寧",
+      "uses": 8
+    },
+    {
+      "appName": "福賽亞汰尼",
+      "uses": 8
+    },
+    {
+      "appName": "快得保淨",
+      "uses": 5
+    },
+    {
+      "appName": "嘉磷塞 (胺鹽 )",
+      "uses": 5
+    },
+    {
+      "appName": "保粒黴素 丁",
+      "uses": 5
+    },
+    {
+      "appName": "鹼氯氫氧銅",
+      "uses": 5
+    },
+    {
+      "appName": "綠木黴菌R42",
+      "uses": 4
+    },
+    {
+      "appName": "銅快得寧",
+      "uses": 4
+    },
+    {
+      "appName": "邁隆",
+      "uses": 4
+    },
+    {
+      "appName": "移植生長素",
+      "uses": 4
+    },
+    {
+      "appName": "苦參鹼",
+      "uses": 4
+    },
+    {
+      "appName": "甜菜夜蛾核多角體病毒",
+      "uses": 4
+    },
+    {
+      "appName": "小菜蛾性費洛蒙",
+      "uses": 3
+    },
+    {
+      "appName": "克蠅香",
+      "uses": 3
+    },
+    {
+      "appName": "本達隆",
+      "uses": 3
+    },
+    {
+      "appName": "四氯保淨",
+      "uses": 3
+    },
+    {
+      "appName": "硫酸快得寧",
+      "uses": 3
+    },
+    {
+      "appName": "四氯賽得",
+      "uses": 3
+    },
+    {
+      "appName": "液化澱粉芽孢桿菌Ba-BPD1",
+      "uses": 3
+    },
+    {
+      "appName": "克美素",
+      "uses": 3
+    },
+    {
+      "appName": "氟比賽得",
+      "uses": 2
+    },
+    {
+      "appName": "四氯右滅達樂",
+      "uses": 2
+    },
+    {
+      "appName": "萘乙酸鈉",
+      "uses": 2
+    },
+    {
+      "appName": "硫黃芬胺",
+      "uses": 2
+    },
+    {
+      "appName": "納得亞滅寧",
+      "uses": 2
+    },
+    {
+      "appName": "氟氯比",
+      "uses": 2
+    },
+    {
+      "appName": "艾維激素",
+      "uses": 2
+    },
+    {
+      "appName": "保粒快得寧",
+      "uses": 2
+    },
+    {
+      "appName": "克熱賜圃",
+      "uses": 2
+    },
+    {
+      "appName": "蕈狀芽孢桿菌AGB01",
+      "uses": 2
+    },
+    {
+      "appName": "鮎澤蘇力菌GC-91",
+      "uses": 2
+    },
+    {
+      "appName": "福芬素",
+      "uses": 2
+    },
+    {
+      "appName": "保粒保淨",
+      "uses": 2
+    },
+    {
+      "appName": "克絕波爾多",
+      "uses": 2
+    },
+    {
+      "appName": "鮎澤蘇力菌Ab12",
+      "uses": 2
+    },
+    {
+      "appName": "貝萊斯芽孢桿菌 BACY",
+      "uses": 2
+    },
+    {
+      "appName": "甲鋅保粒素",
+      "uses": 2
+    },
+    {
+      "appName": "果收生長素",
+      "uses": 1
+    },
+    {
+      "appName": "美賜平",
+      "uses": 1
+    },
+    {
+      "appName": "伏滅鼠",
+      "uses": 1
+    },
+    {
+      "appName": "可滅鼠",
+      "uses": 1
+    },
+    {
+      "appName": "發光光桿菌0805-P2R",
+      "uses": 1
+    },
+    {
+      "appName": "含毒甲基丁香油",
+      "uses": 1
+    },
+    {
+      "appName": "布芬益化利",
+      "uses": 1
+    },
+    {
+      "appName": "貝萊斯芽孢桿菌WG6-14",
+      "uses": 1
+    },
+    {
+      "appName": "耐克螺",
+      "uses": 1
+    },
+    {
+      "appName": "丁拉汰草",
+      "uses": 1
+    },
+    {
+      "appName": "本達快克草",
+      "uses": 1
+    },
+    {
+      "appName": "汰硫免速隆",
+      "uses": 1
+    },
+    {
+      "appName": "汰草龍",
+      "uses": 1
+    },
+    {
+      "appName": "滅芬免速隆",
+      "uses": 1
+    },
+    {
+      "appName": "甲鋅保淨",
+      "uses": 1
+    },
+    {
+      "appName": "賽福保淨",
+      "uses": 1
+    },
+    {
+      "appName": "銅合腐絕",
+      "uses": 1
+    },
+    {
+      "appName": "二、四－地胺鹽",
+      "uses": 1
+    },
+    {
+      "appName": "二、四－地鈉鹽",
+      "uses": 1
+    },
+    {
+      "appName": "生長寧素",
+      "uses": 1
+    },
+    {
+      "appName": "傑他賽滅寧",
+      "uses": 1
+    },
+    {
+      "appName": "畢克草",
+      "uses": 1
+    },
+    {
+      "appName": "普拔草",
+      "uses": 1
+    },
+    {
+      "appName": "番茄生長素",
+      "uses": 1
+    },
+    {
+      "appName": "伽瑪賽洛寧",
+      "uses": 1
+    },
+    {
+      "appName": "合速隆",
+      "uses": 1
+    },
+    {
+      "appName": "單克素",
+      "uses": 1
+    },
+    {
+      "appName": "開寧激素",
+      "uses": 1
+    },
+    {
+      "appName": "氰滿素",
+      "uses": 1
+    },
+    {
+      "appName": "鋅錳右本達樂",
+      "uses": 1
+    },
+    {
+      "appName": "鋅錳本達樂",
+      "uses": 1
+    },
+    {
+      "appName": "鋅錳曼普胺",
+      "uses": 1
+    },
+    {
+      "appName": "勃寧激素",
+      "uses": 1
+    },
+    {
+      "appName": "亞培松",
+      "uses": 1
+    },
+    {
+      "appName": "百里酚",
+      "uses": 1
+    },
+    {
+      "appName": "左固殺草",
+      "uses": 1
+    }
+  ]
+}

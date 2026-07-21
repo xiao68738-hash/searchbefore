@@ -1,0 +1,127 @@
+{
+  "source": "農藥殘留容許量標準 附表一 備註",
+  "amendedOn": "民國115年4月21日(2026-04-21)",
+  "sourceUrl": "https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=L0040083",
+  "verifiedAt": "2026-07-21",
+  "verifiedFrom": "食藥署發布之附表一 PDF,以 pdfjs 抽取原文逐字核對",
+  "note": "本檔為法規原文的結構化轉錄。修改前務必回頭核對原文,並更新 amendedOn。",
+
+  "rules": [
+    {
+      "note": "註一",
+      "group": "二硫代胺基甲酸鹽類",
+      "basis": "容許量以 CS2 計,適用於二硫代胺基甲酸鹽類農藥之殘留總量",
+      "kind": "群組總量",
+      "verbatim": "二硫代胺基甲酸鹽類之容許量以 CS2 計，其適用於二硫代胺基甲酸鹽類農藥之殘留總量",
+      "members": [
+        { "zh": "益穗", "en": "ziram", "sub": "dimethyldithiocarbamates" },
+        { "zh": "免得爛", "en": "metiram", "sub": "dimethyldithiocarbamates" },
+        { "zh": "鎳乃浦", "en": "sankel", "sub": "dimethyldithiocarbamates" },
+        { "zh": "鋅錳乃浦", "en": "mancozeb", "sub": "ethylenebis(dithiocarbamate)s" },
+        { "zh": "錳乃浦", "en": "maneb", "sub": "ethylenebis(dithiocarbamate)s" },
+        { "zh": "甲基鋅乃浦", "en": "propineb", "sub": "ethylenebis(dithiocarbamate)s" },
+        { "zh": "鐵鋅錳乃浦", "en": "", "sub": "ethylenebis(dithiocarbamate)s" },
+        { "zh": "銅合浦", "en": "cufraneb", "sub": "ethylenebis(dithiocarbamate)s" },
+        { "zh": "益地安", "en": "ETM", "sub": "" },
+        { "zh": "得恩地", "en": "thiram", "sub": "" },
+        { "zh": "富爾邦", "en": "Ferbam", "sub": "" }
+      ]
+    },
+    {
+      "note": "註二",
+      "target": "貝芬替",
+      "targetEn": "carbendazim",
+      "kind": "代謝物",
+      "verbatim": "貝芬替之容許含量適用於免賴得、甲基多保淨產生代謝物之貝芬替殘留、或直接使用貝芬替之殘留。",
+      "members": [
+        { "zh": "免賴得", "en": "benomyl" },
+        { "zh": "甲基多保淨", "en": "thiophanate-methyl" },
+        { "zh": "貝芬替", "en": "carbendazim" }
+      ]
+    },
+    {
+      "note": "註三",
+      "target": "克熱淨(醋酸鹽或烷苯磺酸鹽)",
+      "targetEn": "iminoctadine",
+      "kind": "鹽類",
+      "verbatim": "Iminoctadine 之容許量適用於 iminoctadine、iminoctadine triacetate 或 iminoctadine tris(albesilate)之殘留。",
+      "members": [
+        { "zh": "克熱淨(醋酸鹽或烷苯磺酸鹽)", "en": "iminoctadine" },
+        { "zh": "克熱淨(醋酸鹽)", "en": "iminoctadine triacetate" },
+        { "zh": "克熱淨(烷苯磺酸鹽)", "en": "iminoctadine tris(albesilate)" }
+      ],
+      "caution": "MRL 另有「克熱淨」對應 GUAZATINE,是不同物質。本規則只涵蓋標明鹽型者"
+    },
+    {
+      "note": "註四之1",
+      "target": "賽滅寧",
+      "targetEn": "cypermethrin",
+      "kind": "異構物總量",
+      "verbatim": "賽滅寧(cypermethrin)之容許量，適用於賽滅寧及亞滅寧(alphacypermethrin)之殘留總量。",
+      "members": [{ "zh": "亞滅寧", "en": "alpha-cypermethrin" }]
+    },
+    {
+      "note": "註四之2",
+      "target": "賽扶寧",
+      "targetEn": "cyfluthrin",
+      "kind": "異構物總量",
+      "verbatim": "賽扶寧(cyfluthrin)之容許量，適用於賽扶寧及貝他賽扶寧(beta-cyfluthrin)之殘留總量。",
+      "members": [{ "zh": "貝他賽扶寧", "en": "beta-cyfluthrin" }]
+    },
+    {
+      "note": "註四之3",
+      "target": "芬化利",
+      "targetEn": "fenvalerate",
+      "kind": "異構物總量",
+      "verbatim": "芬化利(fenvalerate)之容許量，適用於芬化利及益化利(esfenvalerate)之殘留總量。",
+      "members": [{ "zh": "益化利", "en": "esfenvalerate" }]
+    },
+    {
+      "note": "註四之4",
+      "target": "滅達樂",
+      "targetEn": "metalaxyl",
+      "kind": "異構物總量",
+      "verbatim": "滅達樂(metalaxyl)之容許量，適用於滅達樂及右滅達樂(metalaxyl-M)之殘留總量。",
+      "members": [{ "zh": "右滅達樂", "en": "metalaxyl-M" }]
+    },
+    {
+      "note": "註四之5",
+      "target": "莫多草",
+      "targetEn": "metolachlor",
+      "kind": "異構物總量",
+      "verbatim": "莫多草(metolachlor)之容許量，適用於左旋及右旋莫多草(S-enantiomer and R-enantiomer of metolachlor)之殘留總量。",
+      "members": [
+        { "zh": "左旋莫多草", "en": "S-metolachlor" },
+        { "zh": "右旋莫多草", "en": "R-metolachlor" }
+      ]
+    },
+    {
+      "note": "註六",
+      "target": "大滅松",
+      "targetEn": "Dimethoate",
+      "kind": "代謝物總量",
+      "verbatim": "大滅松(Dimethoate)之容許量，適用於大滅松及歐滅松(Omethoate)之殘留總量。歐滅松之殘留，應同時符合歐滅松之容許量。",
+      "caution": "歐滅松另需單獨符合其自身容許量,不可只看大滅松",
+      "members": [{ "zh": "歐滅松", "en": "Omethoate" }]
+    },
+    {
+      "note": "註七",
+      "target": "磷化氫",
+      "targetEn": "phosphine",
+      "kind": "衍生物",
+      "verbatim": "磷化氫(phosphine)之容許量適用於好達勝(aluminium phosphide)、磷化鎂(magnesium phosphide)、磷化鋅(zinc phosphide)之殘留，或直接使用磷化氫(phosphine)之殘留。",
+      "members": [
+        { "zh": "好達勝", "en": "aluminium phosphide" },
+        { "zh": "磷化鎂", "en": "magnesium phosphide" },
+        { "zh": "磷化鋅", "en": "zinc phosphide" }
+      ]
+    }
+  ],
+
+  "note5": {
+    "note": "註五",
+    "about": "加註「*」的列不代表可使用該農藥的作物範圍",
+    "verbatim": "本表中加註「*」不代表可使用農藥之作物範圍，其係依公告檢驗方法之定量極限訂定，除該農藥已訂定在特定作物之殘留容許量者外，其餘作物應符合本項規定",
+    "caution": "實作時不可把「其他(蔬果類)*」之類的列當成該藥可用於那些作物"
+  }
+}
