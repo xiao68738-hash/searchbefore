@@ -1,6 +1,6 @@
 {
   "name": "searchbefore",
-  "version": "0.1.9-0",
+  "version": "0.2.0",
   "private": true,
   "description": "噴前查正式發布建置與測試工具",
   "scripts": {

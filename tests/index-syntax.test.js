@@ -28,7 +28,7 @@ assert.ok(html.indexOf('<script src="./account.js"></script>') < html.indexOf("c
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="0\.2\.0\.0"/);
+assert.match(html, /const APP_VERSION="0\.2\.0\.1"/);
 assert.match(html, /<title>噴前查 SearchBefore/);
 assert.match(html, /href="\.\/about\.html"/);
 assert.match(html, /id="entryTitle">噴前查 SearchBefore<\/h1>/);
@@ -55,6 +55,40 @@ assert.match(html, /id="backupNote"/);
    在系統中無法區分。一旦把查無結果講成「風險」,合法登記藥劑會被誤報,
    農友被誤報一次就會忽略所有警告,包括真正該注意的。 */
 assert.match(html, /殘留容許量尚未納入/);
+
+/* ── 作物別名的目標必須真的存在於 DATA ──
+   查詢時 add() 會靜默跳過不存在的目標,所以指向錯誤的別名不會報錯,
+   只會讓農友打了俗名卻查不到東西。稽核時發現「小黃瓜→花胡瓜」
+   從一開始就指向不存在的作物(該作物在 DATA 中從未出現過)。
+   這種錯誤沒有測試就永遠不會被發現。 */
+{
+  const di = html.indexOf("const DATA=") + "const DATA=".length;
+  const DATA = JSON.parse(html.slice(di, html.indexOf("\n", di)).trim().replace(/;$/, ""));
+
+  const ai = html.indexOf("const CROP_ALIAS={");
+  const aliasSrc = html.slice(ai + "const CROP_ALIAS={".length, html.indexOf("};", ai));
+  const ALIAS = eval("({" + aliasSrc.replace(/\/\*[\s\S]*?\*\//g, "") + "})");
+
+  const dead = [];
+  for (const [alias, targets] of Object.entries(ALIAS)) {
+    for (const t of targets) if (!DATA[t]) dead.push(`${alias} → ${t}`);
+  }
+  assert.equal(dead.length, 0,
+    `俗名對照指向不存在的作物:${dead.join("、")}`);
+  assert.ok(Object.keys(ALIAS).length >= 100,
+    `俗名對照應有 100 組以上,實際 ${Object.keys(ALIAS).length} 組`);
+
+  /* phiText 只在區間時存在,且 phi 必須等於區間上限 */
+  let ptBad = [];
+  for (const c of Object.keys(DATA)) for (const p of Object.keys(DATA[c])) for (const e of DATA[c][p]) {
+    if (!("phiText" in e)) continue;
+    if (!/^\d+(\.\d+)?(-\d+(\.\d+)?)+$/.test(e.phiText)) { ptBad.push(`${c}/${p}/${e.name} 格式異常 ${e.phiText}`); continue; }
+    const max = Math.max(...String(e.phiText).split("-").map(Number));
+    if (e.phi !== max) ptBad.push(`${c}/${p}/${e.name} phi=${e.phi} 但區間上限為 ${max}`);
+  }
+  assert.equal(ptBad.length, 0,
+    `採收期區間的 phi 必須等於上限(倒數採保守值):${ptBad.slice(0, 3).join("；")}`);
+}
 assert.match(html, /未涵蓋衛福部訂定的農產品殘留容許量標準/);
 assert.doesNotMatch(html, /殘留超標風險|有超標風險|不得檢出風險|禁用藥劑警告/);
 assert.match(html, /function renderBackupNote\(\)/);
@@ -133,7 +167,7 @@ assert.match(sw, /"\.\/brand-lockup\.png"/);
 assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0\.2\.0\.0-data-refresh/);
+assert.match(sw, /v0\.2\.0\.1-audit-fixes/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.ok(html.indexOf('<script src="./query-aids.js"></script>') < html.indexOf("const DATA="), "query-aids.js 必須在主程式前載入");
 assert.match(html, /function renderPestRelated\(\)/);
