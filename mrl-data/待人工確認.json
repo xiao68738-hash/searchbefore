@@ -1,36 +1,12 @@
 {
-  "generatedAt": "2026-07-19T13:44:20.269Z",
+  "generatedAt": "2026-07-21T08:29:46.163Z",
   "sourceSnapshots": {
     "mrl": "2026-07-19T13-43-39-026Z",
-    "pesticides": "2026-07-19T13-43-54-694Z",
-    "cropCategories": "2026-07-19T13-43-54-694Z",
-    "exempt": "2026-07-19T13-43-54-694Z"
+    "pesticides": "2026-07-21T07-40-42-905Z",
+    "cropCategories": "2026-07-21T07-40-42-905Z",
+    "exempt": "2026-07-21T07-40-42-905Z"
   },
   "rows": [
-    {
-      "type": "官方許可證名稱查無",
-      "appName": "貝萊斯芽孢桿菌BF",
-      "uses": 147,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
-    {
-      "type": "官方許可證名稱查無",
-      "appName": "液化澱粉芽孢桿菌Tcba05",
-      "uses": 30,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
-    {
-      "type": "官方許可證名稱查無",
-      "appName": "殺紋依得利",
-      "uses": 26,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
-    {
-      "type": "官方許可證名稱查無",
-      "appName": "枯草桿菌KHY8",
-      "uses": 14,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
     {
       "type": "官方許可證名稱查無",
       "appName": "銅合硫磺",
@@ -45,37 +21,7 @@
     },
     {
       "type": "官方許可證名稱查無",
-      "appName": "達滅克絕",
-      "uses": 8,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
-    {
-      "type": "官方許可證名稱查無",
-      "appName": "液化澱粉芽孢桿菌CL3",
-      "uses": 5,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
-    {
-      "type": "官方許可證名稱查無",
-      "appName": "因汀氟滅",
-      "uses": 4,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
-    {
-      "type": "官方許可證名稱查無",
-      "appName": "苦參鹼",
-      "uses": 4,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
-    {
-      "type": "官方許可證名稱查無",
       "appName": "小菜蛾性費洛蒙",
-      "uses": 3,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
-    {
-      "type": "官方許可證名稱查無",
-      "appName": "白殭菌A1",
       "uses": 3,
       "detail": "尚未解析，不可推論法規狀態"
     },
@@ -87,55 +33,7 @@
     },
     {
       "type": "官方許可證名稱查無",
-      "appName": "液化澱粉芽孢桿菌Ba-BPD1",
-      "uses": 3,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
-    {
-      "type": "官方許可證名稱查無",
-      "appName": "硫黃芬胺",
-      "uses": 2,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
-    {
-      "type": "官方許可證名稱查無",
-      "appName": "滅芬百速隆",
-      "uses": 2,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
-    {
-      "type": "官方許可證名稱查無",
-      "appName": "發光光桿菌0805-P2R",
-      "uses": 1,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
-    {
-      "type": "官方許可證名稱查無",
-      "appName": "賽氟菲克利",
-      "uses": 1,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
-    {
-      "type": "官方許可證名稱查無",
-      "appName": "嘉賜圃",
-      "uses": 1,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
-    {
-      "type": "官方許可證名稱查無",
       "appName": "果收生長素",
-      "uses": 1,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
-    {
-      "type": "官方許可證名稱查無",
-      "appName": "貝萊斯芽孢桿菌N17",
-      "uses": 1,
-      "detail": "尚未解析，不可推論法規狀態"
-    },
-    {
-      "type": "官方許可證名稱查無",
-      "appName": "待克三元銅",
       "uses": 1,
       "detail": "尚未解析，不可推論法規狀態"
     },
@@ -315,6 +213,12 @@
     },
     {
       "type": "英文有效成分未對到",
+      "appName": "枯草桿菌KHY8",
+      "uses": 14,
+      "detail": "BACILLUS SUBTILIS KHY8"
+    },
+    {
+      "type": "英文有效成分未對到",
       "appName": "賽洛安勃",
       "uses": 13,
       "detail": "LAMBDA-CYHALOTHRIN"
@@ -453,6 +357,12 @@
     },
     {
       "type": "英文有效成分未對到",
+      "appName": "苦參鹼",
+      "uses": 4,
+      "detail": "MATRINE"
+    },
+    {
+      "type": "英文有效成分未對到",
       "appName": "甜菜夜蛾核多角體病毒",
       "uses": 4,
       "detail": "SPODOPTERA EXIGUA NUCLEOPOLYHEDROVIRUS"
@@ -489,6 +399,12 @@
     },
     {
       "type": "英文有效成分未對到",
+      "appName": "液化澱粉芽孢桿菌Ba-BPD1",
+      "uses": 3,
+      "detail": "BACILLUS AMYLOLIQUEFACIENS BA-BPD1"
+    },
+    {
+      "type": "英文有效成分未對到",
       "appName": "克美素",
       "uses": 3,
       "detail": "CHLORMEQUAT CHLORIDE"
@@ -516,6 +432,12 @@
       "appName": "萘乙酸鈉",
       "uses": 2,
       "detail": "NAA-SODIUM"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "硫黃芬胺",
+      "uses": 2,
+      "detail": "CYFLUFENAMID＋SULFUR"
     },
     {
       "type": "英文有效成分未對到",
@@ -612,6 +534,12 @@
       "appName": "可滅鼠",
       "uses": 1,
       "detail": "BRODIFACOUM"
+    },
+    {
+      "type": "英文有效成分未對到",
+      "appName": "發光光桿菌0805-P2R",
+      "uses": 1,
+      "detail": "PHOTORHABDUS LUMINESCENS 0805-P2R"
     },
     {
       "type": "英文有效成分未對到",
