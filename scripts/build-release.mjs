@@ -8,7 +8,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..");
 const outDir = path.join(root, "dist");
 
-const htmlFiles = ["index.html", "about.html", "privacy.html"];
+const htmlFiles = ["index.html", "about.html", "privacy.html", "delete-account.html"];
 const jsFiles = [
   "service-config.js",
   "account.js",

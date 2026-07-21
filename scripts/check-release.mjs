@@ -8,7 +8,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..");
 const outDir = path.join(root, "dist");
 const expected = [
-  "about.html", "account.js", "brand-lockup.png", "cloud-sync.js", "brand-logo-120.png", "crop-forms.js", "export-formats.js", "farm-records.js", "icon-180.png", "icon-192.png", "icon-512.png",
+  "about.html", "account.js", "brand-lockup.png", "cloud-sync.js", "delete-account.html", "brand-logo-120.png", "crop-forms.js", "export-formats.js", "farm-records.js", "icon-180.png", "icon-192.png", "icon-512.png",
   "icon-maskable-512.png", "index.html", "manifest.webmanifest", "privacy.html",
   "query-aids.js", "safety.js", "service-config.js", "sw.js"
 ].sort();
@@ -26,6 +26,8 @@ assert.doesNotMatch(combined, /sourceMappingURL=/);
 assert.doesNotMatch(combined, /xiao68738-hash\.github\.io\/searchbefore/);
 assert.doesNotMatch(combined, /your-email@example\.com/);
 assert.match(combined, /https:\/\/searchbefore\.tw\/privacy\.html/);
+/* Google Play 資料安全表單要求提供帳號刪除網址,此頁不可漏發布 */
+assert.match(combined, /https:\/\/searchbefore\.tw\/delete-account\.html/);
 assert.match(combined, /https:\/\/searchbefore\.tw\/about\.html/);
 assert.match(combined, /噴前查 SearchBefore/);
 
