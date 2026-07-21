@@ -12,6 +12,7 @@ const htmlFiles = ["index.html", "about.html", "privacy.html"];
 const jsFiles = [
   "service-config.js",
   "account.js",
+  "cloud-sync.js",
   "safety.js",
   "farm-records.js",
   "crop-forms.js",

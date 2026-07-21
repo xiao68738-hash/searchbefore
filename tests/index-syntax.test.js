@@ -28,14 +28,22 @@ assert.ok(html.indexOf('<script src="./account.js"></script>') < html.indexOf("c
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="0\.1\.9\.1"/);
+assert.match(html, /const APP_VERSION="0\.1\.10\.0"/);
 assert.match(html, /<title>噴前查 SearchBefore/);
 assert.match(html, /href="\.\/about\.html"/);
 assert.match(html, /id="entryTitle">噴前查 SearchBefore<\/h1>/);
 assert.match(html, /協助台灣農友查詢合法登記藥劑、完成配藥換算/);
 assert.match(html, /<link rel="canonical" href="https:\/\/searchbefore\.tw\/">/);
 assert.match(html, /const PRIVACY_URL="https:\/\/searchbefore\.tw\/privacy\.html"/);
-assert.match(html, /const SCHEMA_VERSION=3/);
+assert.match(html, /const SCHEMA_VERSION=4/);
+/* v4 遷移必須為既有紀錄回填 updatedAt,否則第一次雲端同步時
+   所有舊資料會被當成同一時刻寫入,兩台裝置互相覆蓋。 */
+assert.match(html, /oldVersion<4/);
+assert.match(html, /updatedAt/);
+/* 同步層必須攔在 store.set 這個單一出口 */
+assert.match(html, /PQC_SYNC\.beforeStore/);
+assert.match(html, /PQC_SYNC\.afterStore/);
+assert.match(html, /<script src="\.\/cloud-sync\.js"><\/script>/);
 assert.match(html, /PQC_SAFETY\.shouldShowVolumeApprox\(unit\)/);
 assert.match(html, /PQC_SAFETY\.directCropLevels\(crop,DATA\)/);
 assert.match(html, /id="rNotify" disabled/);
@@ -109,7 +117,7 @@ assert.match(sw, /"\.\/brand-lockup\.png"/);
 assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0\.1\.9\.1-crop-alias/);
+assert.match(sw, /v0\.1\.10\.0-cloud-sync/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.ok(html.indexOf('<script src="./query-aids.js"></script>') < html.indexOf("const DATA="), "query-aids.js 必須在主程式前載入");
 assert.match(html, /function renderPestRelated\(\)/);
