@@ -10,7 +10,8 @@
     "firebase:login": "npx --yes firebase-tools@15.24.0 login",
     "deploy:preview": "npm run release:check && npx --yes firebase-tools@15.24.0 hosting:channel:deploy preview",
     "deploy:hosting": "npm run release:check && npx --yes firebase-tools@15.24.0 deploy --only hosting",
-    "release:bump": "node scripts/bump-version.mjs"
+    "release:bump": "node scripts/bump-version.mjs",
+    "branch": "node scripts/new-branch.mjs"
   },
   "devDependencies": {
     "html-minifier-terser": "^7.2.0",
