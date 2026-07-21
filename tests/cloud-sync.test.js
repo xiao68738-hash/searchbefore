@@ -155,6 +155,46 @@ assert.equal(S.isEnabled(), true);
   assert.match(line.text, /只保存在這台裝置/, "未登入時要明確告知資料只在本機");
 }
 
+/* ── 兩邊完全一致時不得重複上傳 ──
+   這條直接關係免費額度是否夠用。若時戳相同仍判為「本機較新」,
+   每次同步都會把全部資料重傳一次:200 筆 × 每天 15 次 × 12 人 = 36,000 次寫入,
+   超過 Spark 方案每天 20,000 次的上限。 */
+{
+  const same = [
+    {id:"a", n:1, updatedAt:"2026-07-20T00:00:00.000Z"},
+    {id:"b", n:2, updatedAt:"2026-07-20T00:00:00.000Z"}
+  ];
+  const res = S.mergeCollection(same.map(x=>({...x})), same.map(x=>({...x})));
+  assert.equal(res.merged.length, 2, "資料應完整保留");
+  assert.equal(res.toPush.length, 0, "本機與雲端一致時不得產生任何上傳");
+}
+
+/* 一致的多、只有一筆本機較新 → 只推那一筆 */
+{
+  const base = {updatedAt:"2026-07-20T00:00:00.000Z"};
+  const local = [
+    {id:"a", ...base},
+    {id:"b", ...base},
+    {id:"c", updatedAt:"2026-07-21T00:00:00.000Z", n:"改過"}
+  ];
+  const remote = [
+    {id:"a", ...base},
+    {id:"b", ...base},
+    {id:"c", ...base}
+  ];
+  const res = S.mergeCollection(local, remote);
+  assert.equal(res.toPush.length, 1, "只有實際變動的那筆需要上傳");
+  assert.equal(res.toPush[0].id, "c");
+}
+
+/* 平手採 remote,不可讓 merged 內容被本機舊值蓋掉 */
+{
+  const t = "2026-07-20T00:00:00.000Z";
+  const res = S.mergeCollection([{id:"a", who:"local", updatedAt:t}], [{id:"a", who:"remote", updatedAt:t}]);
+  assert.equal(res.merged[0].who, "remote", "平手時採雲端版本,結果才在各裝置間一致");
+  assert.equal(res.toPush.length, 0);
+}
+
 /* ── 時戳必須嚴格遞增 ──
    Date 只有毫秒解析度,同一毫秒內的連續寫入會拿到相同值,後一次修改就判不出較新。
    手機時鐘被往回調時更糟:新編輯會輸給舊資料,等於靜默回滾農友的輸入。 */

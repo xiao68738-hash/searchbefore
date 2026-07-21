@@ -62,7 +62,16 @@
       if(!prev){best.set(item.id,{item:item,src:src});return}
       const c=cmp(item.updatedAt,prev.item.updatedAt);
       if(c>0){best.set(item.id,{item:item,src:src});return}
-      if(c===0&&item._deleted&&!prev.item._deleted)best.set(item.id,{item:item,src:src});
+      if(c<0)return;
+      /* 時戳相同。順序很重要:
+         1. 刪除優先,否則 A 裝置刪掉的紀錄會被 B 裝置同步回來,變成刪不掉。
+         2. 其餘情況採 remote,讓 src 標為 remote 而不進 toPush。
+            少了這條,本機與雲端完全一致的資料每次同步都會整批重傳 ——
+            200 筆紀錄 × 每天 15 次同步 × 12 人 = 36,000 次寫入,
+            直接超過 Spark 方案每天 20,000 次的免費額度。 */
+      if(item._deleted&&!prev.item._deleted){best.set(item.id,{item:item,src:src});return}
+      if(!item._deleted&&prev.item._deleted)return;
+      if(src==="remote")best.set(item.id,{item:item,src:src});
     }
     arr(local).forEach(function(i){consider(i,"local")});
     arr(remote).forEach(function(i){consider(i,"remote")});
@@ -207,10 +216,18 @@
     try{
       if(!ownerUid())host.set(K_OWNER,user.uid);
       const tombs=arr(host.get(K_TOMB));
+      /* 增量同步:只抓上次成功同步之後變動過的文件。
+         全量讀取的話,200 筆紀錄每次同步就是 200 次讀取,
+         12 人每天各同步 15 次 = 36,000 次,逼近 Spark 每天 50,000 次上限,
+         而且完全無法隨使用者成長。首次同步(沒有 since)才做全量。
+         注意:K_LAST 只在整輪成功後才更新,所以中途失敗不會漏掉資料。 */
+      const since=String(host.get(K_LAST)||"");
 
       for(const col of COLLECTIONS){
         const ref=fsApi.collection(database,"users",user.uid,col);
-        const snap=await fsApi.getDocs(ref);
+        const snap=await fsApi.getDocs(
+          since?fsApi.query(ref,fsApi.where("updatedAt",">",since)):ref
+        );
         const remote=[];
         snap.forEach(function(d){remote.push(Object.assign({id:d.id},d.data()))});
 
@@ -222,7 +239,11 @@
         const res=mergeCollection(localItems,remote);
         host.set(col,res.merged);
 
-        for(const item of res.toPush){
+        /* updatedAt <= since 的項目在前一輪成功同步時已經推送過,不必重傳。 */
+        const toPush=res.toPush.filter(function(i){
+          return !since||String(i.updatedAt||"")>since;
+        });
+        for(const item of toPush){
           const body=Object.assign({},item);
           delete body.id;
           await fsApi.setDoc(fsApi.doc(database,"users",user.uid,col,String(item.id)),body,{merge:false});
