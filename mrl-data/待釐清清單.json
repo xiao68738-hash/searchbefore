@@ -1,0 +1,1406 @@
+{
+  "generatedAt": "2026-07-21T15:21:33.887Z",
+  "note": "英文有效成分取自許可證「英文名稱」欄位，混合劑以「+」切分。",
+  "total": 74,
+  "mixtures": 40,
+  "singles": 29,
+  "noEnglishName": 5,
+  "fullyCovered": 27,
+  "rows": [
+    {
+      "zh": "鋅錳座賽胺",
+      "uses": 33,
+      "en": "MANCOZEB + ZOXAMIDE",
+      "parts": [
+        {
+          "en": "MANCOZEB",
+          "status": "法規備註已涵蓋",
+          "target": "二硫代胺基甲酸鹽類",
+          "basis": "註一"
+        },
+        {
+          "en": "ZOXAMIDE",
+          "status": "附表一有訂容許量",
+          "target": "座賽胺（Zoxamide）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) manganese ethylenebis(dithiocarbamate) (polymeric) complex with zinc salt...66.7%(2) (RS)-3,5-dichloro-N-(3-chloro-1-ethyl-1-methyl-2-oxopropyl)-p-toluamide...8.3%"
+    },
+    {
+      "zh": "銅右滅達樂",
+      "uses": 24,
+      "en": "COPPER OXYCHLORIDE + METALAXYL-M",
+      "parts": [
+        {
+          "en": "COPPER OXYCHLORIDE",
+          "status": "得免訂定容許量",
+          "target": "鹼性氯氧化銅",
+          "basis": ""
+        },
+        {
+          "en": "METALAXYL-M",
+          "status": "法規備註已涵蓋",
+          "target": "滅達樂",
+          "basis": "註四之4"
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) methyl N-(methoxyacetyl)-N-(2,6-xylyl)-D-alaninate...2.5%(2) copper oxychloride...69.1%"
+    },
+    {
+      "zh": "鋅錳克絕",
+      "uses": 24,
+      "en": "CYMOXANIL + MANCOZEB",
+      "parts": [
+        {
+          "en": "CYMOXANIL",
+          "status": "附表一有訂容許量",
+          "target": "克絕（Cymoxanil）",
+          "basis": ""
+        },
+        {
+          "en": "MANCOZEB",
+          "status": "法規備註已涵蓋",
+          "target": "二硫代胺基甲酸鹽類",
+          "basis": "註一"
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) 1-(2-cyano-2-methoxyiminoacetyl)-3-ethylurea…8% (2) manganese ethylenebis(dithiocarbamate) (polymeric) complex with zinc salt…64%"
+    },
+    {
+      "zh": "賽速洛寧",
+      "uses": 23,
+      "en": "LAMBDA-CYHALOTHRIN + THIAMETHOXAM",
+      "parts": [
+        {
+          "en": "LAMBDA-CYHALOTHRIN",
+          "status": "英文不同但中文通用名相同",
+          "target": "賽洛寧（附表一作 Cyhalothrin）",
+          "basis": "待釐清：應以中文通用名或英文名為準"
+        },
+        {
+          "en": "THIAMETHOXAM",
+          "status": "附表一有訂容許量",
+          "target": "賽速安（Thiamethoxam）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) a reaction product comprising equal quantities of (S)-α-cyano-3-phenoxybenzyl (Z)-(1R,3R)-3-(2-chloro-3,3,3-trifluoroprop-1-enyl)- 2,2-dimethylcyclopropanecarboxylate and (R)-α-cyano-3-phenoxybenz"
+    },
+    {
+      "zh": "嘉磷塞異丙胺鹽",
+      "uses": 21,
+      "en": "GLYPHOSATE IPA",
+      "parts": [
+        {
+          "en": "GLYPHOSATE IPA",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "isopropylamine salt of N-(phosphonomethyl)glycine"
+    },
+    {
+      "zh": "蓋棘木黴菌ICC080/012",
+      "uses": 20,
+      "en": "TRICHODERMA GAMSII ICC 080+TRICHODERMA ASPERELLUM ICC 012",
+      "parts": [
+        {
+          "en": "TRICHODERMA GAMSII ICC 080",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        },
+        {
+          "en": "TRICHODERMA ASPERELLUM ICC 012",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": false,
+      "chem": "(1) Trichoderma gamsii ICC 080 .....5X10^6 CFU/g  (2) Trichoderma asperellum ICC 012 .....5X10^6 CFU/g"
+    },
+    {
+      "zh": "賽洛安勃",
+      "uses": 13,
+      "en": "LAMBDA-CYHALOTHRIN + CHLORANTRANILIPROLE",
+      "parts": [
+        {
+          "en": "LAMBDA-CYHALOTHRIN",
+          "status": "英文不同但中文通用名相同",
+          "target": "賽洛寧（附表一作 Cyhalothrin）",
+          "basis": "待釐清：應以中文通用名或英文名為準"
+        },
+        {
+          "en": "CHLORANTRANILIPROLE",
+          "status": "附表一有訂容許量",
+          "target": "剋安勃（Chlorantraniliprole）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) (S)-α-cyano-3-phenoxybenzyl (Z)-(1R,3R)-3-(2-chloro-3,3,3-trifluoroprop-1-enyl)- 2,2-dimethylcyclopropanecarboxylate and (R)-α-cyano-3-phenoxybenzyl (Z)-(1S, 3S)-3-(2-chloro-3,3,3-trifluoroprop-1-"
+    },
+    {
+      "zh": "免得克敏",
+      "uses": 11,
+      "en": "METIRAM+PYRACLOSTROBIN",
+      "parts": [
+        {
+          "en": "METIRAM",
+          "status": "法規備註已涵蓋",
+          "target": "二硫代胺基甲酸鹽類",
+          "basis": "註一"
+        },
+        {
+          "en": "PYRACLOSTROBIN",
+          "status": "附表一有訂容許量",
+          "target": "百克敏（Pyraclostrobin）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) zinc ammoniate ethylenebis (dithiocarbamate)-poly(ethylenethiuram disulfide)...55%(2) methylN-{2-[1-(4-chlorophenyl)pyrazol-3-yloxymethyl]phenyl}(N-methoxy)carbamate...5%"
+    },
+    {
+      "zh": "鋅錳滅達樂",
+      "uses": 10,
+      "en": "MANCOZEB + METALAXYL",
+      "parts": [
+        {
+          "en": "MANCOZEB",
+          "status": "法規備註已涵蓋",
+          "target": "二硫代胺基甲酸鹽類",
+          "basis": "註一"
+        },
+        {
+          "en": "METALAXYL",
+          "status": "附表一有訂容許量",
+          "target": "滅達樂（Metalaxyl）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) manganese ethylenebis(dithiocarbamate) (polymeric) complex with zinc salt...48%(2) methyl N-(methoxyacetyl)-N-(2,6-xylyl)-DL-alaninate...10%"
+    },
+    {
+      "zh": "益洛寧",
+      "uses": 10,
+      "en": "LAMBDA-CYHALOTHRIN + PHOSMET",
+      "parts": [
+        {
+          "en": "LAMBDA-CYHALOTHRIN",
+          "status": "英文不同但中文通用名相同",
+          "target": "賽洛寧（附表一作 Cyhalothrin）",
+          "basis": "待釐清：應以中文通用名或英文名為準"
+        },
+        {
+          "en": "PHOSMET",
+          "status": "附表一有訂容許量",
+          "target": "益滅松（Phosmet）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) (S)-α-cyano-3-phenoxybenzyl (Z)-(1R,3R)-3-(2-chloro-3,3,3-trifluoroprop-1-enyl)- 2,2-dimethylcyclopropanecarboxylate and (R)-α-cyano-3-phenoxybenzyl (Z)-(1S,3S)-3-(2-chloro-3,3,3-trifluoroprop-1-e"
+    },
+    {
+      "zh": "撲克拉錳",
+      "uses": 9,
+      "en": "PROCHLORAZ-MANGANESE",
+      "parts": [
+        {
+          "en": "PROCHLORAZ-MANGANESE",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "N-propyl-N-[2-(2,4,6-trichlorophenoxy)ethyl]imidazole-1-carboxamide complex with manganese(II) chloride"
+    },
+    {
+      "zh": "銅合硫磺",
+      "uses": 8,
+      "en": "",
+      "parts": [],
+      "kind": "英文名欄位為空",
+      "allCovered": false,
+      "chem": "(1) sulfur .....14.85% (2) copper oxychloride .....20.3%"
+    },
+    {
+      "zh": "本達亞喜芬",
+      "uses": 8,
+      "en": "BENTAZON + ACIFLUORFEN",
+      "parts": [
+        {
+          "en": "BENTAZON",
+          "status": "英文不同但中文通用名相同",
+          "target": "本達隆（附表一作 Bentazone）",
+          "basis": "待釐清：應以中文通用名或英文名為準"
+        },
+        {
+          "en": "ACIFLUORFEN",
+          "status": "附表一有訂容許量",
+          "target": "亞喜芬（Acifluorfen）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) 3-isopropyl-1H-2,1,3-benzothiadiazin-4(3H)-one 2,2-dioxide...30.3% (2) 5-(2-chloro-α,α,α-trifluoro-p-tolyloxy)-2-nitrobenzoate...6.7%"
+    },
+    {
+      "zh": "福賽亞汰尼",
+      "uses": 8,
+      "en": "FOSETYL-ALUMINIUM + ISOTIANIL",
+      "parts": [
+        {
+          "en": "FOSETYL-ALUMINIUM",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        },
+        {
+          "en": "ISOTIANIL",
+          "status": "附表一有訂容許量",
+          "target": "亞汰尼（Isotianil）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": false,
+      "chem": "(1) aluminium tris-O-ethylphosphonate.....70%  (2) 3,4-dichloro-2’-cyano-1,2-thiazole-5-carboxanilide.....7%"
+    },
+    {
+      "zh": "波爾多",
+      "uses": 8,
+      "en": "",
+      "parts": [],
+      "kind": "英文名欄位為空",
+      "allCovered": false,
+      "chem": "Bordeaux mixture"
+    },
+    {
+      "zh": "克凡洛寧",
+      "uses": 8,
+      "en": "CHLORFENAPYR + LAMBDA-CYHALOTHRIN",
+      "parts": [
+        {
+          "en": "CHLORFENAPYR",
+          "status": "附表一有訂容許量",
+          "target": "克凡派（Chlorfenapyr）",
+          "basis": ""
+        },
+        {
+          "en": "LAMBDA-CYHALOTHRIN",
+          "status": "英文不同但中文通用名相同",
+          "target": "賽洛寧（附表一作 Cyhalothrin）",
+          "basis": "待釐清：應以中文通用名或英文名為準"
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) 4-bromo-2-(4-chlorophenyl)-1-ethoxymethyl-5-trifluoromethylpyrrole-3-carbonitrile...5% (2) (S)-α-cyano-3-phenoxybenzyl (Z)-(1R,3R)-3-(2-chloro-3,3,3-trifluoroprop-1-enyl)- 2,2-dimethylcyclopropane"
+    },
+    {
+      "zh": "嘉磷塞 (胺鹽 )",
+      "uses": 5,
+      "en": "GLYPHOSATE AMMONIUM",
+      "parts": [
+        {
+          "en": "GLYPHOSATE AMMONIUM",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "monoammonium salt of N-(phosphonomethyl)glycine"
+    },
+    {
+      "zh": "快得保淨",
+      "uses": 5,
+      "en": "THIOPHANATE-METHYL + OXINE-COPPER",
+      "parts": [
+        {
+          "en": "THIOPHANATE-METHYL",
+          "status": "法規備註已涵蓋",
+          "target": "貝芬替",
+          "basis": "註二"
+        },
+        {
+          "en": "OXINE-COPPER",
+          "status": "附表一有訂容許量",
+          "target": "快得寧（Oxine-copper）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) dimethyl 4,4’-(o-phenylene)bis(3-thioallophanate)...35%(2) bis(quinolin-8-olato-O,N)copper...40%"
+    },
+    {
+      "zh": "鹼氯氫氧銅",
+      "uses": 5,
+      "en": "COPPER OXYCHLORIDE + COPPER HYDROXIDE",
+      "parts": [
+        {
+          "en": "COPPER OXYCHLORIDE",
+          "status": "得免訂定容許量",
+          "target": "鹼性氯氧化銅",
+          "basis": ""
+        },
+        {
+          "en": "COPPER HYDROXIDE",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": false,
+      "chem": "(1) dicopper chloride trihydroxide (Cu：10%)...17.600% (2) copper(2+) hydroxide (Cu：10%)...16.400%"
+    },
+    {
+      "zh": "綠木黴菌R42",
+      "uses": 4,
+      "en": "Trichoderma virens strain R42",
+      "parts": [
+        {
+          "en": "Trichoderma virens strain R42",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "Trichoderma virens strain R42"
+    },
+    {
+      "zh": "銅快得寧",
+      "uses": 4,
+      "en": "OXINE-COPPER + COPPER HYDROXIDE",
+      "parts": [
+        {
+          "en": "OXINE-COPPER",
+          "status": "附表一有訂容許量",
+          "target": "快得寧（Oxine-copper）",
+          "basis": ""
+        },
+        {
+          "en": "COPPER HYDROXIDE",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": false,
+      "chem": "(1) bis(quinolin-8-olato-O,N)copper...30% (2) copper(2+) hydroxide...10%"
+    },
+    {
+      "zh": "苦參鹼",
+      "uses": 4,
+      "en": "MATRINE",
+      "parts": [
+        {
+          "en": "MATRINE",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "(7aS,13aR,13bR,13cS)-dodecahydro-1H,5H,10H-dipyrido[2,1-f:3’,2’,1’-ij][1,6]naphthyridin-10-one"
+    },
+    {
+      "zh": "甜菜夜蛾核多角體病毒",
+      "uses": 4,
+      "en": "SPODOPTERA EXIGUA NUCLEOPOLYHEDROVIRUS",
+      "parts": [
+        {
+          "en": "SPODOPTERA EXIGUA NUCLEOPOLYHEDROVIRUS",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "Spodoptera exigua Nucleopolyhedrovirus, SeNPV"
+    },
+    {
+      "zh": "邁隆",
+      "uses": 4,
+      "en": "DAZOMET",
+      "parts": [
+        {
+          "en": "DAZOMET",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "3,5-dimethyl-1,3,5-thiadiazinane-2-thione"
+    },
+    {
+      "zh": "移植生長素",
+      "uses": 4,
+      "en": "NAD",
+      "parts": [
+        {
+          "en": "NAD",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "2-(1-naphthyl)acetamide"
+    },
+    {
+      "zh": "小菜蛾性費洛蒙",
+      "uses": 3,
+      "en": "",
+      "parts": [],
+      "kind": "英文名欄位為空",
+      "allCovered": false,
+      "chem": "(1) (Z)-11-hexadecenal  (2) (Z)-11-hexadecenyl acetate  (3) (Z)-11-hexadecenol"
+    },
+    {
+      "zh": "硫酸快得寧",
+      "uses": 3,
+      "en": "OXINE-COPPER + COPPER SULPHATE",
+      "parts": [
+        {
+          "en": "OXINE-COPPER",
+          "status": "附表一有訂容許量",
+          "target": "快得寧（Oxine-copper）",
+          "basis": ""
+        },
+        {
+          "en": "COPPER SULPHATE",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": false,
+      "chem": "(1) bis(quinolin-8-olato-O,N)copper .....10%                                  (2) basic copper sulfate (Cu 16%).....29%"
+    },
+    {
+      "zh": "克蠅香",
+      "uses": 3,
+      "en": "",
+      "parts": [],
+      "kind": "英文名欄位為空",
+      "allCovered": false,
+      "chem": "(1) 4-(p-acetoxyphenyl)-2-butanone .....42.7%                   (2) methyl eugenol .....42.3%"
+    },
+    {
+      "zh": "四氯保淨",
+      "uses": 3,
+      "en": "THIOPHANATE-METHYL + CHLOROTHALONIL",
+      "parts": [
+        {
+          "en": "THIOPHANATE-METHYL",
+          "status": "法規備註已涵蓋",
+          "target": "貝芬替",
+          "basis": "註二"
+        },
+        {
+          "en": "CHLOROTHALONIL",
+          "status": "附表一有訂容許量",
+          "target": "四氯異苯?（Chlorothalonil）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) dimethyl 4,4’-(ο-phenylene)bis(3-thioallophanate)...20% (2) tetrachloroisophthalonitrile...50%"
+    },
+    {
+      "zh": "四氯賽得",
+      "uses": 3,
+      "en": "CHLOROTHALONIL + FOSETYL AL",
+      "parts": [
+        {
+          "en": "CHLOROTHALONIL",
+          "status": "附表一有訂容許量",
+          "target": "四氯異苯?（Chlorothalonil）",
+          "basis": ""
+        },
+        {
+          "en": "FOSETYL AL",
+          "status": "附表一有訂容許量",
+          "target": "福賽得（Fosetyl-Al）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1)  aluminium tris-O-ethylphosphonate ...35%                 (2)tetrachloroisophthalonitrile.....35%"
+    },
+    {
+      "zh": "四氯右滅達樂",
+      "uses": 2,
+      "en": "CHLOROTHALONIL + METALAXYL-M",
+      "parts": [
+        {
+          "en": "CHLOROTHALONIL",
+          "status": "附表一有訂容許量",
+          "target": "四氯異苯?（Chlorothalonil）",
+          "basis": ""
+        },
+        {
+          "en": "METALAXYL-M",
+          "status": "法規備註已涵蓋",
+          "target": "滅達樂",
+          "basis": "註四之4"
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) tetrachloroisophthalonitrile...40.000%(W/V) (2) methyl N-(methoxyacetyl)-N-(2,6-xylyl)-D-alaninate...4.000%(W/V)"
+    },
+    {
+      "zh": "保粒快得寧",
+      "uses": 2,
+      "en": "POLYOXIN B + OXINE-COPPER",
+      "parts": [
+        {
+          "en": "POLYOXIN B",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        },
+        {
+          "en": "OXINE-COPPER",
+          "status": "附表一有訂容許量",
+          "target": "快得寧（Oxine-copper）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": false,
+      "chem": "(1)5-(2-amino-5-O-carbamoyl-2-deoxy-L-xylonamido)-1,5-dideoxy-1-(1,2,3,4-tetrahydro-5-hydroxymethyl-2,4-dioxopyrimidin-1-yl)-β-D-allofuranuronic acid  ...5%                             (2) bis(quinoli"
+    },
+    {
+      "zh": "蕈狀芽孢桿菌AGB01",
+      "uses": 2,
+      "en": "BACILLUS MYCOIDES AGB01",
+      "parts": [
+        {
+          "en": "BACILLUS MYCOIDES AGB01",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "Bacillus mycoides AGB01"
+    },
+    {
+      "zh": "克絕波爾多",
+      "uses": 2,
+      "en": "CYMOXANIL + BORDEAUX",
+      "parts": [
+        {
+          "en": "CYMOXANIL",
+          "status": "附表一有訂容許量",
+          "target": "克絕（Cymoxanil）",
+          "basis": ""
+        },
+        {
+          "en": "BORDEAUX",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": false,
+      "chem": "(1) 1-(2-cyano-2-methoxyiminoacetyl)-3-ethylurea...3% (2) Bordeaux mixture...90%"
+    },
+    {
+      "zh": "氟比賽得",
+      "uses": 2,
+      "en": "FOSETYL-ALUMINIUM + FLUOPICOLIDE",
+      "parts": [
+        {
+          "en": "FOSETYL-ALUMINIUM",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        },
+        {
+          "en": "FLUOPICOLIDE",
+          "status": "附表一有訂容許量",
+          "target": "氟比來（Fluopicolide）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": false,
+      "chem": "(1) aluminium tris-O-ethylphosphonate...66.7% (2) 2,6-dichloro-N -[3-chloro-5- (trifluoromethyl)-2- pyridylmethyl]benzamide...4.4%"
+    },
+    {
+      "zh": "硫黃芬胺",
+      "uses": 2,
+      "en": "cyflufenamid＋sulfur",
+      "parts": [
+        {
+          "en": "cyflufenamid",
+          "status": "附表一有訂容許量",
+          "target": "賽芬胺（Cyflufenamid）",
+          "basis": ""
+        },
+        {
+          "en": "sulfur",
+          "status": "得免訂定容許量",
+          "target": "可濕性硫黃",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1)(Z)-N-[α-(cyclopropylmethoxyimino)-2,3-difluoro-6- (trifluoromethyl)benzyl]-2-phenylacetamide....2.500%       (2)sulfur....35.000%"
+    },
+    {
+      "zh": "納得亞滅寧",
+      "uses": 2,
+      "en": "METHOMYL + ALPHA-CYPERMETHRIN",
+      "parts": [
+        {
+          "en": "METHOMYL",
+          "status": "附表一有訂容許量",
+          "target": "納乃得（Methomyl）",
+          "basis": ""
+        },
+        {
+          "en": "ALPHA-CYPERMETHRIN",
+          "status": "法規備註已涵蓋",
+          "target": "賽滅寧",
+          "basis": "註四之1"
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) S-methyl N-(methylcarbamoyloxy)thioacetimidate...12%(2) (S)-α-cyano-3-phenoxybenzyl (1R,3R)-3-(2,2-dichlorovinyl)-2,2-dimethylcyclopropanecarboxylate and (R)-α-cyano-3-phenoxybenzyl (1S,3S)-3-(2,2"
+    },
+    {
+      "zh": "克熱賜圃",
+      "uses": 2,
+      "en": "IMINOCTADINE TRIACETATE + ISOPROTHIOLANE",
+      "parts": [
+        {
+          "en": "IMINOCTADINE TRIACETATE",
+          "status": "法規備註已涵蓋",
+          "target": "克熱淨(醋酸鹽或烷苯磺酸鹽)",
+          "basis": "註三"
+        },
+        {
+          "en": "ISOPROTHIOLANE",
+          "status": "附表一有訂容許量",
+          "target": "亞賜圃（Isoprothiolane）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) 1,1’-iminodi(octamethylene)diguanidinium triacetate...3% (2) diisopropyl 1,3-dithiolan-2-ylidenemalonate...30%"
+    },
+    {
+      "zh": "福芬素",
+      "uses": 2,
+      "en": "FORCHLORFENURON",
+      "parts": [
+        {
+          "en": "FORCHLORFENURON",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "1-(2-chloro-4-pyridyl)-3-phenylurea"
+    },
+    {
+      "zh": "保粒保淨",
+      "uses": 2,
+      "en": "POLYOXINS + THIOPHANATE-METHYL",
+      "parts": [
+        {
+          "en": "POLYOXINS",
+          "status": "得免訂定容許量",
+          "target": "保粒黴素",
+          "basis": ""
+        },
+        {
+          "en": "THIOPHANATE-METHYL",
+          "status": "法規備註已涵蓋",
+          "target": "貝芬替",
+          "basis": "註二"
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1)5-(2-amino-5-O-carbamoyl-2-deoxy-L-xylonamido)-1,5-dideoxy-1-(1,2,3,4-tetrahydro-5-hydroxymethyl-2,4-dioxopyrimidin-1-yl)-β-D-allofuranuronic acid …..7%                                        (2) d"
+    },
+    {
+      "zh": "甲鋅保粒素",
+      "uses": 2,
+      "en": "PROPINEB + POLYOXIN B",
+      "parts": [
+        {
+          "en": "PROPINEB",
+          "status": "法規備註已涵蓋",
+          "target": "二硫代胺基甲酸鹽類",
+          "basis": "註一"
+        },
+        {
+          "en": "POLYOXIN B",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": false,
+      "chem": "(1)polymeric zinc 1,2-propylenebis(dithiocarbamate)...40%     (2)5-(2-amino-5-O-carbamoyl-2-deoxy-L-xylonamido)-1,5-dideoxy-1-(1,2,3,4-tetrahydro-5-hydroxymethyl-2,4-dioxopyrimidin-1-yl)-β-D-allofuran"
+    },
+    {
+      "zh": "發光光桿菌0805-P2R",
+      "uses": 1,
+      "en": "Photorhabdus luminescens 0805-P2R",
+      "parts": [
+        {
+          "en": "Photorhabdus luminescens 0805-P2R",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "Photorhabdus luminescens 0805-P2R"
+    },
+    {
+      "zh": "本達快克草",
+      "uses": 1,
+      "en": "BENTAZON + QUINCLORAC",
+      "parts": [
+        {
+          "en": "BENTAZON",
+          "status": "英文不同但中文通用名相同",
+          "target": "本達隆（附表一作 Bentazone）",
+          "basis": "待釐清：應以中文通用名或英文名為準"
+        },
+        {
+          "en": "QUINCLORAC",
+          "status": "附表一有訂容許量",
+          "target": "快克草（Quinclorac）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) 3,7-dichloroquinoline-8-carboxylic acid .....6.7%           (2) 3-isopropyl-1H-2,1,3-benzothiadiazin-4(3H)-one 2,2-dioxide .....48%"
+    },
+    {
+      "zh": "汰硫免速隆",
+      "uses": 1,
+      "en": "DITHIOPYR + BENSULFURON METHYL",
+      "parts": [
+        {
+          "en": "DITHIOPYR",
+          "status": "附表一有訂容許量",
+          "target": "汰硫草（Dithiopyr）",
+          "basis": ""
+        },
+        {
+          "en": "BENSULFURON METHYL",
+          "status": "附表一有訂容許量",
+          "target": "免速隆（Bensulfuron-methyl）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) S,S’-dimethyl 2-difluoromethyl-4-isobutyl-6-trifluoromethylpyridine-3,5-dicarbothioate…0.3%                   (2) methyl α-(4,6-dimethoxypyrimidin-2-ylcarbamoylsulfamoyl)-o-toluate…0.1%"
+    },
+    {
+      "zh": "滅芬免速隆",
+      "uses": 1,
+      "en": "MEFENACET + BENSULFURONMETHYL",
+      "parts": [
+        {
+          "en": "MEFENACET",
+          "status": "附表一有訂容許量",
+          "target": "滅芬草（Mefenacet）",
+          "basis": ""
+        },
+        {
+          "en": "BENSULFURONMETHYL",
+          "status": "附表一有訂容許量",
+          "target": "免速隆（Bensulfuron-methyl）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) 2-(1,3-benzothiazol-2-yloxy)-N-methylacetanilide .....3.5%   (2) methyl α-(4,6-dimethoxypyrimidin-2-ylcarbamoyl-sulfamoyl)-o-toluate .....0.13%"
+    },
+    {
+      "zh": "銅合腐絕",
+      "uses": 1,
+      "en": "THIABENDAZOLE + COPPER HYDROXIDE",
+      "parts": [
+        {
+          "en": "THIABENDAZOLE",
+          "status": "附表一有訂容許量",
+          "target": "腐絕（Thiabendazole）",
+          "basis": ""
+        },
+        {
+          "en": "COPPER HYDROXIDE",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": false,
+      "chem": "(1) copper(2+) hydroxide ...50%                                  (2) 2-(thiazol-4-yl)benzimidazole...10%"
+    },
+    {
+      "zh": "傑他賽滅寧",
+      "uses": 1,
+      "en": "ZETA-CYPERMETHRIN",
+      "parts": [
+        {
+          "en": "ZETA-CYPERMETHRIN",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "(S)-α-cyano-3-phenoxybenzyl (1RS,3RS:1RS,3SR)-3-(2,2-dichlorovinyl)-2,2-dimethylcyclopropanecarboxylate"
+    },
+    {
+      "zh": "畢克草",
+      "uses": 1,
+      "en": "CLOPYRALID",
+      "parts": [
+        {
+          "en": "CLOPYRALID",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "3, 6-dichloropyridine-2-carboxylic acid"
+    },
+    {
+      "zh": "伽瑪賽洛寧",
+      "uses": 1,
+      "en": "GAMMA-CYHALOTHRIN",
+      "parts": [
+        {
+          "en": "GAMMA-CYHALOTHRIN",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "(S)-α-cyano-3-phenoxybenzyl (Z)-(1R,3R)-3-(2-chloro-3,3,3-trifluoroprop-1-enyl)-2,2-dimethylcyclopropanecarboxylate"
+    },
+    {
+      "zh": "鋅錳右本達樂",
+      "uses": 1,
+      "en": "MANCOZEB + BENALAXYL-M",
+      "parts": [
+        {
+          "en": "MANCOZEB",
+          "status": "法規備註已涵蓋",
+          "target": "二硫代胺基甲酸鹽類",
+          "basis": "註一"
+        },
+        {
+          "en": "BENALAXYL-M",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": false,
+      "chem": "(1) manganese ethylenebis(dithiocarbamate) (polymeric) complex with zinc salt...65% (2) methyl N-phenylacetyl-N-2,6-xylyl-D-alaninate...4%"
+    },
+    {
+      "zh": "鋅錳本達樂",
+      "uses": 1,
+      "en": "MANCOZEB + BENALAXYL",
+      "parts": [
+        {
+          "en": "MANCOZEB",
+          "status": "法規備註已涵蓋",
+          "target": "二硫代胺基甲酸鹽類",
+          "basis": "註一"
+        },
+        {
+          "en": "BENALAXYL",
+          "status": "附表一有訂容許量",
+          "target": "本達樂（Benalaxyl）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) manganese ethylenebis(dithiocarbamate) (polymeric) complex with zinc salt .....65% (2) methyl N-phenylacetyl-N-2,6-xylyl-DL-alaninate .....8%"
+    },
+    {
+      "zh": "鋅錳曼普胺",
+      "uses": 1,
+      "en": "MANCOZEB + MANDIPROPAMID",
+      "parts": [
+        {
+          "en": "MANCOZEB",
+          "status": "法規備註已涵蓋",
+          "target": "二硫代胺基甲酸鹽類",
+          "basis": "註一"
+        },
+        {
+          "en": "MANDIPROPAMID",
+          "status": "附表一有訂容許量",
+          "target": "曼普胺（Mandipropamid）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) manganese ethylenebis(dithiocarbamate) (polymeric) complex with zinc salt...60% (2) (RS)-2-(4-chlorophenyl)-N-[3-methoxy-4-(prop-2-ynyloxy)phenethyl]-2-(prop-2-ynyloxy)acetamide...5%"
+    },
+    {
+      "zh": "左固殺草",
+      "uses": 1,
+      "en": "glufosinate-P",
+      "parts": [
+        {
+          "en": "glufosinate-P",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "(2S)-2-amino-4-[hydroxy(methyl)phosphinoyl]butyric acid; L-homoalanin-4-yl(methyl)phosphinic acid"
+    },
+    {
+      "zh": "果收生長素",
+      "uses": 1,
+      "en": "",
+      "parts": [],
+      "kind": "英文名欄位為空",
+      "allCovered": false,
+      "chem": "sodium-o-nitrophenol 0.6%   sodium-p-nitrophenol 0.9%  sodium-5-nitroguaiacol 0.3%"
+    },
+    {
+      "zh": "伏滅鼠",
+      "uses": 1,
+      "en": "FLOCOUMAFEN",
+      "parts": [
+        {
+          "en": "FLOCOUMAFEN",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "4-hydroxy-3-[1,2,3,4-tetrahydro-3-(4-(4-trifluoromethyl-benzyloxy) phenyl)-1-naphthyl] coumarin"
+    },
+    {
+      "zh": "可滅鼠",
+      "uses": 1,
+      "en": "BRODIFACOUM",
+      "parts": [
+        {
+          "en": "BRODIFACOUM",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "3-[3-(4’-bromobiphenyl-4-yl)-1,2,3,4-tetrahydro-1-naphthyl]-4-hydroxycoumarin"
+    },
+    {
+      "zh": "含毒甲基丁香油",
+      "uses": 1,
+      "en": "METHYL EUGENOL-NALED",
+      "parts": [
+        {
+          "en": "METHYL EUGENOL-NALED",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "(1) methyl eugenol .....90%                                     (2) 1,2-dibromo-2,2-dichloroethyl dimethyl phosphate ....5%"
+    },
+    {
+      "zh": "布芬益化利",
+      "uses": 1,
+      "en": "BUPROFEZIN + ESFENVALERATE",
+      "parts": [
+        {
+          "en": "BUPROFEZIN",
+          "status": "附表一有訂容許量",
+          "target": "布芬淨（Buprofezin）",
+          "basis": ""
+        },
+        {
+          "en": "ESFENVALERATE",
+          "status": "法規備註已涵蓋",
+          "target": "芬化利",
+          "basis": "註四之3"
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) (Z)-2-tert-butylimino-3-isopropyl-5-phenyl-1, 3, 5-thiadiazinan-4-one …10%              (2) (S)-α-cyano-3-phenoxybenzyl (S)-2-(4- chlorophenyl)-3-methylbutyrate …1%"
+    },
+    {
+      "zh": "耐克螺",
+      "uses": 1,
+      "en": "NICLOSAMIDE",
+      "parts": [
+        {
+          "en": "NICLOSAMIDE",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "2’,5-dichloro-4’-nitrosalicylanilide"
+    },
+    {
+      "zh": "丁拉汰草",
+      "uses": 1,
+      "en": "DAIMURON + BUTACHLOR",
+      "parts": [
+        {
+          "en": "DAIMURON",
+          "status": "英文不同但中文通用名相同",
+          "target": "汰草龍（附表一作 Dymron）",
+          "basis": "待釐清：應以中文通用名或英文名為準"
+        },
+        {
+          "en": "BUTACHLOR",
+          "status": "附表一有訂容許量",
+          "target": "丁基拉草（Butachlor）",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) 1-(α,α-dimethylbenzyl)-3-p-tolylurea .....3%           (2) N-butoxymethyl-2-chloro-2’,6’-diethylacetanilide .....5%"
+    },
+    {
+      "zh": "甲鋅保淨",
+      "uses": 1,
+      "en": "PROPINEB + THIOPHANATE-METHYL",
+      "parts": [
+        {
+          "en": "PROPINEB",
+          "status": "法規備註已涵蓋",
+          "target": "二硫代胺基甲酸鹽類",
+          "basis": "註一"
+        },
+        {
+          "en": "THIOPHANATE-METHYL",
+          "status": "法規備註已涵蓋",
+          "target": "貝芬替",
+          "basis": "註二"
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1)polymeric zinc 1,2-propylenebis(dithiocarbamate)   .....45%         (2)dimethyl 4,4’-(ο-phenylene)bis(3-thioallophanate)  .....30%"
+    },
+    {
+      "zh": "賽福保淨",
+      "uses": 1,
+      "en": "TRIFLUMIZOLE + THIOPHANATE-METHYL",
+      "parts": [
+        {
+          "en": "TRIFLUMIZOLE",
+          "status": "附表一有訂容許量",
+          "target": "賽福座（Triflumizole）",
+          "basis": ""
+        },
+        {
+          "en": "THIOPHANATE-METHYL",
+          "status": "法規備註已涵蓋",
+          "target": "貝芬替",
+          "basis": "註二"
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": true,
+      "chem": "(1) (E)-4-chloro-α,α,α-trifluoro-N-(1-imidazol-1-yl-2-propoxyethylidene)-o-toluidine...15% (2) dimethyl 4,4’-(ο-phenylene)bis(3-thioallophanate)...45%"
+    },
+    {
+      "zh": "二、四－地胺鹽",
+      "uses": 1,
+      "en": "2,4-D(AMINE)",
+      "parts": [
+        {
+          "en": "2,4-D(AMINE)",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "dimethylamine (2,4-dichlorophenoxy)acetate"
+    },
+    {
+      "zh": "二、四－地鈉鹽",
+      "uses": 1,
+      "en": "2,4-D(SODIUM)",
+      "parts": [
+        {
+          "en": "2,4-D(SODIUM)",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "sodium (2,4-dichlorophenoxy)acetate"
+    },
+    {
+      "zh": "生長寧素",
+      "uses": 1,
+      "en": "IBA + NAA + KINETIN",
+      "parts": [
+        {
+          "en": "IBA",
+          "status": "得免訂定容許量",
+          "target": "吲哚丁酸",
+          "basis": ""
+        },
+        {
+          "en": "NAA",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        },
+        {
+          "en": "KINETIN",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": false,
+      "chem": "(1) 4-indol-3-ylbutyric acid...0.850% (2) 1-naphthylacetic acid...0.200% (3) N-furfuryl-1H-purin-6-amine...0.150%"
+    },
+    {
+      "zh": "普拔草",
+      "uses": 1,
+      "en": "PROPAQUIZAFOP",
+      "parts": [
+        {
+          "en": "PROPAQUIZAFOP",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "2-isopropylideneamino-oxyethyl (R)-2-[4-(6-chloroquinoxalin-2-yloxy)phenoxy]propionate"
+    },
+    {
+      "zh": "番茄生長素",
+      "uses": 1,
+      "en": "4-CPA",
+      "parts": [
+        {
+          "en": "4-CPA",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "4-chlorophenoxyacetic acid"
+    },
+    {
+      "zh": "合速隆",
+      "uses": 1,
+      "en": "HALOSULFURON-METHYL",
+      "parts": [
+        {
+          "en": "HALOSULFURON-METHYL",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "methyl 3-chloro-5-(4,6-dimethoxypyrimidin-2-ylcarbamoylsulfamoyl)-1-methylpyrazole-4-carboxylate"
+    },
+    {
+      "zh": "單克素",
+      "uses": 1,
+      "en": "UNICONAZOLE-P",
+      "parts": [
+        {
+          "en": "UNICONAZOLE-P",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "(E)-(S)-1-(4-chlorophenyl)-4,4-dimethyl-2(1H-1,2,4-triazol-1-yl)pent-1-en-3-ol"
+    },
+    {
+      "zh": "開寧激素",
+      "uses": 1,
+      "en": "KINETIN",
+      "parts": [
+        {
+          "en": "KINETIN",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "N-furfuryl-1H-purin-6-amine"
+    },
+    {
+      "zh": "氰滿素",
+      "uses": 1,
+      "en": "CYANAMIDE",
+      "parts": [
+        {
+          "en": "CYANAMIDE",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "cyanamide"
+    },
+    {
+      "zh": "勃寧激素",
+      "uses": 1,
+      "en": "GIBBERELLIN A4 WITH A7 + 6-BENZYLAMINOPURINE",
+      "parts": [
+        {
+          "en": "GIBBERELLIN A4 WITH A7",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        },
+        {
+          "en": "6-BENZYLAMINOPURINE",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "混合劑",
+      "allCovered": false,
+      "chem": "(1) (3S,3aR,4S,4aR,7R,9aR,9bR,12S)-12-hydroxy-3-methyl-6-methylene-2-oxoperhydro-4a,7-methano-3,9b-propanoazuleno[1,2-b]furan-4-carboxylic acid (gibberellin A4) and (3S,3aR,4S,4aR,7R,9aR,9bR,12S)-12-h"
+    },
+    {
+      "zh": "亞培松",
+      "uses": 1,
+      "en": "TEMEPHOS",
+      "parts": [
+        {
+          "en": "TEMEPHOS",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "O,O,O’,O’-tetramethyl O,O’-thiodi-p-phenylene bis(phosphorothioate)"
+    },
+    {
+      "zh": "百里酚",
+      "uses": 1,
+      "en": "THYMOL",
+      "parts": [
+        {
+          "en": "THYMOL",
+          "status": "查無對應",
+          "target": "",
+          "basis": ""
+        }
+      ],
+      "kind": "單一成分",
+      "allCovered": false,
+      "chem": "2-isopropyl-5-methylphenol"
+    }
+  ]
+}
