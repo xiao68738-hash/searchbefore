@@ -1,0 +1,538 @@
+{
+  "generatedAt": "2026-07-21T12:39:20.885Z",
+  "note": "僅為識別線索。混合劑的每個成分都要分別確認,只要一個成分未涵蓋,整筆不得視為免訂。",
+  "groups": 27,
+  "rows": [
+    {
+      "zh": "果收生長素",
+      "code": "P009",
+      "kind": "植物生長調節劑",
+      "type": "混合劑",
+      "permits": 19,
+      "active": 15,
+      "components": [
+        {
+          "name": "sodium-o-nitrophenol",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "波爾多",
+      "code": "F186",
+      "kind": "殺菌劑",
+      "type": "銅劑",
+      "permits": 5,
+      "active": 5,
+      "components": [
+        {
+          "name": "Bordeaux mixture",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "克蠅香",
+      "code": "I063",
+      "kind": "殺蟲劑",
+      "type": "引誘劑",
+      "permits": 6,
+      "active": 3,
+      "components": [
+        {
+          "name": "4-(p-acetoxyphenyl)-2-butanone",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "methyl eugenol",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "甜菜夜蛾費洛蒙甲",
+      "code": "I211",
+      "kind": "殺蟲劑",
+      "type": "費洛蒙",
+      "permits": 1,
+      "active": 1,
+      "components": [
+        {
+          "name": "Z-9-TETRADECENOL",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "銅合硫磺",
+      "code": "F200",
+      "kind": "殺菌劑",
+      "type": "混合劑",
+      "permits": 1,
+      "active": 1,
+      "components": [
+        {
+          "name": "sulfur",
+          "inExempt": true,
+          "inMrl": false
+        },
+        {
+          "name": "copper oxychloride",
+          "inExempt": true,
+          "inMrl": false
+        }
+      ],
+      "allExempt": true
+    },
+    {
+      "zh": "小菜蛾性費洛蒙",
+      "code": "I269",
+      "kind": "殺蟲劑",
+      "type": "費洛蒙",
+      "permits": 1,
+      "active": 1,
+      "components": [
+        {
+          "name": "(Z)-11-hexadecenal",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "(Z)-11-hexadecenyl acetate",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "(Z)-11-hexadecenol",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "(中文名亦空白)",
+      "code": "I091",
+      "kind": "",
+      "type": "",
+      "permits": 17,
+      "active": 0,
+      "components": [],
+      "allExempt": false
+    },
+    {
+      "zh": "巴拉刈硫酸鹽",
+      "code": "H027",
+      "kind": "除草劑",
+      "type": "其它",
+      "permits": 5,
+      "active": 0,
+      "components": [
+        {
+          "name": "1,1’-DIMETHYL-4-4’-BIPYRIDYLUM",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "DIMETHYL SULFATE",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "甲基砷酸鐵",
+      "code": "F031",
+      "kind": "殺菌劑",
+      "type": "砷劑",
+      "permits": 5,
+      "active": 0,
+      "components": [
+        {
+          "name": "FERRIC METHYL ARSONATE",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "亞納銅",
+      "code": "F069",
+      "kind": "殺菌劑",
+      "type": "銅劑",
+      "permits": 2,
+      "active": 0,
+      "components": [
+        {
+          "name": "NONYLPHENOL COPPER SULFONATE",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "嘉賜米松   １",
+      "code": "F125",
+      "kind": "殺菌劑",
+      "type": "混合劑",
+      "permits": 1,
+      "active": 0,
+      "components": [
+        {
+          "name": "O-ETHYL-O, O-DI(2, 4-DICHLOROPHENYL) PHOSPHATE",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "能死蟎",
+      "code": "A023",
+      "kind": "殺蟎劑",
+      "type": "有機氟",
+      "permits": 23,
+      "active": 0,
+      "components": [
+        {
+          "name": "N-METHYL-N-(1-NAPHTHYL) MONOFLUOROACETAMIDE",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "鎳乃浦",
+      "code": "F177",
+      "kind": "殺菌劑",
+      "type": "硫磺劑",
+      "permits": 6,
+      "active": 0,
+      "components": [
+        {
+          "name": "NICKEL DIMETHYLDITHIOCARBAMATE",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "治芽素",
+      "code": "P016",
+      "kind": "植物生長調節劑",
+      "type": "脂肪醇",
+      "permits": 1,
+      "active": 0,
+      "components": [
+        {
+          "name": "FATTY ALCOHOLS (C6-C12)",
+          "inExempt": true,
+          "inMrl": false
+        }
+      ],
+      "allExempt": true
+    },
+    {
+      "zh": "果收生長素   ４",
+      "code": "P013",
+      "kind": "植物生長調節劑",
+      "type": "植物生長調節劑",
+      "permits": 1,
+      "active": 0,
+      "components": [
+        {
+          "name": "SODIUM-5-NITROGUAIACOL",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "殺蟎多",
+      "code": "A028",
+      "kind": "殺蟎劑",
+      "type": "硫磺及雜環化合物",
+      "permits": 4,
+      "active": 0,
+      "components": [
+        {
+          "name": "2-[2-(P-TERT-BUTYLPHENOXY) ISOPROXYL]",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "ISOPROPYL-2-CHLOROETHYLSULFITE",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "克蠅",
+      "code": "I062",
+      "kind": "殺蟲劑",
+      "type": "引誘劑",
+      "permits": 1,
+      "active": 0,
+      "components": [
+        {
+          "name": "4-(P-ACETOXYPHENYL)-2-BUTANONE",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "鋅錳波爾多",
+      "code": "F167",
+      "kind": "殺菌劑",
+      "type": "混合劑",
+      "permits": 1,
+      "active": 0,
+      "components": [
+        {
+          "name": "BASIC COPPER SULPHATE",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "(CU",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "POLYMERIC MANGANESE ETHYLENE BISDITHIOCARBAMATE",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "ZINC ETHYLENEBISDITHIOCARBAMATE",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "碳酸鈣",
+      "code": "P045",
+      "kind": "植物生長調節劑",
+      "type": "植物生長調節劑",
+      "permits": 1,
+      "active": 0,
+      "components": [
+        {
+          "name": "CALCIUM CARBONATE",
+          "inExempt": true,
+          "inMrl": false
+        }
+      ],
+      "allExempt": true
+    },
+    {
+      "zh": "愛速隆",
+      "code": "H108",
+      "kind": "除草劑",
+      "type": "尿素系",
+      "permits": 1,
+      "active": 0,
+      "components": [
+        {
+          "name": "1-(5-TERT-BUTYLISOXAZOL-3-YL)-3,3-DIMETHYLUREA",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "番茄美素",
+      "code": "P029",
+      "kind": "植物生長調節劑",
+      "type": "苯氧酸系",
+      "permits": 1,
+      "active": 0,
+      "components": [
+        {
+          "name": "(SODIUM-4-CHLORO-2-HYDROXYMETHYL)-PHENOXYACETATE",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "益穗",
+      "code": "F094",
+      "kind": "殺菌劑",
+      "type": "砷劑",
+      "permits": 1,
+      "active": 0,
+      "components": [
+        {
+          "name": "TETRAMETHYL THIURAMDISULFIDE",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "ZINC  DIMETHYLDITHIOCARBAMATE",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "BIS (DIMETHYLTHIO-CARBAMOYLTHIO) METHYLARSINE",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "可力松",
+      "code": "F020",
+      "kind": "殺菌劑",
+      "type": "有機磷",
+      "permits": 2,
+      "active": 0,
+      "components": [
+        {
+          "name": "O-BUTYL-S-BENZYL-S-ETHYLPHOSPHORODITHIOATE",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "鐵鋅錳乃浦",
+      "code": "F185",
+      "kind": "殺菌劑",
+      "type": "混合劑",
+      "permits": 1,
+      "active": 0,
+      "components": [
+        {
+          "name": "ETHYLENE-1, 2-BISDITHIOCARBAMATE ION",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "DIMETHYLDITHIOCARBAMATE IONS",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "MANGANESE IONS",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "ZINC IONS",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "FERRIC IONS",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "醋錫殺滅丹",
+      "code": "X002",
+      "kind": "混合分類",
+      "type": "殺菌殺草劑",
+      "permits": 1,
+      "active": 0,
+      "components": [
+        {
+          "name": "S-(4-CHLOROBENZYL)-N, N-DIETHYLTHIOCARBAMATE",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "2, 4, 6-TRICLOROPHENYL-4-NITROPHENYLETHER",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "TRIPHENYLTIN ACETATE",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "能殺蟎",
+      "code": "A038",
+      "kind": "殺蟎劑",
+      "type": "混合劑",
+      "permits": 2,
+      "active": 0,
+      "components": [
+        {
+          "name": "N-METHYL-N-(1-NAPHTHYL) MONOFLUOROACETAMIDE",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "ISOPROPYL-4,4-DIBROMOBE NZILATE",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    },
+    {
+      "zh": "核胺光動素",
+      "code": "F209",
+      "kind": "殺菌劑",
+      "type": "其它",
+      "permits": 1,
+      "active": 0,
+      "components": [
+        {
+          "name": "7,8-DIMETHYL-10-(D-RIBO-2,3,4,5-TETRAHYDROXYPENTYL)ISDAL-",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "OXAZINE…",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "DL-α  -AMINO-γ  -NETHYLTHIOBUTYRIC ACID…",
+          "inExempt": false,
+          "inMrl": false
+        },
+        {
+          "name": "COPPER SULPHATE…",
+          "inExempt": false,
+          "inMrl": false
+        }
+      ],
+      "allExempt": false
+    }
+  ]
+}
