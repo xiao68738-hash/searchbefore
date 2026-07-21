@@ -26,3 +26,6 @@ Thumbs.db
 *.pepk
 android-signing*
 signing-key*
+
+# 官方原始快取:132MB,可由 scripts/fetch-pesticide-source.mjs 重新產生
+mrl-data/source-cache/
