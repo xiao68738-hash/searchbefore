@@ -31,6 +31,20 @@ export function parsePhi(raw) {
   return Math.max(...values);
 }
 
+/* 區間寫法保留原文供顯示,例如「7-15日」→「7-15」。
+
+   phi 取上限是給倒數用的(保守方向),但只顯示「15」會讓農友對不上
+   產品標示上的「7-15日」,反而懷疑資料錯誤。所以數字歸數字、
+   顯示歸顯示:phi 供計算,phiText 供顯示。
+
+   非區間的一律回傳空字串,避免 DATA 多出 16,000 個無用欄位。 */
+export function phiTextOf(raw) {
+  const s = text(raw).replace(/日$/, "").replace(/天$/, "").trim();
+  if (!s || s === "-") return "";
+  const nums = s.match(/\d+(?:\.\d+)?/g);
+  return nums && nums.length > 1 ? nums.join("-") : "";
+}
+
 /* 作用機制:IRAC(殺蟲)/FRAC(殺菌)/HRAC(除草)擇一 */
 const MOA_FIELDS = [
   ["IRAC", "IRAC殺蟲劑抗藥性"],
@@ -65,7 +79,8 @@ export function isActive(p) {
 export function sameUsage(a, b) {
   return a.name === b.name && a.form === b.form && a.content === b.content &&
     a.dilution === b.dilution && a.phi === b.phi && a.dose === b.dose &&
-    a.times === b.times && a.note === b.note;
+    a.times === b.times && a.note === b.note &&
+    (a.phiText || "") === (b.phiText || "");
 }
 
 /* 備註欄:官方分成「注意事項」與「備註」兩個欄位。
@@ -83,9 +98,12 @@ export function noteOf(detail) {
   return text(detail["備註"]);
 }
 
-/* 由許可證與一列使用範圍組出 DATA 的項目 */
+/* 由許可證與一列使用範圍組出 DATA 的項目。
+
+   phiText 只在區間寫法時才加入(全資料 496 列)。
+   若無條件加入,DATA 會多出 17,000 個空字串欄位而毫無用途。 */
 export function makeEntry(permit, detail) {
-  return {
+  const entry = {
     name: text(permit["中文名稱"]),
     form: text(permit["劑型"]),
     content: text(permit["含量"]),
@@ -97,4 +115,7 @@ export function makeEntry(permit, detail) {
     note: noteOf(detail),
     bl: []
   };
+  const range = phiTextOf(detail["安全採收期"]);
+  if (range) entry.phiText = range;
+  return entry;
 }

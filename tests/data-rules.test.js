@@ -43,6 +43,23 @@ const { pathToFileURL } = require("node:url");
   assert.notEqual(parsePhi("7-15日"), 7, "不可取下限,那會讓農友提早採收而可能超標");
   assert.equal(parsePhi("6天日"), 6, "官方資料中的錯字寫法");
 
+  /* ── phiTextOf:區間保留原文供顯示 ──
+     phi 取上限是給倒數用的,但畫面只顯示「15」會讓農友對不上產品標示
+     上的「7-15日」,反而懷疑資料有誤。數字歸計算、原文歸顯示。 */
+  const { phiTextOf } = mod;
+  assert.equal(phiTextOf("7-15日"), "7-15");
+  assert.equal(phiTextOf("90-100日"), "90-100");
+  assert.equal(phiTextOf("18日"), "", "非區間不產生 phiText,避免 DATA 多出上萬個空欄位");
+  assert.equal(phiTextOf("-日"), "");
+  assert.equal(phiTextOf(""), "");
+
+  /* makeEntry 只在區間時才帶 phiText */
+  const single = makeEntry({}, { "安全採收期": "18日" });
+  assert.equal("phiText" in single, false, "非區間的項目不得帶有 phiText 欄位");
+  const ranged = makeEntry({}, { "安全採收期": "7-15日" });
+  assert.equal(ranged.phiText, "7-15");
+  assert.equal(ranged.phi, 15, "倒數仍採上限");
+
   /* ── isActive:撤銷日期的空值是佔位字串,不是空字串 ── */
   assert.equal(isActive({ "撤銷類別": "", "撤銷日期": "   /  /  " }), true,
     "「   /  /  」是未撤銷的佔位字串,判成已撤銷會讓 DATA 變成空的");
