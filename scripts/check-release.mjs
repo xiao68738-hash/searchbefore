@@ -8,7 +8,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..");
 const outDir = path.join(root, "dist");
 const expected = [
-  "about.html", "account.js", "brand-lockup.png", "brand-logo-120.png", "crop-forms.js", "export-formats.js", "farm-records.js", "icon-180.png", "icon-192.png", "icon-512.png",
+  "about.html", "account.js", "brand-lockup.png", "cloud-sync.js", "brand-logo-120.png", "crop-forms.js", "export-formats.js", "farm-records.js", "icon-180.png", "icon-192.png", "icon-512.png",
   "icon-maskable-512.png", "index.html", "manifest.webmanifest", "privacy.html",
   "query-aids.js", "safety.js", "service-config.js", "sw.js"
 ].sort();
@@ -29,7 +29,7 @@ assert.match(combined, /https:\/\/searchbefore\.tw\/privacy\.html/);
 assert.match(combined, /https:\/\/searchbefore\.tw\/about\.html/);
 assert.match(combined, /噴前查 SearchBefore/);
 
-for (const name of ["account.js", "crop-forms.js", "export-formats.js", "farm-records.js", "query-aids.js", "safety.js", "service-config.js", "sw.js"]) {
+for (const name of ["account.js", "cloud-sync.js", "crop-forms.js", "export-formats.js", "farm-records.js", "query-aids.js", "safety.js", "service-config.js", "sw.js"]) {
   new vm.Script(await readFile(path.join(outDir, name), "utf8"), { filename: `dist/${name}` });
 }
 

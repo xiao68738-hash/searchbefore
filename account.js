@@ -23,6 +23,25 @@
       +'</svg>';
   }
   function googleMark(){return '<span class="google-mark">'+googleLogo()+'</span>'}
+  /* 同步狀態文字一律向 cloud-sync.js 要;同步層不存在時退回本機說法。
+     這裡不可自行寫死任何宣稱備份成功的句子 —— 同步關閉或失敗時會誤導農友。 */
+  function sync(){return window.PQC_SYNC||null}
+  function syncLine(){
+    if(!sync())return "登入只用於帳號識別；田區、用藥與農務紀錄保存在這台裝置。";
+    return PQC_SYNC.statusLine().text;
+  }
+  function syncControls(){
+    const s=sync();
+    if(!s)return "";
+    if(s.ownerConflict()){
+      return '<p class="account-error">這台裝置原本同步到另一個 Google 帳號。改用目前帳號會把本機資料併入這個帳號的雲端備份。</p>'
+        +'<button class="btn btn-main" type="button" style="width:100%;margin-bottom:8px" onclick="PQC_SYNC.adoptCurrentAccount();PQC_ACCOUNT.render()">改用目前帳號同步</button>';
+    }
+    const on=s.isEnabled();
+    return '<button class="btn btn-ghost" type="button" style="width:100%;margin-bottom:8px" '
+      +'onclick="PQC_SYNC.setEnabled('+(on?"false":"true")+');PQC_ACCOUNT.render()">'
+      +(on?"關閉雲端同步":"開啟雲端同步")+'</button>';
+  }
   function accountBoxes(){
     return [
       {el:document.getElementById("accountInner"),compact:false,entry:false},
@@ -77,8 +96,9 @@
       }
       el.innerHTML='<div class="account-state">'+avatar+'<div class="account-copy"><b>'+esc(currentUser.displayName||"Google 使用者")+'</b><span>'+esc(currentUser.email||"")+'</span></div></div>'
         +(compact
-          ?'<p class="hint" style="margin:9px 0 0">Google 帳號已登入；田間資料仍只保存在這台裝置。</p>'
-          :'<p class="hint" style="margin:10px 0">登入目前只用於帳號識別；田區、用藥與農務紀錄仍保存在這台裝置。</p><button class="btn btn-ghost" type="button" style="width:100%" onclick="PQC_ACCOUNT.signOut()">登出 Google 帳號</button>');
+          ?'<p class="hint" style="margin:9px 0 0">'+esc(syncLine())+'</p>'
+          :'<p class="hint" style="margin:10px 0">'+esc(syncLine())+'</p>'+syncControls()
+            +'<button class="btn btn-ghost" type="button" style="width:100%" onclick="PQC_ACCOUNT.signOut()">登出 Google 帳號</button>');
       return;
     }
     if(started&&!auth){
@@ -113,7 +133,7 @@
       const app=appApi.getApps().length?appApi.getApp():appApi.initializeApp(cfg);
       auth=authApi.getAuth(app);
       await authApi.setPersistence(auth,authApi.browserLocalPersistence);
-      authApi.onAuthStateChanged(auth,function(user){currentUser=user||null;lastError="";render()});
+      authApi.onAuthStateChanged(auth,function(user){currentUser=user||null;lastError="";emitUser();render()});
       render();return auth;
     }catch(error){
       lastError=userMessage(error);auth=null;started=false;render();return null;
@@ -137,7 +157,22 @@
     try{await authApi.signOut(auth)}catch(error){lastError=userMessage(error);render()}
   }
 
-  window.PQC_ACCOUNT={init:init,render:render,signIn:signIn,signOut:signOutUser,isConfigured:function(){return !!firebaseConfig()}};
+  /* 帳號狀態外露給同步層。這裡刻意只傳身分,不碰任何資料存取 SDK,
+     田間資料的讀寫一律留在 cloud-sync.js。 */
+  const userListeners=[];
+  function onUser(cb){
+    if(typeof cb!=="function")return;
+    userListeners.push(cb);
+    try{cb(currentUser)}catch(error){}
+  }
+  function emitUser(){
+    userListeners.forEach(function(cb){try{cb(currentUser)}catch(error){}});
+  }
+
+  window.PQC_ACCOUNT={init:init,render:render,signIn:signIn,signOut:signOutUser,
+    isConfigured:function(){return !!firebaseConfig()},
+    getUser:function(){return currentUser},
+    onUser:onUser};
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);
   else setTimeout(init,0);
 })();

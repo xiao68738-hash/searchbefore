@@ -32,7 +32,16 @@ assert.match(account, /accountBoxes\(\)\.forEach/);
 assert.match(account, /window\.completeEntryWithGoogle/);
 assert.match(account, /return user/);
 assert.match(account, /location\.protocol==="file:"/);
-assert.match(account, /田區、用藥與農務紀錄仍保存在這台裝置/);
+/* 同步層不存在時的退路文案:必須說資料在本機,不可寫死「已備份到雲端」,
+   否則同步失效或被關閉時會誤導農友以為資料有備份。 */
+assert.match(account, /田區、用藥與農務紀錄保存在這台裝置/);
+assert.doesNotMatch(account, /已備份到雲端|資料已上傳|自動備份完成/);
+/* 狀態文字一律向同步層要,不在帳號層自行判斷 */
+assert.match(account, /window\.PQC_SYNC/);
+assert.match(account, /PQC_SYNC\.statusLine\(\)/);
+/* 帳號層只外露身分,供同步層訂閱 */
+assert.match(account, /getUser:function\(\)\{return currentUser\}/);
+assert.match(account, /onUser:onUser/);
 assert.doesNotMatch(account, /firestore|storage|databaseURL/i);
 
 console.log("✓ Google 登入僅在公開設定完成後載入");
