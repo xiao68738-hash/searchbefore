@@ -1,0 +1,186 @@
+{
+  "generatedAt": "2026-07-21T08:32:48.989Z",
+  "note": "本清單為建議,需人工確認後才可視為免訂容許量。蟲名異稱與菌株層級的判定可能誤判。",
+  "exemptListSize": 44,
+  "reviewedNames": 120,
+  "matched": 19,
+  "affectedUses": 498,
+  "rows": [
+    {
+      "appName": "礦物油",
+      "uses": 137,
+      "type": "英文有效成分未對到",
+      "exempt": "礦物油",
+      "how": "完全相同",
+      "confidence": "高"
+    },
+    {
+      "appName": "氫氧化銅",
+      "uses": 58,
+      "type": "英文有效成分未對到",
+      "exempt": "氫氧化銅",
+      "how": "完全相同",
+      "confidence": "高"
+    },
+    {
+      "appName": "鮎澤蘇力菌ABTS-1857",
+      "uses": 38,
+      "type": "英文有效成分未對到",
+      "exempt": "蘇力菌",
+      "how": "種層級免訂(清單未列舉菌株)",
+      "confidence": "中"
+    },
+    {
+      "appName": "維利黴素",
+      "uses": 33,
+      "type": "英文有效成分未對到",
+      "exempt": "維利黴素",
+      "how": "完全相同",
+      "confidence": "高"
+    },
+    {
+      "appName": "斜紋夜蛾費洛蒙",
+      "uses": 31,
+      "type": "英文有效成分未對到",
+      "exempt": "斜紋夜盜蛾費洛蒙",
+      "how": "完全相同",
+      "confidence": "高"
+    },
+    {
+      "appName": "庫斯蘇力菌ABTS-351",
+      "uses": 31,
+      "type": "英文有效成分未對到",
+      "exempt": "蘇力菌",
+      "how": "種層級免訂(清單未列舉菌株)",
+      "confidence": "中"
+    },
+    {
+      "appName": "甜菜夜蛾費洛蒙",
+      "uses": 28,
+      "type": "英文有效成分未對到",
+      "exempt": "甜菜葉蛾費洛蒙",
+      "how": "完全相同",
+      "confidence": "高"
+    },
+    {
+      "appName": "鮎澤蘇力菌NB-200",
+      "uses": 27,
+      "type": "英文有效成分未對到",
+      "exempt": "蘇力菌",
+      "how": "種層級免訂(清單未列舉菌株)",
+      "confidence": "中"
+    },
+    {
+      "appName": "庫斯蘇力菌E-911",
+      "uses": 18,
+      "type": "英文有效成分未對到",
+      "exempt": "蘇力菌",
+      "how": "種層級免訂(清單未列舉菌株)",
+      "confidence": "中"
+    },
+    {
+      "appName": "庫斯蘇力菌SA-12",
+      "uses": 18,
+      "type": "英文有效成分未對到",
+      "exempt": "蘇力菌",
+      "how": "種層級免訂(清單未列舉菌株)",
+      "confidence": "中"
+    },
+    {
+      "appName": "枯草桿菌Y1336",
+      "uses": 17,
+      "type": "英文有效成分未對到",
+      "exempt": "枯草桿菌",
+      "how": "種層級免訂(清單未列舉菌株)",
+      "confidence": "中"
+    },
+    {
+      "appName": "庫斯蘇力菌SA-11",
+      "uses": 14,
+      "type": "英文有效成分未對到",
+      "exempt": "蘇力菌",
+      "how": "種層級免訂(清單未列舉菌株)",
+      "confidence": "中"
+    },
+    {
+      "appName": "枯草桿菌KHY8",
+      "uses": 14,
+      "type": "英文有效成分未對到",
+      "exempt": "枯草桿菌",
+      "how": "種層級免訂(清單未列舉菌株)",
+      "confidence": "中"
+    },
+    {
+      "appName": "多保鏈黴素",
+      "uses": 12,
+      "type": "英文有效成分未對到",
+      "exempt": "鏈黴素",
+      "how": "種層級免訂(清單未列舉菌株)",
+      "confidence": "中"
+    },
+    {
+      "appName": "碳酸氫鉀",
+      "uses": 11,
+      "type": "英文有效成分未對到",
+      "exempt": "碳酸氫鉀",
+      "how": "完全相同",
+      "confidence": "高"
+    },
+    {
+      "appName": "保粒黴素 丁",
+      "uses": 5,
+      "type": "英文有效成分未對到",
+      "exempt": "保粒黴素",
+      "how": "種層級免訂(清單未列舉菌株)",
+      "confidence": "中"
+    },
+    {
+      "appName": "萘乙酸鈉",
+      "uses": 2,
+      "type": "英文有效成分未對到",
+      "exempt": "萘乙酸鈉",
+      "how": "完全相同",
+      "confidence": "高"
+    },
+    {
+      "appName": "鮎澤蘇力菌GC-91",
+      "uses": 2,
+      "type": "英文有效成分未對到",
+      "exempt": "蘇力菌",
+      "how": "種層級免訂(清單未列舉菌株)",
+      "confidence": "中"
+    },
+    {
+      "appName": "鮎澤蘇力菌Ab12",
+      "uses": 2,
+      "type": "英文有效成分未對到",
+      "exempt": "蘇力菌",
+      "how": "種層級免訂(清單未列舉菌株)",
+      "confidence": "中"
+    }
+  ],
+  "excludedNote": "以下菌種在免訂清單中是逐菌株列舉,本菌株不在其中,不可視為免訂",
+  "excluded": [
+    {
+      "appName": "液化澱粉芽孢桿菌Ba-BPD1",
+      "uses": 3,
+      "type": "英文有效成分未對到",
+      "species": "液化澱粉芽孢桿菌",
+      "listed": "液化澱粉芽孢桿菌D747、液化澱粉芽孢桿菌CL3、液化澱粉芽孢桿菌PMB01、液化澱粉芽孢桿菌QST713、液化澱粉芽孢桿菌Tcba05、液化澱粉芽孢桿菌YCMA1"
+    },
+    {
+      "appName": "貝萊斯芽孢桿菌 BACY",
+      "uses": 2,
+      "type": "英文有效成分未對到",
+      "species": "貝萊斯芽孢桿菌",
+      "listed": "貝萊斯芽孢桿菌BF、貝萊斯芽孢桿菌N17"
+    },
+    {
+      "appName": "貝萊斯芽孢桿菌WG6-14",
+      "uses": 1,
+      "type": "英文有效成分未對到",
+      "species": "貝萊斯芽孢桿菌",
+      "listed": "貝萊斯芽孢桿菌BF、貝萊斯芽孢桿菌N17"
+    }
+  ]
+}
