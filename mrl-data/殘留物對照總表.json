@@ -1,0 +1,1090 @@
+{
+  "generatedAt": "2026-07-21T12:58:29.717Z",
+  "note": "依證據強度合併。層級 1-3 有明確依據,4-5 仍需人工。所有結論在納入 App 前都應經人工確認。",
+  "total": 120,
+  "settled": 43,
+  "settledUses": 1913,
+  "totalUses": 2266,
+  "rows": [
+    {
+      "appName": "鋅錳乃浦",
+      "uses": 56,
+      "tier": "法規原文",
+      "level": 1,
+      "target": "二硫代胺基甲酸鹽類",
+      "basis": "註一(群組總量)",
+      "caution": ""
+    },
+    {
+      "appName": "甲基多保淨",
+      "uses": 50,
+      "tier": "法規原文",
+      "level": 1,
+      "target": "貝芬替",
+      "basis": "註二(代謝物)",
+      "caution": ""
+    },
+    {
+      "appName": "亞滅寧",
+      "uses": 33,
+      "tier": "法規原文",
+      "level": 1,
+      "target": "賽滅寧",
+      "basis": "註四之1(異構物總量)",
+      "caution": ""
+    },
+    {
+      "appName": "克熱淨(烷苯磺酸鹽)",
+      "uses": 31,
+      "tier": "法規原文",
+      "level": 1,
+      "target": "克熱淨(醋酸鹽或烷苯磺酸鹽)",
+      "basis": "註三(鹽類)",
+      "caution": "MRL 另有「克熱淨」對應 GUAZATINE,是不同物質。本規則只涵蓋標明鹽型者"
+    },
+    {
+      "appName": "免得爛",
+      "uses": 29,
+      "tier": "法規原文",
+      "level": 1,
+      "target": "二硫代胺基甲酸鹽類",
+      "basis": "註一(群組總量)",
+      "caution": ""
+    },
+    {
+      "appName": "免賴得",
+      "uses": 26,
+      "tier": "法規原文",
+      "level": 1,
+      "target": "貝芬替",
+      "basis": "註二(代謝物)",
+      "caution": ""
+    },
+    {
+      "appName": "錳乃浦",
+      "uses": 24,
+      "tier": "法規原文",
+      "level": 1,
+      "target": "二硫代胺基甲酸鹽類",
+      "basis": "註一(群組總量)",
+      "caution": ""
+    },
+    {
+      "appName": "貝他-賽扶寧",
+      "uses": 22,
+      "tier": "法規原文",
+      "level": 1,
+      "target": "賽扶寧",
+      "basis": "註四之2(異構物總量)",
+      "caution": ""
+    },
+    {
+      "appName": "右滅達樂",
+      "uses": 13,
+      "tier": "法規原文",
+      "level": 1,
+      "target": "滅達樂",
+      "basis": "註四之4(異構物總量)",
+      "caution": ""
+    },
+    {
+      "appName": "甲基鋅乃浦",
+      "uses": 11,
+      "tier": "法規原文",
+      "level": 1,
+      "target": "二硫代胺基甲酸鹽類",
+      "basis": "註一(群組總量)",
+      "caution": ""
+    },
+    {
+      "appName": "得恩地",
+      "uses": 8,
+      "tier": "法規原文",
+      "level": 1,
+      "target": "二硫代胺基甲酸鹽類",
+      "basis": "註一(群組總量)",
+      "caution": ""
+    },
+    {
+      "appName": "左旋莫多草",
+      "uses": 4,
+      "tier": "法規原文",
+      "level": 1,
+      "target": "莫多草",
+      "basis": "註四之5(異構物總量)",
+      "caution": ""
+    },
+    {
+      "appName": "磷化鎂",
+      "uses": 3,
+      "tier": "法規原文",
+      "level": 1,
+      "target": "磷化氫",
+      "basis": "註七(衍生物)",
+      "caution": ""
+    },
+    {
+      "appName": "益化利",
+      "uses": 2,
+      "tier": "法規原文",
+      "level": 1,
+      "target": "芬化利",
+      "basis": "註四之3(異構物總量)",
+      "caution": ""
+    },
+    {
+      "appName": "賽洛寧",
+      "uses": 1042,
+      "tier": "中文通用名",
+      "level": 2,
+      "target": "Cyhalothrin",
+      "basis": "MRL 有 71 個作物類別訂定容許量｜英文寫法不同(許可證 LAMBDA-CYHALOTHRIN / MRL CYHALOTHRIN)",
+      "caution": ""
+    },
+    {
+      "appName": "福化利",
+      "uses": 20,
+      "tier": "中文通用名",
+      "level": 2,
+      "target": "Fluvalinate",
+      "basis": "MRL 有 21 個作物類別訂定容許量｜英文寫法不同(許可證 TAU-FLUVALINATE / MRL FLUVALINATE)",
+      "caution": ""
+    },
+    {
+      "appName": "快伏草",
+      "uses": 19,
+      "tier": "中文通用名",
+      "level": 2,
+      "target": "Quizalofop-ethyl",
+      "basis": "MRL 有 20 個作物類別訂定容許量｜英文寫法不同(許可證 QUIZALOFOP-P-ETHYL / MRL QUIZALOFOP-ETHYL)",
+      "caution": ""
+    },
+    {
+      "appName": "克熱淨",
+      "uses": 10,
+      "tier": "中文通用名",
+      "level": 2,
+      "target": "Guazatine",
+      "basis": "MRL 有 1 個作物類別訂定容許量｜英文寫法不同(許可證 IMINOCTADINE TRIACETATE / MRL GUAZATINE)",
+      "caution": "MRL 另有「克熱淨(醋酸鹽或烷苯磺酸鹽)」,兩者是不同物質,不可只憑中文名對應"
+    },
+    {
+      "appName": "本達隆",
+      "uses": 3,
+      "tier": "中文通用名",
+      "level": 2,
+      "target": "Bentazone",
+      "basis": "MRL 有 7 個作物類別訂定容許量｜英文寫法不同(許可證 BENTAZON / MRL BENTAZONE)",
+      "caution": ""
+    },
+    {
+      "appName": "克美素",
+      "uses": 3,
+      "tier": "中文通用名",
+      "level": 2,
+      "target": "Chlormequat",
+      "basis": "MRL 有 11 個作物類別訂定容許量｜英文寫法不同(許可證 CHLORMEQUAT CHLORIDE / MRL CHLORMEQUAT)",
+      "caution": ""
+    },
+    {
+      "appName": "氟氯比",
+      "uses": 2,
+      "tier": "中文通用名",
+      "level": 2,
+      "target": "Fluroxypyr",
+      "basis": "MRL 有 1 個作物類別訂定容許量｜英文寫法不同(許可證 FLUROXYPYR-MEPTYL / MRL FLUROXYPYR)",
+      "caution": ""
+    },
+    {
+      "appName": "艾維激素",
+      "uses": 2,
+      "tier": "中文通用名",
+      "level": 2,
+      "target": "Aminoethoxyvinyl- glycine",
+      "basis": "MRL 有 5 個作物類別訂定容許量｜英文寫法不同(許可證 AMINOETHOXYVINYLGLYCINE HYDROCHLORIDE / MRL AMINOETHOXYVINYL- GLYCINE)",
+      "caution": ""
+    },
+    {
+      "appName": "美賜平",
+      "uses": 1,
+      "tier": "中文通用名",
+      "level": 2,
+      "target": "Methoprene",
+      "basis": "MRL 有 5 個作物類別訂定容許量｜英文寫法不同(許可證 S-METHOPRENE / MRL METHOPRENE)",
+      "caution": ""
+    },
+    {
+      "appName": "汰草龍",
+      "uses": 1,
+      "tier": "中文通用名",
+      "level": 2,
+      "target": "Dymron",
+      "basis": "MRL 有 1 個作物類別訂定容許量｜英文寫法不同(許可證 DAIMURON / MRL DYMRON)",
+      "caution": ""
+    },
+    {
+      "appName": "礦物油",
+      "uses": 137,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "礦物油",
+      "basis": "信心高／完全相同",
+      "caution": ""
+    },
+    {
+      "appName": "氫氧化銅",
+      "uses": 58,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "氫氧化銅",
+      "basis": "信心高／完全相同",
+      "caution": ""
+    },
+    {
+      "appName": "鮎澤蘇力菌ABTS-1857",
+      "uses": 38,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "蘇力菌",
+      "basis": "信心中／種層級免訂(清單未列舉菌株)",
+      "caution": ""
+    },
+    {
+      "appName": "維利黴素",
+      "uses": 33,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "維利黴素",
+      "basis": "信心高／完全相同",
+      "caution": ""
+    },
+    {
+      "appName": "斜紋夜蛾費洛蒙",
+      "uses": 31,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "斜紋夜盜蛾費洛蒙",
+      "basis": "信心高／完全相同",
+      "caution": ""
+    },
+    {
+      "appName": "庫斯蘇力菌ABTS-351",
+      "uses": 31,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "蘇力菌",
+      "basis": "信心中／種層級免訂(清單未列舉菌株)",
+      "caution": ""
+    },
+    {
+      "appName": "甜菜夜蛾費洛蒙",
+      "uses": 28,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "甜菜葉蛾費洛蒙",
+      "basis": "信心高／完全相同",
+      "caution": ""
+    },
+    {
+      "appName": "鮎澤蘇力菌NB-200",
+      "uses": 27,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "蘇力菌",
+      "basis": "信心中／種層級免訂(清單未列舉菌株)",
+      "caution": ""
+    },
+    {
+      "appName": "庫斯蘇力菌E-911",
+      "uses": 18,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "蘇力菌",
+      "basis": "信心中／種層級免訂(清單未列舉菌株)",
+      "caution": ""
+    },
+    {
+      "appName": "庫斯蘇力菌SA-12",
+      "uses": 18,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "蘇力菌",
+      "basis": "信心中／種層級免訂(清單未列舉菌株)",
+      "caution": ""
+    },
+    {
+      "appName": "枯草桿菌Y1336",
+      "uses": 17,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "枯草桿菌",
+      "basis": "信心中／種層級免訂(清單未列舉菌株)",
+      "caution": ""
+    },
+    {
+      "appName": "庫斯蘇力菌SA-11",
+      "uses": 14,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "蘇力菌",
+      "basis": "信心中／種層級免訂(清單未列舉菌株)",
+      "caution": ""
+    },
+    {
+      "appName": "枯草桿菌KHY8",
+      "uses": 14,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "枯草桿菌",
+      "basis": "信心中／種層級免訂(清單未列舉菌株)",
+      "caution": ""
+    },
+    {
+      "appName": "多保鏈黴素",
+      "uses": 12,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "鏈黴素",
+      "basis": "信心中／種層級免訂(清單未列舉菌株)",
+      "caution": ""
+    },
+    {
+      "appName": "碳酸氫鉀",
+      "uses": 11,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "碳酸氫鉀",
+      "basis": "信心高／完全相同",
+      "caution": ""
+    },
+    {
+      "appName": "保粒黴素 丁",
+      "uses": 5,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "保粒黴素",
+      "basis": "信心中／種層級免訂(清單未列舉菌株)",
+      "caution": ""
+    },
+    {
+      "appName": "萘乙酸鈉",
+      "uses": 2,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "萘乙酸鈉",
+      "basis": "信心高／完全相同",
+      "caution": ""
+    },
+    {
+      "appName": "鮎澤蘇力菌GC-91",
+      "uses": 2,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "蘇力菌",
+      "basis": "信心中／種層級免訂(清單未列舉菌株)",
+      "caution": ""
+    },
+    {
+      "appName": "鮎澤蘇力菌Ab12",
+      "uses": 2,
+      "tier": "免訂容許量",
+      "level": 3,
+      "target": "蘇力菌",
+      "basis": "信心中／種層級免訂(清單未列舉菌株)",
+      "caution": ""
+    },
+    {
+      "appName": "液化澱粉芽孢桿菌Ba-BPD1",
+      "uses": 3,
+      "tier": "不可視為免訂",
+      "level": 3.5,
+      "target": "",
+      "basis": "該菌種逐菌株列舉,本菌株不在清單",
+      "caution": "清單只列:液化澱粉芽孢桿菌D747、液化澱粉芽孢桿菌CL3、液化澱粉芽孢桿菌PMB01、液化澱粉芽孢桿菌QST713、液化澱粉芽孢桿菌Tcba05、液化澱粉芽孢桿菌YCMA1"
+    },
+    {
+      "appName": "貝萊斯芽孢桿菌 BACY",
+      "uses": 2,
+      "tier": "不可視為免訂",
+      "level": 3.5,
+      "target": "",
+      "basis": "該菌種逐菌株列舉,本菌株不在清單",
+      "caution": "清單只列:貝萊斯芽孢桿菌BF、貝萊斯芽孢桿菌N17"
+    },
+    {
+      "appName": "貝萊斯芽孢桿菌WG6-14",
+      "uses": 1,
+      "tier": "不可視為免訂",
+      "level": 3.5,
+      "target": "",
+      "basis": "該菌種逐菌株列舉,本菌株不在清單",
+      "caution": "清單只列:貝萊斯芽孢桿菌BF、貝萊斯芽孢桿菌N17"
+    },
+    {
+      "appName": "鋅錳座賽胺",
+      "uses": 33,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「座賽胺」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "銅右滅達樂",
+      "uses": 24,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「滅達樂」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "鋅錳克絕",
+      "uses": 24,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「克絕」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "嘉磷塞異丙胺鹽",
+      "uses": 21,
+      "tier": "鹽類",
+      "level": 4,
+      "target": "",
+      "basis": "殘留物定義通常以母體計,確認是否等同「嘉磷塞」",
+      "caution": ""
+    },
+    {
+      "appName": "蓋棘木黴菌ICC080/012",
+      "uses": 20,
+      "tier": "生物製劑",
+      "level": 4,
+      "target": "",
+      "basis": "多數屬免訂容許量,確認是否在清單內(注意菌株層級)",
+      "caution": ""
+    },
+    {
+      "appName": "鋅錳滅達樂",
+      "uses": 10,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「滅達樂」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "撲克拉錳",
+      "uses": 9,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「撲克拉」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "銅合硫磺",
+      "uses": 8,
+      "tier": "疑似混合劑",
+      "level": 4,
+      "target": "",
+      "basis": "名稱由多個成分組合而成,須逐一拆解後分別對照",
+      "caution": ""
+    },
+    {
+      "appName": "本達亞喜芬",
+      "uses": 8,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「亞喜芬」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "福賽亞汰尼",
+      "uses": 8,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「亞汰尼」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "嘉磷塞 (胺鹽 )",
+      "uses": 5,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「嘉磷塞」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "綠木黴菌R42",
+      "uses": 4,
+      "tier": "生物製劑",
+      "level": 4,
+      "target": "",
+      "basis": "多數屬免訂容許量,確認是否在清單內(注意菌株層級)",
+      "caution": ""
+    },
+    {
+      "appName": "銅快得寧",
+      "uses": 4,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「快得寧」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "苦參鹼",
+      "uses": 4,
+      "tier": "生物製劑",
+      "level": 4,
+      "target": "",
+      "basis": "多數屬免訂容許量,確認是否在清單內(注意菌株層級)",
+      "caution": ""
+    },
+    {
+      "appName": "甜菜夜蛾核多角體病毒",
+      "uses": 4,
+      "tier": "生物製劑",
+      "level": 4,
+      "target": "",
+      "basis": "多數屬免訂容許量,確認是否在清單內(注意菌株層級)",
+      "caution": ""
+    },
+    {
+      "appName": "小菜蛾性費洛蒙",
+      "uses": 3,
+      "tier": "生物製劑",
+      "level": 4,
+      "target": "",
+      "basis": "多數屬免訂容許量,確認是否在清單內(注意菌株層級)",
+      "caution": ""
+    },
+    {
+      "appName": "硫酸快得寧",
+      "uses": 3,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「快得寧」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "四氯右滅達樂",
+      "uses": 2,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「滅達樂」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "保粒快得寧",
+      "uses": 2,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「快得寧」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "蕈狀芽孢桿菌AGB01",
+      "uses": 2,
+      "tier": "生物製劑",
+      "level": 4,
+      "target": "",
+      "basis": "多數屬免訂容許量,確認是否在清單內(注意菌株層級)",
+      "caution": ""
+    },
+    {
+      "appName": "克絕波爾多",
+      "uses": 2,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「克絕」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "發光光桿菌0805-P2R",
+      "uses": 1,
+      "tier": "生物製劑",
+      "level": 4,
+      "target": "",
+      "basis": "多數屬免訂容許量,確認是否在清單內(注意菌株層級)",
+      "caution": ""
+    },
+    {
+      "appName": "本達快克草",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「克草、快克草」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "汰硫免速隆",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「免速隆」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "滅芬免速隆",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「免速隆」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "銅合腐絕",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「腐絕」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "傑他賽滅寧",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「賽滅寧」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "畢克草",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「克草」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "伽瑪賽洛寧",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「賽洛寧」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "鋅錳右本達樂",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「本達樂」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "鋅錳本達樂",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「本達樂」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "鋅錳曼普胺",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「曼普胺」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "左固殺草",
+      "uses": 1,
+      "tier": "疑似混合劑或衍生物",
+      "level": 4,
+      "target": "",
+      "basis": "含已知成分「固殺草」,須逐一拆解",
+      "caution": ""
+    },
+    {
+      "appName": "賽速洛寧",
+      "uses": 23,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "賽洛安勃",
+      "uses": 13,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "免得克敏",
+      "uses": 11,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "益洛寧",
+      "uses": 10,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "波爾多",
+      "uses": 8,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "克凡洛寧",
+      "uses": 8,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "快得保淨",
+      "uses": 5,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "鹼氯氫氧銅",
+      "uses": 5,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "邁隆",
+      "uses": 4,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "移植生長素",
+      "uses": 4,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "克蠅香",
+      "uses": 3,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "四氯保淨",
+      "uses": 3,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "四氯賽得",
+      "uses": 3,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "氟比賽得",
+      "uses": 2,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "硫黃芬胺",
+      "uses": 2,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "納得亞滅寧",
+      "uses": 2,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "克熱賜圃",
+      "uses": 2,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "福芬素",
+      "uses": 2,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "保粒保淨",
+      "uses": 2,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "甲鋅保粒素",
+      "uses": 2,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "果收生長素",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "伏滅鼠",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "可滅鼠",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "含毒甲基丁香油",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "布芬益化利",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "耐克螺",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "丁拉汰草",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "甲鋅保淨",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "賽福保淨",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "二、四－地胺鹽",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "二、四－地鈉鹽",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "生長寧素",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "普拔草",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "番茄生長素",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "合速隆",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "單克素",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "開寧激素",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "氰滿素",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "勃寧激素",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "亞培松",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    },
+    {
+      "appName": "百里酚",
+      "uses": 1,
+      "tier": "無線索",
+      "level": 5,
+      "target": "",
+      "basis": "須查官方農藥名稱手冊確認學名",
+      "caution": ""
+    }
+  ]
+}
