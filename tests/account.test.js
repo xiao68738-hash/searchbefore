@@ -15,7 +15,9 @@ assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.firebase.projectId, "searchbefore-
 assert.match(sandbox.window.PQC_PUBLIC_CONFIG.firebase.authDomain, /\.firebaseapp\.com$/);
 assert.ok(sandbox.window.PQC_PUBLIC_CONFIG.firebase.apiKey);
 assert.ok(sandbox.window.PQC_PUBLIC_CONFIG.firebase.appId);
-assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.feedbackEmail, "");
+/* 回饋信箱必須有值:隱私政策承諾「可來信刪除雲端備份」,
+   沒有信箱這條承諾就是空的,且 App 內的回報功能也會失效。 */
+assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.feedbackEmail, "searchbefore82@gmail.com");
 assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.supportUrl, "");
 assert.match(account, /firebasejs\/"\+FIREBASE_VERSION\+"\/firebase-auth\.js/);
 assert.match(account, /signInWithPopup\(instance,provider\)/);

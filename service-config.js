@@ -21,6 +21,6 @@ window.PQC_PUBLIC_CONFIG = {
     messagingSenderId: "934300362639",
     appId: "1:934300362639:web:a96c41c1a7e6cd5ea5cdfa"
   },
-  feedbackEmail: "",
+  feedbackEmail: "searchbefore82@gmail.com",
   supportUrl: ""
 };
