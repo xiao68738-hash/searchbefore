@@ -28,7 +28,7 @@ assert.ok(html.indexOf('<script src="./account.js"></script>') < html.indexOf("c
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="0\.1\.10\.0"/);
+assert.match(html, /const APP_VERSION="0\.1\.10\.1"/);
 assert.match(html, /<title>噴前查 SearchBefore/);
 assert.match(html, /href="\.\/about\.html"/);
 assert.match(html, /id="entryTitle">噴前查 SearchBefore<\/h1>/);
@@ -44,6 +44,13 @@ assert.match(html, /updatedAt/);
 assert.match(html, /PQC_SYNC\.beforeStore/);
 assert.match(html, /PQC_SYNC\.afterStore/);
 assert.match(html, /<script src="\.\/cloud-sync\.js"><\/script>/);
+/* 備份說明必須依同步狀態切換。寫死任一種在另一種狀態下都是假訊息:
+   同步開啟時說「只存在這台裝置」會讓農友重複手動備份;
+   未登入時說「已備份」則會讓他們以為有備援而其實沒有。 */
+assert.match(html, /id="backupNote"/);
+assert.match(html, /function renderBackupNote\(\)/);
+assert.match(html, /常用配方與偏好設定仍只存在這台裝置/);
+assert.match(html, /用藥、田間作業、田區與配方只存在這台裝置/);
 assert.match(html, /PQC_SAFETY\.shouldShowVolumeApprox\(unit\)/);
 assert.match(html, /PQC_SAFETY\.directCropLevels\(crop,DATA\)/);
 assert.match(html, /id="rNotify" disabled/);
@@ -117,7 +124,7 @@ assert.match(sw, /"\.\/brand-lockup\.png"/);
 assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0\.1\.10\.0-cloud-sync/);
+assert.match(sw, /v0\.1\.10\.1-backup-note/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.ok(html.indexOf('<script src="./query-aids.js"></script>') < html.indexOf("const DATA="), "query-aids.js 必須在主程式前載入");
 assert.match(html, /function renderPestRelated\(\)/);
