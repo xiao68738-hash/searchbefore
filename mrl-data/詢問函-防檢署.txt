@@ -5,9 +5,9 @@
 
 說明：
 
-一、本人開發免費之農民用藥查詢工具「噴前查 SearchBefore」
-    （https://searchbefore.tw），資料來源為 貴署農藥資料開放平臺
-    （https://data.moa.gov.tw/Service/OpenData/FromM/PesticideData.aspx）。
+一、本人為 貴署農藥資料開放平臺之使用者，於整理農藥登記資料與
+    農產品殘留規定時，發現下列欄位缺漏情形。
+    資料來源：https://data.moa.gov.tw/Service/OpenData/FromM/PesticideData.aspx
 
 二、於 2026-07-21 取得之全量資料共 11,869 張許可證中，發現 111 張之
     「英文名稱」欄位為空值，涵蓋 27 種中文名稱；其中 17 張連
