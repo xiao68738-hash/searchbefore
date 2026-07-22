@@ -1,0 +1,55 @@
+{
+  "note": "開放資料 API 的『英文名稱』欄為空、但使用者於植物保護資訊系統(pesticide.aphia.gov.tw)查得的英文普通名稱。每筆附許可證字號與判定,供 build-inquiry-attachment.mjs 帶入。",
+  "verifiedAt": "2026-07-22",
+  "source": "農業部植物保護資訊系統 許可證查詢,使用者逐一查證",
+  "rows": [
+    {
+      "zh": "波爾多",
+      "permit": "農藥進字02172",
+      "en": "bordeaux mixture",
+      "kind": "銅劑(硫酸銅+石灰)",
+      "verdict": "待問食藥署",
+      "reason": "波爾多液本身不在免訂清單,但為銅製劑;需釐清是否比照免訂清單之各式銅化合物辦理"
+    },
+    {
+      "zh": "克蠅香",
+      "permit": "農藥製字00785",
+      "en": "4-(p-acetoxyphenyl)-2-butanone + methyl eugenol",
+      "kind": "誘引劑",
+      "verdict": "可視為免訂",
+      "reason": "誘引劑,誘捕果實蠅用,不施用於作物、不構成殘留;性質同免訂清單之費洛蒙類"
+    },
+    {
+      "zh": "小菜蛾性費洛蒙",
+      "permit": "農藥製字06298",
+      "en": "Z-11-Hexadecenal + Z-11-Hexadecenyl Acetate + Z-11-Hexadecenol (sex pheromones of diamondback moth)",
+      "kind": "費洛蒙",
+      "verdict": "可視為免訂",
+      "reason": "性費洛蒙;免訂清單已列甜菜葉蛾費洛蒙、斜紋夜盜蛾費洛蒙,性質完全相同"
+    },
+    {
+      "zh": "果收生長素",
+      "permit": "農藥製字01882",
+      "en": "o-nitrophenolate + Sodium p-nitrophenolate",
+      "kind": "植物生長調節劑",
+      "verdict": "對到免訂",
+      "reason": "對應免訂清單『硝基苯酚鈉 Sodium Nitrophenol』"
+    },
+    {
+      "zh": "甜菜夜蛾費洛蒙甲",
+      "permit": "農藥原製字00138",
+      "en": "",
+      "kind": "費洛蒙",
+      "verdict": "待問食藥署",
+      "reason": "查詢系統查無此原體之英文名;但免訂清單有『甜菜葉蛾費洛蒙 Sex pheromone of Spodoptera exiqua』,名稱疑為異寫(葉蛾/夜蛾),需食藥署確認是否同一物質"
+    },
+    {
+      "zh": "銅合硫磺",
+      "permit": "農藥進字01382",
+      "en": "copper oxychloride + sulfur",
+      "kind": "混合劑(殺菌)",
+      "verdict": "可視為免訂",
+      "reason": "兩成分皆在免訂清單:copper oxychloride→鹼性氯氧化銅、sulfur→可濕性硫黃"
+    }
+  ]
+}
