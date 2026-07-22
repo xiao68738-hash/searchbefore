@@ -125,6 +125,27 @@ for (const r of pending) {
   });
 }
 
+/* ── 帶入使用者於植物保護資訊系統查證的英文名 ──
+   開放資料 API 英文名欄為空的那幾支,使用者已逐一查回官方英文普通名稱。
+   查證判定為「可視為免訂/對到免訂」者,直接標為 allCovered,移出詢問清單;
+   仍需釐清者(如波爾多是否比照銅製劑)保留在詢問清單並附上查證到的英文名。 */
+const verified = read("人工查證英文名.json");
+if (verified) {
+  const byZh = new Map(verified.rows.map(v => [v.zh, v]));
+  for (const r of rows) {
+    const v = byZh.get(r.zh);
+    if (!v) continue;
+    if (!r.en && v.en) r.en = v.en;          /* 補上查證到的英文名 */
+    r.verifiedEn = v.en;
+    r.verifiedNote = v.reason;
+    if (v.verdict === "可視為免訂" || v.verdict === "對到免訂") {
+      r.allCovered = true;                   /* 已釐清,不必再問 */
+      r.resolvedBy = "植物保護系統查證 + " + v.reason;
+      r.parts = [{ en: v.en, status: v.verdict, target: v.kind, from: "人工查證" }];
+    }
+  }
+}
+
 rows.sort((a, b) => b.uses - a.uses);
 
 const mixtures = rows.filter(r => r.kind === "混合劑");

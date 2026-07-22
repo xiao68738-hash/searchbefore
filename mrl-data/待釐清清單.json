@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-07-21T15:21:33.887Z",
+  "generatedAt": "2026-07-22T01:17:35.421Z",
   "note": "英文有效成分取自許可證「英文名稱」欄位，混合劑以「+」切分。",
   "total": 74,
   "mixtures": 40,
   "singles": 29,
   "noEnglishName": 5,
-  "fullyCovered": 27,
+  "fullyCovered": 31,
   "rows": [
     {
       "zh": "鋅錳座賽胺",
@@ -240,11 +240,21 @@
     {
       "zh": "銅合硫磺",
       "uses": 8,
-      "en": "",
-      "parts": [],
+      "en": "copper oxychloride + sulfur",
+      "parts": [
+        {
+          "en": "copper oxychloride + sulfur",
+          "status": "可視為免訂",
+          "target": "混合劑(殺菌)",
+          "from": "人工查證"
+        }
+      ],
       "kind": "英文名欄位為空",
-      "allCovered": false,
-      "chem": "(1) sulfur .....14.85% (2) copper oxychloride .....20.3%"
+      "allCovered": true,
+      "chem": "(1) sulfur .....14.85% (2) copper oxychloride .....20.3%",
+      "verifiedEn": "copper oxychloride + sulfur",
+      "verifiedNote": "兩成分皆在免訂清單:copper oxychloride→鹼性氯氧化銅、sulfur→可濕性硫黃",
+      "resolvedBy": "植物保護系統查證 + 兩成分皆在免訂清單:copper oxychloride→鹼性氯氧化銅、sulfur→可濕性硫黃"
     },
     {
       "zh": "本達亞喜芬",
@@ -293,11 +303,13 @@
     {
       "zh": "波爾多",
       "uses": 8,
-      "en": "",
+      "en": "bordeaux mixture",
       "parts": [],
       "kind": "英文名欄位為空",
       "allCovered": false,
-      "chem": "Bordeaux mixture"
+      "chem": "Bordeaux mixture",
+      "verifiedEn": "bordeaux mixture",
+      "verifiedNote": "波爾多液本身不在免訂清單,但為銅製劑;需釐清是否比照免訂清單之各式銅化合物辦理"
     },
     {
       "zh": "克凡洛寧",
@@ -486,11 +498,21 @@
     {
       "zh": "小菜蛾性費洛蒙",
       "uses": 3,
-      "en": "",
-      "parts": [],
+      "en": "Z-11-Hexadecenal + Z-11-Hexadecenyl Acetate + Z-11-Hexadecenol (sex pheromones of diamondback moth)",
+      "parts": [
+        {
+          "en": "Z-11-Hexadecenal + Z-11-Hexadecenyl Acetate + Z-11-Hexadecenol (sex pheromones of diamondback moth)",
+          "status": "可視為免訂",
+          "target": "費洛蒙",
+          "from": "人工查證"
+        }
+      ],
       "kind": "英文名欄位為空",
-      "allCovered": false,
-      "chem": "(1) (Z)-11-hexadecenal  (2) (Z)-11-hexadecenyl acetate  (3) (Z)-11-hexadecenol"
+      "allCovered": true,
+      "chem": "(1) (Z)-11-hexadecenal  (2) (Z)-11-hexadecenyl acetate  (3) (Z)-11-hexadecenol",
+      "verifiedEn": "Z-11-Hexadecenal + Z-11-Hexadecenyl Acetate + Z-11-Hexadecenol (sex pheromones of diamondback moth)",
+      "verifiedNote": "性費洛蒙;免訂清單已列甜菜葉蛾費洛蒙、斜紋夜盜蛾費洛蒙,性質完全相同",
+      "resolvedBy": "植物保護系統查證 + 性費洛蒙;免訂清單已列甜菜葉蛾費洛蒙、斜紋夜盜蛾費洛蒙,性質完全相同"
     },
     {
       "zh": "硫酸快得寧",
@@ -517,11 +539,21 @@
     {
       "zh": "克蠅香",
       "uses": 3,
-      "en": "",
-      "parts": [],
+      "en": "4-(p-acetoxyphenyl)-2-butanone + methyl eugenol",
+      "parts": [
+        {
+          "en": "4-(p-acetoxyphenyl)-2-butanone + methyl eugenol",
+          "status": "可視為免訂",
+          "target": "誘引劑",
+          "from": "人工查證"
+        }
+      ],
       "kind": "英文名欄位為空",
-      "allCovered": false,
-      "chem": "(1) 4-(p-acetoxyphenyl)-2-butanone .....42.7%                   (2) methyl eugenol .....42.3%"
+      "allCovered": true,
+      "chem": "(1) 4-(p-acetoxyphenyl)-2-butanone .....42.7%                   (2) methyl eugenol .....42.3%",
+      "verifiedEn": "4-(p-acetoxyphenyl)-2-butanone + methyl eugenol",
+      "verifiedNote": "誘引劑,誘捕果實蠅用,不施用於作物、不構成殘留;性質同免訂清單之費洛蒙類",
+      "resolvedBy": "植物保護系統查證 + 誘引劑,誘捕果實蠅用,不施用於作物、不構成殘留;性質同免訂清單之費洛蒙類"
     },
     {
       "zh": "四氯保淨",
@@ -1034,11 +1066,21 @@
     {
       "zh": "果收生長素",
       "uses": 1,
-      "en": "",
-      "parts": [],
+      "en": "o-nitrophenolate + Sodium p-nitrophenolate",
+      "parts": [
+        {
+          "en": "o-nitrophenolate + Sodium p-nitrophenolate",
+          "status": "對到免訂",
+          "target": "植物生長調節劑",
+          "from": "人工查證"
+        }
+      ],
       "kind": "英文名欄位為空",
-      "allCovered": false,
-      "chem": "sodium-o-nitrophenol 0.6%   sodium-p-nitrophenol 0.9%  sodium-5-nitroguaiacol 0.3%"
+      "allCovered": true,
+      "chem": "sodium-o-nitrophenol 0.6%   sodium-p-nitrophenol 0.9%  sodium-5-nitroguaiacol 0.3%",
+      "verifiedEn": "o-nitrophenolate + Sodium p-nitrophenolate",
+      "verifiedNote": "對應免訂清單『硝基苯酚鈉 Sodium Nitrophenol』",
+      "resolvedBy": "植物保護系統查證 + 對應免訂清單『硝基苯酚鈉 Sodium Nitrophenol』"
     },
     {
       "zh": "伏滅鼠",
