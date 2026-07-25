@@ -62,6 +62,8 @@ for (const row of mrlRows) {
 }
 
 const grouped = new Map();
+const deletable = [];   // 判定＝誤判且狀態＝檢核完成者移入附錄(定案可刪);待確認者仍留主體
+const tally = {};
 let reviewItemCount = 0;
 for (const [index, candidate] of candidates.entries()) {
   const crop = text(candidate["作物"]);
@@ -77,9 +79,15 @@ for (const [index, candidate] of candidates.entries()) {
   });
 
   reviewItemCount += components.length;
+  const review = candidate["複核"] || {};
+  const verdict = text(review["判定"]) || "未複核";
+  const status = text(review["狀態"]);
+  tally[verdict] = (tally[verdict] || 0) + 1;
+  if (verdict === "誤判" && status === "檢核完成") { deletable.push({ number: index + 1, candidate, review }); continue; }
   if (!grouped.has(crop)) grouped.set(crop, []);
-  grouped.get(crop).push({ number: index + 1, candidate, components });
+  grouped.get(crop).push({ number: index + 1, candidate, components, review });
 }
+const groupedSorted = new Map([...grouped.entries()].sort((a, b) => a[0].localeCompare(b[0], "zh-Hant")));
 
 if (reviewItemCount !== candidates.length) {
   throw new Error(`候選共 ${candidates.length} 筆，但需複核成分共 ${reviewItemCount} 筆`);
@@ -92,10 +100,12 @@ lines.push("> 本文件僅供人工複核，內容不是「不得檢出」的最
 lines.push("");
 lines.push(`- 候選來源：\`登記但不得檢出-候選.json\`（產生時間：${text(candidateData.generatedAt) || "未記錄"}）`);
 lines.push(`- 殘留標準來源：\`latest.json\`（快照：${text(mrlData.snapshotId) || "未記錄"}；擷取時間：${text(mrlData.retrievedAt) || "未記錄"}）`);
-lines.push(`- 複核數量：${candidates.length} 筆候選，${grouped.size} 個作物分組`);
+lines.push(`- 複核數量：${candidates.length} 筆候選，${grouped.size} 個作物分組（不含已定案誤判）`);
+lines.push(`- 複核狀態：${Object.entries(tally).map(([k, v]) => `${k} ${v}`).join("｜")}`);
+lines.push(`- 已定案「誤判」${deletable.length} 筆移入文末附錄（可自不得檢出名單刪除）；傾向誤判但成員待確認者仍留主體。`);
 lines.push("");
 
-for (const [crop, entries] of grouped) {
+for (const [crop, entries] of groupedSorted) {
   lines.push(`## ${crop}（${entries.length} 筆）`);
   lines.push("");
 
@@ -106,8 +116,10 @@ for (const [crop, entries] of grouped) {
     lines.push(`- 作物歸類：${text(candidate["作物歸類"]) || "未記錄"}`);
     lines.push(`- 防治對象數：${text(candidate["防治對象數"]) || "未記錄"}`);
     lines.push(`- 原候選判定：${text(candidate["成分判定"])}`);
-    lines.push("- 人工複核：☐ 確認　☐ 誤判　☐ 存疑");
-    lines.push("- 複核註記：");
+    const rv = entry.review || {};
+    const v = text(rv["判定"]);
+    lines.push(`- 判定：${v ? "☑ " + v : "☐ 確認　☐ 誤判　☐ 部分確認　☐ 存疑（未複核）"}${text(rv["狀態"]) ? "（" + text(rv["狀態"]) + "）" : ""}`);
+    lines.push(`- 複核依據：${text(rv["依據"]) || "（待複核）"}`);
     lines.push("");
 
     for (const component of entry.components) {
@@ -128,5 +140,18 @@ for (const [crop, entries] of grouped) {
   }
 }
 
+lines.push("---");
+lines.push("");
+lines.push(`## 附錄：已定案「誤判」可刪除清單（${deletable.length} 筆）`);
+lines.push("");
+lines.push("下列經人工複核判定為誤判（實際已有容許量或無有效登記），應自不得檢出名單移除。");
+lines.push("");
+lines.push("| 原筆次 | 作物 | 藥劑 | 誤判依據 |");
+lines.push("|---:|---|---|---|");
+for (const d of deletable.sort((a, b) => a.number - b.number)) {
+  lines.push(`| ${d.number} | ${markdownCell(d.candidate["作物"])} | ${markdownCell(d.candidate["藥劑"])} | ${markdownCell((d.review["依據"]) || "")} |`);
+}
+lines.push("");
+
 fs.writeFileSync(OUTPUT_FILE, lines.join("\n") + "\n", "utf8");
-console.log(`已產生 ${path.basename(OUTPUT_FILE)}：${candidates.length} 筆候選、${grouped.size} 個作物分組、${reviewItemCount} 個待複核成分`);
+console.log(`已產生 ${path.basename(OUTPUT_FILE)}：主體候選 ${candidates.length - deletable.length} 筆（${grouped.size} 作物分組）、附錄誤判 ${deletable.length} 筆`);
