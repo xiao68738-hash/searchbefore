@@ -360,6 +360,13 @@ h2.step .cnt{letter-spacing:0;color:var(--green);font-weight:900}
 /* 聯合防治 */
 .dual-pick{display:flex;gap:10px;margin-bottom:4px}
 .dual-pick .field{flex:1;margin-bottom:8px}
+.dual-crop .field{margin-bottom:4px}
+.dual-inrow{display:flex;gap:7px;align-items:center}
+.dual-inrow input{flex:1;min-width:0}
+.dual-x{flex:none;width:34px;height:34px;border:1px solid var(--line);background:#fff;border-radius:9px;color:var(--ink-soft);font-size:15px;font-weight:700;cursor:pointer}
+.dual-acts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
+.dual-acts .dal{flex:none;font-size:12.5px;font-weight:700;color:var(--ink-soft);min-width:62px}
+.dual-acts .btn{flex:0 1 auto;padding:8px 12px;font-size:13.5px}
 .dual-sel{font-size:13.5px;font-weight:700;color:var(--green);margin:-2px 2px 8px}
 .dual-row{display:flex;align-items:baseline;gap:8px;font-size:14px;padding:7px 0;border-top:1px dashed var(--line)}
 .dual-row .cn{flex:none;min-width:74px;font-weight:900;color:var(--green-deep);font-size:13.5px}
@@ -728,7 +735,7 @@ nav button.on{color:var(--green)}
       <div class="search"><input id="cropSearch" placeholder="輸入作物名,例:草莓、番茄、萵苣" autocomplete="off"></div>
       <div class="chips" id="recentCrops"></div>
       <div class="chips" id="cropResults" style="margin-top:9px"></div>
-      <div style="margin-top:12px"><button class="chip mut" onclick="openDual()">兩作物聯合防治</button></div>
+      <div style="margin-top:12px"><button class="chip mut" onclick="openDual()">多種作物聯合防治</button></div>
       <div id="homeCards"></div>
       <div id="formBlock" style="display:none">
         <div class="form-ask" id="formPrompt"></div>
@@ -780,6 +787,7 @@ nav button.on{color:var(--green)}
             <button onclick="setWater(16)">背負桶 16L</button><button onclick="setWater(20)">20L</button>
             <button onclick="setWater(25)">25L</button><button onclick="setWater(100)">100L</button>
             <button onclick="setWater(500)">動力桶 500L</button>
+            <button onclick="setWater(400)">噴藥車 400L</button><button onclick="setWater(1000)">噴藥車 1000L</button>
           </div>
         </div>
         <div class="calc-mode">
@@ -1062,15 +1070,12 @@ nav button.on{color:var(--green)}
 </div>
 
 <!-- 聯合防治 modal -->
-<div class="modal-bg" id="dualModal" role="dialog" aria-modal="true" aria-label="兩作物聯合防治" onclick="if(event.target===this)closeDual()">
+<div class="modal-bg" id="dualModal" role="dialog" aria-modal="true" aria-label="多種作物聯合防治" onclick="if(event.target===this)closeDual()">
   <div class="modal">
-    <h3>兩作物聯合防治</h3>
-    <div class="hint" style="margin:-8px 0 12px">找出同一個商品同時登記於兩種作物的藥劑,一桶藥防治兩區。</div>
-    <div class="dual-pick">
-      <div class="field"><label>作物 A</label><input id="dualA" placeholder="例:番茄" autocomplete="off"></div>
-      <div class="field"><label>作物 B</label><input id="dualB" placeholder="例:甜椒" autocomplete="off"></div>
-    </div>
-    <div class="chips" id="dualHints" style="margin-bottom:10px"></div>
+    <h3>多種作物聯合防治</h3>
+    <div class="hint" style="margin:-8px 0 12px">找出同一個商品同時登記於你所選全部作物的藥劑,一桶藥防治多區。預設兩種作物,可再新增。</div>
+    <div id="dualCropRows"></div>
+    <div style="margin:2px 0 12px"><button class="chip mut" id="dualAddBtn" onclick="dualAddRow()">＋ 新增作物</button></div>
     <div class="dual-sel" id="dualSel"></div>
     <div class="chips" id="dualPests" style="margin-bottom:10px"></div>
     <div id="dualResults"></div>
@@ -2916,61 +2921,111 @@ function renderRecords(){
   renderPlotRecordBox();
 }
 
-/* ── 兩作物聯合防治 ──
-   謹慎原則:只列「同一商品同時登記於兩作物」的藥劑(合法性跟著產品標示走),
-   並排顯示兩作物各自的倍數與採收期,不做單一建議值。 */
-let dual={A:null,B:null,uA:null,uB:null,pest:null};
+/* ── 多種作物聯合防治(預設2種,可加至 DUAL_MAX 種) ──
+   謹慎原則:只列「同一商品同時登記於所選全部作物」的藥劑(合法性跟著產品標示走),
+   並排顯示各作物自己的倍數與採收期,不做單一建議值;
+   倍數取全部作物中最高(最稀)、採收期取最長,皆為保守方向。 */
+const DUAL_MAX=6;
+let dual={crops:[null,null],sel:[],unions:[],pest:null};
 function openDual(){
-  dual={A:null,B:null,uA:null,uB:null,pest:null};
-  ["dualA","dualB"].forEach(id=>document.getElementById(id).value="");
-  document.getElementById("dualHints").innerHTML="";
+  dual={crops:[null,null],sel:[],unions:[],pest:null};
+  renderDualRows();
   document.getElementById("dualSel").textContent="";
   document.getElementById("dualPests").innerHTML="";
   document.getElementById("dualResults").innerHTML="";
   document.getElementById("dualModal").classList.add("open");
 }
 function closeDual(){document.getElementById("dualModal").classList.remove("open")}
-["dualA","dualB"].forEach(id=>document.getElementById(id).addEventListener("input",e=>{
-  const q=e.target.value.trim();
-  const box=document.getElementById("dualHints");
-  if(!q){box.innerHTML="";return}
+/* 作物列以陣列驅動;只在新增/移除/開啟時重繪,打字時僅更新該列建議,避免失焦。 */
+function renderDualRows(){
+  const ph=["例:番茄","例:甜椒","例:辣椒","例:茄子","例:枸杞","例:香瓜茄"];
+  document.getElementById("dualCropRows").innerHTML=dual.crops.map((c,i)=>`
+    <div class="dual-crop">
+      <div class="field">
+        <label>作物 ${i+1}</label>
+        <div class="dual-inrow">
+          <input id="dualC${i}" placeholder="${ph[i]||"輸入作物名"}" autocomplete="off" value="${esc(c||"")}" oninput="dualSuggest(${i})">
+          ${dual.crops.length>2?`<button class="dual-x" title="移除這個作物" onclick="dualRemoveRow(${i})">✕</button>`:""}
+        </div>
+      </div>
+      <div class="chips" id="dualHints${i}" style="margin-bottom:8px"></div>
+    </div>`).join("");
+  const add=document.getElementById("dualAddBtn");
+  if(add)add.style.display=dual.crops.length>=DUAL_MAX?"none":"";
+}
+function dualAddRow(){
+  if(dual.crops.length>=DUAL_MAX){toast(`最多 ${DUAL_MAX} 種作物`);return}
+  dual.crops.push(null);renderDualRows();dualRecompute();
+}
+function dualRemoveRow(i){
+  if(dual.crops.length<=2)return;
+  dual.crops.splice(i,1);renderDualRows();dualRecompute();
+}
+function dualSuggest(i){
+  const q=(document.getElementById("dualC"+i).value||"").trim();
+  const box=document.getElementById("dualHints"+i);
+  dual.crops[i]=null; // 尚未從建議中挑選前不視為已選定
+  if(!q){box.innerHTML="";dualRecompute();return}
   const hits=cropSuggestions(q,10,true);
   box.innerHTML=hits.length?hits.map(h=>
-    `<button class="chip mut" onclick="dualPick('${id==="dualA"?"A":"B"}','${esc(h.c)}')">${esc(h.c)}${h.alias?`<span class="alias">俗名:${esc(h.alias)}</span>`:(h.kind==="fuzzy"?`<span class="alias">相近</span>`:"")}</button>`).join("")
+    `<button class="chip mut" onclick="dualPick(${i},'${esc(h.c)}')">${esc(h.c)}${h.alias?`<span class="alias">俗名:${esc(h.alias)}</span>`:(h.kind==="fuzzy"?`<span class="alias">相近</span>`:"")}</button>`).join("")
     :`<div class="hint" style="width:100%">找不到「${esc(q)}」,可試俗名或完整作物名。</div>`;
-}));
-function dualPick(which,c){
-  dual[which]=c;
-  document.getElementById(which==="A"?"dualA":"dualB").value=c;
-  document.getElementById("dualHints").innerHTML="";
-  if(dual.A&&dual.B)dualPests();
+  dualRecompute();
 }
-function dualPests(){
-  if(dual.A===dual.B){document.getElementById("dualSel").textContent="請選兩種不同的作物。";return}
-  dual.uA=buildUnion(dual.A).M;dual.uB=buildUnion(dual.B).M;
-  const common=Object.keys(dual.uA).filter(p=>dual.uB[p]);
-  document.getElementById("dualSel").textContent=common.length
-    ?dual.A+" × "+dual.B+" 共同病蟲害 "+common.length+" 項:"
-    :dual.A+" × "+dual.B+" 目前沒有共同登記的防治對象";
-  document.getElementById("dualPests").innerHTML=common
-    .sort((a,b)=>(dual.uB[b].list.length+dual.uA[b].list.length)-(dual.uB[a].list.length+dual.uA[a].list.length))
-    .map(p=>'<button class="chip '+(dual.pest===p?'sel':'')+'" onclick="dualAgents(\''+esc(p)+'\')">'+esc(p)+'</button>').join("");
-  document.getElementById("dualResults").innerHTML=common.length
-    ?'<div class="hint" style="margin-top:4px">請先選共同防治對象。此功能只列兩作物都有登記的防治對象,再比對可共同使用的商品。</div>'
-    :'<div class="hint" style="margin-top:8px"><b>不是功能異常。</b>目前資料中找不到 '+esc(dual.A)+' 與 '+esc(dual.B)+' 共同登記的防治對象。若兩種作物在同一田區、噴藥可能同時接觸,建議分別查詢兩作物合法用藥並分開紀錄;不要只依其中一種作物用藥,以免另一種作物因未登記而有殘留不得檢出或不合格風險。</div>';
+function dualPick(i,c){
+  dual.crops[i]=c;
+  document.getElementById("dualC"+i).value=c;
+  document.getElementById("dualHints"+i).innerHTML="";
+  dualRecompute();
+}
+/* 取所選全部作物的共同防治對象(交集)。未填的列略過,至少需兩種。 */
+function dualRecompute(){
+  const SEL=document.getElementById("dualSel"),P=document.getElementById("dualPests"),R=document.getElementById("dualResults");
+  dual.pest=null;P.innerHTML="";R.innerHTML="";
+  const sel=dual.crops.filter(Boolean);
+  dual.sel=sel;dual.unions=[];
+  if(sel.length<2){SEL.textContent=sel.length?"請再選一種作物(至少兩種)。":"";return}
+  if(new Set(sel).size!==sel.length){SEL.textContent="有重複的作物,請選不同作物。";return}
+  dual.unions=sel.map(c=>buildUnion(c).M);
+  const common=Object.keys(dual.unions[0]).filter(p=>dual.unions.every(u=>u[p]));
+  const label=sel.join(" × ");
+  SEL.textContent=common.length?`${label} 共同病蟲害 ${common.length} 項:`:`${label} 目前沒有共同登記的防治對象`;
+  const score=p=>dual.unions.reduce((n,u)=>n+u[p].list.length,0);
+  P.innerHTML=common.sort((a,b)=>score(b)-score(a))
+    .map(p=>'<button class="chip" onclick="dualAgents(\''+esc(p)+'\')">'+esc(p)+'</button>').join("");
+  R.innerHTML=common.length
+    ?`<div class="hint" style="margin-top:4px">請先選共同防治對象。此功能只列<b>你所選全部作物都有登記</b>的防治對象,再比對可共同使用的商品。</div>`
+    :`<div class="hint" style="margin-top:8px"><b>不是功能異常。</b>目前資料中找不到 ${esc(sel.join("、"))} 共同登記的防治對象。若這些作物在同一田區、噴藥可能同時接觸,建議分別查詢各作物合法用藥並分開紀錄;不要只依其中一種作物用藥,以免其他作物因未登記而有殘留不得檢出或不合格風險。作物選越多,共同交集越少,可先減少作物數。</div>`;
 }
 let dualHits=[];
+/* 同一商品(名稱|劑型|含量)須同時登記於全部所選作物,且商品清單有交集,才列出。 */
+function dualIntersect(pest){
+  const key=x=>[x.name,x.form,x.content].join("|");
+  let hits=dual.unions[0][pest].list.map(a=>({rows:[a],shared:(a.bl||[]).slice()}));
+  for(let n=1;n<dual.unions.length;n++){
+    const idx={};dual.unions[n][pest].list.forEach(b=>{idx[key(b)]=b});
+    hits=hits.map(h=>{
+      const b=idx[key(h.rows[0])];
+      if(!b)return null;
+      const shared=h.shared.filter(x=>(b.bl||[]).includes(x));
+      if(!shared.length)return null;
+      return {rows:h.rows.concat([b]),shared};
+    }).filter(Boolean);
+  }
+  return hits;
+}
+function dualSafeDil(h){
+  const ds=h.rows.map(r=>parseDil(r.dilution)).filter(Boolean);
+  return ds.length?Math.max.apply(null,ds):""; // 取最高倍數(最稀)最保守
+}
 function openDualBrands(i){
   const h=dualHits[i];
-  openBrands(h.a.name,`同時登記於 ${dual.A} 與 ${dual.B} · 共 ${h.shared.length} 個商品`,h.shared);
+  openBrands(h.rows[0].name,`同時登記於 ${dual.sel.join("、")} · 共 ${h.shared.length} 個商品`,h.shared);
 }
-function dualToCalc(i,which){
-  const h=dualHits[i];
-  const a=which==="A"?h.a:h.b;
-  const crop=which==="A"?dual.A:dual.B;
+function dualToCalc(i,n){
+  const h=dualHits[i],a=h.rows[n],crop=dual.sel[n];
   const meta=agentCalcMeta(a);
-  const dilA=parseDil(h.a.dilution),dilB=parseDil(h.b.dilution);
-  const safeDil=(dilA&&dilB)?Math.max(dilA,dilB):(dilA||dilB||"");
+  const safeDil=dualSafeDil(h);
   calcAgent={crop,pest:dual.pest,name:a.name,phi:a.phi,moa:a.moa||"",
     unit:meta.unit,dosePerHa:meta.dosePerHa,doseRaw:meta.doseRaw};
   document.getElementById("inDil").value=safeDil;
@@ -2978,66 +3033,49 @@ function dualToCalc(i,which){
   updateCalcCtx();calc();
   closeDual();
   go("calc",document.querySelectorAll("nav button")[1]);
-  toast(`已帶入「${a.name}」· 倍數取兩作物中較高值 ${safeDil}`);
+  toast(`已帶入「${a.name}」· 倍數取全部作物中較高值 ${safeDil}`);
 }
 function dualSaveRecipe(i){
   const h=dualHits[i];
-  const dilA=parseDil(h.a.dilution),dilB=parseDil(h.b.dilution);
-  const safeDil=(dilA&&dilB)?Math.max(dilA,dilB):(dilA||dilB||"");
-  const phiA=h.a.phi,phiB=h.b.phi;
-  const conservativePhi=(phiA!=null&&phiB!=null)?Math.max(phiA,phiB):(phiA??phiB??null);
-  const note=`兩作物共同防治;${dual.A} ${h.a.dilution||"見標示"} PHI${phiA??"見標示"}, ${dual.B} ${h.b.dilution||"見標示"} PHI${phiB??"見標示"};實際採收期仍請分作物確認。`;
-  const r=makeRecipeFromAgent({...h.a,phi:conservativePhi},dual.A+"+"+dual.B,dual.pest,safeDil,note);
+  const safeDil=dualSafeDil(h);
+  const phis=h.rows.map(r=>r.phi).filter(v=>v!=null);
+  const conservativePhi=phis.length?Math.max.apply(null,phis):null;
+  const per=dual.sel.map((c,n)=>`${c} ${h.rows[n].dilution||"見標示"} PHI${h.rows[n].phi??"見標示"}`).join(", ");
+  const note=`${dual.sel.length} 作物共同防治;${per};實際採收期仍請分作物確認。`;
+  const r=makeRecipeFromAgent({...h.rows[0],phi:conservativePhi},dual.sel.join("+"),dual.pest,safeDil,note);
   recipes.unshift(r);store.set("recipes",recipes);renderRecipes();
   toast("已存入共同防治配方");
 }
-function dualRecord(i,which){
-  const h=dualHits[i];
-  const a=which==="A"?h.a:h.b;
-  const crop=which==="A"?dual.A:dual.B;
-  const dilA=parseDil(h.a.dilution),dilB=parseDil(h.b.dilution);
-  const safeDil=(dilA&&dilB)?Math.max(dilA,dilB):(dilA||dilB||"");
+function dualRecord(i,n){
+  const h=dualHits[i],a=h.rows[n],crop=dual.sel[n];
+  const safeDil=dualSafeDil(h);
   closeDual();
   openRecordModal({crop,agent:a.name,phi:a.phi,moa:a.moa||"",pest:dual.pest,dil:safeDil,water:20});
 }
 function dualAgents(pest){
   dual.pest=pest;
   document.querySelectorAll("#dualPests .chip").forEach(b=>b.classList.toggle("sel",b.textContent===pest));
-  const idx={};
-  dual.uB[pest].list.forEach(b=>{idx[[b.name,b.form,b.content].join("|")]=b});
-  const hits=[];
-  dual.uA[pest].list.forEach(a=>{
-    const b=idx[[a.name,a.form,a.content].join("|")];
-    if(!b)return;
-    const shared=(a.bl||[]).filter(x=>(b.bl||[]).includes(x));
-    if(shared.length)hits.push({a,b,shared});
-  });
+  const hits=dualIntersect(pest);
   dualHits=hits;
+  const n=dual.sel.length;
   document.getElementById("dualResults").innerHTML=hits.length?hits.map((h,i)=>`
     <div class="agent" style="padding:13px 14px">
-      <h3 style="font-size:18px">${esc(h.a.name)}</h3>
-      <div class="sub">${esc(h.a.content||"")} ${esc(h.a.form||"")}${h.a.moa?` · <span class="ftag moa-tag">${esc(h.a.moa)}</span>`:""}</div>
-      <div class="dual-row"><span class="cn">${esc(dual.A)}</span>
-        <span class="dv">${esc(h.a.dilution||"—")} 倍</span>
-        <span class="dk">採收期 ${h.a.phi!=null?h.a.phi+" 天":"見標示"} · 登記於 ${esc(h.a.src)}</span></div>
-      <div class="dual-row"><span class="cn">${esc(dual.B)}</span>
-        <span class="dv">${esc(h.b.dilution||"—")} 倍</span>
-        <span class="dk">採收期 ${h.b.phi!=null?h.b.phi+" 天":"見標示"} · 登記於 ${esc(h.b.src)}</span></div>
+      <h3 style="font-size:18px">${esc(h.rows[0].name)}</h3>
+      <div class="sub">${esc(h.rows[0].content||"")} ${esc(h.rows[0].form||"")}${h.rows[0].moa?` · <span class="ftag moa-tag">${esc(h.rows[0].moa)}</span>`:""}</div>
+      ${dual.sel.map((c,k)=>`<div class="dual-row"><span class="cn">${esc(c)}</span>
+        <span class="dv">${esc(h.rows[k].dilution||"—")} 倍</span>
+        <span class="dk">採收期 ${h.rows[k].phi!=null?h.rows[k].phi+" 天":"見標示"} · 登記於 ${esc(h.rows[k].src)}</span></div>`).join("")}
       <button class="brand-toggle" onclick="openDualBrands(${i})">共同登記商品 ${h.shared.length} 個</button>
-      <div class="acts" style="margin-top:8px">
-        <button class="btn btn-main" style="flex:1" onclick="dualToCalc(${i},'A')">帶入計算(${esc(dual.A)})</button>
-        <button class="btn btn-main" style="flex:1" onclick="dualToCalc(${i},'B')">帶入計算(${esc(dual.B)})</button>
-      </div>
-      <div class="acts" style="margin-top:4px">
-        <button class="btn btn-ghost" style="flex:1" onclick="dualRecord(${i},'A')">記${esc(dual.A)}施藥</button>
-        <button class="btn btn-ghost" style="flex:1" onclick="dualRecord(${i},'B')">記${esc(dual.B)}施藥</button>
-      </div>
-      <div class="acts" style="margin-top:4px">
+      <div class="dual-acts"><span class="dal">帶入計算</span>
+        ${dual.sel.map((c,k)=>`<button class="btn btn-main" onclick="dualToCalc(${i},${k})">${esc(c)}</button>`).join("")}</div>
+      <div class="dual-acts"><span class="dal">記施藥</span>
+        ${dual.sel.map((c,k)=>`<button class="btn btn-ghost" onclick="dualRecord(${i},${k})">${esc(c)}</button>`).join("")}</div>
+      <div class="acts" style="margin-top:6px">
         <button class="btn btn-ghost" style="flex:1" onclick="dualSaveRecipe(${i})">存共同配方</button>
       </div>
     </div>`).join("")
-    +`<div class="hint" style="margin-top:4px">同桶施用時,依兩者中<b>較高的稀釋倍數</b>(較稀)配製;兩作物<b>各自遵守自己的安全採收期</b>。可否同桶噴施仍以各商品標示為準。</div>`
-    :`<div class="hint">「${esc(pest)}」在兩作物間沒有共同登記的商品,建議分別配藥。</div>`;
+    +`<div class="hint" style="margin-top:4px">同桶施用時,依這 ${n} 種作物中<b>最高的稀釋倍數</b>(最稀)配製;各作物<b>各自遵守自己的安全採收期</b>。可否同桶噴施仍以各商品標示為準。</div>`
+    :`<div class="hint">「${esc(pest)}」在所選 ${n} 種作物間沒有共同登記的商品,建議分別配藥,或減少作物數再查。</div>`;
 }
 
 
