@@ -436,11 +436,16 @@ h2.step .cnt{letter-spacing:0;color:var(--green);font-weight:900}
 .result .big2{font-family:var(--serif);font-size:34px;font-weight:900;line-height:1.1;margin-top:10px;padding-top:12px;border-top:1px solid rgba(255,255,255,.15)}
 .result .big2 small{font-size:15px;font-weight:700;opacity:.85;margin-left:3px}
 .result .big2 .lbl{display:block;font-size:12px;font-weight:400;opacity:.75;margin-top:2px}
-.result{background:var(--green-deep);border-radius:var(--radius);color:#fff;text-align:center;padding:20px 15px 17px;margin-top:2px}
-.result .big{font-family:var(--serif);font-size:56px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
-.result .big small{font-size:20px;font-weight:700;margin-left:4px}
-.result .cap{font-size:12.5px;opacity:.8;margin-top:8px}
-.result .approx{font-size:13.5px;margin-top:9px;background:rgba(255,255,255,.1);border-radius:9px;padding:7px 10px;display:inline-block}
+.result{background:var(--green-deep);border-radius:var(--radius);color:#fff;text-align:center;padding:18px 15px 16px;margin-top:2px}
+.result .res-summary{font-size:16px;font-weight:700;line-height:1.6}
+.result .res-summary b{font-weight:900;font-variant-numeric:tabular-nums}
+.result .res-grid{display:flex;gap:8px;margin-top:14px}
+.result .res-grid>div{flex:1;background:rgba(255,255,255,.1);border-radius:11px;padding:11px 5px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.result .rg-num{font-family:var(--serif);font-size:25px;font-weight:900;line-height:1.05;font-variant-numeric:tabular-nums;word-break:break-word}
+.result .rg-num small{font-size:13px;font-weight:700;opacity:.85;margin-left:2px}
+.result .rg-lbl{font-size:12px;opacity:.8;font-weight:600}
+.result .res-calc{font-size:12px;opacity:.75;margin-top:11px;line-height:1.6}
+.result .approx{font-size:13.5px;margin-top:11px;background:rgba(255,255,255,.1);border-radius:9px;padding:7px 10px;display:inline-block}
 
 /* 配方/倒數 */
 .empty{text-align:center;color:var(--ink-soft);padding:44px 20px;border:1.5px dashed var(--line);border-radius:var(--radius);font-size:14.5px}
@@ -449,8 +454,9 @@ h2.step .cnt{letter-spacing:0;color:var(--green);font-weight:900}
 .recipe .rt{display:flex;justify-content:space-between;align-items:center}
 .recipe h3{font-size:16.5px;font-weight:900;color:var(--green-deep)}
 .recipe .meta{font-size:13px;color:var(--ink-soft);margin-top:2px}
-.recipe .dose{font-size:14.5px;font-weight:700;margin-top:6px}
+.recipe .dose{font-size:14.5px;font-weight:700;margin-top:6px;line-height:1.5}
 .recipe .dose b{font-size:18px;color:var(--green)}
+.recipe .dose .dose-sub{display:block;font-size:12.5px;font-weight:400;color:var(--ink-soft);margin-top:1px}
 .recipe .acts{display:flex;gap:8px;margin-top:10px}
 .x{background:none;border:none;color:#B9B4A5;font-size:18px;cursor:pointer;padding:4px 6px;font-family:inherit}
 
@@ -792,9 +798,14 @@ nav button.on{color:var(--green)}
           <div class="hint" id="areaHint">每公頃用藥量取自藥劑登記值;請先從查詢帶入藥劑,面積模式才會顯示總藥量。</div>
         </div>
         <div class="result">
-          <div class="big" id="resNum">—</div>
-          <div class="cap" id="resCap"></div>
+          <div class="res-summary" id="resSummary">請先從查詢結果帶入藥劑與登記稀釋倍數</div>
+          <div class="res-grid" id="resGrid" style="display:none">
+            <div><span class="rg-num" id="rgPer">—</span><span class="rg-lbl">每桶用量</span></div>
+            <div><span class="rg-num" id="rgCnt">—</span><span class="rg-lbl">桶數</span></div>
+            <div><span class="rg-num" id="rgTot">—</span><span class="rg-lbl">總用量</span></div>
+          </div>
           <div class="approx" id="resApprox" style="display:none"></div>
+          <div class="res-calc" id="resCalc"></div>
           <div class="big2" id="resArea" style="display:none"></div>
         </div>
         <div style="display:flex;gap:9px;margin-top:13px">
@@ -1890,41 +1901,59 @@ function fmt(n){
 function calc(){
   const dil=parseFloat(document.getElementById("inDil").value);
   const w=parseFloat(document.getElementById("inWater").value);
-  const R=document.getElementById("resNum"),C=document.getElementById("resCap"),
-        A=document.getElementById("resApprox"),AR=document.getElementById("resArea");
+  const S=document.getElementById("resSummary"),G=document.getElementById("resGrid"),
+        PER=document.getElementById("rgPer"),CNT=document.getElementById("rgCnt"),TOT=document.getElementById("rgTot"),
+        CL=document.getElementById("resCalc"),A=document.getElementById("resApprox"),AR=document.getElementById("resArea");
   const unit=calcAgent&&calcAgent.unit?calcAgent.unit:"依藥劑劑型";
-  if(!dil||dil<=0){R.textContent="—";C.textContent="請先從查詢結果帶入藥劑與登記稀釋倍數";A.style.display="none";AR.style.display="none";return}
-  if(!w||w<=0){R.textContent="—";C.textContent="請輸入水量";A.style.display="none";AR.style.display="none";return}
+  const hide=msg=>{S.textContent=msg;G.style.display="none";CL.textContent="";A.style.display="none";AR.style.display="none";};
+  if(!dil||dil<=0){hide("請先從查詢結果帶入藥劑與登記稀釋倍數");return}
+  if(!w||w<=0){hide("請輸入一桶水量");return}
   const per=w*1000/dil;
-  R.innerHTML=`${fmt(per)}<small>${unit}</small>`;
+  const agentName=calcAgent&&calcAgent.name?esc(calcAgent.name)+" ":"";
+  // 三格數字：每桶用量固定,桶數與總量依模式填入
+  PER.innerHTML=`${fmt(per)}<small>${unit}</small>`;
   const fromTag=dilFromAgent&&calcAgent?`<span class="dil-from">已帶入 ${esc(calcAgent.name)} 登記倍數</span>`:"";
   const lowDoseTag=per<0.1?`<span class="dil-from" style="background:#fff3cd;color:#6b4e00">劑量低於 0.1 ${unit},一般量具不易準確;建議增加配製水量或依標示確認</span>`:"";
   if(per>=1&&PQC_SAFETY.shouldShowVolumeApprox(unit)){
     A.style.display="inline-block";
-    A.textContent=`≈ ${fmt(per/5)} 瓶蓋(5ml)|${fmt(per/15)} 湯匙(15ml)`;
-  }else{
-    A.style.display="none";
-  }
+    A.textContent=`每桶約 ${fmt(per/5)} 瓶蓋(5ml)｜${fmt(per/15)} 湯匙(15ml)`;
+  }else{ A.style.display="none"; }
 
   if(calcMode==="tank"){
     const t=Math.max(1,parseInt(document.getElementById("inTanks").value)||1);
-    C.innerHTML=`每桶 ${w}L ÷ ${dil.toLocaleString()} 倍 = ${fmt(per)} ${unit}`+(t>1?` × ${t} 桶,共 ${fmt(per*t)} ${unit}`:"")+fromTag+lowDoseTag;
-    AR.style.display="none";
+    const total=per*t;
+    CNT.innerHTML=`${t}<small>桶</small>`;
+    TOT.innerHTML=`${fmt(total)}<small>${unit}</small>`;
+    G.style.display="flex";AR.style.display="none";
+    S.innerHTML=t>1
+      ? `本次預計配製 <b>${t}</b> 桶,每桶加入 ${agentName}<b>${fmt(per)}</b> ${unit},全部共需 <b>${fmt(total)}</b> ${unit}。`
+      : `本次配製 <b>1</b> 桶（${w}L）,加入 ${agentName}<b>${fmt(per)}</b> ${unit}。`;
+    CL.innerHTML=`換算式：每桶 ${w}L ÷ ${dil.toLocaleString()} 倍 = ${fmt(per)} ${unit}／桶`+(t>1?` × ${t} 桶 = ${fmt(total)} ${unit}`:"")+fromTag+lowDoseTag;
   }else{
-    C.innerHTML=`每桶 ${w}L → ${fmt(per)} ${unit}`+fromTag+lowDoseTag;
     const area=parseFloat(document.getElementById("inArea").value);
-    if(!area||area<=0){AR.style.display="block";AR.innerHTML=`<span class="lbl">輸入面積以估算整區總藥量與水量</span>`;return}
+    if(!area||area<=0){
+      CNT.innerHTML=`—`;TOT.innerHTML=`—`;G.style.display="flex";
+      S.innerHTML=`每桶 ${w}L 加入 ${agentName}<b>${fmt(per)}</b> ${unit}。輸入田區面積後,估算整區桶數與總用量。`;
+      CL.innerHTML=`換算式：每桶 ${w}L ÷ ${dil.toLocaleString()} 倍 = ${fmt(per)} ${unit}／桶`+fromTag+lowDoseTag;
+      AR.style.display="none";return;
+    }
     const ha=area*areaUnit;
     if(calcAgent&&calcAgent.dosePerHa){
       const totalDrug=calcAgent.dosePerHa*ha;
       const totalWaterL=totalDrug*dil/1000;
       const tanks=totalWaterL/w;
+      CNT.innerHTML=`約 ${fmt(tanks)}<small>桶</small>`;
+      TOT.innerHTML=`${fmt(totalDrug)}<small>${unit}</small>`;
+      G.style.display="flex";
+      S.innerHTML=`此面積預估配製 <b>約 ${fmt(tanks)}</b> 桶（每桶 ${w}L）,每桶加入 ${agentName}<b>${fmt(per)}</b> ${unit},全區約需 ${agentName}<b>${fmt(totalDrug)}</b> ${unit}。`;
+      CL.innerHTML=`桶數與總量為依登記用量 ${esc(calcAgent.doseRaw)}/公頃 估算,實際受噴藥機、車速、噴頭與作物密度影響,請以現場為準。`+fromTag+lowDoseTag;
       AR.style.display="block";
-      AR.innerHTML=`總藥量 ${fmt(totalDrug)}<small> ${unit}</small>　總水量 ${fmt(totalWaterL)}<small> L</small>
-        <span class="lbl">約 ${fmt(tanks)} 桶(每桶 ${w}L)· 依登記用量 ${esc(calcAgent.doseRaw)}/公頃 換算</span>`;
+      AR.innerHTML=`總水量 ${fmt(totalWaterL)}<small> L</small><span class="lbl">整區噴灌預估用水,可作產銷履歷總水量參考</span>`;
     }else{
-      AR.style.display="block";
-      AR.innerHTML=`<span class="lbl">此藥劑無每公頃登記用量,無法換算總量;請改用桶數模式,或依標示施用。</span>`;
+      CNT.innerHTML=`—`;TOT.innerHTML=`—`;G.style.display="flex";
+      S.innerHTML=`每桶 ${w}L 加入 ${agentName}<b>${fmt(per)}</b> ${unit}。此藥劑無每公頃登記用量,無法由面積估算桶數與總量;請改用「用桶數算」自行輸入桶數,或依標示施用。`;
+      CL.innerHTML=fromTag+lowDoseTag;
+      AR.style.display="none";
     }
   }
 }
@@ -2046,7 +2075,7 @@ function recipeCard(r,i){
   return `<div class="recipe">
     <div class="rt"><h3>${esc(r.agent)}</h3><button class="x" onclick="delRecipe(${i})">✕</button></div>
     ${meta?`<div class="meta">${meta}</div>`:""}
-    ${per?`<div class="dose">${Number(r.dil).toLocaleString()} 倍 × ${r.water}L → 每桶 <b>${fmt(per)}</b> ${unit}</div>`:""}
+    ${per?`<div class="dose">每桶水 ${r.water}L 加入 <b>${fmt(per)}</b> ${unit}<span class="dose-sub">（稀釋 ${Number(r.dil).toLocaleString()} 倍；桶數依現場自行決定）</span></div>`:""}
     ${r.note?`<div class="hint" style="margin:6px 0 0">${esc(r.note)}</div>`:""}
     <div class="acts"><button class="btn btn-main" onclick="useRecipe(${i})">帶入計算</button></div>
   </div>`;
