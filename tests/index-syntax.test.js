@@ -167,7 +167,7 @@ assert.match(sw, /"\.\/brand-lockup\.png"/);
 assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0.2.9.0-agent-results/);
+assert.match(sw, /v0.3.0.0-dark-contrast/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.ok(html.indexOf('<script src="./query-aids.js"></script>') < html.indexOf("const DATA="), "query-aids.js 必須在主程式前載入");
 /* 藥劑本位查詢:索引必須延遲建立(不可在載入時就建,會拖慢首次開啟),
@@ -191,6 +191,17 @@ assert.match(html, /安全採收期已依備註採較長的 \$\{ep\.phi\} 天/);
    在這裡展開等於替農友做未經查證的合法性推論。 */
 assert.match(html, /本工具不會自行把類別的登記當成個別作物可用/);
 assert.doesNotMatch(html, /該類別涵蓋此作物/);
+/* 深色模式:寫死 #fff 底的卡片若無深色覆寫,會變成淺色字配白底而讀不到
+   (實測 .areg 內文對比僅 1.26:1);安全說明與更新按鈕尤其不能讀不到。 */
+assert.match(html, /html\[data-theme="dark"\] \.areg,html\[data-theme="dark"\] \.areg-toggle/);
+assert.match(html, /html\[data-theme="dark"\] \.mrl-note b\{color:var\(--green-deep\)\}/);
+assert.match(html, /html\[data-theme="dark"\] #updateBar button\{color:#16281A\}/);
+assert.match(html, /html\[data-theme="dark"\] \.brand-toggle\{color:var\(--ok\)\}/);
+/* .mrl-note 標題 b 是 display:block;段落內的行內 b 必須還原為 inline,
+   否則句子被硬切成兩行、標點落在行首。 */
+assert.match(html, /\.mrl-note p b\{display:inline/);
+/* 黃底警示不可用 inline style 寫死,否則深色模式無法覆寫 */
+assert.doesNotMatch(html, /style="background:#fff3cd/);
 assert.match(html, /function renderPestRelated\(\)/);
 assert.match(html, /PQC_AIDS\.isSeedTreatment\(a\)/);
 assert.match(html, /種子\/種苗處理・非噴施/);
