@@ -357,6 +357,20 @@ h2.step .cnt{letter-spacing:0;color:var(--green);font-weight:900}
 .risk-card b em{font-style:normal;font-family:var(--serif);font-size:19px;margin-left:4px}
 .risk-card p{font-size:13px;color:var(--ink-soft);margin-top:3px;line-height:1.55}
 .r-低{color:var(--ok)} .r-中{color:var(--orange)} .r-高{color:var(--red)}
+/* 查詢方式切換(作物本位 / 藥劑本位) */
+.qmode{display:flex;gap:7px;margin:14px 0 4px}
+.qmode button{flex:1;padding:10px 8px;border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);border-radius:11px;font-size:14.5px;font-weight:800;cursor:pointer}
+.qmode button.on{border-color:var(--green);background:var(--ok-bg);color:var(--green-deep)}
+/* 藥劑本位結果 */
+.areg{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:13px 15px;margin-bottom:10px}
+.areg h4{font-size:16px;font-weight:900;color:var(--green-deep)}
+.areg .arow{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;font-size:13.5px;padding:6px 0;border-top:1px dashed var(--line)}
+.areg .arow .ap{flex:none;min-width:96px;font-weight:700}
+.areg .arow .ad{font-family:var(--serif);font-weight:900}
+.areg .arow .ak{color:var(--ink-soft);font-size:12.5px}
+.areg-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:8px}
+.areg-head b{font-size:18px;color:var(--green-deep)}
+
 /* 聯合防治 */
 .dual-pick{display:flex;gap:10px;margin-bottom:4px}
 .dual-pick .field{flex:1;margin-bottom:8px}
@@ -731,6 +745,18 @@ nav button.on{color:var(--green)}
     <section class="screen active" id="scr-search">
       <div id="heroBox"></div>
       <div class="safety-banner" role="note">安全提醒：本工具是查詢與自主紀錄輔助。實際用藥、稀釋倍數及安全採收期，請以產品標示與主管機關最新公告為準。</div>
+      <div class="qmode" role="tablist" aria-label="查詢方式">
+        <button id="qmodeCrop" class="on" role="tab" aria-selected="true" onclick="setQueryMode('crop')">以作物找藥</button>
+        <button id="qmodeAgent" role="tab" aria-selected="false" onclick="setQueryMode('agent')">以藥劑找作物</button>
+      </div>
+      <div id="agentModeBlock" style="display:none">
+        <h2 class="step"><b>1</b>輸入藥劑名或商品名</h2>
+        <div class="search"><input id="agentSearch" placeholder="例:納乃得、賽洛寧,或直接打商品名" autocomplete="off" oninput="agentSuggest(this.value)"></div>
+        <div class="hint" style="margin:2px 2px 0">記得商品名也可以直接打。查到後會列出這支藥<b>實際登記</b>的作物與防治對象。</div>
+        <div class="chips" id="agentHits" style="margin-top:9px"></div>
+        <div id="agentRegResults"></div>
+      </div>
+      <div id="cropModeBlock">
       <h2 class="step"><b>1</b>選作物 <span class="cnt" id="cropTotal"></span></h2>
       <div class="search"><input id="cropSearch" placeholder="輸入作物名,例:草莓、番茄、萵苣" autocomplete="off"></div>
       <div class="chips" id="recentCrops"></div>
@@ -768,6 +794,7 @@ nav button.on{color:var(--green)}
           <b>殘留容許量尚未納入</b>
           <p>本工具的資料來自農業部的農藥登記，未涵蓋衛福部訂定的農產品殘留容許量標準。兩者的作物分類與適用範圍並不完全一致。若供外銷或需要送驗，請另行確認該作物的容許量規定。</p>
         </div>
+      </div>
       </div>
       <p class="disclaimer">資料來源:農業部「農藥資料查詢」開放資料(政府資料開放授權條款第 1 版)。<br>本工具僅供查詢參考,實際使用以產品標示及最新公告為準。<br><span id="verLine"></span></p>
     </section>
@@ -2919,6 +2946,58 @@ function renderRecords(){
   if(typeof hView!=="undefined"&&hView==="cal")renderCal();
   if(typeof renderRecTable==="function")renderRecTable();
   renderPlotRecordBox();
+}
+
+/* ── 藥劑本位查詢(以藥劑找作物)──
+   索引延遲建立:第一次切到這個模式才建(實測瀏覽器約 11.5ms),不拖慢首次開啟。
+   索引只存參照,與 DATA 是同一批物件,倍數/採收期不可能不一致。
+   安全界線:只列該藥劑「實際登記」的作物,絕不由作物分類或群組外推;
+   未列出不代表可以使用。詳見 docs/藥劑本位查詢-設計.md */
+let queryMode="crop", agentIndex=null, agentPicked=null;
+function ensureAgentIndex(){
+  if(!agentIndex)agentIndex=PQC_AIDS.buildAgentIndex(DATA);
+  return agentIndex;
+}
+function setQueryMode(m){
+  queryMode=m;
+  const isAgent=m==="agent";
+  document.getElementById("qmodeCrop").classList.toggle("on",!isAgent);
+  document.getElementById("qmodeAgent").classList.toggle("on",isAgent);
+  document.getElementById("qmodeCrop").setAttribute("aria-selected",String(!isAgent));
+  document.getElementById("qmodeAgent").setAttribute("aria-selected",String(isAgent));
+  document.getElementById("cropModeBlock").style.display=isAgent?"none":"";
+  document.getElementById("agentModeBlock").style.display=isAgent?"":"none";
+  if(isAgent){ensureAgentIndex();document.getElementById("agentSearch").focus()}
+}
+function agentSuggest(q){
+  const box=document.getElementById("agentHits");
+  const hits=PQC_AIDS.agentSuggestions(q,ensureAgentIndex(),24);
+  if(!String(q||"").trim()){box.innerHTML="";document.getElementById("agentRegResults").innerHTML="";return}
+  box.innerHTML=hits.length?hits.map(h=>
+    `<button class="chip mut" onclick="pickAgent('${esc(h.name)}')">${esc(h.name)}`+
+    (h.kind==="brand"?`<span class="alias">商品:${esc(h.brand)}</span>`:"")+
+    `<span class="alias">${h.cropCount} 作物</span></button>`).join("")
+    :`<div class="hint" style="width:100%">找不到「${esc(q)}」。可試普通名稱(如 納乃得)或商品名;查無不代表這支藥不存在,可能只是名稱寫法不同。</div>`;
+}
+/* 結果只依作物分組列出登記內容。分組摺疊、篩選與帶入計算等操作於後續完成。 */
+function pickAgent(name){
+  agentPicked=name;
+  document.getElementById("agentSearch").value=name;
+  document.getElementById("agentHits").innerHTML="";
+  const groups=PQC_AIDS.agentRegistrations(name,ensureAgentIndex());
+  const el=document.getElementById("agentRegResults");
+  if(!groups.length){el.innerHTML=`<div class="hint">查無「${esc(name)}」的登記資料。</div>`;return}
+  const rowCount=groups.reduce((n,g)=>n+g.rows.length,0);
+  el.innerHTML=`<div class="areg-head"><b>${esc(name)}</b><span class="hint">登記於 ${groups.length} 種作物 · 共 ${rowCount} 筆用法</span></div>`
+    +`<div class="mrl-note" role="note"><b>這份清單只列有登記的作物</b><p>以下為農業部登記資料中，${esc(name)} 實際登記的作物與防治對象。<b>未列出的作物不代表可以使用</b>；同一作物的稀釋倍數與安全採收期各自不同，請依該作物自己的登記值，並以產品標示為準。</p></div>`
+    +groups.map(g=>`<div class="areg">
+      <h4>${esc(g.crop)}<span class="hint" style="font-weight:400"> · ${g.rows.length} 筆</span></h4>
+      ${g.rows.map(r=>`<div class="arow">
+        <span class="ap">${esc(r.pest)}</span>
+        <span class="ad">${esc(r.a.dilution||"—")} 倍</span>
+        <span class="ak">採收期 ${r.a.phi!=null?r.a.phi+" 天":"見標示"} · ${esc(r.a.content||"")} ${esc(r.a.form||"")}</span>
+      </div>`).join("")}
+    </div>`).join("");
 }
 
 /* ── 多種作物聯合防治(預設2種,可加至 DUAL_MAX 種) ──
