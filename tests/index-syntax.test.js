@@ -167,7 +167,7 @@ assert.match(sw, /"\.\/brand-lockup\.png"/);
 assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0.2.8.0-agent-search/);
+assert.match(sw, /v0.2.9.0-agent-results/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.ok(html.indexOf('<script src="./query-aids.js"></script>') < html.indexOf("const DATA="), "query-aids.js 必須在主程式前載入");
 /* 藥劑本位查詢:索引必須延遲建立(不可在載入時就建,會拖慢首次開啟),
@@ -181,6 +181,16 @@ assert.match(html, /PQC_AIDS\.agentSuggestions\(/);
 assert.match(html, /PQC_AIDS\.agentRegistrations\(/);
 assert.match(html, /未列出的作物不代表可以使用/);
 assert.match(html, /這份清單只列有登記的作物/);
+/* 藥劑本位的採收期必須與作物本位一致:經 effectivePhi 取 phi 欄位與備註天數的
+   較長者。全庫有 330 列兩者不同,其中 235 列直接用原始 phi 會顯示過短的採收期,
+   並經由帶入計算/記施藥污染採收倒數 —— 農友可能提早採收。 */
+assert.match(html, /PQC_SAFETY\.effectivePhi\(r\.a\)/);
+assert.match(html, /安全採收期已依備註採較長的 \$\{ep\.phi\} 天/);
+/* 藥劑本位的作物篩選不得把「上位類別」的登記當成個別作物可用。
+   directCropLevels 已明訂官方逐項校驗完成前不自動併入上層群組,
+   在這裡展開等於替農友做未經查證的合法性推論。 */
+assert.match(html, /本工具不會自行把類別的登記當成個別作物可用/);
+assert.doesNotMatch(html, /該類別涵蓋此作物/);
 assert.match(html, /function renderPestRelated\(\)/);
 assert.match(html, /PQC_AIDS\.isSeedTreatment\(a\)/);
 assert.match(html, /種子\/種苗處理・非噴施/);
