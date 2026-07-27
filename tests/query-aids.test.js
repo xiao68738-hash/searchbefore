@@ -93,3 +93,73 @@ assert.equal(A.isSeedTreatment(null), false);
 console.log("✓ 害物從屬只採 strong,排查列出的 weak 誤判全部不成立");
 console.log("✓ 從屬提示限同作物,實案例(斜紋夜蛾↔夜蛾類,交集0)正確");
 console.log("✓ 種子/種苗處理辨識正確,且該類藥劑採收期皆為空值");
+
+/* ── C. 藥劑本位索引 ──
+   最重要的不變式:索引只存「參照」,不複製資料。
+   一旦有人改成複製,倍數/採收期就可能與 DATA 不一致而無人察覺,
+   下面的 identity 檢查就是為了擋住那次改動。 */
+{
+  const idx = A.buildAgentIndex(DATA);
+  assert.ok(idx.byName.size > 100, `普通名稱應有數百種,實際 ${idx.byName.size}`);
+  assert.ok(idx.byBrand.size > 1000, `商品名應有數千種,實際 ${idx.byBrand.size}`);
+
+  /* 雙向一致性:索引每一列都必須能在 DATA 正向查回「同一個物件」 */
+  let rows = 0, sameObject = 0;
+  for (const rec of idx.byName.values()) {
+    for (const r of rec.rows) {
+      rows++;
+      const list = (DATA[r.crop] || {})[r.pest] || [];
+      if (list.indexOf(r.a) >= 0) sameObject++;   // indexOf 用嚴格相等 → 證明是同一物件
+    }
+  }
+  assert.equal(sameObject, rows, "索引每一列都必須是 DATA 內的同一物件(不可複製資料)");
+  assert.ok(rows > 10000, `索引列數應為全庫規模,實際 ${rows}`);
+
+  /* 涵蓋完整:DATA 內每一筆藥劑都要進索引 */
+  let total = 0;
+  for (const c of Object.keys(DATA)) for (const p of Object.keys(DATA[c])) total += DATA[c][p].length;
+  assert.equal(rows, total, `索引應涵蓋全部 ${total} 筆藥劑列`);
+
+  /* 建議:普通名稱直接命中 */
+  const someName = idx.byName.keys().next().value;
+  const s1 = A.agentSuggestions(someName, idx, 24);
+  assert.equal(s1[0].name, someName, "完全相同的普通名稱應排第一");
+  assert.equal(s1[0].kind, "direct");
+  assert.ok(s1[0].cropCount >= 1);
+
+  /* 建議:商品名可作為入口,且歧義商品名須列出全部候選(不自動挑一個) */
+  let ambiguous = null;
+  for (const [brand, names] of idx.byBrand) if (names.size > 1) { ambiguous = [brand, names]; break; }
+  if (ambiguous) {
+    const hits = A.agentSuggestions(ambiguous[0], idx, 24).map(h => h.name);
+    for (const n of ambiguous[1]) {
+      assert.ok(hits.indexOf(n) >= 0, `歧義商品名 ${ambiguous[0]} 必須列出候選 ${n},不得自動挑一個`);
+    }
+  }
+
+  /* 空字串/不存在不得炸,也不得回傳結果 */
+  assert.deepEqual(A.agentSuggestions("", idx, 24), []);
+  assert.deepEqual(A.agentSuggestions("  ", idx, 24), []);
+  assert.deepEqual(A.agentSuggestions("這個藥名不存在xyz", idx, 24), []);
+  assert.deepEqual(A.agentRegistrations("這個藥名不存在xyz", idx), []);
+  assert.equal(A.agentSuggestions("x", null, 24).length, 0);
+
+  /* limit 必須生效(賽洛寧類的常見字會命中很多) */
+  assert.ok(A.agentSuggestions("松", idx, 3).length <= 3, "limit 必須生效");
+
+  /* 分組:只列實際登記,且分組後的總列數等於該藥劑的全部列數(不遺漏、不外推) */
+  const big = [...idx.byName.values()].sort((a, b) => b.rows.length - a.rows.length)[0];
+  const groups = A.agentRegistrations(big.name, idx);
+  const grouped = groups.reduce((n, g) => n + g.rows.length, 0);
+  assert.equal(grouped, big.rows.length, "分組不得遺漏或重複任何一列");
+  assert.equal(groups.length, big.crops.size, "分組數應等於登記作物數");
+  for (const g of groups) {
+    for (const r of g.rows) {
+      assert.equal(r.crop, g.crop, "分組內每列都必須屬於該作物");
+      assert.ok((DATA[g.crop] || {})[r.pest], "分組列出的防治對象必須真的登記於該作物");
+    }
+  }
+}
+
+console.log("✓ 藥劑本位索引:只存參照(與 DATA 同物件)、涵蓋全庫、分組不遺漏");
+console.log("✓ 藥劑建議:普通名稱優先、商品名可入口、歧義商品名列出全部候選");

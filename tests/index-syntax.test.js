@@ -167,9 +167,20 @@ assert.match(sw, /"\.\/brand-lockup\.png"/);
 assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0.2.7.0-multicrop-sprayer/);
+assert.match(sw, /v0.2.8.0-agent-search/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.ok(html.indexOf('<script src="./query-aids.js"></script>') < html.indexOf("const DATA="), "query-aids.js 必須在主程式前載入");
+/* 藥劑本位查詢:索引必須延遲建立(不可在載入時就建,會拖慢首次開啟),
+   且結果頁必須帶「未列出不代表可以使用」的界線說明 —— 少了這句,
+   農友可能把「查得到的作物」誤讀成「查不到就是不能用」以外的意思,
+   或反過來以為清單就是全部合法範圍。 */
+assert.match(html, /function ensureAgentIndex\(\)/);
+assert.match(html, /PQC_AIDS\.buildAgentIndex\(DATA\)/);
+assert.match(html, /function setQueryMode\(m\)/);
+assert.match(html, /PQC_AIDS\.agentSuggestions\(/);
+assert.match(html, /PQC_AIDS\.agentRegistrations\(/);
+assert.match(html, /未列出的作物不代表可以使用/);
+assert.match(html, /這份清單只列有登記的作物/);
 assert.match(html, /function renderPestRelated\(\)/);
 assert.match(html, /PQC_AIDS\.isSeedTreatment\(a\)/);
 assert.match(html, /種子\/種苗處理・非噴施/);
