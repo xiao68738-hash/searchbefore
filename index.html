@@ -362,14 +362,26 @@ h2.step .cnt{letter-spacing:0;color:var(--green);font-weight:900}
 .qmode button{flex:1;padding:10px 8px;border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);border-radius:11px;font-size:14.5px;font-weight:800;cursor:pointer}
 .qmode button.on{border-color:var(--green);background:var(--ok-bg);color:var(--green-deep)}
 /* 藥劑本位結果 */
-.areg{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:13px 15px;margin-bottom:10px}
-.areg h4{font-size:16px;font-weight:900;color:var(--green-deep)}
-.areg .arow{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px;font-size:13.5px;padding:6px 0;border-top:1px dashed var(--line)}
-.areg .arow .ap{flex:none;min-width:96px;font-weight:700}
-.areg .arow .ad{font-family:var(--serif);font-weight:900}
-.areg .arow .ak{color:var(--ink-soft);font-size:12.5px}
+.areg{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:8px;overflow:hidden}
+.areg-toggle{display:flex;align-items:center;gap:9px;width:100%;padding:12px 14px;border:0;background:#fff;cursor:pointer;text-align:left}
+.areg-toggle.open{background:var(--ok-bg)}
+.areg-toggle .ac{flex:1;min-width:0;font-size:16px;font-weight:900;color:var(--green-deep)}
+.areg-toggle .an{flex:none;font-size:12.5px;color:var(--ink-soft)}
+.areg-toggle .ax{flex:none;width:22px;text-align:center;font-size:17px;font-weight:900;color:var(--green)}
+.areg .arow{padding:9px 14px 11px;border-top:1px dashed var(--line)}
+.areg .arow-main{display:flex;flex-wrap:wrap;align-items:baseline;gap:7px;font-size:13.5px}
+.areg .arow-main .ap{flex:none;min-width:92px;font-weight:700}
+.areg .arow-main .ad{font-family:var(--serif);font-weight:900;font-size:15px}
+.areg .arow-main .ak{color:var(--ink-soft);font-size:12.5px}
+.areg .arow-src{font-size:12px;color:var(--ink-soft);margin-top:4px}
+.areg .arow-adj{font-size:12px;color:#6b4e00;background:#fff3cd;border-radius:8px;padding:5px 8px;margin-top:5px}
+.areg-via{background:var(--ok-bg);border-radius:9px;padding:8px 10px;margin-bottom:9px}
+.areg .arow-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.areg .arow-acts .btn{flex:0 1 auto;padding:7px 12px;font-size:13px}
 .areg-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;margin-bottom:8px}
 .areg-head b{font-size:18px;color:var(--green-deep)}
+.areg-tools{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-bottom:9px}
+.areg-tools .hint{flex:1;min-width:120px}
 
 /* 聯合防治 */
 .dual-pick{display:flex;gap:10px;margin-bottom:4px}
@@ -2979,25 +2991,112 @@ function agentSuggest(q){
     `<span class="alias">${h.cropCount} 作物</span></button>`).join("")
     :`<div class="hint" style="width:100%">找不到「${esc(q)}」。可試普通名稱(如 納乃得)或商品名;查無不代表這支藥不存在,可能只是名稱寫法不同。</div>`;
 }
-/* 結果只依作物分組列出登記內容。分組摺疊、篩選與帶入計算等操作於後續完成。 */
+/* 結果依作物分組。單一藥劑最多可登記 87 種作物、1,054 筆用法(賽洛寧),
+   故分組預設摺疊並提供作物篩選,不一次全展開。 */
+let agentGroups=[], agentOpenCrops=new Set(), agentCropFilter="";
 function pickAgent(name){
   agentPicked=name;
   document.getElementById("agentSearch").value=name;
   document.getElementById("agentHits").innerHTML="";
-  const groups=PQC_AIDS.agentRegistrations(name,ensureAgentIndex());
+  agentGroups=PQC_AIDS.agentRegistrations(name,ensureAgentIndex());
+  agentOpenCrops=new Set();
+  agentCropFilter="";
+  renderAgentRegs();
+}
+function setAgentCropFilter(v){agentCropFilter=String(v||"").trim();renderAgentRegs(true)}
+function toggleAgentCrop(ci){
+  const g=agentGroups[ci];if(!g)return;
+  if(agentOpenCrops.has(g.crop))agentOpenCrops.delete(g.crop);else agentOpenCrops.add(g.crop);
+  renderAgentRegs(true);
+}
+function expandAllAgentCrops(open){
+  agentOpenCrops=open?new Set(agentGroups.map(g=>g.crop)):new Set();
+  renderAgentRegs(true);
+}
+function renderAgentRegs(keepFilterFocus){
   const el=document.getElementById("agentRegResults");
-  if(!groups.length){el.innerHTML=`<div class="hint">查無「${esc(name)}」的登記資料。</div>`;return}
-  const rowCount=groups.reduce((n,g)=>n+g.rows.length,0);
-  el.innerHTML=`<div class="areg-head"><b>${esc(name)}</b><span class="hint">登記於 ${groups.length} 種作物 · 共 ${rowCount} 筆用法</span></div>`
+  const name=agentPicked;
+  if(!agentGroups.length){el.innerHTML=`<div class="hint">查無「${esc(name||"")}」的登記資料。</div>`;return}
+  const rowCount=agentGroups.reduce((n,g)=>n+g.rows.length,0);
+  /* 篩選一律只做字面比對,不把「上位類別」的登記算成該作物可用。
+     這與 PQC_SAFETY.directCropLevels 的既有決定一致(官方逐項校驗完成前
+     不自動併入上層群組);擅自展開等於替農友做了未經查證的合法性推論。
+     改以文案提醒使用者:登記可能記在類別名下,可另外查類別名。 */
+  const shown=agentCropFilter?agentGroups.filter(g=>g.crop.includes(agentCropFilter)):agentGroups;
+  el.innerHTML=`<div class="areg-head"><b>${esc(name)}</b><span class="hint">登記於 ${agentGroups.length} 種作物 · 共 ${rowCount} 筆用法</span></div>`
     +`<div class="mrl-note" role="note"><b>這份清單只列有登記的作物</b><p>以下為農業部登記資料中，${esc(name)} 實際登記的作物與防治對象。<b>未列出的作物不代表可以使用</b>；同一作物的稀釋倍數與安全採收期各自不同，請依該作物自己的登記值，並以產品標示為準。</p></div>`
-    +groups.map(g=>`<div class="areg">
-      <h4>${esc(g.crop)}<span class="hint" style="font-weight:400"> · ${g.rows.length} 筆</span></h4>
-      ${g.rows.map(r=>`<div class="arow">
-        <span class="ap">${esc(r.pest)}</span>
-        <span class="ad">${esc(r.a.dilution||"—")} 倍</span>
-        <span class="ak">採收期 ${r.a.phi!=null?r.a.phi+" 天":"見標示"} · ${esc(r.a.content||"")} ${esc(r.a.form||"")}</span>
-      </div>`).join("")}
-    </div>`).join("");
+    +`<div class="search" style="margin-bottom:8px"><input id="agentCropFilter" placeholder="篩選作物名,例:番茄" autocomplete="off" value="${esc(agentCropFilter)}" oninput="setAgentCropFilter(this.value)"></div>`
+    +`<div class="areg-tools"><span class="hint">顯示 ${shown.length} / ${agentGroups.length} 種作物</span>
+       <button class="chip mut" onclick="expandAllAgentCrops(true)">全部展開</button>
+       <button class="chip mut" onclick="expandAllAgentCrops(false)">全部收合</button></div>`
+    +(shown.length?shown.map(g=>{
+      const ci=agentGroups.indexOf(g);
+      const open=agentOpenCrops.has(g.crop);
+      return `<div class="areg">
+        <button class="areg-toggle${open?" open":""}" aria-expanded="${open}" onclick="toggleAgentCrop(${ci})">
+          <span class="ac">${esc(g.crop)}</span><span class="an">${g.rows.length} 筆用法</span><span class="ax">${open?"−":"＋"}</span>
+        </button>
+        ${open?g.rows.map((r,ri)=>{
+          const ep=PQC_SAFETY.effectivePhi(r.a);
+          return `<div class="arow">
+          <div class="arow-main">
+            <span class="ap">${esc(r.pest)}</span>
+            <span class="ad">${esc(r.a.dilution||"—")} 倍</span>
+            <span class="ak">採收期 ${ep.phi!=null?ep.phi+" 天"+(ep.adjusted?"(依備註最長)":""):"見標示"} · ${esc(r.a.content||"")} ${esc(r.a.form||"")}${r.a.moa?` · <span class="ftag moa-tag">${esc(r.a.moa)}</span>`:""}</span>
+          </div>
+          ${ep.adjusted?`<div class="arow-adj">安全採收期已依備註採較長的 ${ep.phi} 天；仍請核對產品標示與栽培方式。</div>`:""}
+          <div class="arow-src">${(r.a.bl||[]).length?`<button class="brand-toggle" onclick="agentRowBrands(${ci},${ri})">登記商品 ${(r.a.bl||[]).length} 個</button>`:""}</div>
+          <div class="arow-acts">
+            <button class="btn btn-main" onclick="agentRowToCalc(${ci},${ri})">帶入計算</button>
+            <button class="btn btn-ghost" onclick="agentRowRecord(${ci},${ri})">記施藥</button>
+            <button class="btn btn-ghost" onclick="agentRowRecipe(${ci},${ri})">存配方</button>
+          </div>
+        </div>`}).join(""):""}
+      </div>`}).join("")
+      :`<div class="hint areg-via">上面的清單中沒有名稱含「${esc(agentCropFilter)}」的作物。<br>
+         登記有時是記在<b>類別名稱</b>底下(例如「茄科果菜類」「柑桔類」),而不是單一作物名。可清除篩選、直接看完整清單,或改用類別名稱再找一次。<br>
+         本工具不會自行把類別的登記當成個別作物可用 —— 是否適用仍請以產品標示為準。</div>`);
+  if(keepFilterFocus&&agentCropFilter){
+    const f=document.getElementById("agentCropFilter");
+    if(f){f.focus();f.setSelectionRange(f.value.length,f.value.length)}
+  }
+}
+/* 以下操作一律帶入「該作物自己的」登記倍數與採收期,不跨作物套用。
+   採收期必須經 PQC_SAFETY.effectivePhi 取「phi 欄位」與「備註天數」的較長者,
+   與作物本位查詢(buildUnion)一致 —— 全庫有 330 列兩者不同,其中 235 列
+   直接用原始 phi 會顯示過短的採收期,並經由帶入計算/記施藥污染採收倒數。 */
+function agentRow(ci,ri){
+  const g=agentGroups[ci];const r=g&&g.rows[ri];
+  if(!r)return null;
+  const ep=PQC_SAFETY.effectivePhi(r.a);
+  return {crop:g.crop,pest:r.pest,a:{...r.a,phi:ep.phi,rawPhi:ep.basePhi,notePhi:ep.notePhi,phiAdjusted:ep.adjusted}};
+}
+function agentRowBrands(ci,ri){
+  const x=agentRow(ci,ri);if(!x)return;
+  openBrands(x.a.name,`${x.a.content||""} ${x.a.form||""} · 登記於 ${x.crop} · 共 ${(x.a.bl||[]).length} 個商品`,x.a.bl||[]);
+}
+function agentRowToCalc(ci,ri){
+  const x=agentRow(ci,ri);if(!x){toast("找不到藥劑資料");return}
+  const meta=agentCalcMeta(x.a);
+  calcAgent={crop:x.crop,pest:x.pest,name:x.a.name,phi:x.a.phi,moa:x.a.moa||"",
+    unit:meta.unit,dosePerHa:meta.dosePerHa,doseRaw:meta.doseRaw};
+  const d=parseDil(x.a.dilution);
+  document.getElementById("inDil").value=d||"";
+  dilFromAgent=!!d;
+  updateCalcCtx();calc();
+  go("calc",document.querySelectorAll("nav button")[1]);
+  toast(`已帶入「${x.a.name}」· ${x.crop} 登記倍數`);
+}
+function agentRowRecord(ci,ri){
+  const x=agentRow(ci,ri);if(!x){toast("找不到藥劑資料");return}
+  openRecordModal({crop:x.crop,agent:x.a.name,phi:x.a.phi,moa:x.a.moa||"",pest:x.pest,
+    dil:parseDil(x.a.dilution)||"",water:20});
+}
+function agentRowRecipe(ci,ri){
+  const x=agentRow(ci,ri);if(!x){toast("找不到藥劑資料");return}
+  recipes.unshift(makeRecipeFromAgent(x.a,x.crop,x.pest));
+  store.set("recipes",recipes);renderRecipes();
+  toast(`已存入配方:${x.a.name}(${x.crop})`);
 }
 
 /* ── 多種作物聯合防治(預設2種,可加至 DUAL_MAX 種) ──
