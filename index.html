@@ -85,7 +85,9 @@ html[data-theme="dark"] .ann,html[data-theme="dark"] .record-hub-button,html[dat
 html[data-theme="dark"] .plot-crop-results,html[data-theme="dark"] .plot-crop-option,html[data-theme="dark"] .plot-crop-custom,
 html[data-theme="dark"] .btn-ghost,html[data-theme="dark"] .plot-card,html[data-theme="dark"] .plot-record,
 html[data-theme="dark"] .chain-item,html[data-theme="dark"] .farm-item,html[data-theme="dark"] .pest-rel,
-html[data-theme="dark"] details.form-excluded,html[data-theme="dark"] .farm-grid .field textarea{background:var(--surface)}
+html[data-theme="dark"] details.form-excluded,html[data-theme="dark"] .farm-grid .field textarea,
+html[data-theme="dark"] .areg,html[data-theme="dark"] .areg-toggle,
+html[data-theme="dark"] .qmode button{background:var(--surface)}
 /* 分段控制的選中態:比軌道(--mut-bg)略亮才凸得出來 */
 html[data-theme="dark"] .hseg button.on,html[data-theme="dark"] .calc-mode button.on{background:#313A29}
 /* 深綠底元件:green-deep 翻亮後,這幾個仍要維持深底白字 */
@@ -95,7 +97,18 @@ html[data-theme="dark"] .home-start,html[data-theme="dark"] .home-beta,html[data
 /* 綠/資訊淡底面板 */
 html[data-theme="dark"] .home-boundary{background:var(--ok-bg);border-color:#2F4A38}
 html[data-theme="dark"] .mat,html[data-theme="dark"] .mat-teaser{background:#1B2A1E;border-color:#2F4A38}
-html[data-theme="dark"] .mrl-note{background:var(--surface-2)}
+/* .mrl-note 深色若只換背景,文字會留在亮色模式的深綠而幾乎讀不到;
+   這塊是「未列出不代表可以使用」等安全界線說明,可讀性不能打折。 */
+html[data-theme="dark"] .mrl-note{background:var(--surface-2);border-left-color:#4A6B52}
+html[data-theme="dark"] .mrl-note b{color:var(--green-deep)}
+/* --green(#3E8E56)配深色底只有 3.62:1,未達 4.5;改用較亮的 --ok */
+html[data-theme="dark"] .brand-toggle{color:var(--ok)}
+html[data-theme="dark"] .mrl-note p b{color:var(--ink)}
+/* 更新提示的主按鈕是白底;深色模式下 --green-deep 變成淺薄荷綠,
+   會變成白底淺字而讀不到,故固定用深色字。 */
+html[data-theme="dark"] #updateBar button{color:#16281A}
+/* 黃底警示在深色下改用深色系,避免整塊亮黃刺眼 */
+html[data-theme="dark"] .dose-warn,html[data-theme="dark"] .areg .arow-adj{background:var(--orange-bg);color:var(--orange)}
 html[data-theme="dark"] .mat .code,html[data-theme="dark"] .mat .use{background:#243528}
 html[data-theme="dark"] .plot-chip,html[data-theme="dark"] .timeline-kind,html[data-theme="dark"] .plot-card.on{background:var(--ok-bg)}
 html[data-theme="dark"] .plot-tag,html[data-theme="dark"] .record-hub-button:nth-child(2) .record-hub-index{background:var(--surface-2);color:var(--ink-soft)}
@@ -218,6 +231,9 @@ h2.step .cnt{letter-spacing:0;color:var(--green);font-weight:900}
 .mrl-note{background:#F1F3EE;border-left:3px solid #9AAE96;border-radius:8px;padding:11px 13px;margin-top:12px}
 .mrl-note b{display:block;font-size:13.5px;color:#3E5540;margin-bottom:3px}
 .mrl-note p{font-size:13px;line-height:1.65;color:#5A6357}
+/* 段落內的 <b> 是行內強調;若沿用上面標題 b 的 display:block,
+   句子會被硬切成兩行、標點還會落在行首。 */
+.mrl-note p b{display:inline;font-size:inherit;margin-bottom:0;color:#3E5540}
 .rot-warn{display:block;font-size:13px;font-weight:700;color:var(--orange);background:var(--orange-bg);border-radius:8px;padding:7px 11px;margin-top:9px}
 .home-guide{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:15px 16px 13px;margin-top:14px}
 .home-guide h3{font-size:14px;font-weight:700;color:var(--ink-soft);letter-spacing:.1em;margin-bottom:11px}
@@ -375,6 +391,7 @@ h2.step .cnt{letter-spacing:0;color:var(--green);font-weight:900}
 .areg .arow-main .ak{color:var(--ink-soft);font-size:12.5px}
 .areg .arow-src{font-size:12px;color:var(--ink-soft);margin-top:4px}
 .areg .arow-adj{font-size:12px;color:#6b4e00;background:#fff3cd;border-radius:8px;padding:5px 8px;margin-top:5px}
+.dose-warn{background:#fff3cd;color:#6b4e00}
 .areg-via{background:var(--ok-bg);border-radius:9px;padding:8px 10px;margin-bottom:9px}
 .areg .arow-acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .areg .arow-acts .btn{flex:0 1 auto;padding:7px 12px;font-size:13px}
@@ -1957,7 +1974,7 @@ function calc(){
   // 三格數字：每桶用量固定,桶數與總量依模式填入
   PER.innerHTML=`${fmt(per)}<small>${unit}</small>`;
   const fromTag=dilFromAgent&&calcAgent?`<span class="dil-from">已帶入 ${esc(calcAgent.name)} 登記倍數</span>`:"";
-  const lowDoseTag=per<0.1?`<span class="dil-from" style="background:#fff3cd;color:#6b4e00">劑量低於 0.1 ${unit},一般量具不易準確;建議增加配製水量或依標示確認</span>`:"";
+  const lowDoseTag=per<0.1?`<span class="dil-from dose-warn">劑量低於 0.1 ${unit},一般量具不易準確;建議增加配製水量或依標示確認</span>`:"";
   if(per>=1&&PQC_SAFETY.shouldShowVolumeApprox(unit)){
     A.style.display="inline-block";
     A.textContent=`每桶約 ${fmt(per/5)} 瓶蓋(5ml)｜${fmt(per/15)} 湯匙(15ml)`;
