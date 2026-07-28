@@ -28,7 +28,7 @@ assert.ok(html.indexOf('<script src="./account.js"></script>') < html.indexOf("c
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="0\.3\.0\.0"/);
+assert.match(html, /const APP_VERSION="0\.3\.1\.0"/);
 assert.match(html, /<title>噴前查 SearchBefore/);
 assert.match(html, /href="\.\/about\.html"/);
 assert.match(html, /id="entryTitle">噴前查 SearchBefore<\/h1>/);
@@ -167,7 +167,7 @@ assert.match(sw, /"\.\/brand-lockup\.png"/);
 assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0\.3\.0\.0-agent-search-dark/);
+assert.match(sw, /v0\.3\.1\.0-recipe-brand/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.ok(html.indexOf('<script src="./query-aids.js"></script>') < html.indexOf("const DATA="), "query-aids.js 必須在主程式前載入");
 /* 藥劑本位查詢:索引必須延遲建立(不可在載入時就建,會拖慢首次開啟),
@@ -197,6 +197,19 @@ assert.match(html, /html\[data-theme="dark"\] \.areg,html\[data-theme="dark"\] \
 assert.match(html, /html\[data-theme="dark"\] \.mrl-note b\{color:var\(--green-deep\)\}/);
 assert.match(html, /html\[data-theme="dark"\] #updateBar button\{color:#16281A\}/);
 assert.match(html, /html\[data-theme="dark"\] \.brand-toggle\{color:var\(--ok\)\}/);
+/* 配方的商品名稱:農友多記商品名而非有效成分名。
+   brands 必須來自「同一筆登記內容」的 bl(同名稱|劑型|含量|用法),
+   這些商品的稀釋倍數與採收期相同,標示商品才不會改變任何用藥數字;
+   跨列合併商品會把不同含量/用法的產品混為一談。 */
+assert.match(html, /brands:\(a\.bl\|\|\[\]\)\.slice\(\),brand:""/);
+assert.match(html, /esc\(r\.brand\|\|r\.agent\)/);
+assert.match(html, /有效成分：\$\{esc\(r\.agent\)\}/);
+assert.match(html, /function openRecipeBrandPicker\(i\)/);
+assert.match(html, /稀釋倍數與安全採收期相同/);
+/* 聯合防治存配方時,商品清單必須是「所選全部作物共同登記」的 h.shared,
+   不可用單一作物的 bl —— 那些商品未必在其他作物也有登記。 */
+assert.match(html, /phi:conservativePhi,bl:h\.shared\|\|\[\]/);
+assert.match(html, /bl:\(h\.shared\|\|\[\]\)\.slice\(\)/);
 /* .mrl-note 標題 b 是 display:block;段落內的行內 b 必須還原為 inline,
    否則句子被硬切成兩行、標點落在行首。 */
 assert.match(html, /\.mrl-note p b\{display:inline/);
