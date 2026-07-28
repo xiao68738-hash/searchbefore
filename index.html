@@ -503,7 +503,11 @@ h2.step .cnt{letter-spacing:0;color:var(--green);font-weight:900}
 .recipe{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:13px 15px;margin-bottom:10px}
 .recipe .rt{display:flex;justify-content:space-between;align-items:center}
 .recipe h3{font-size:16.5px;font-weight:900;color:var(--green-deep)}
+.recipe .rt-sub{font-size:12.5px;color:var(--ink-soft);margin-top:1px}
 .recipe .meta{font-size:13px;color:var(--ink-soft);margin-top:2px}
+.brand-pick{display:block;width:100%;text-align:left;font-family:inherit;font-size:14px;font-weight:700;
+  border:1.5px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:10px 12px;margin-bottom:7px;cursor:pointer}
+.brand-pick.on{border-color:var(--green);background:var(--ok-bg);color:var(--green-deep)}
 .recipe .dose{font-size:14.5px;font-weight:700;margin-top:6px;line-height:1.5}
 .recipe .dose b{font-size:18px;color:var(--green)}
 .recipe .dose .dose-sub{display:block;font-size:12.5px;font-weight:400;color:var(--ink-soft);margin-top:1px}
@@ -1211,7 +1215,7 @@ const DATA={"木瓜":{"白粉病":[{"name":"快得保淨","form":"WP","content":
 /* ═══ 維護區:改這裡就好 ═══════════════════════════════
    APP_VERSION:每次更新資料或功能時往上加
    ANNOUNCE:公告(新的放最上面,date 改了紅點會自動亮) */
-const APP_VERSION="0.3.0.0";
+const APP_VERSION="0.3.1.0";
 const DATA_VERSION="2026-07-21"; // 農藥資料抓取年月
 const ANNOUNCE=[
   /* 加 showHome:true 的公告會出現在首頁;之後改成讀外部 JSON 就能不改程式碼動態更新 */
@@ -1908,7 +1912,7 @@ function toCalc(k){
   const dd=parseDose(a.dose);
   calcAgent={crop:selCrop,pest:selPest,name:a.name,phi:a.phi,moa:a.moa||"",
     unit:fk==="液"?"ml":(fk==="粉"?"g":(dd&&dd.unit?dd.unit:null)),
-    dosePerHa:dd?dd.perHa:null,doseRaw:a.dose||""};
+    dosePerHa:dd?dd.perHa:null,doseRaw:a.dose||"",bl:(a.bl||[]).slice()};
   const d=parseDil(a.dilution);
   document.getElementById("inDil").value=d||"";
   dilFromAgent=!!d;
@@ -2097,8 +2101,12 @@ function agentCalcMeta(a){
 function makeRecipeFromAgent(a,crop,pest,dilOverride,note){
   const meta=agentCalcMeta(a);
   const dil=dilOverride!==undefined&&dilOverride!==null&&dilOverride!==""?Number(dilOverride):(parseDil(a.dilution)||0);
+  /* brands 存的是「這一筆登記內容」底下的商品(同名稱|劑型|含量|用法),
+     它們的稀釋倍數與採收期相同,所以標示商品名不會改變任何用藥數字。
+     不可跨列合併商品——同成分不同含量/劑型的商品用法可能不同。 */
   return {crop,pest,agent:a.name,dil,phi:a.phi,water:20,unit:meta.unit,moa:a.moa||"",
-    dosePerHa:meta.dosePerHa,doseRaw:meta.doseRaw,note:note||""};
+    dosePerHa:meta.dosePerHa,doseRaw:meta.doseRaw,note:note||"",
+    brands:(a.bl||[]).slice(),brand:""};
 }
 function quickSaveAgent(k){
   const a=currentAgentList()[k];
@@ -2114,7 +2122,8 @@ function saveRecipe(){
   recipes.unshift({crop:calcAgent?calcAgent.crop:"自訂",pest:calcAgent?calcAgent.pest:"",
     agent:calcAgent?calcAgent.name:`自訂 ${dil} 倍`,dil,phi:calcAgent?calcAgent.phi:null,water:w,
     unit:calcAgent&&calcAgent.unit?calcAgent.unit:"依藥劑劑型",moa:calcAgent?calcAgent.moa||"":"",
-    dosePerHa:calcAgent?calcAgent.dosePerHa:null,doseRaw:calcAgent?calcAgent.doseRaw||"":""});
+    dosePerHa:calcAgent?calcAgent.dosePerHa:null,doseRaw:calcAgent?calcAgent.doseRaw||"":"",
+    brands:(calcAgent&&calcAgent.bl?calcAgent.bl:[]).slice(),brand:""});
   store.set("recipes",recipes);renderRecipes();toast("已存成常用配方");
 }
 function useRecipe(i){
@@ -2129,17 +2138,43 @@ function delRecipe(i){recipes.splice(i,1);store.set("recipes",recipes);renderRec
 let recipeCrop=store.get("recipeCrop")||"";
 function recipeCropName(r){return (r&&r.crop)?String(r.crop):"未分類"}
 function setRecipeCrop(v){recipeCrop=v;store.set("recipeCrop",v);renderRecipes()}
+/* 農友多半記得商品名而非有效成分名。有指定商品時以商品名為主標題,
+   有效成分降為小字副標(仍要看得到,核對產品標示時用得上)。 */
 function recipeCard(r,i){
   const per=r.dil&&r.water?r.water*1000/r.dil:null;
   const unit=r.unit||"依藥劑劑型";
   const meta=[r.pest?esc(r.pest):"",r.phi!=null?`採收期 ${r.phi} 天`:""].filter(Boolean).join(" · ");
+  const hasBrands=!!(r.brands&&r.brands.length);
   return `<div class="recipe">
-    <div class="rt"><h3>${esc(r.agent)}</h3><button class="x" onclick="delRecipe(${i})">✕</button></div>
+    <div class="rt"><h3>${esc(r.brand||r.agent)}</h3><button class="x" onclick="delRecipe(${i})">✕</button></div>
+    ${r.brand?`<div class="rt-sub">有效成分：${esc(r.agent)}</div>`:""}
     ${meta?`<div class="meta">${meta}</div>`:""}
     ${per?`<div class="dose">每桶水 ${r.water}L 加入 <b>${fmt(per)}</b> ${unit}<span class="dose-sub">（稀釋 ${Number(r.dil).toLocaleString()} 倍；桶數依現場自行決定）</span></div>`:""}
     ${r.note?`<div class="hint" style="margin:6px 0 0">${esc(r.note)}</div>`:""}
-    <div class="acts"><button class="btn btn-main" onclick="useRecipe(${i})">帶入計算</button></div>
+    <div class="acts"><button class="btn btn-main" onclick="useRecipe(${i})">帶入計算</button>
+      ${hasBrands?`<button class="btn btn-ghost" onclick="openRecipeBrandPicker(${i})">${r.brand?"更換商品":"指定商品"}</button>`:""}</div>
   </div>`;
+}
+/* 指定商品為「選填」,不在存配方時強迫多一個步驟。
+   清單只來自該筆登記內容底下的商品,稀釋倍數與採收期完全相同,
+   所以標示商品不會改變任何用藥數字。 */
+function openRecipeBrandPicker(i){
+  const r=recipes[i];
+  const list=(r&&r.brands)||[];
+  if(!list.length){toast("這筆配方沒有可選的商品清單,請重新從查詢結果存一次");return}
+  document.getElementById("brandTitle").textContent=r.agent;
+  document.getElementById("brandSub").textContent=
+    `選擇你實際使用的商品(選填)·共 ${list.length} 個。以下為同一登記內容下的商品,稀釋倍數與安全採收期相同;實際用法仍以你手上產品的標示為準。`;
+  document.getElementById("brandItems").innerHTML=
+    `<button class="brand-pick${r.brand?"":" on"}" onclick="setRecipeBrand(${i},'')">不指定(顯示有效成分名稱)</button>`
+    +list.map(b=>`<button class="brand-pick${r.brand===b?" on":""}" onclick="setRecipeBrand(${i},'${esc(b)}')">${esc(b)}</button>`).join("");
+  document.getElementById("brandModal").classList.add("open");
+}
+function setRecipeBrand(i,b){
+  const r=recipes[i];if(!r)return;
+  r.brand=b||"";
+  store.set("recipes",recipes);renderRecipes();closeBrands();
+  toast(b?`已標示商品:${b}`:"已改回顯示有效成分名稱");
 }
 function renderRecipes(){
   const el=document.getElementById("recipeList");
@@ -3096,7 +3131,7 @@ function agentRowToCalc(ci,ri){
   const x=agentRow(ci,ri);if(!x){toast("找不到藥劑資料");return}
   const meta=agentCalcMeta(x.a);
   calcAgent={crop:x.crop,pest:x.pest,name:x.a.name,phi:x.a.phi,moa:x.a.moa||"",
-    unit:meta.unit,dosePerHa:meta.dosePerHa,doseRaw:meta.doseRaw};
+    unit:meta.unit,dosePerHa:meta.dosePerHa,doseRaw:meta.doseRaw,bl:(x.a.bl||[]).slice()};
   const d=parseDil(x.a.dilution);
   document.getElementById("inDil").value=d||"";
   dilFromAgent=!!d;
@@ -3221,8 +3256,10 @@ function dualToCalc(i,n){
   const h=dualHits[i],a=h.rows[n],crop=dual.sel[n];
   const meta=agentCalcMeta(a);
   const safeDil=dualSafeDil(h);
+  /* 聯合防治只能用「所選全部作物共同登記」的商品(h.shared),
+     不可用單一作物的商品清單 —— 那些商品未必在其他作物也有登記。 */
   calcAgent={crop,pest:dual.pest,name:a.name,phi:a.phi,moa:a.moa||"",
-    unit:meta.unit,dosePerHa:meta.dosePerHa,doseRaw:meta.doseRaw};
+    unit:meta.unit,dosePerHa:meta.dosePerHa,doseRaw:meta.doseRaw,bl:(h.shared||[]).slice()};
   document.getElementById("inDil").value=safeDil;
   dilFromAgent=!!safeDil;
   updateCalcCtx();calc();
@@ -3237,7 +3274,8 @@ function dualSaveRecipe(i){
   const conservativePhi=phis.length?Math.max.apply(null,phis):null;
   const per=dual.sel.map((c,n)=>`${c} ${h.rows[n].dilution||"見標示"} PHI${h.rows[n].phi??"見標示"}`).join(", ");
   const note=`${dual.sel.length} 作物共同防治;${per};實際採收期仍請分作物確認。`;
-  const r=makeRecipeFromAgent({...h.rows[0],phi:conservativePhi},dual.sel.join("+"),dual.pest,safeDil,note);
+  /* bl 換成 h.shared:只有全部所選作物都登記的商品才可標示 */
+  const r=makeRecipeFromAgent({...h.rows[0],phi:conservativePhi,bl:h.shared||[]},dual.sel.join("+"),dual.pest,safeDil,note);
   recipes.unshift(r);store.set("recipes",recipes);renderRecipes();
   toast("已存入共同防治配方");
 }
