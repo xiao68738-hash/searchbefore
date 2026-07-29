@@ -28,7 +28,7 @@ assert.ok(html.indexOf('<script src="./account.js"></script>') < html.indexOf("c
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="0\.3\.1\.0"/);
+assert.match(html, /const APP_VERSION="0\.3\.2\.0"/);
 assert.match(html, /<title>噴前查 SearchBefore/);
 assert.match(html, /href="\.\/about\.html"/);
 assert.match(html, /id="entryTitle">噴前查 SearchBefore<\/h1>/);
@@ -54,7 +54,8 @@ assert.match(html, /id="backupNote"/);
    不得檢出是「查無此筆」的預設結果 —— 因此比對失敗與真正未訂容許量
    在系統中無法區分。一旦把查無結果講成「風險」,合法登記藥劑會被誤報,
    農友被誤報一次就會忽略所有警告,包括真正該注意的。 */
-assert.match(html, /殘留容許量尚未納入/);
+assert.match(html, /MRL 對照目前尚未開放/);
+assert.match(html, /均只能視為「尚無法確認」/);
 
 /* ── 作物別名的目標必須真的存在於 DATA ──
    查詢時 add() 會靜默跳過不存在的目標,所以指向錯誤的別名不會報錯,
@@ -89,7 +90,7 @@ assert.match(html, /殘留容許量尚未納入/);
   assert.equal(ptBad.length, 0,
     `採收期區間的 phi 必須等於上限(倒數採保守值):${ptBad.slice(0, 3).join("；")}`);
 }
-assert.match(html, /未涵蓋衛福部訂定的農產品殘留容許量標準/);
+assert.match(html, /本版尚未提供衛福部農產品殘留容許量（MRL）判定/);
 assert.doesNotMatch(html, /殘留超標風險|有超標風險|不得檢出風險|禁用藥劑警告/);
 assert.match(html, /function renderBackupNote\(\)/);
 assert.match(html, /常用配方與偏好設定仍只存在這台裝置/);
@@ -167,7 +168,7 @@ assert.match(sw, /"\.\/brand-lockup\.png"/);
 assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0\.3\.1\.0-recipe-brand/);
+assert.match(sw, /v0\.3\.2\.0-mrl-neutral-copy/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.ok(html.indexOf('<script src="./query-aids.js"></script>') < html.indexOf("const DATA="), "query-aids.js 必須在主程式前載入");
 /* 藥劑本位查詢:索引必須延遲建立(不可在載入時就建,會拖慢首次開啟),
