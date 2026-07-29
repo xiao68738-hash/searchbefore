@@ -1,7 +1,7 @@
 # MRL 對照實施手冊
 
-更新日期：2026-07-19
-狀態：**階段 0 資料稽核中，尚未接入 App**
+更新日期：2026-07-29
+狀態：**95筆「登記但不得檢出」候選已建立後端複核紀錄；疑義與待簽核仍隔離，尚未接入 App**
 
 前置文件：`docs/殘留容許量與登記用藥的落差.md`、`docs/作物收穫型態消歧.md`
 
@@ -85,6 +85,14 @@ MRL 另有官方作物分類及 `其他蔬果類`、`其他穀類` 等通用列�
 
 目前這些資料仍由 `.firebaseignore` 排除，不會進入正式網站。
 
+第1–95筆候選的複核現況與人工備註稽核，見：
+
+- `mrl-data/人工複核稽核報告_第1-95筆.md`
+- `mrl-data/登記但不得檢出-複核工作表_第1-95筆.md`
+- `mrl-data/複核-已確認登記但不得檢出名單.csv`
+
+最後一份是目前最小的後端白名單，只納入「人工已確認＋檢核完成＋判定確認」；它仍未接入 App。
+
 ---
 
 ## 五、使用方式
@@ -93,6 +101,9 @@ MRL 另有官方作物分類及 `其他蔬果類`、`其他穀類` 等通用列�
 node mrl-data/fetch-mrl.mjs
 node mrl-data/fetch-reference-data.mjs
 node mrl-data/build-review-list.mjs
+node mrl-data/build-review-lists.mjs
+node mrl-data/build-consolidated-review.mjs
+node mrl-data/build-review-workbook.mjs
 ```
 
 輸出：
@@ -104,6 +115,9 @@ node mrl-data/build-review-list.mjs
 - `待人工確認.md`
 - `待人工確認.csv`
 - `待人工確認.json`
+- `複核-已確認登記但不得檢出名單.csv`（後端白名單，未接入 App）
+- `登記但不得檢出-複核工作表_第1-95筆.md`
+- `登記但不得檢出-複核工作簿.md`
 
 ---
 
