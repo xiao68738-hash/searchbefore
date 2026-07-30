@@ -1218,10 +1218,11 @@ const DATA={"木瓜":{"白粉病":[{"name":"快得保淨","form":"WP","content":
 /* ═══ 維護區:改這裡就好 ═══════════════════════════════
    APP_VERSION:每次更新資料或功能時往上加
    ANNOUNCE:公告(新的放最上面,date 改了紅點會自動亮) */
-const APP_VERSION="0.3.2.0";
+const APP_VERSION="0.3.3.0";
 const DATA_VERSION="2026-07-21"; // 農藥資料抓取年月
 const ANNOUNCE=[
   /* 加 showHome:true 的公告會出現在首頁;之後改成讀外部 JSON 就能不改程式碼動態更新 */
+ {date:"2026-07-30",version:"0.3.3.0",title:"網頁版自願支持管道啟用",body:"噴前查網頁版現已串接綠界科技收款服務，提供新台幣 50、100、150 元與自訂金額的自願支持選項。付款由綠界處理；是否支持不影響任何功能或服務。"},
  {date:"2026-07-16",title:"公開測試開放",body:"公開測試期間功能全部開放，不登入也能使用。歡迎完成一次真實工作流程後提供回饋。"},
  {date:"2026-07-15",title:"田區作業鏈串接",body:"田區詳情現在會合併顯示用藥與五類農務；新增採收紀錄時會連動安全採收日，也可匯出完整作業紀錄，方便自行保存與查閱。",showHome:true},
  {date:"2026-07-14",title:"安全計算更新",body:"粉劑不再換算容量；採收期會採用備註中的較長天數。同一田區所有施藥紀錄會一起計算，缺少採收期時不顯示可採日期。"},
@@ -2067,6 +2068,7 @@ function guestStart(){
   document.getElementById("onboard").classList.remove("open");
   document.body.classList.remove("entry-open");
   openHomeOnLaunch();
+  maybeOpenLatestAnnouncement();
 }
 function completeEntryWithGoogle(){
   const gate=document.getElementById("onboard");
@@ -2080,16 +2082,27 @@ function openEntryGate(){
 openEntryGate();
 
 /* ── 公告 ── */
+function latestAnnouncementKey(){
+  const latest=ANNOUNCE[0];
+  return latest?APP_VERSION+"|"+latest.date+"|"+latest.title:"";
+}
 function openAnn(){
   document.getElementById("annList").innerHTML=ANNOUNCE.map(a=>
-    `<div class="ann"><div class="d">${a.date} · v${APP_VERSION}</div><b>${esc(a.title)}</b><p>${esc(a.body)}</p></div>`).join("")
+    `<div class="ann"><div class="d">${a.date}${a.version?" · v"+esc(a.version):""}</div><b>${esc(a.title)}</b><p>${esc(a.body)}</p></div>`).join("")
     ||`<div class="hint">目前沒有公告。</div>`;
   document.getElementById("annModal").classList.add("open");
-  if(ANNOUNCE[0])store.set("annSeen",ANNOUNCE[0].date+"|"+ANNOUNCE[0].title);
+  const key=latestAnnouncementKey();
+  if(key)store.set("annSeen",key);
   document.getElementById("annDot").classList.remove("show");
 }
 function closeAnn(){document.getElementById("annModal").classList.remove("open")}
-if(ANNOUNCE[0]&&store.get("annSeen")!==ANNOUNCE[0].date+"|"+ANNOUNCE[0].title)document.getElementById("annDot").classList.add("show");
+function maybeOpenLatestAnnouncement(){
+  const key=latestAnnouncementKey();
+  if(!key||store.get("annSeen")===key)return;
+  setTimeout(openAnn,220);
+}
+const latestAnnKey=latestAnnouncementKey();
+if(latestAnnKey&&store.get("annSeen")!==latestAnnKey)document.getElementById("annDot").classList.add("show");
 
 /* ── 配方 ── */
 function agentCalcMeta(a){
