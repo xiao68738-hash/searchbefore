@@ -18,7 +18,15 @@ assert.ok(sandbox.window.PQC_PUBLIC_CONFIG.firebase.appId);
 /* 回饋信箱必須有值:隱私政策承諾「可來信刪除雲端備份」,
    沒有信箱這條承諾就是空的,且 App 內的回報功能也會失效。 */
 assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.feedbackEmail, "searchbefore82@gmail.com");
-assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.supportUrl, "");
+assert.deepEqual(
+  JSON.parse(JSON.stringify(sandbox.window.PQC_PUBLIC_CONFIG.supportUrls)),
+  {
+    amount50: "https://p.ecpay.com.tw/C208963",
+    amount100: "https://p.ecpay.com.tw/0503198",
+    amount150: "https://p.ecpay.com.tw/AE7EDCF",
+    custom: "https://p.ecpay.com.tw/D7844AC"
+  }
+);
 assert.match(account, /firebasejs\/"\+FIREBASE_VERSION\+"\/firebase-auth\.js/);
 assert.match(account, /signInWithPopup\(instance,provider\)/);
 assert.match(account, /browserLocalPersistence/);
