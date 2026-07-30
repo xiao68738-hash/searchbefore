@@ -342,7 +342,11 @@ h2.step .cnt{letter-spacing:0;color:var(--green);font-weight:900}
 .support-preview{border-color:#E5C08C!important;background:#FFF9EE!important}
 .coffee{width:23px;height:23px;margin-right:6px;vertical-align:-5px}
 .tier-list{display:flex;flex-direction:column;gap:9px;margin:2px 0 14px}
-.tier-row{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:12px;padding:11px 15px;background:#fff}
+.tier-row{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:12px;padding:11px 15px;background:#fff;text-decoration:none;transition:border-color .16s,box-shadow .16s,transform .16s}
+.tier-row[href]{cursor:pointer}
+.tier-row[href]:hover{border-color:var(--green);box-shadow:0 5px 14px rgba(24,78,52,.12);transform:translateY(-1px)}
+.tier-row[href]:focus-visible{outline:3px solid rgba(48,119,76,.28);outline-offset:2px}
+.tier-row[aria-disabled="true"]{opacity:.55;pointer-events:none}
 .tier-row.hot{border-color:var(--orange);background:var(--orange-bg)}
 .tier-ic{display:flex;align-items:center;gap:1px;width:88px;flex:none}
 .tier-ic svg{width:24px;height:24px}
@@ -1090,13 +1094,12 @@ nav button.on{color:var(--green)}
     <h3><svg class="coffee" aria-hidden="true"><use href="#ic-cup"/></svg>請開發者喝杯咖啡</h3>
     <p class="hint" style="margin:-4px 0 13px">以咖啡杯數量代表心意。贊助不會解鎖任何內容，也不影響功能或服務，是否贊助完全出於自願。</p>
     <div class="tier-list">
-      <div class="tier-row"><span class="tier-ic"><svg><use href="#ic-cup"/></svg></span><span class="tier-nm">一杯咖啡</span><span class="tier-amt">NT$50</span></div>
-      <div class="tier-row"><span class="tier-ic"><svg><use href="#ic-cup"/></svg><svg><use href="#ic-cup"/></svg></span><span class="tier-nm">兩杯咖啡</span><span class="tier-amt">NT$100</span></div>
-      <div class="tier-row"><span class="tier-ic"><svg><use href="#ic-cup"/></svg><svg><use href="#ic-cup"/></svg><svg><use href="#ic-cup"/></svg></span><span class="tier-nm">三杯咖啡</span><span class="tier-amt">NT$150</span></div>
-      <div class="tier-row"><span class="tier-ic"><svg><use href="#ic-sprout"/></svg></span><span class="tier-nm">支持一個月維護</span><span class="tier-amt">NT$300</span></div>
-      <div class="tier-row"><span class="tier-ic"><svg><use href="#ic-heart"/></svg></span><span class="tier-nm">自訂金額</span><span class="tier-amt">任意</span></div>
+      <a class="tier-row" id="supportLink50" target="_blank" rel="noopener noreferrer" aria-label="贊助新台幣 50 元，開啟綠界付款頁"><span class="tier-ic"><svg><use href="#ic-cup"/></svg></span><span class="tier-nm">一杯咖啡</span><span class="tier-amt">NT$50</span></a>
+      <a class="tier-row" id="supportLink100" target="_blank" rel="noopener noreferrer" aria-label="贊助新台幣 100 元，開啟綠界付款頁"><span class="tier-ic"><svg><use href="#ic-cup"/></svg><svg><use href="#ic-cup"/></svg></span><span class="tier-nm">兩杯咖啡</span><span class="tier-amt">NT$100</span></a>
+      <a class="tier-row hot" id="supportLink150" target="_blank" rel="noopener noreferrer" aria-label="贊助新台幣 150 元，開啟綠界付款頁"><span class="tier-ic"><svg><use href="#ic-cup"/></svg><svg><use href="#ic-cup"/></svg><svg><use href="#ic-cup"/></svg></span><span class="tier-nm">三杯咖啡</span><span class="tier-amt">NT$150</span></a>
+      <a class="tier-row" id="supportLink" target="_blank" rel="noopener noreferrer" aria-label="自訂贊助金額，開啟綠界付款頁"><span class="tier-ic"><svg><use href="#ic-heart"/></svg></span><span class="tier-nm">自訂金額</span><span class="tier-amt">自行輸入</span></a>
     </div>
-    <a class="btn btn-orange" id="supportLink" target="_blank" rel="noopener noreferrer" style="display:block;width:100%;text-align:center;text-decoration:none">前往贊助頁</a>
+    <p class="hint" style="margin:0 0 10px;text-align:center">選擇金額後，將開啟綠界安全付款頁。</p>
     <button class="btn btn-ghost" type="button" onclick="closeSponsorModal()" style="width:100%;margin-top:8px">關閉</button>
   </div>
 </div>
@@ -3510,17 +3513,34 @@ function renderProfile(){
   renderSupportLink();
 }
 function renderSupportLink(){
-  const card=document.getElementById("supportCard"),link=document.getElementById("supportLink");
-  if(!card||!link)return;
-  const safeUrl=publicConfigHttpsUrl("supportUrl");
-  card.style.display="block";
-  if(safeUrl){
-    link.href=safeUrl;link.textContent="前往贊助頁";
-    link.removeAttribute("aria-disabled");link.style.opacity="";link.style.pointerEvents="";link.style.cursor="";
-  }else{
-    link.removeAttribute("href");link.textContent="咖啡贊助・即將開放";
-    link.setAttribute("aria-disabled","true");link.style.opacity=".55";link.style.pointerEvents="none";link.style.cursor="default";
-  }
+  const card=document.getElementById("supportCard");
+  const links=[
+    ["supportLink50","amount50"],
+    ["supportLink100","amount100"],
+    ["supportLink150","amount150"],
+    ["supportLink","custom"]
+  ];
+  if(!card)return;
+  let hasAvailableLink=false;
+  links.forEach(function(pair){
+    const link=document.getElementById(pair[0]);
+    if(!link)return;
+    const safeUrl=publicConfigSupportUrl(pair[1]);
+    if(safeUrl){
+      link.href=safeUrl;
+      link.removeAttribute("aria-disabled");
+      hasAvailableLink=true;
+    }else{
+      link.removeAttribute("href");
+      link.setAttribute("aria-disabled","true");
+    }
+  });
+  card.style.display=hasAvailableLink?"block":"none";
+}
+function publicConfigSupportUrl(key){
+  const config=window.PQC_PUBLIC_CONFIG||{};
+  const raw=config.supportUrls&&config.supportUrls[key]||key==="custom"&&config.supportUrl||"";
+  try{const parsed=new URL(raw);return parsed.protocol==="https:"?parsed.href:""}catch(e){return ""}
 }
 function publicConfigHttpsUrl(key){
   const raw=window.PQC_PUBLIC_CONFIG&&window.PQC_PUBLIC_CONFIG[key]||"";
