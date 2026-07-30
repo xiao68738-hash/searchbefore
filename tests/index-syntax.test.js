@@ -28,7 +28,13 @@ assert.ok(html.indexOf('<script src="./account.js"></script>') < html.indexOf("c
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="0\.3\.2\.0"/);
+assert.match(html, /const APP_VERSION="0\.3\.3\.0"/);
+assert.match(html, /title:"網頁版自願支持管道啟用"/);
+assert.match(html, /提供新台幣 50、100、150 元與自訂金額的自願支持選項/);
+assert.match(html, /function latestAnnouncementKey\(\)/);
+assert.match(html, /function maybeOpenLatestAnnouncement\(\)/);
+assert.match(html, /openHomeOnLaunch\(\);\s*maybeOpenLatestAnnouncement\(\);/);
+assert.match(html, /store\.set\("annSeen",key\)/);
 assert.match(html, /<title>噴前查 SearchBefore/);
 assert.match(html, /href="\.\/about\.html"/);
 assert.match(html, /id="entryTitle">噴前查 SearchBefore<\/h1>/);
@@ -170,6 +176,9 @@ assert.doesNotMatch(html, /function (?:renderShopLink|saveShopLink|disconnectSho
 assert.doesNotMatch(html, /linkedShop:store\.get\("linkedShop"\)/);
 assert.doesNotMatch(html, /pre\.phi==null\|\|pre\.phi===""/);
 assert.match(sw, /"\.\/safety\.js"/);
+assert.match(sw, /async function handleRuntimeConfig\(request\)/);
+assert.match(sw, /new Request\(request, \{ cache: "no-store" \}\)/);
+assert.match(sw, /isRuntimeConfig.*service-config\\\.js/);
 assert.match(sw, /"\.\/farm-records\.js"/);
 assert.match(sw, /"\.\/export-formats\.js"/);
 assert.match(sw, /"\.\/service-config\.js"/);
@@ -179,7 +188,7 @@ assert.match(sw, /"\.\/brand-lockup\.png"/);
 assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0\.3\.2\.0-mrl-neutral-copy/);
+assert.match(sw, /v0\.3\.3\.0-ecpay-support-announcement/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.ok(html.indexOf('<script src="./query-aids.js"></script>') < html.indexOf("const DATA="), "query-aids.js 必須在主程式前載入");
 /* 藥劑本位查詢:索引必須延遲建立(不可在載入時就建,會拖慢首次開啟),
