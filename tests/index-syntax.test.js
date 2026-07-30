@@ -28,10 +28,14 @@ assert.ok(html.indexOf('<script src="./account.js"></script>') < html.indexOf("c
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="0\.3\.3\.0"/);
+assert.match(html, /const APP_VERSION="0\.3\.3\.1"/);
 assert.match(html, /title:"網頁版自願支持管道啟用"/);
 assert.match(html, /提供新台幣 50、100、150 元與自訂金額的自願支持選項/);
+assert.match(html, /action:"support",actionLabel:"查看贊助方式"/);
+assert.doesNotMatch(html, /title:"公開測試開放"|title:"田區作業鏈串接"|title:"安全計算更新"/);
+assert.match(html, /function visibleAnnouncements\(\)/);
 assert.match(html, /function latestAnnouncementKey\(\)/);
+assert.match(html, /function openAnnouncementAction\(action\)/);
 assert.match(html, /function maybeOpenLatestAnnouncement\(\)/);
 assert.match(html, /openHomeOnLaunch\(\);\s*maybeOpenLatestAnnouncement\(\);/);
 assert.match(html, /store\.set\("annSeen",key\)/);
@@ -113,8 +117,10 @@ assert.doesNotMatch(html, /試用申請|授權碼啟用|方案與付款|付款�
 assert.match(html, /id="homeFeatures"/);
 assert.match(html, /function focusHomeSearch\(\)/);
 assert.match(html, /公開測試中/);
+assert.match(html, /id="profileBetaCard"/);
 assert.match(html, /請用一次真實流程，再告訴我們哪裡卡住/);
 assert.match(html, /公開測試期間所有功能均開放，不登入也能直接使用/);
+assert.doesNotMatch(html, /田間需要的，集中在同一處/);
 /* 不得出現無條件、無期限的免費承諾——未來若推出付費升級會構成前後矛盾 */
 assert.doesNotMatch(html, /永久免費|終身免費|一律免費|永遠免費|完全免費/);
 assert.match(html, /function searchPlotCrops\(raw\)/);
@@ -161,7 +167,8 @@ assert.match(html, /function publicConfigSupportUrl\(key\)/);
 assert.match(html, /function isInstalledAppContext\(\)/);
 assert.match(html, /android-app:\/\/tw\.searchbefore\.app/);
 assert.match(html, /display-mode: standalone/);
-assert.match(html, /if\(!isInstalledAppContext\(\)\)html\+=`<div class="info-card support-preview">/);
+assert.match(html, /return isInstalledAppContext\(\)\?ANNOUNCE\.filter\(a=>a\.action!=="support"\):ANNOUNCE/);
+assert.match(html, /onclick="openAnnouncementAction\('support'\)"/);
 assert.match(html, /function openSponsorModal\(\)\{\s*if\(isInstalledAppContext\(\)\)return;/);
 assert.match(html, /if\(isInstalledAppContext\(\)\)\{\s*card\.style\.display="none";\s*return;/);
 assert.match(html, /function publicConfigHttpsUrl\(key\)/);
@@ -188,7 +195,7 @@ assert.match(sw, /"\.\/brand-lockup\.png"/);
 assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0\.3\.3\.0-ecpay-support-announcement/);
+assert.match(sw, /v0\.3\.3\.1-profile-support-layout/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.ok(html.indexOf('<script src="./query-aids.js"></script>') < html.indexOf("const DATA="), "query-aids.js 必須在主程式前載入");
 /* 藥劑本位查詢:索引必須延遲建立(不可在載入時就建,會拖慢首次開啟),
