@@ -1524,7 +1524,7 @@ function renderHome(){
       <button onclick="openFeedback('')">意見回饋</button>
     </div>
   </div>`;
-  html+=`<div class="info-card support-preview"><h3><svg class="coffee" aria-hidden="true"><use href="#ic-cup"/></svg>請開發者喝杯咖啡</h3><p class="hint" style="margin:-4px 0 11px">自願支持，幫助工具持續維護；是否贊助都不影響任何功能或服務。</p><button class="btn btn-orange" type="button" onclick="openSponsorModal()" style="width:100%">查看贊助方案</button></div>`;
+  if(!isInstalledAppContext())html+=`<div class="info-card support-preview"><h3><svg class="coffee" aria-hidden="true"><use href="#ic-cup"/></svg>請開發者喝杯咖啡</h3><p class="hint" style="margin:-4px 0 11px">自願支持，幫助工具持續維護；是否贊助都不影響任何功能或服務。</p><button class="btn btn-orange" type="button" onclick="openSponsorModal()" style="width:100%">查看贊助方案</button></div>`;
   el.innerHTML=html;
   if(window.PQC_ACCOUNT)setTimeout(function(){window.PQC_ACCOUNT.render()},0);
 }
@@ -2756,7 +2756,11 @@ function openRecordModal(pre){
   document.getElementById("recModal").classList.add("open");
 }
 function closeRecordModal(){document.getElementById("recModal").classList.remove("open")}
-function openSponsorModal(){renderSupportLink();document.getElementById("sponsorModal").classList.add("open")}
+function openSponsorModal(){
+  if(isInstalledAppContext())return;
+  renderSupportLink();
+  document.getElementById("sponsorModal").classList.add("open");
+}
 function closeSponsorModal(){document.getElementById("sponsorModal").classList.remove("open")}
 /* 依計算頁狀態估算整批總用水量(公升),供產銷履歷對照表帶入;估不出來回傳空字串。
    桶數模式:每桶水量×桶數;面積模式:依登記用量換算的總水量。 */
@@ -3521,6 +3525,10 @@ function renderSupportLink(){
     ["supportLink","custom"]
   ];
   if(!card)return;
+  if(isInstalledAppContext()){
+    card.style.display="none";
+    return;
+  }
   let hasAvailableLink=false;
   links.forEach(function(pair){
     const link=document.getElementById(pair[0]);
@@ -3536,6 +3544,12 @@ function renderSupportLink(){
     }
   });
   card.style.display=hasAvailableLink?"block":"none";
+}
+function isInstalledAppContext(){
+  const twaReferrer=typeof document.referrer==="string"&&document.referrer.indexOf("android-app://tw.searchbefore.app")===0;
+  const standalone=typeof window.matchMedia==="function"&&window.matchMedia("(display-mode: standalone)").matches;
+  const iosStandalone=window.navigator&&window.navigator.standalone===true;
+  return !!(twaReferrer||standalone||iosStandalone);
 }
 function publicConfigSupportUrl(key){
   const config=window.PQC_PUBLIC_CONFIG||{};
