@@ -11,6 +11,15 @@
   let currentDraft = null;
   let twaPort = null;
 
+  const RECORD_TYPE_LABELS = Object.freeze({
+    pesticide: "病蟲害防治／用藥",
+    cultivation: "栽培作業",
+    fertilizer: "施肥",
+    harvest: "採收",
+    postharvest: "採後處理",
+    purchase: "資材購入"
+  });
+
   function esc(value) {
     return String(value == null ? "" : value)
       .replace(/&/g, "&amp;")
@@ -29,9 +38,13 @@
   function dictionaries() {
     const crops = typeof CROPS !== "undefined" && Array.isArray(CROPS) ? CROPS : [];
     const materials = new Set();
+    const targets = new Set();
     if (typeof DATA !== "undefined" && DATA && typeof DATA === "object") {
       Object.values(DATA).forEach(function (pests) {
-        Object.values(pests || {}).forEach(function (agents) {
+        Object.entries(pests || {}).forEach(function (entry) {
+          const pest = entry[0];
+          const agents = entry[1];
+          if (pest) targets.add(pest);
           (agents || []).forEach(function (agent) {
             if (agent && agent.name) materials.add(agent.name);
             (agent && Array.isArray(agent.bl) ? agent.bl : []).forEach(function (brand) {
@@ -41,7 +54,47 @@
         });
       });
     }
-    return { crops: crops, materials: Array.from(materials).filter(Boolean) };
+    return { crops: crops, materials: Array.from(materials).filter(Boolean), targets: Array.from(targets).filter(Boolean) };
+  }
+
+  function matchKey(value) {
+    return String(value || "").normalize("NFKC").replace(/[\s·‧・,，.。()（）\-]/g, "").toLocaleLowerCase("zh-Hant");
+  }
+
+  function registeredPesticideMatches(input) {
+    if (typeof DATA === "undefined" || !DATA || typeof DATA !== "object") return [];
+    const cropKey = matchKey(input && input.crop);
+    const materialKey = matchKey(input && input.material);
+    const targetKey = matchKey(input && input.target);
+    const dilution = Number(input && input.dilution) || null;
+    const phi = input && input.safetyInterval !== "" && input.safetyInterval != null ? Number(input.safetyInterval) : null;
+    if (!cropKey || !materialKey) return [];
+    const matches = [];
+    Object.entries(DATA).forEach(function (cropEntry) {
+      const crop = cropEntry[0];
+      if (matchKey(crop) !== cropKey) return;
+      Object.entries(cropEntry[1] || {}).forEach(function (pestEntry) {
+        const pest = pestEntry[0];
+        if (targetKey && matchKey(pest) !== targetKey) return;
+        (pestEntry[1] || []).forEach(function (agent) {
+          const names = [agent && agent.name].concat((agent && Array.isArray(agent.bl) ? agent.bl : []).map(function (brand) {
+            return typeof brand === "string" ? brand : brand && brand.name;
+          })).filter(Boolean);
+          if (!names.some(function (name) { return matchKey(name) === materialKey; })) return;
+          const officialDilution = Number(String(agent.dilution || "").replace(/,/g, "")) || null;
+          const officialPhi = agent.phi == null || agent.phi === "" ? null : Number(agent.phi);
+          let score = 2;
+          if (targetKey) score += 2;
+          if (dilution && officialDilution === dilution) score += 1;
+          if (phi != null && officialPhi === phi) score += 1;
+          matches.push({ crop, pest, agent, score, matchedName: names.find(function (name) { return matchKey(name) === materialKey; }) || agent.name });
+        });
+      });
+    });
+    matches.sort(function (a, b) { return b.score - a.score; });
+    if (!matches.length) return [];
+    const best = matches[0].score;
+    return matches.filter(function (match) { return match.score === best; });
   }
 
   function optionList(items, format) {
@@ -49,6 +102,14 @@
     return '<option value="">請選擇辨識結果</option>' + items.map(function (item) {
       const value = format ? format(item) : item.value;
       return '<option value="' + esc(value) + '">' + esc(value) + '</option>';
+    }).join("");
+  }
+
+  function recordTypeOptions(items) {
+    const detected = new Map((items || []).map(function (item) { return [item.value, item]; }));
+    return '<option value="">請選擇</option>' + Object.keys(RECORD_TYPE_LABELS).map(function (value) {
+      const item = detected.get(value);
+      return '<option value="' + value + '">' + esc(RECORD_TYPE_LABELS[value] + (item ? "（辨識候選）" : "")) + '</option>';
     }).join("");
   }
 
@@ -75,15 +136,18 @@
     const text = draft.blocks.map(function (block) { return block.text; }).join("\n");
     box.innerHTML = qualityHtml(draft.quality)
       + '<div class="ocr-review">'
-      + '<div class="field"><label>紀錄類型 *</label><select id="ocrRecordType"><option value="">請選擇</option><option value="cultivation">栽培作業</option><option value="fertilizer">施肥</option><option value="harvest">採收</option><option value="postharvest">採後處理</option><option value="purchase">資材購入</option></select></div>'
+      + '<div class="field"><label>紀錄類型 *</label><select id="ocrRecordType">' + recordTypeOptions(draft.fields.recordType) + '</select></div>'
       + '<div class="field"><label>日期候選 *</label><select id="ocrDateCandidate">' + optionList(draft.fields.date) + '</select><input id="ocrDateManual" type="date" aria-label="手動修正日期"></div>'
       + '<div class="field"><label>作物候選 *</label><select id="ocrCropCandidate">' + optionList(draft.fields.crop) + '</select><input id="ocrCropManual" placeholder="或自行輸入作物"></div>'
+      + '<div class="field"><label>田區代號候選</label><select id="ocrFieldPlotCandidate">' + optionList(draft.fields.fieldPlot) + '</select><input id="ocrFieldPlotManual" placeholder="或自行輸入田區代號"></div>'
+      + '<div class="field"><label>防治對象候選</label><select id="ocrTargetCandidate">' + optionList(draft.fields.target) + '</select><input id="ocrTargetManual" placeholder="或自行輸入病蟲害"></div>'
       + '<div class="field"><label>資材／藥劑候選</label><select id="ocrMaterialCandidate">' + optionList(draft.fields.material) + '</select><input id="ocrMaterialManual" placeholder="或自行輸入名稱"></div>'
       + '<div class="field"><label>稀釋倍數</label><select id="ocrDilutionCandidate">' + optionList(draft.fields.dilution) + '</select></div>'
       + '<div class="field"><label>數量候選</label><select id="ocrAmountCandidate">' + optionList(draft.fields.amount, function (item) { return item.value + " " + item.unit; }) + '</select></div>'
-      + '<div class="field"><label>執行人</label><input id="ocrOperator" placeholder="請自行確認填寫"></div>'
+      + '<div class="field"><label>安全採收期候選</label><select id="ocrSafetyCandidate">' + optionList(draft.fields.safetyInterval, function (item) { return item.value == null ? "未訂／不適用" : item.value; }) + '</select><input id="ocrSafetyManual" type="number" min="0" max="365" inputmode="numeric" placeholder="或自行輸入天數"></div>'
+      + '<div class="field"><label>執行人</label><select id="ocrOperatorCandidate">' + optionList(draft.fields.operator) + '</select><input id="ocrOperator" placeholder="請自行確認填寫"></div>'
       + '<div class="field wide"><label>辨識原文</label><textarea id="ocrRawText" readonly>' + esc(text) + '</textarea></div>'
-      + '<fieldset class="ocr-confirm wide"><legend>儲存前必須確認</legend><label><input id="ocrConfirmType" type="checkbox"> 紀錄類型已核對</label><label><input id="ocrConfirmDate" type="checkbox"> 日期已核對</label><label><input id="ocrConfirmCrop" type="checkbox"> 作物已核對</label></fieldset>'
+      + '<fieldset class="ocr-confirm wide"><legend>帶入前必須確認</legend><label><input id="ocrConfirmType" type="checkbox"> 紀錄類型已核對</label><label><input id="ocrConfirmDate" type="checkbox"> 日期已核對</label><label><input id="ocrConfirmCrop" type="checkbox"> 作物已核對</label><label><input id="ocrConfirmMaterial" type="checkbox"> 藥劑／資材名稱已核對</label></fieldset>'
       + '<button class="btn btn-main wide" type="button" onclick="PQC_FORM_OCR_UI.applyToFarmForm()"' + (draft.quality.canProcess ? "" : " disabled") + '>帶入紀錄表單並繼續確認</button>'
       + '<p class="disclaimer wide">辨識結果只是草稿。系統不會自動儲存；帶入後仍須在原本的作業紀錄表單再次確認並按下儲存。</p>'
       + '</div>';
@@ -91,10 +155,18 @@
       setValue("ocrDateCandidate", draft.fields.date[0].value);
       setValue("ocrDateManual", draft.fields.date[0].value);
     }
+    if (draft.fields.recordType.length && RECORD_TYPE_LABELS[draft.fields.recordType[0].value]) setValue("ocrRecordType", draft.fields.recordType[0].value);
     if (draft.fields.crop.length) setValue("ocrCropCandidate", draft.fields.crop[0].value);
+    if (draft.fields.fieldPlot.length) setValue("ocrFieldPlotCandidate", draft.fields.fieldPlot[0].value);
+    if (draft.fields.target.length) setValue("ocrTargetCandidate", draft.fields.target[0].value);
     if (draft.fields.material.length) setValue("ocrMaterialCandidate", draft.fields.material[0].value);
     if (draft.fields.dilution.length) setValue("ocrDilutionCandidate", draft.fields.dilution[0].value);
     if (draft.fields.amount.length) setValue("ocrAmountCandidate", draft.fields.amount[0].value + " " + draft.fields.amount[0].unit);
+    if (draft.fields.safetyInterval.length && draft.fields.safetyInterval[0].value != null) {
+      setValue("ocrSafetyCandidate", draft.fields.safetyInterval[0].value);
+      setValue("ocrSafetyManual", draft.fields.safetyInterval[0].value);
+    }
+    if (draft.fields.operator.length) setValue("ocrOperatorCandidate", draft.fields.operator[0].value);
   }
 
   function receiveScanResult(payload) {
@@ -153,9 +225,85 @@
     return String((manual && manual.value) || (select && select.value) || "").trim();
   }
 
+  function matchingPlotId(fieldCode, crop) {
+    if (typeof fieldPlots === "undefined" || !Array.isArray(fieldPlots)) return "";
+    const codeKey = matchKey(fieldCode);
+    const cropKey = matchKey(crop);
+    const matches = fieldPlots.filter(function (plot) {
+      if (cropKey && matchKey(plot.crop || plot.name) !== cropKey) return false;
+      if (!codeKey) return true;
+      const labels = [plot.id, plot.code, plot.label, plot.name];
+      if (typeof root.plotDisplayName === "function") labels.push(root.plotDisplayName(plot));
+      return labels.some(function (label) {
+        const key = matchKey(label);
+        return key && (key === codeKey || key.includes(codeKey) || codeKey.includes(key));
+      });
+    });
+    return matches.length === 1 ? matches[0].id : "";
+  }
+
+  function distinctRegistrationMatches(matches) {
+    const seen = new Set();
+    return (matches || []).filter(function (match) {
+      const agent = match.agent || {};
+      const key = [match.crop, match.pest, agent.name, agent.form, agent.dilution, agent.phi, agent.moa].map(matchKey).join("|");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  function applyToPesticideRecord() {
+    const date = selectedOrManual("ocrDateCandidate", "ocrDateManual");
+    const crop = selectedOrManual("ocrCropCandidate", "ocrCropManual");
+    const fieldCode = selectedOrManual("ocrFieldPlotCandidate", "ocrFieldPlotManual");
+    const target = selectedOrManual("ocrTargetCandidate", "ocrTargetManual");
+    const material = selectedOrManual("ocrMaterialCandidate", "ocrMaterialManual");
+    const dilution = selectedOrManual("ocrDilutionCandidate", "");
+    const safetyInterval = selectedOrManual("ocrSafetyCandidate", "ocrSafetyManual");
+    if (!checked("ocrConfirmType") || !checked("ocrConfirmDate") || !checked("ocrConfirmCrop") || !checked("ocrConfirmMaterial")) {
+      if (typeof root.toast === "function") root.toast("用藥紀錄請先核對類型、日期、作物與藥劑名稱");
+      return;
+    }
+    if (!root.PQC_FORM_OCR.canCommit(currentDraft, { recordType: "pesticide", date, crop, material })) {
+      if (typeof root.toast === "function") root.toast("照片品質或用藥必要欄位尚未通過");
+      return;
+    }
+    const matches = distinctRegistrationMatches(registeredPesticideMatches({ crop, target, material, dilution, safetyInterval }));
+    if (!matches.length) {
+      if (typeof root.toast === "function") root.toast("找不到完全相符的登記資料，請回查詢頁重新選擇藥劑，不能直接儲存 OCR 文字");
+      return;
+    }
+    if (matches.length > 1) {
+      if (typeof root.toast === "function") root.toast("這組作物與藥劑對到多筆登記，請補齊防治對象或稀釋倍數後再試");
+      return;
+    }
+    const match = matches[0];
+    const agent = match.agent;
+    const plotId = matchingPlotId(fieldCode, match.crop);
+    if (typeof root.openRecordModal !== "function") return;
+    root.openRecordModal({
+      crop: match.crop,
+      agent: agent.name,
+      phi: agent.phi,
+      moa: agent.moa,
+      pest: match.pest,
+      dil: agent.dilution,
+      water: "",
+      plotId
+    });
+    setValue("rDate", date);
+    setValue("rOperator", selectedOrManual("ocrOperatorCandidate", "ocrOperator"));
+    if (typeof root.toast === "function") root.toast("已用正式登記資料帶入；請核對田區、日期及標示後再儲存");
+  }
+
   function applyToFarmForm() {
     if (!currentDraft) return;
     const recordType = selectedOrManual("ocrRecordType", "");
+    if (recordType === "pesticide") {
+      applyToPesticideRecord();
+      return;
+    }
     const date = selectedOrManual("ocrDateCandidate", "ocrDateManual");
     const crop = selectedOrManual("ocrCropCandidate", "ocrCropManual");
     if (!checked("ocrConfirmType") || !checked("ocrConfirmDate") || !checked("ocrConfirmCrop")) {
@@ -171,10 +319,10 @@
     root.renderFarmRecordBox();
     setValue("farmType", recordType);
     setValue("farmDate", date);
-    setValue("farmOperator", selectedOrManual("ocrOperator", ""));
+    setValue("farmOperator", selectedOrManual("ocrOperatorCandidate", "ocrOperator"));
     if (typeof fieldPlots !== "undefined" && Array.isArray(fieldPlots)) {
-      const matches = fieldPlots.filter(function (plot) { return String(plot.crop || "").trim() === crop; });
-      if (matches.length === 1) setValue("farmPlot", matches[0].id);
+      const plotId = matchingPlotId(selectedOrManual("ocrFieldPlotCandidate", "ocrFieldPlotManual"), crop);
+      if (plotId) setValue("farmPlot", plotId);
     }
     if (typeof root.renderFarmDetailFields === "function") root.renderFarmDetailFields();
     const material = selectedOrManual("ocrMaterialCandidate", "ocrMaterialManual");
@@ -240,9 +388,12 @@
     REQUEST_TYPE,
     TRUSTED_ORIGINS,
     safePayload,
+    matchKey,
+    registeredPesticideMatches,
     receiveScanResult,
     requestNativeScan,
     parsePastedText,
+    applyToPesticideRecord,
     applyToFarmForm,
     init
   });

@@ -28,7 +28,7 @@ assert.ok(html.indexOf('<script src="./account.js"></script>') < html.indexOf("c
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="0\.3\.4\.0"/);
+assert.match(html, /const APP_VERSION="0\.3\.5\.0"/);
 assert.match(html, /title:"網頁版自願支持管道啟用"/);
 assert.match(html, /提供新台幣 50、100、150 元與自訂金額的自願支持選項/);
 assert.match(html, /action:"support",actionLabel:"查看贊助方式"/);
@@ -195,7 +195,7 @@ assert.match(sw, /"\.\/brand-lockup\.png"/);
 assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0\.3\.4\.0-android-form-ocr/);
+assert.match(sw, /v0\.3\.5\.0-form-ocr-template/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.ok(html.indexOf('<script src="./query-aids.js"></script>') < html.indexOf("const DATA="), "query-aids.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./form-ocr.js"></script>') < html.indexOf("const DATA="), "form-ocr.js 必須在主程式前載入");

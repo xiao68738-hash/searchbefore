@@ -15,6 +15,7 @@ assert.match(gradle, /text-recognition-chinese:16\.0\.1/);
 assert.doesNotMatch(manifest, /android\.permission\.(?:INTERNET|READ_|WRITE_)/, "原型不應要求網路或儲存權限");
 assert.match(scan, /setGalleryImportAllowed\(false\)/, "只允許當次拍攝，不讀取相簿");
 assert.match(scan, /EXTRA_OCR_RESULT_JSON/);
+assert.match(scan, /for \(Text\.Line line : block\.getLines\(\)\)/, "表格 OCR 應逐行保留文字位置，避免整個表格欄位黏在一起");
 assert.doesNotMatch(scan, /Base64|putExtra\([^\n]*Bitmap|localStorage/i, "不可把照片寫進橋接資料");
 assert.match(webBridge, /event\.ports\s*&&\s*event\.ports\[0\]/, "TWA 必須透過驗證後的 MessagePort 傳訊");
 assert.match(webBridge, /twaPort\.onmessage/);

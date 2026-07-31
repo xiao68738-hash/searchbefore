@@ -134,20 +134,43 @@ public class ScanActivity extends Activity {
         int width = Math.max(1, bitmap.getWidth());
         int height = Math.max(1, bitmap.getHeight());
         int index = 0;
+        int blockIndex = 0;
         for (Text.TextBlock block : text.getTextBlocks()) {
-            JSONObject item = new JSONObject()
-                    .put("id", "block-" + (++index))
-                    .put("text", block.getText())
-                    .put("confidence", 0.0);
-            Rect rect = block.getBoundingBox();
-            if (rect != null) {
-                item.put("box", new JSONObject()
-                        .put("left", clamp01((double) rect.left / width))
-                        .put("top", clamp01((double) rect.top / height))
-                        .put("right", clamp01((double) rect.right / width))
-                        .put("bottom", clamp01((double) rect.bottom / height)));
+            blockIndex++;
+            int lineIndex = 0;
+            for (Text.Line line : block.getLines()) {
+                lineIndex++;
+                JSONObject item = new JSONObject()
+                        .put("id", "block-" + blockIndex + "-line-" + lineIndex)
+                        .put("text", line.getText())
+                        .put("confidence", 0.0);
+                Rect rect = line.getBoundingBox();
+                if (rect != null) {
+                    item.put("box", new JSONObject()
+                            .put("left", clamp01((double) rect.left / width))
+                            .put("top", clamp01((double) rect.top / height))
+                            .put("right", clamp01((double) rect.right / width))
+                            .put("bottom", clamp01((double) rect.bottom / height)));
+                }
+                blocks.put(item);
+                index++;
             }
-            blocks.put(item);
+            if (lineIndex == 0 && !block.getText().trim().isEmpty()) {
+                JSONObject item = new JSONObject()
+                        .put("id", "block-" + blockIndex)
+                        .put("text", block.getText())
+                        .put("confidence", 0.0);
+                Rect rect = block.getBoundingBox();
+                if (rect != null) {
+                    item.put("box", new JSONObject()
+                            .put("left", clamp01((double) rect.left / width))
+                            .put("top", clamp01((double) rect.top / height))
+                            .put("right", clamp01((double) rect.right / width))
+                            .put("bottom", clamp01((double) rect.bottom / height)));
+                }
+                blocks.put(item);
+                index++;
+            }
         }
         return new JSONObject()
                 .put("type", "PQC_OCR_SCAN_RESULT")
