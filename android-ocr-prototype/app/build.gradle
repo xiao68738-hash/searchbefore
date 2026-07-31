@@ -1,0 +1,23 @@
+apply plugin: "com.android.application"
+
+android {
+    namespace "tw.searchbefore.ocrprototype"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "tw.searchbefore.ocrprototype"
+        minSdk 23
+        targetSdk 34
+        versionCode 1
+        versionName "0.1.0"
+    }
+
+    buildFeatures {
+        buildConfig = true
+    }
+}
+
+dependencies {
+    implementation "com.google.android.gms:play-services-mlkit-document-scanner:16.0.0"
+    implementation "com.google.mlkit:text-recognition-chinese:16.0.1"
+}

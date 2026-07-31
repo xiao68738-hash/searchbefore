@@ -17,6 +17,8 @@ const jsFiles = [
   "farm-records.js",
   "crop-forms.js",
   "query-aids.js",
+  "form-ocr.js",
+  "form-ocr-ui.js",
   "export-formats.js",
   "sw.js"
 ];
