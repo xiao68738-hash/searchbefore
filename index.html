@@ -738,6 +738,66 @@ nav button.on{color:var(--green)}
   /* 匯出按鈕群組 */
   .exp-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
   .exp-actions .btn-csv{grid-column:1/-1}
+  /* ── 2026-07 視覺試作合併：保留既有 Logo 與功能，只更新介面語言 ── */
+  :root{
+    --paper:#F5F2E9;--surface:#FFFDF8;--surface-2:#F0ECDF;
+    --ink:#183528;--ink-soft:#68756B;--line:#DDD8CA;
+    --green:#2F7448;--green-deep:#184C31;--orange:#E9964B;
+    --orange-bg:#FFF0DF;--ok-bg:#E2EFE5;--mut-bg:#F0ECDF;
+    --radius:18px;--shadow:0 9px 25px rgba(35,55,40,.09)
+  }
+  #app{max-width:520px;min-height:100dvh;margin:0 auto;display:flex;flex-direction:column}
+  header{padding:16px 20px 13px}
+  header .brand{font-size:21px}
+  main{flex:1;padding:18px 18px 112px}
+  .screen{animation:visual-fade .2s ease}
+  @keyframes visual-fade{from{opacity:.45;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .home-hero{border-radius:27px;padding:27px 24px 23px;background:linear-gradient(145deg,#153E29,#2D6C43 72%,#438058);box-shadow:0 15px 34px rgba(23,51,31,.18)}
+  .home-hero h1{font-size:34px;line-height:1.28;margin-top:17px}
+  .home-hero>p{font-size:14.5px;line-height:1.72}
+  .home-actions{margin-top:18px}
+  .home-actions button{border-radius:15px;min-height:50px;padding:13px 17px}
+  .home-actions .primary{flex:1 0 100%;text-align:left}
+  .home-section{margin-top:27px}
+  .home-section-head{margin-bottom:13px}
+  .home-section-head .eyebrow{font-size:12px}
+  .home-feature-grid{gap:11px}
+  .home-feature{min-height:178px;border-radius:21px;padding:17px 15px;background:var(--surface);box-shadow:var(--shadow)}
+  .home-feature-icon{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;background:var(--ok-bg);color:var(--green);margin-bottom:17px}
+  .home-feature:nth-child(2n) .home-feature-icon{background:var(--orange-bg);color:var(--orange)}
+  .home-feature-icon svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .home-feature h4{font-size:17px}
+  .home-feature p{font-size:13px;line-height:1.58}
+  .home-start,.home-beta,.home-boundary,.info-card,.calc-card,.exp-card,.plot-box{border-radius:21px}
+  .info-card,.calc-card,.exp-card,.plot-box{background:var(--surface)}
+  .safety-banner{border-radius:17px;padding:13px 15px}
+  .search input,.field input,.field select,.farm-grid .field textarea{border-radius:15px}
+  .record-hub-intro{border-radius:27px;padding:25px 22px 21px;background:linear-gradient(145deg,#153E29,#2D6C43 72%,#438058);box-shadow:0 15px 34px rgba(23,51,31,.18)}
+  .record-hub-intro h2{font-size:28px}
+  .record-hub-menu{gap:11px}
+  .record-hub-button{grid-template-columns:50px 1fr 24px;gap:14px;min-height:108px;border-radius:21px;padding:17px;background:var(--surface)}
+  .record-hub-button .record-hub-index{width:48px;height:48px;border-radius:15px}
+  .record-hub-index svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .record-hub-label{display:block;color:var(--orange);font-size:11px;font-weight:900;letter-spacing:.1em;margin-bottom:3px}
+  .record-hub-copy b{font-size:18px}
+  .record-hub-back{font-size:16px;min-height:50px}
+  .record-hub-back-icon{width:34px;height:34px;font-size:32px}
+  .record-hub-panel-head{margin-bottom:16px}
+  .record-hub-panel-head h2{font-size:25px}
+  .btn{border-radius:14px;min-height:48px}
+  .chip,.quick button,.qmode button,.hseg button{border-radius:12px}
+  nav{max-width:520px;background:color-mix(in srgb,var(--surface) 95%,transparent);backdrop-filter:blur(18px);padding:8px 7px calc(8px + env(safe-area-inset-bottom))}
+  nav button{border-radius:14px;padding:5px 1px 3px}
+  nav button.on{color:var(--orange);background:var(--orange-bg)}
+  .modal{max-width:520px;border-radius:27px 27px 0 0;padding:23px 20px 32px}
+  html[data-theme="dark"] .home-feature-icon{background:var(--ok-bg)}
+  html[data-theme="dark"] .home-feature:nth-child(2n) .home-feature-icon{background:var(--orange-bg)}
+  html[data-theme="dark"] nav button.on{background:var(--orange-bg);color:var(--orange)}
+  @media(max-width:360px){
+    main{padding-left:14px;padding-right:14px}
+    .home-hero{padding:23px 19px 20px}.home-hero h1{font-size:29px}
+    .home-feature{min-height:0}
+  }
   /* 列印／存成 PDF：畫面上隱藏，只在列印時顯示 */
   #printArea{display:none}
   @media print{
@@ -934,9 +994,9 @@ nav button.on{color:var(--green)}
           <div class="record-hub-path" role="note"><b>建議順序</b><span>1 建立田區</span><span>2 留下作業</span><span>3 回顧與匯出</span></div>
         </div>
         <div class="record-hub-menu" aria-label="紀錄功能選單">
-          <button class="record-hub-button" type="button" onclick="openRecordHub('plots')" aria-controls="recordPanelPlots"><span class="record-hub-index">01</span><span class="record-hub-copy"><b>田區新增／田區管理</b><small>建立種植批次、設定預設田區，並查看每個田區的完整作業鏈。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>
-          <button class="record-hub-button" type="button" onclick="openRecordHub('farm')" aria-controls="recordPanelFarm"><span class="record-hub-index">02</span><span class="record-hub-copy"><b>其他田區紀錄</b><small>記錄栽培、施肥、採收、採後處理與資材購入等日常作業。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>
-          <button class="record-hub-button" type="button" onclick="openRecordHub('export')" aria-controls="recordPanelExport"><span class="record-hub-index">03</span><span class="record-hub-copy"><b>用藥歷史／匯出用藥紀錄</b><small>查看過去的施藥內容，再依日期與田區篩選並匯出 Excel、PDF 或 CSV。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>
+          <button class="record-hub-button" type="button" onclick="openRecordHub('plots')" aria-controls="recordPanelPlots"><span class="record-hub-index" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 25 12 8l7 17M9 18h7M20 25c0-7 2-12 7-16M22 17h5"/></svg></span><span class="record-hub-copy"><span class="record-hub-label">01・田區</span><b>田區新增／田區管理</b><small>建立種植批次、設定預設田區，並查看每個田區的完整作業鏈。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>
+          <button class="record-hub-button" type="button" onclick="openRecordHub('farm')" aria-controls="recordPanelFarm"><span class="record-hub-index" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 5h16v22H8zM12 10h8M12 15h8M12 20h5"/><path d="m20 23 2 2 5-6"/></svg></span><span class="record-hub-copy"><span class="record-hub-label">02・作業</span><b>其他田區紀錄</b><small>記錄栽培、施肥、採收、採後處理與資材購入等日常作業。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>
+          <button class="record-hub-button" type="button" onclick="openRecordHub('export')" aria-controls="recordPanelExport"><span class="record-hub-index" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 5v16M10 15l6 6 6-6M6 25h20"/></svg></span><span class="record-hub-copy"><span class="record-hub-label">03・整理</span><b>用藥歷史／匯出用藥紀錄</b><small>查看過去的施藥內容，再依日期與田區篩選並匯出 Excel、PDF 或 CSV。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>
         </div>
       </div>
 
@@ -1508,12 +1568,12 @@ function renderHome(){
   html+=`<section class="home-section" id="homeFeatures" aria-labelledby="homeFeatureTitle">
     <div class="home-section-head"><span class="eyebrow" id="homeFeatureTitle">核心功能</span></div>
     <div class="home-feature-grid">
-      <article class="home-feature"><h4>合法用藥查詢</h4><p>依作物與病蟲害查直接登記藥劑、稀釋倍數與安全採收期，也能自選採收期天數篩選。</p></article>
-      <article class="home-feature"><h4>配藥換算</h4><p>把藥劑倍數帶入水量、桶數或面積，快速算出現場需要的實際用量。</p></article>
-      <article class="home-feature"><h4>田區作業時間軸</h4><p>依田區整合施藥、栽培、施肥、採收、採後處理與資材購入紀錄。</p></article>
-      <article class="home-feature"><h4>安全採收連動</h4><p>同田區所有用藥一起判斷最晚可採日；資料不足時不會誤顯示可採收。</p></article>
-      <article class="home-feature"><h4>完整農務紀錄</h4><p>除了用藥，也能留下五類農務作業，讓日後追溯、交接與整理更完整。</p></article>
-      <article class="home-feature"><h4>匯出與備份</h4><p>把用藥與農務紀錄匯出成 Excel、PDF 或 CSV，或下載 JSON 備份；換裝置前也能保存自己的資料。</p></article>
+      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="14" cy="14" r="8"/><path d="m20 20 7 7M11 17c0-5 3-8 8-8-1 5-3 8-8 8Z"/></svg></span><h4>合法用藥查詢</h4><p>依作物與病蟲害查直接登記藥劑、稀釋倍數與安全採收期，也能自選採收期天數篩選。</p></article>
+      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 4h16v24H8zM12 9h8M12 15h2M18 15h2M12 21h2M18 21h2"/></svg></span><h4>配藥換算</h4><p>把藥劑倍數帶入水量、桶數或面積，快速算出現場需要的實際用量。</p></article>
+      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 7h20v20H6zM10 3v8M22 3v8M6 13h20M11 18h4M18 18h4M11 23h4"/></svg></span><h4>田區作業時間軸</h4><p>依田區整合施藥、栽培、施肥、採收、採後處理與資材購入紀錄。</p></article>
+      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="17" r="10"/><path d="M16 12v6l4 3M12 3h8"/></svg></span><h4>安全採收連動</h4><p>同田區所有用藥一起判斷最晚可採日；資料不足時不會誤顯示可採收。</p></article>
+      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 5h16v22H8zM12 10h8M12 15h8M12 20h5"/><path d="m20 23 2 2 5-6"/></svg></span><h4>完整農務紀錄</h4><p>除了用藥，也能留下五類農務作業，讓日後追溯、交接與整理更完整。</p></article>
+      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 5v16M10 15l6 6 6-6M6 25h20"/></svg></span><h4>匯出與備份</h4><p>把用藥與農務紀錄匯出成 Excel、PDF 或 CSV，或下載 JSON 備份；換裝置前也能保存自己的資料。</p></article>
     </div>
   </section>`;
   html+=`<div class="home-boundary" role="note"><strong>資料來源與使用界線</strong><p>藥劑資料來自農業部開放資料，版本 ${typeof DATA_VERSION!=="undefined"?DATA_VERSION:""}。本工具協助查詢與自主整理；實際用藥仍以產品標示及主管機關最新公告為準。匯出檔供農友自行保存與查閱。</p></div>`;
