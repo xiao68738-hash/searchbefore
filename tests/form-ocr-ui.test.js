@@ -1,10 +1,13 @@
 const assert = require("node:assert/strict");
 const UI = require("../form-ocr-ui.js");
 
-assert.equal(UI.safePayload({ protocolVersion: 1, blocks: [{ text: "番茄" }] }).protocolVersion, 1);
-assert.equal(UI.safePayload({ protocolVersion: 2, blocks: [] }), null, "未知協定版本不可接收");
-assert.equal(UI.safePayload({ protocolVersion: 1, imageData: "abc" }), null, "影像欄位不可進入網頁草稿");
-assert.equal(UI.safePayload({ protocolVersion: 1, blocks: [{ text: "data:image/jpeg;base64,abc" }] }), null, "Base64 影像不可混入辨識文字");
+const validPayload = { type: UI.RESULT_TYPE, protocolVersion: 1, requestId: "ocr-test-1", blocks: [{ text: "番茄" }] };
+assert.equal(UI.safePayload(validPayload).protocolVersion, 1);
+assert.equal(UI.safePayload({ ...validPayload, protocolVersion: 2 }), null, "未知協定版本不可接收");
+assert.equal(UI.safePayload({ ...validPayload, type: "OTHER_MESSAGE" }), null, "未知訊息類型不可接收");
+assert.equal(UI.safePayload({ ...validPayload, requestId: "" }), null, "沒有請求識別碼的結果不可接收");
+assert.equal(UI.safePayload({ ...validPayload, imageData: "abc" }), null, "影像欄位不可進入網頁草稿");
+assert.equal(UI.safePayload({ ...validPayload, blocks: [{ text: "data:image/jpeg;base64,abc" }] }), null, "Base64 影像不可混入辨識文字");
 assert.ok(UI.TRUSTED_ORIGINS.includes("https://searchbefore.tw"));
 assert.ok(UI.TRUSTED_ORIGINS.includes("android://tw.searchbefore.app"));
 assert.equal(UI.matchKey(" A＋B 區 "), "a+b區");

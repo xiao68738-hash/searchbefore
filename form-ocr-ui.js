@@ -10,6 +10,7 @@
   const TRUSTED_ORIGINS = Object.freeze(["https://searchbefore.tw", "android://tw.searchbefore.app"]);
   let currentDraft = null;
   let twaPort = null;
+  let pendingRequestId = null;
 
   const RECORD_TYPE_LABELS = Object.freeze({
     pesticide: "病蟲害防治／用藥",
@@ -31,7 +32,9 @@
     if (!value || typeof value !== "object") return null;
     const serialized = JSON.stringify(value);
     if (serialized.length > 350000 || /data:image|base64|imageUri|imageData/i.test(serialized)) return null;
-    if (Number(value.protocolVersion || 1) !== 1) return null;
+    if (value.type !== RESULT_TYPE || Number(value.protocolVersion) !== 1) return null;
+    if (!/^[A-Za-z0-9._:-]{1,128}$/.test(String(value.requestId || ""))) return null;
+    if (!Array.isArray(value.blocks)) return null;
     return value;
   }
 
@@ -175,12 +178,18 @@
       if (typeof root.toast === "function") root.toast("辨識資料格式不正確，請重新掃描");
       return false;
     }
+    if (pendingRequestId && safe.requestId !== pendingRequestId) {
+      if (typeof root.toast === "function") root.toast("這不是本次掃描的辨識結果，已拒絕帶入");
+      return false;
+    }
+    pendingRequestId = null;
     renderDraft(root.PQC_FORM_OCR.createDraft(safe, dictionaries()));
     return true;
   }
 
   function requestNativeScan() {
     const request = { type: REQUEST_TYPE, protocolVersion: 1, requestId: "ocr-" + Date.now() };
+    pendingRequestId = request.requestId;
     if (root.PQC_ANDROID_OCR && typeof root.PQC_ANDROID_OCR.scanForm === "function") {
       root.PQC_ANDROID_OCR.scanForm(JSON.stringify(request));
       return;
@@ -193,6 +202,7 @@
       root.PQC_TWA_CHANNEL.postMessage(JSON.stringify(request));
       return;
     }
+    pendingRequestId = null;
     const note = document.getElementById("ocrBridgeNote");
     if (note) note.hidden = false;
     if (typeof root.toast === "function") root.toast("目前瀏覽器沒有 Android 掃描功能，可先貼上辨識文字測試");
@@ -206,6 +216,7 @@
       return;
     }
     receiveScanResult({
+      type: RESULT_TYPE,
       protocolVersion: 1,
       requestId: "paste-" + Date.now(),
       createdAt: new Date().toISOString(),

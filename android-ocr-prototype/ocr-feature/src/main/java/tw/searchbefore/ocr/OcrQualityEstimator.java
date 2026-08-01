@@ -1,4 +1,4 @@
-package tw.searchbefore.ocrprototype;
+package tw.searchbefore.ocr;
 
 import android.graphics.Bitmap;
 
