@@ -21,8 +21,9 @@ assert.ok(sandbox.window.PQC_PUBLIC_CONFIG.firebase.appId);
 assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.feedbackEmail, "searchbefore82@gmail.com");
 assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.supportUrls, undefined, "共用設定不可包含綠界網址");
 assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.features.formOcr, "hidden", "未完成的 OCR 功能必須預設隱藏");
-assert.doesNotMatch(configSource, /p\.ecpay\.com\.tw|supportUrls/, "Google Play 會載入的共用設定不可接上綠界");
+assert.doesNotMatch(configSource, /p\.ecpay\.com\.tw|supportUrls/, "帳號共用設定不可混入按需載入的綠界網址");
 vm.runInNewContext(webSupportSource, sandbox, { filename: "web-support-config.js" });
+assert.equal(sandbox.window.PQC_WEB_SUPPORT_CONFIG.googlePlayVoluntarySupport, true, "Google Play 純自願支持必須由獨立遠端開關明確啟用");
 assert.deepEqual(
   JSON.parse(JSON.stringify(sandbox.window.PQC_WEB_SUPPORT_CONFIG.supportUrls)),
   {
