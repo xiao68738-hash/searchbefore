@@ -38,9 +38,12 @@ for (const name of ["account.js", "cloud-sync.js", "crop-forms.js", "export-form
 const html = await readFile(path.join(outDir, "index.html"), "utf8");
 const sharedConfig = await readFile(path.join(outDir, "service-config.js"), "utf8");
 const webSupportConfig = await readFile(path.join(outDir, "web-support-config.js"), "utf8");
-assert.doesNotMatch(sharedConfig, /p\.ecpay\.com\.tw|supportUrls/, "Google Play 共用設定不可包含綠界網址");
-assert.match(webSupportConfig, /https:\/\/p\.ecpay\.com\.tw\//, "一般網頁版贊助設定應保留綠界網址");
-assert.doesNotMatch(html, /<script[^>]+web-support-config\.js/i, "正式頁面不可靜態載入網頁版付款設定");
+assert.doesNotMatch(sharedConfig, /p\.ecpay\.com\.tw|supportUrls/, "共用帳號設定不可混入綠界網址");
+const webSupportSandbox = { window: {} };
+vm.runInNewContext(webSupportConfig, webSupportSandbox, { filename: "dist/web-support-config.js" });
+assert.equal(webSupportSandbox.window.PQC_WEB_SUPPORT_CONFIG.googlePlayVoluntarySupport, true, "Google Play 純自願支持必須由獨立遠端開關明確啟用");
+assert.match(webSupportConfig, /https:\/\/p\.ecpay\.com\.tw\//, "按需載入的自願支持設定應保留綠界網址");
+assert.doesNotMatch(html, /<script[^>]+web-support-config\.js/i, "正式頁面不可靜態載入付款設定，才能保留遠端停用能力");
 const referencedScripts = [...html.matchAll(/<script[^>]+\bsrc=["']\.\/([^"'?#]+)["']/gi)].map(match => match[1]);
 assert.ok(referencedScripts.length >= 7, "index.html 應載入必要的外部程式");
 for (const name of referencedScripts) assert.ok(actual.includes(name), `dist 缺少 index.html 引用的 ${name}`);

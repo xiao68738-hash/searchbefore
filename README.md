@@ -26,8 +26,8 @@ node tests/run-all.js
 - 公開測試期間不顯示試用申請、授權碼、方案或購買入口，現有功能全部開放。
 - 首頁以「完成一項真實工作」引導測試者查詢、留下紀錄並在之後回訪，不把按讚或單次瀏覽當成有效驗證。
 - 自願贊助不影響任何功能；`web-support-config.js` 可分別設定 50、100、150 元與自訂金額的 HTTPS 贊助網址。
-- 綠界贊助設定由 `web-support-config.js` 在一般瀏覽器版按需載入；Google Play TWA 與其他安裝版不載入、顯示或開啟外部付款入口。
-- Android App 目前不啟用任何付費功能；未來若販售 App 內數位功能或雲端服務，須另行接入 Google Play Billing，不可沿用綠界連結。
+- 綠界自願支持設定由 `web-support-config.js` 按需載入；`googlePlayVoluntarySupport` 採最保守的全通路閘門，只有明確為 `true` 時，瀏覽器、PWA、iOS 主畫面版與 Google Play TWA 才會顯示入口。必要時改為 `false` 並部署，使用者下次連線重新載入設定後即會關閉。
+- Android App 只提供不附帶任何內容、功能或權益的自願支持，不把它當成購買。未來若販售 App 內數位功能或雲端服務，仍須另行接入 Google Play Billing，不可沿用綠界連結。
 - 正式曝光前需在 `service-config.js` 填入回饋信箱，並在 `web-support-config.js` 填入各贊助網址；沒有有效網址時不會顯示假的贊助入口。
 - 設定步驟與安全界線見 `docs/帳號與付款設定.md`。
 
