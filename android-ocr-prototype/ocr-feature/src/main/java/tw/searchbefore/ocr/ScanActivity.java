@@ -1,4 +1,4 @@
-package tw.searchbefore.ocrprototype;
+package tw.searchbefore.ocr;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -28,17 +28,18 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.time.Instant;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
-import java.util.UUID;
+import java.util.Locale;
 
 public class ScanActivity extends Activity {
-    public static final String EXTRA_OCR_RESULT_JSON = "tw.searchbefore.extra.OCR_RESULT_JSON";
     private static final int REQUEST_SCAN = 2001;
 
     private ProgressBar progress;
     private TextView statusText;
     private Button scanButton;
+    private String requestId;
     private final GmsDocumentScannerOptions options = new GmsDocumentScannerOptions.Builder()
             .setGalleryImportAllowed(false)
             .setPageLimit(1)
@@ -49,6 +50,7 @@ public class ScanActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestId = OcrContract.requestIdFrom(getIntent());
         setContentView(R.layout.activity_scan);
         progress = findViewById(R.id.progress);
         statusText = findViewById(R.id.statusText);
@@ -75,7 +77,8 @@ public class ScanActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode != REQUEST_SCAN) return;
         if (resultCode != RESULT_OK || data == null) {
-            setBusy(false, "已取消拍攝，沒有建立草稿。");
+            setResult(RESULT_CANCELED);
+            finish();
             return;
         }
         GmsDocumentScanningResult result = GmsDocumentScanningResult.fromActivityResultIntent(data);
@@ -110,7 +113,7 @@ public class ScanActivity extends Activity {
                         String json = payload.toString();
                         statusText.setText(previewText(text, payload));
                         Intent resultIntent = new Intent();
-                        resultIntent.putExtra(EXTRA_OCR_RESULT_JSON, json);
+                        resultIntent.putExtra(OcrContract.EXTRA_OCR_RESULT_JSON, json);
                         setResult(RESULT_OK, resultIntent);
                     } catch (JSONException error) {
                         showError("無法整理辨識結果：" + safeMessage(error));
@@ -126,6 +129,7 @@ public class ScanActivity extends Activity {
                     } catch (Exception ignored) {
                         // 掃描器提供的暫存 URI 可能不允許呼叫端刪除；本程式不另存副本。
                     }
+                    if (task.isSuccessful()) finish();
                 });
     }
 
@@ -173,10 +177,10 @@ public class ScanActivity extends Activity {
             }
         }
         return new JSONObject()
-                .put("type", "PQC_OCR_SCAN_RESULT")
-                .put("protocolVersion", 1)
-                .put("requestId", UUID.randomUUID().toString())
-                .put("createdAt", Instant.now().toString())
+                .put("type", OcrContract.MESSAGE_SCAN_RESULT)
+                .put("protocolVersion", OcrContract.PROTOCOL_VERSION)
+                .put("requestId", requestId)
+                .put("createdAt", new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.US).format(new Date()))
                 .put("quality", OcrQualityEstimator.estimate(bitmap))
                 .put("blocks", blocks);
     }

@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "SearchBeforeFormOcrPrototype"
 include(":app")
+include(":ocr-feature")
