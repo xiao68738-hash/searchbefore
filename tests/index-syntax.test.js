@@ -28,7 +28,7 @@ assert.ok(html.indexOf('<script src="./account.js"></script>') < html.indexOf("c
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="0\.3\.3\.1"/);
+assert.match(html, /const APP_VERSION="0\.3\.5\.0"/);
 assert.match(html, /title:"網頁版自願支持管道啟用"/);
 assert.match(html, /提供新台幣 50、100、150 元與自訂金額的自願支持選項/);
 assert.match(html, /action:"support",actionLabel:"查看贊助方式"/);
@@ -195,9 +195,11 @@ assert.match(sw, /"\.\/brand-lockup\.png"/);
 assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0\.3\.3\.1-profile-support-layout/);
+assert.match(sw, /v0\.3\.5\.0-form-ocr-template/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.ok(html.indexOf('<script src="./query-aids.js"></script>') < html.indexOf("const DATA="), "query-aids.js 必須在主程式前載入");
+assert.ok(html.indexOf('<script src="./form-ocr.js"></script>') < html.indexOf("const DATA="), "form-ocr.js 必須在主程式前載入");
+assert.ok(html.indexOf('<script src="./form-ocr-ui.js"></script>') < html.indexOf("const DATA="), "form-ocr-ui.js 必須在主程式前載入");
 /* 藥劑本位查詢:索引必須延遲建立(不可在載入時就建,會拖慢首次開啟),
    且結果頁必須帶「未列出不代表可以使用」的界線說明 —— 少了這句,
    農友可能把「查得到的作物」誤讀成「查不到就是不能用」以外的意思,
@@ -293,6 +295,8 @@ if (fs.existsSync(assetlinksPath)) {
   for (const entry of links) {
     assert.ok(Array.isArray(entry.relation) && entry.relation.includes("delegate_permission/common.handle_all_urls"),
       "assetlinks.json 缺少正確的 relation");
+    assert.ok(entry.relation.includes("delegate_permission/common.use_as_origin"),
+      "assetlinks.json 缺少 TWA 安全傳訊需要的 use_as_origin");
     assert.equal(entry.target?.namespace, "android_app");
     assert.ok(entry.target?.package_name, "assetlinks.json 缺少 package_name");
     const fps = entry.target?.sha256_cert_fingerprints;

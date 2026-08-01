@@ -8,7 +8,7 @@
    這個動作本身就是觸發更新的開關,不要忘記。
 */
 
-const CACHE_VERSION = "v0.3.3.1-profile-support-layout-2026-07-30";
+const CACHE_VERSION = "v0.3.5.0-form-ocr-template-2026-07-31";
 const CACHE_NAME = "pqc-" + CACHE_VERSION;
 
 /* 只放骨架。App 本體(index.html)約 1MB gzip,用 reload 強制繞過 HTTP 快取抓最新版。 */
@@ -21,6 +21,8 @@ const PRECACHE = [
   "./farm-records.js",
   "./crop-forms.js",
   "./query-aids.js",
+  "./form-ocr.js",
+  "./form-ocr-ui.js",
   "./export-formats.js",
   "./about.html",
   "./privacy.html",

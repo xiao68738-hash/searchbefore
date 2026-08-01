@@ -27,5 +27,13 @@ Thumbs.db
 android-signing*
 signing-key*
 
+# Android 建置輸出與本機設定
+android-ocr-prototype/.gradle/
+android-ocr-prototype/local.properties
+android-ocr-prototype/**/build/
+android-ocr-prototype/.idea/
+android-ocr-prototype/captures/
+android-ocr-prototype/.gradle-dist/
+
 # 官方原始快取:132MB,可由 scripts/fetch-pesticide-source.mjs 重新產生
 mrl-data/source-cache/
