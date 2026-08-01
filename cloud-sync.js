@@ -139,12 +139,19 @@
   /* ═══ 狀態 ═══ */
   function isEnabled(){
     const v=host.get(K_ENABLED);
-    return v===null||v===undefined?true:!!v;   /* 登入後預設開啟 */
+    return v===null||v===undefined?false:!!v;   /* 預設關閉；登入不等於同意上傳 */
   }
   function setEnabled(on){
+    if(on&&!isEnabled()&&typeof window.confirm==="function"){
+      const accepted=window.confirm(
+        "要開啟 Google 雲端備份嗎？\n\n開啟後會上傳：\n・田區資料\n・施藥紀錄\n・農務紀錄\n\n常用配方、最近查詢與顯示偏好不會上傳。你可以隨時在個人頁關閉同步。"
+      );
+      if(!accepted)return false;
+    }
     host.set(K_ENABLED,!!on);
     notify();
     if(on)schedule(0);
+    return true;
   }
   function ownerUid(){return host.get(K_OWNER)||""}
   function ownerConflict(){

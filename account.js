@@ -40,7 +40,7 @@
     const on=s.isEnabled();
     return '<button class="btn btn-ghost" type="button" style="width:100%;margin-bottom:8px" '
       +'onclick="PQC_SYNC.setEnabled('+(on?"false":"true")+');PQC_ACCOUNT.render()">'
-      +(on?"關閉雲端同步":"開啟雲端同步")+'</button>';
+      +(on?"關閉雲端同步":"了解並開啟雲端備份")+'</button>';
   }
   function accountBoxes(){
     return [
@@ -106,7 +106,7 @@
       return;
     }
     el.innerHTML='<button class="btn btn-main google-signin" type="button" onclick="PQC_ACCOUNT.signIn()">'+googleMark()+'<span>使用 Google 帳號登入</span></button>'
-      +(entry?'':'<p class="hint" style="margin:9px 0 0">登入為選用功能；不登入仍可使用目前所有功能與本機紀錄。</p>');
+      +(entry?'':'<p class="hint" style="margin:9px 0 0">登入為選用功能；登入後仍不會自動上傳田間資料，需由你另外開啟雲端備份。</p>');
   }
   function render(){
     accountBoxes().forEach(function(item){renderBox(item.el,item.compact,item.entry)});
