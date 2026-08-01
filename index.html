@@ -778,7 +778,6 @@ nav button.on{color:var(--green)}
   .record-hub-button{grid-template-columns:50px 1fr 24px;gap:14px;min-height:108px;border-radius:21px;padding:17px;background:var(--surface)}
   .record-hub-button .record-hub-index{width:48px;height:48px;border-radius:15px}
   .record-hub-index svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-  .record-hub-glyph{font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;font-size:23px;font-weight:900;line-height:1;letter-spacing:0}
   .record-hub-label{display:block;color:var(--orange);font-size:11px;font-weight:900;letter-spacing:.1em;margin-bottom:3px}
   .record-hub-copy b{font-size:18px}
   .record-hub-back{font-size:16px;min-height:50px}
@@ -1028,7 +1027,7 @@ nav button.on{color:var(--green)}
           <div class="record-hub-path" role="note"><b>建議順序</b><span>1 建立田區</span><span>2 留下作業</span><span>3 回顧與匯出</span></div>
         </div>
         <div class="record-hub-menu" aria-label="紀錄功能選單">
-          <button class="record-hub-button" type="button" onclick="openRecordHub('plots')" aria-controls="recordPanelPlots"><span class="record-hub-index" aria-hidden="true"><span class="record-hub-glyph">田</span></span><span class="record-hub-copy"><span class="record-hub-label">01・田區</span><b>田區新增／田區管理</b><small>建立種植批次、設定預設田區，並查看每個田區的完整作業鏈。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>
+          <button class="record-hub-button" type="button" onclick="openRecordHub('plots')" aria-controls="recordPanelPlots"><span class="record-hub-index" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="5" y="6" width="22" height="20" rx="4"/><path d="M15 6v20M15 15h12M5 19h10"/></svg></span><span class="record-hub-copy"><span class="record-hub-label">01・田區</span><b>田區新增／田區管理</b><small>建立種植批次、設定預設田區，並查看每個田區的完整作業鏈。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>
           <button class="record-hub-button" type="button" onclick="openRecordHub('farm')" aria-controls="recordPanelFarm"><span class="record-hub-index" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 5h16v22H8zM12 10h8M12 15h8M12 20h5"/><path d="m20 23 2 2 5-6"/></svg></span><span class="record-hub-copy"><span class="record-hub-label">02・作業</span><b>其他田區紀錄</b><small>記錄栽培、施肥、採收、採後處理與資材購入等日常作業。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>
           <button class="record-hub-button" type="button" onclick="openRecordHub('export')" aria-controls="recordPanelExport"><span class="record-hub-index" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 5v16M10 15l6 6 6-6M6 25h20"/></svg></span><span class="record-hub-copy"><span class="record-hub-label">03・整理</span><b>用藥歷史／匯出用藥紀錄</b><small>查看過去的施藥內容，再依日期與田區篩選並匯出 Excel、PDF 或 CSV。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>
         </div>
