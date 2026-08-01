@@ -142,12 +142,12 @@ assert.equal(S.sameContent({id:"a",n:1}, {id:"a",n:2}), false);
   assert.equal(S.beforeStore("records", "not-an-array"), "not-an-array", "非陣列原樣通過");
 }
 
-/* ── 預設開啟,可關閉 ── */
-assert.equal(S.isEnabled(), true, "登入後預設開啟同步");
-S.setEnabled(false);
-assert.equal(S.isEnabled(), false, "可由使用者關閉");
+/* ── 預設關閉,必須由使用者主動開啟 ── */
+assert.equal(S.isEnabled(), false, "登入不等於同意上傳，雲端同步必須預設關閉");
 S.setEnabled(true);
-assert.equal(S.isEnabled(), true);
+assert.equal(S.isEnabled(), true, "可由使用者主動開啟");
+S.setEnabled(false);
+assert.equal(S.isEnabled(), false, "可由使用者再次關閉");
 
 /* ── 未登入時狀態文字必須說明資料只在本機 ── */
 {

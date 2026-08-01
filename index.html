@@ -874,7 +874,7 @@ nav button.on{color:var(--green)}
   <main>
     <!-- 查詢 -->
     <section class="screen active" id="scr-search">
-      <div id="heroBox"></div>
+      <div id="homeGuide"></div>
       <div class="safety-banner" role="note">安全提醒：本工具是查詢與自主紀錄輔助。實際用藥、稀釋倍數及安全採收期，請以產品標示與主管機關最新公告為準。</div>
       <div class="qmode" role="tablist" aria-label="查詢方式">
         <button id="qmodeCrop" class="on" role="tab" aria-selected="true" onclick="setQueryMode('crop')">以作物找藥</button>
@@ -893,7 +893,6 @@ nav button.on{color:var(--green)}
       <div class="chips" id="recentCrops"></div>
       <div class="chips" id="cropResults" style="margin-top:9px"></div>
       <div style="margin-top:12px"><button class="chip mut" onclick="openDual()">多種作物聯合防治</button></div>
-      <div id="homeCards"></div>
       <div id="formBlock" style="display:none">
         <div class="form-ask" id="formPrompt"></div>
         <div class="chips" id="formChips"></div>
@@ -927,6 +926,7 @@ nav button.on{color:var(--green)}
         </div>
       </div>
       </div>
+      <div id="homeCards"></div>
       <p class="disclaimer">資料來源:農業部「農藥資料查詢」開放資料(政府資料開放授權條款第 1 版)。<br>本工具僅供查詢參考,實際使用以產品標示及最新公告為準。<br><span id="verLine"></span></p>
     </section>
 
@@ -1309,8 +1309,13 @@ window.addEventListener("load",function(){
     var d=document.createElement("div");
     d.id="loadFailureBanner";
     d.style.cssText="position:fixed;top:0;left:0;right:0;z-index:999;background:#B4402E;color:#fff;font:700 14px/1.6 'Noto Sans TC',sans-serif;padding:12px 16px;text-align:center";
-    d.innerHTML="資料載入失敗，請重新整理頁面；若持續發生，請回報使用的瀏覽器與裝置。"
-      +(window.__appErr?"<br><small style='font-weight:400;opacity:.85'>"+String(window.__appErr).slice(0,120)+"</small>":"");
+    d.textContent="資料載入失敗，請重新整理頁面；若持續發生，請回報使用的瀏覽器與裝置。";
+    if(window.__appErr){
+      var br=document.createElement("br"),small=document.createElement("small");
+      small.style.cssText="font-weight:400;opacity:.85";
+      small.textContent=String(window.__appErr).slice(0,120);
+      d.appendChild(br);d.appendChild(small);
+    }
     document.body.appendChild(d);
   },1200);
 },{once:true});
@@ -1330,7 +1335,7 @@ const DATA={"木瓜":{"白粉病":[{"name":"快得保淨","form":"WP","content":
 /* ═══ 維護區:改這裡就好 ═══════════════════════════════
    APP_VERSION:每次更新資料或功能時往上加
    ANNOUNCE:公告(新的放最上面,date 改了紅點會自動亮) */
-const APP_VERSION="0.3.5.0";
+const APP_VERSION="0.3.6.0";
 const DATA_VERSION="2026-07-21"; // 農藥資料抓取年月
 const ANNOUNCE=[
  {date:"2026-07-30",version:"0.3.3.1",title:"網頁版自願支持管道啟用",body:"噴前查網頁版現已串接綠界科技收款服務，提供新台幣 50、100、150 元與自訂金額的自願支持選項。付款由綠界處理；是否支持不影響任何功能或服務。",action:"support",actionLabel:"查看贊助方式"},
@@ -1577,28 +1582,18 @@ function matchMaterials(pest){
 /* ── 本季常見病蟲害提醒(台灣平地一般情形,僅供提醒) ── */
 function renderHome(){
   const el=document.getElementById("homeCards");
-  const hero=document.getElementById("heroBox");
-  const q=(document.getElementById("cropSearch").value||"").trim();
-  if(selCrop||q){el.innerHTML="";hero.innerHTML="";return}
-  hero.innerHTML=`<section class="home-hero" aria-labelledby="homeHeroTitle">
-    <span class="home-kicker">公開測試中</span>
-    <h1 id="homeHeroTitle">噴藥前查清楚，<br><em>做完順手留下來。</em></h1>
-    <p>噴前查 SearchBefore 是協助台灣農友查詢合法登記藥劑、完成配藥換算，並整理田區、用藥與安全採收紀錄的田間工具。公開測試期間所有功能均開放，不登入也能直接使用。</p>
-    <div class="home-actions">
-      <button class="primary" onclick="focusHomeSearch()">開始查作物</button>
-      <button class="secondary" onclick="scrollHomeFeatures()">看看完整功能</button>
-      <button class="secondary" onclick="openFeedback('公開測試首頁')">提供試用回饋</button>
-    </div>
-    <div class="home-trust" aria-label="產品特色">
-      <span>農業部開放資料</span><span>不登入也能用</span><span>紀錄留在本機</span>
-    </div>
-  </section>`;
+  const guide=document.getElementById("homeGuide");
+  const cropQ=(document.getElementById("cropSearch").value||"").trim();
+  const agentQ=(document.getElementById("agentSearch").value||"").trim();
+  const hasQuery=queryMode==="agent"?(agentPicked||agentQ):(selCrop||cropQ);
+  guide.innerHTML="";
+  if(hasQuery){el.innerHTML="";return}
   let html="";
   if(store.get("guideDone")==null){
-    html+=`<section class="home-section home-start" aria-labelledby="homeStartTitle">
+    guide.innerHTML=`<section class="home-section home-start" aria-labelledby="homeStartTitle">
       <h3 class="home-start-title" id="homeStartTitle">第一次使用，只要三步</h3>
-      <div class="g-step"><div class="n">1</div><p><b>搜尋作物</b> — 輸入草莓、番茄，也支援地瓜、芭樂等常見俗名。</p></div>
-      <div class="g-step"><div class="n">2</div><p><b>選病蟲害</b> — 查看這項作物直接登記的藥劑、倍數與安全採收期。</p></div>
+      <div class="g-step"><div class="n">1</div><p><b>選擇查法</b> — 可用作物找藥，也能用藥劑反查實際登記作物。</p></div>
+      <div class="g-step"><div class="n">2</div><p><b>核對登記</b> — 查看作物、防治對象、稀釋倍數與安全採收期。</p></div>
       <div class="g-step"><div class="n">3</div><p><b>帶入計算並記錄</b> — 算好用量，完成後留下施藥紀錄與採收倒數。</p></div>
       <button class="g-dismiss" onclick="store.set('guideDone',1);renderHome()">我知道怎麼用了</button>
     </section>`;
@@ -1610,17 +1605,17 @@ function renderHome(){
   html+=`<section class="home-section" id="homeFeatures" aria-labelledby="homeFeatureTitle">
     <div class="home-section-head"><span class="eyebrow" id="homeFeatureTitle">核心功能</span></div>
     <div class="home-feature-grid">
-      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="14" cy="14" r="8"/><path d="m20 20 7 7M11 17c0-5 3-8 8-8-1 5-3 8-8 8Z"/></svg></span><h4>合法用藥查詢</h4><p>依作物與病蟲害查直接登記藥劑、稀釋倍數與安全採收期，也能自選採收期天數篩選。</p></article>
+      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="14" cy="14" r="8"/><path d="m20 20 7 7M11 17c0-5 3-8 8-8-1 5-3 8-8 8Z"/></svg></span><h4>雙向合法用藥查詢</h4><p>可依作物與病蟲害找藥，也可由藥劑反查實際登記作物；逐筆顯示倍數與安全採收期。</p></article>
       <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 4h16v24H8zM12 9h8M12 15h2M18 15h2M12 21h2M18 21h2"/></svg></span><h4>配藥換算</h4><p>把藥劑倍數帶入水量、桶數或面積，快速算出現場需要的實際用量。</p></article>
-      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 7h20v20H6zM10 3v8M22 3v8M6 13h20M11 18h4M18 18h4M11 23h4"/></svg></span><h4>田區作業時間軸</h4><p>依田區整合施藥、栽培、施肥、採收、採後處理與資材購入紀錄。</p></article>
-      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="17" r="10"/><path d="M16 12v6l4 3M12 3h8"/></svg></span><h4>安全採收連動</h4><p>同田區所有用藥一起判斷最晚可採日；資料不足時不會誤顯示可採收。</p></article>
-      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 5h16v22H8zM12 10h8M12 15h8M12 20h5"/><path d="m20 23 2 2 5-6"/></svg></span><h4>完整農務紀錄</h4><p>除了用藥，也能留下五類農務作業，讓日後追溯、交接與整理更完整。</p></article>
-      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 5v16M10 15l6 6 6-6M6 25h20"/></svg></span><h4>匯出與備份</h4><p>把用藥與農務紀錄匯出成 Excel、PDF 或 CSV，或下載 JSON 備份；換裝置前也能保存自己的資料。</p></article>
+      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="17" r="10"/><path d="M16 12v6l4 3M12 3h8"/></svg></span><h4>施藥紀錄與安全採收連動</h4><p>完成施藥後留下紀錄，依同田區全部用藥判斷最晚可採日；資料不足時不誤顯示可採收。</p></article>
+      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 7h20v20H6zM10 3v8M22 3v8M6 13h20M11 18h4M18 18h4M11 23h4"/></svg></span><h4>田區與農務管理</h4><p>用田區時間軸整理栽培、施肥、採收、採後處理、資材購入及施藥等工作。</p></article>
+      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 5h16v22H8zM12 10h8M12 15h8M12 20h5"/><path d="m20 23 2 2 5-6"/></svg></span><h4>履歷整理與多格式匯出</h4><p>依日期與田區整理紀錄，匯出 Excel、PDF 或 CSV，方便自行保存、查閱與後續登打。</p></article>
+      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 5v16M10 15l6 6 6-6M6 25h20"/></svg></span><h4>本機備份與選用雲端</h4><p>預設只存在這台裝置，可下載 JSON 完整備份；明確同意後才會同步部分田間資料。</p></article>
     </div>
   </section>`;
   html+=`<div class="home-boundary" role="note"><strong>資料來源與使用界線</strong><p>藥劑資料來自農業部開放資料，版本 ${typeof DATA_VERSION!=="undefined"?DATA_VERSION:""}。本工具協助查詢與自主整理；實際用藥仍以產品標示及主管機關最新公告為準。匯出檔供農友自行保存與查閱。</p></div>`;
   html+=`<div class="info-card"><h3>隱私、合作與回饋</h3>
-    <div class="info-row"><b>隱私</b><span>田間紀錄只存在你的裝置；Google 登入為選用功能。<a href="${PRIVACY_URL}" style="color:var(--green);font-weight:700">查看隱私權政策</a></span></div>
+    <div class="info-row"><b>隱私</b><span>田間紀錄預設只存在你的裝置；Google 登入與雲端備份都可自行選擇。<a href="${PRIVACY_URL}" style="color:var(--green);font-weight:700">查看隱私權政策</a></span></div>
     <div class="info-links">
       <a href="${COOP_FORM_URL}" target="_blank" rel="noopener">合作洽詢</a>
       <button onclick="openFeedback('')">意見回饋</button>
@@ -1738,7 +1733,11 @@ function searchCrops(q){
   const sug=hits.filter(h=>h.kind==="fuzzy");
   box.innerHTML=`<div class="hint" style="width:100%">找不到「${esc(q)}」。${sug.length?"你要找的是不是:":"可試上層分類(例:小葉菜類),或回報給我們補上。"}</div>`
     +sug.map(h=>`<button class="chip" onclick="pickCrop('${esc(h.c)}')">${esc(h.c)}<small>${unionPestCount(h.c)} 項</small></button>`).join("")
-    +`<button class="chip mut" onclick="openFeedback('查詢不到作物:「${esc(q)}」')">回報查不到「${esc(q)}」</button>`;
+    +`<button class="chip mut" onclick="reportMissingCrop()">回報查不到「${esc(q)}」</button>`;
+}
+function reportMissingCrop(){
+  const q=(document.getElementById("cropSearch").value||"").trim();
+  openFeedback(`查詢不到作物:「${q.slice(0,80)}」`);
 }
 document.getElementById("cropSearch").addEventListener("input",e=>{searchCrops(e.target.value);renderHome()});
 
@@ -3170,12 +3169,14 @@ function setQueryMode(m){
   document.getElementById("qmodeAgent").setAttribute("aria-selected",String(isAgent));
   document.getElementById("cropModeBlock").style.display=isAgent?"none":"";
   document.getElementById("agentModeBlock").style.display=isAgent?"":"none";
+  renderHome();
   if(isAgent){ensureAgentIndex();document.getElementById("agentSearch").focus()}
 }
 function agentSuggest(q){
   const box=document.getElementById("agentHits");
   const hits=PQC_AIDS.agentSuggestions(q,ensureAgentIndex(),24);
-  if(!String(q||"").trim()){box.innerHTML="";document.getElementById("agentRegResults").innerHTML="";return}
+  if(!String(q||"").trim()){box.innerHTML="";document.getElementById("agentRegResults").innerHTML="";agentPicked=null;renderHome();return}
+  agentPicked=null;renderHome();
   box.innerHTML=hits.length?hits.map(h=>
     `<button class="chip mut" onclick="pickAgent('${esc(h.name)}')">${esc(h.name)}`+
     (h.kind==="brand"?`<span class="alias">商品:${esc(h.brand)}</span>`:"")+
