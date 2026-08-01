@@ -20,33 +20,35 @@
 node tests/run-all.js
 ```
 
-## 帳號與自願贊助（v0.1.9.0）
+## 帳號與自願贊助
 
-- Google 登入為選用功能，目前只負責帳號識別，田區與農務資料仍保存在裝置。
+- Google 登入為選用功能；**只有登入不會上傳田間資料**。使用者另行開啟雲端同步後，田區、用藥與農務紀錄才會同步到其 Google 帳號對應的 Firestore 空間。
 - 公開測試期間不顯示試用申請、授權碼、方案或購買入口，現有功能全部開放。
 - 首頁以「完成一項真實工作」引導測試者查詢、留下紀錄並在之後回訪，不把按讚或單次瀏覽當成有效驗證。
-- 自願贊助不影響任何功能；`service-config.js` 可分別設定 50、100、150 元與自訂金額的 HTTPS 贊助網址。
+- 自願贊助不影響任何功能；`web-support-config.js` 可分別設定 50、100、150 元與自訂金額的 HTTPS 贊助網址。
 - 綠界贊助設定由 `web-support-config.js` 在一般瀏覽器版按需載入；Google Play TWA 與其他安裝版不載入、顯示或開啟外部付款入口。
 - Android App 目前不啟用任何付費功能；未來若販售 App 內數位功能或雲端服務，須另行接入 Google Play Billing，不可沿用綠界連結。
-- 正式曝光前需在 `service-config.js` 填入回饋信箱與各贊助網址；沒有有效網址時不會顯示假的贊助入口。
+- 正式曝光前需在 `service-config.js` 填入回饋信箱，並在 `web-support-config.js` 填入各贊助網址；沒有有效網址時不會顯示假的贊助入口。
 - 設定步驟與安全界線見 `docs/帳號與付款設定.md`。
 
 ## 正式發布
 
-- 原始碼、測試與文件保留在專案中；Firebase Hosting 只發布 `dist/` 內的必要成品。
+- 截至 2026-08-01，正式網域仍由 Cloudflare 代理至 GitHub Pages，來源是 `main` 根目錄；因此提交到公開 repo 的非秘密檔案可能被直接讀取，即使沒有載入介面。
+- Firebase Hosting 的 `dist/` 白名單發布流程已備妥，但尚未成為正式網域的實際來源；切換完成後才能把它描述為正式部署方式。
+- 尚未完成、尚未驗收或尚未正式串接的功能，預設不得出現在正式前端；指定測試功能必須明確標示「開發中」。詳細規則見 `docs/前端功能發布規則.md`。
 - `npm run release:check` 會先執行測試、產生壓縮成品，再確認沒有文件、Source Map 或私密金鑰混入。
 - `dist/` 是可重建的發布成品，不提交至 Git；確認檢查通過後才執行 `npm run deploy:hosting`。
 - 第一次部署前使用 `npm run firebase:login` 登入；也可以先執行 `npm run deploy:preview` 產生暫時預覽網址。Firebase CLI 僅在部署時暫時取得，不列入專案常駐依賴。
-- 正式網域為 `https://searchbefore.tw/`，切換 DNS 前須先用 Firebase 預設網址驗證功能。
+- 正式網域為 `https://searchbefore.tw/`；若要切到 Firebase Hosting，須先用 Firebase 預設網址驗證，再調整 Cloudflare/DNS 並檢查 HTTPS、Service Worker 與 OAuth。
 
-## 首頁功能導覽（v1.6.0）
+## 首頁功能導覽
 
 - 首頁用一句話說明產品價值，並保留「開始查作物」的直接入口。
 - 以六步流程呈現「選田區 → 查合法藥劑 → 計算用量 → 留下紀錄 → 守安全採收 → 整理匯出」。
 - 以六張功能卡整理合法用藥、配藥換算、田區時間軸、安全採收、農務紀錄與備份匯出。
 - 明確標示資料來源、隱私方式與使用界線，避免把自主整理檔誤認為官方直接匯入格式。
 
-## 田間作業紀錄（v1.5.0）
+## 田間作業紀錄
 
 - 以田區／種植批次整合用藥與其他田間作業。
 - 支援栽培作業、施肥、採收、採後處理、資材購入五類紀錄。
@@ -68,6 +70,7 @@ node tests/run-all.js
 - 更新 `index.html` 後同步更新 `sw.js` 的 `CACHE_VERSION`。
 - Firebase 公開設定只放在 `service-config.js`；服務帳戶 JSON、管理員私鑰與金流密鑰不得上傳。
 - `private_key.pem`、其他 `.pem` 私鑰檔不得上傳。
+- 內部開發分兩類：`formOcr` 這類前端測試模組可進成品，但必須由 `features` 保持 `hidden`；`tap-workflow.js` 這類純內部模組則不得被 `index.html`、Service Worker 或正式 build 載入。
 
 ## 重要安全聲明
 
