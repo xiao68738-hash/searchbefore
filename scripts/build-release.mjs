@@ -11,6 +11,7 @@ const outDir = path.join(root, "dist");
 const htmlFiles = ["index.html", "about.html", "privacy.html", "delete-account.html"];
 const jsFiles = [
   "service-config.js",
+  "web-support-config.js",
   "account.js",
   "cloud-sync.js",
   "safety.js",

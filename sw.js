@@ -8,7 +8,7 @@
    這個動作本身就是觸發更新的開關,不要忘記。
 */
 
-const CACHE_VERSION = "v0.3.6.0-security-privacy-home-2026-08-01";
+const CACHE_VERSION = "v0.3.6.1-google-play-payment-boundary-2026-08-01";
 const CACHE_NAME = "pqc-" + CACHE_VERSION;
 
 /* 只放骨架。App 本體(index.html)約 1MB gzip,用 reload 強制繞過 HTTP 快取抓最新版。 */
@@ -83,7 +83,7 @@ async function handleNavigate(request) {
   );
 }
 
-/* 公開服務設定可能只更新回饋或贊助網址。連線時優先取最新版，
+/* 公開服務設定或一般網頁版贊助網址可能獨立更新。連線時優先取最新版，
    避免裝置長期使用安裝當下的設定；離線時仍可退回既有快取。 */
 async function handleRuntimeConfig(request) {
   const cache = await caches.open(CACHE_NAME);
@@ -122,7 +122,7 @@ self.addEventListener("fetch", event => {
 
   const sameOrigin = url.origin === self.location.origin;
   const isFont = /fonts\.(googleapis|gstatic)\.com$/.test(url.hostname);
-  const isRuntimeConfig = sameOrigin && /\/service-config\.js$/.test(url.pathname);
+  const isRuntimeConfig = sameOrigin && /\/(?:service-config|web-support-config)\.js$/.test(url.pathname);
   if (isRuntimeConfig) { event.respondWith(handleRuntimeConfig(req)); return; }
   if (sameOrigin || isFont) event.respondWith(handleAsset(req));
 });

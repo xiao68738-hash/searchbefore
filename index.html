@@ -1329,7 +1329,7 @@ const DATA={"木瓜":{"白粉病":[{"name":"快得保淨","form":"WP","content":
 /* ═══ 維護區:改這裡就好 ═══════════════════════════════
    APP_VERSION:每次更新資料或功能時往上加
    ANNOUNCE:公告(新的放最上面,date 改了紅點會自動亮) */
-const APP_VERSION="0.3.6.0";
+const APP_VERSION="0.3.6.1";
 const DATA_VERSION="2026-07-21"; // 農藥資料抓取年月
 const ANNOUNCE=[
  {date:"2026-07-30",version:"0.3.3.1",title:"網頁版自願支持管道啟用",body:"噴前查網頁版現已串接綠界科技收款服務，提供新台幣 50、100、150 元與自訂金額的自願支持選項。付款由綠界處理；是否支持不影響任何功能或服務。",action:"support",actionLabel:"查看贊助方式"},
@@ -2882,9 +2882,17 @@ function openRecordModal(pre){
 }
 function closeRecordModal(){document.getElementById("recModal").classList.remove("open")}
 function openSponsorModal(){
-  if(isInstalledAppContext())return;
-  renderSupportLink();
-  document.getElementById("sponsorModal").classList.add("open");
+  if(isInstalledAppContext()){clearSupportLinks();return;}
+  loadWebSupportConfig().then(function(loaded){
+    if(!loaded||isInstalledAppContext()){clearSupportLinks();return;}
+    renderSupportLink();
+    if(document.querySelector("#sponsorModal .tier-row[href]")){
+      const modal=document.getElementById("sponsorModal");
+      modal.removeAttribute("aria-hidden");
+      modal.inert=false;
+      modal.classList.add("open");
+    }
+  });
 }
 function closeSponsorModal(){document.getElementById("sponsorModal").classList.remove("open")}
 /* 依計算頁狀態估算整批總用水量(公升),供產銷履歷對照表帶入;估不出來回傳空字串。
@@ -3643,6 +3651,54 @@ function renderProfile(){
   if(window.PQC_ACCOUNT)window.PQC_ACCOUNT.render();
   renderSupportLink();
 }
+const GOOGLE_PLAY_CONTEXT_KEY="pqcGooglePlayApp";
+let _webSupportConfigPromise=null;
+function rememberGooglePlayAppContext(){
+  document.documentElement.setAttribute("data-app-runtime","google-play");
+  try{window.sessionStorage.setItem(GOOGLE_PLAY_CONTEXT_KEY,"1")}catch(e){}
+}
+function isGooglePlayAppContext(){
+  let remembered=false,explicit=false;
+  try{remembered=window.sessionStorage.getItem(GOOGLE_PLAY_CONTEXT_KEY)==="1"}catch(e){}
+  try{
+    const params=new URLSearchParams(window.location.search||"");
+    explicit=params.get("app")==="google-play"||params.get("source")==="google-play";
+  }catch(e){}
+  const twaReferrer=typeof document.referrer==="string"&&document.referrer.indexOf("android-app://tw.searchbefore.app")===0;
+  const nativeSignal=window.PQC_APP_RUNTIME==="google-play";
+  const detected=remembered||explicit||twaReferrer||nativeSignal;
+  if(detected)rememberGooglePlayAppContext();
+  return detected;
+}
+function clearSupportLinks(){
+  ["supportLink50","supportLink100","supportLink150","supportLink"].forEach(function(id){
+    const link=document.getElementById(id);
+    if(!link)return;
+    link.removeAttribute("href");
+    link.setAttribute("aria-disabled","true");
+  });
+  const card=document.getElementById("supportCard");
+  if(card)card.style.display="none";
+  const modal=document.getElementById("sponsorModal");
+  if(modal){modal.classList.remove("open");modal.setAttribute("aria-hidden","true");modal.inert=true}
+}
+function loadWebSupportConfig(){
+  if(isInstalledAppContext()){clearSupportLinks();return Promise.resolve(false)}
+  if(window.PQC_WEB_SUPPORT_CONFIG)return Promise.resolve(true);
+  if(_webSupportConfigPromise)return _webSupportConfigPromise;
+  _webSupportConfigPromise=new Promise(function(resolve){
+    const script=document.createElement("script");
+    script.src="./web-support-config.js";
+    script.async=true;
+    script.onload=function(){
+      if(isInstalledAppContext()){clearSupportLinks();resolve(false);return}
+      resolve(!!window.PQC_WEB_SUPPORT_CONFIG);
+    };
+    script.onerror=function(){resolve(false)};
+    document.head.appendChild(script);
+  });
+  return _webSupportConfigPromise;
+}
 function renderSupportLink(){
   const card=document.getElementById("supportCard");
   const links=[
@@ -3653,7 +3709,12 @@ function renderSupportLink(){
   ];
   if(!card)return;
   if(isInstalledAppContext()){
-    card.style.display="none";
+    clearSupportLinks();
+    return;
+  }
+  if(!window.PQC_WEB_SUPPORT_CONFIG){
+    clearSupportLinks();
+    loadWebSupportConfig().then(function(loaded){if(loaded)renderSupportLink()});
     return;
   }
   let hasAvailableLink=false;
@@ -3673,20 +3734,35 @@ function renderSupportLink(){
   card.style.display=hasAvailableLink?"flex":"none";
 }
 function isInstalledAppContext(){
-  const twaReferrer=typeof document.referrer==="string"&&document.referrer.indexOf("android-app://tw.searchbefore.app")===0;
   const standalone=typeof window.matchMedia==="function"&&window.matchMedia("(display-mode: standalone)").matches;
   const iosStandalone=window.navigator&&window.navigator.standalone===true;
-  return !!(twaReferrer||standalone||iosStandalone);
+  return !!(isGooglePlayAppContext()||standalone||iosStandalone);
 }
 function publicConfigSupportUrl(key){
-  const config=window.PQC_PUBLIC_CONFIG||{};
-  const raw=config.supportUrls&&config.supportUrls[key]||key==="custom"&&config.supportUrl||"";
-  try{const parsed=new URL(raw);return parsed.protocol==="https:"?parsed.href:""}catch(e){return ""}
+  const config=window.PQC_WEB_SUPPORT_CONFIG||{};
+  const raw=config.supportUrls&&config.supportUrls[key]||"";
+  try{
+    const parsed=new URL(raw);
+    return parsed.protocol==="https:"&&parsed.hostname==="p.ecpay.com.tw"?parsed.href:"";
+  }catch(e){return ""}
 }
 function publicConfigHttpsUrl(key){
   const raw=window.PQC_PUBLIC_CONFIG&&window.PQC_PUBLIC_CONFIG[key]||"";
   try{const parsed=new URL(raw);return parsed.protocol==="https:"?parsed.href:""}catch(e){return ""}
 }
+window.addEventListener("pqc:android-app-context",function(){rememberGooglePlayAppContext();clearSupportLinks()});
+document.addEventListener("click",function(event){
+  if(!isInstalledAppContext())return;
+  const link=event.target&&event.target.closest?event.target.closest("a[href]"):null;
+  if(!link)return;
+  try{
+    if(new URL(link.href,location.href).hostname!=="p.ecpay.com.tw")return;
+  }catch(e){return}
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  clearSupportLinks();
+  if(typeof toast==="function")toast("Google Play 版不提供外部付款；目前所有功能皆可免費使用");
+},true);
 renderRecent();renderRecipes();renderRecords();calc();renderHome();renderRecTable();renderProfile();renderPlotRecordBox();openHomeOnLaunch();
 document.getElementById("verLine").innerHTML=`App v${APP_VERSION} · 資料版本 ${DATA_VERSION} · <a href="#" onclick="openFeedback('');return false" style="color:var(--green);font-weight:700">意見回饋</a>`;
 

@@ -369,6 +369,9 @@
     installPanel();
     root.addEventListener("message", function (event) {
       if (TRUSTED_ORIGINS.indexOf(event.origin) < 0) return;
+      if (event.origin === "android://tw.searchbefore.app" && typeof root.dispatchEvent === "function" && typeof root.CustomEvent === "function") {
+        root.dispatchEvent(new root.CustomEvent("pqc:android-app-context"));
+      }
       if (event.ports && event.ports[0]) {
         twaPort = event.ports[0];
         if (typeof twaPort.start === "function") twaPort.start();
