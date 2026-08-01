@@ -29,6 +29,7 @@
 ## 正式 Android 原始碼到手後的步驟
 
 1. 以 PWABuilder 或 Bubblewrap 取得 `tw.searchbefore.app` 的完整 Android 原始碼。只有 APK/AAB/keystore 不能安全修改功能。
+   - TWA 的正式啟動網址使用 `https://searchbefore.tw/?app=google-play`，讓網站在任何付款設定載入前就能辨識 Google Play 版。
 2. 將 `ocr-feature` 資料夾複製到正式 Android 工程根目錄。
 3. 在 `settings.gradle` 加入 `include(":ocr-feature")`，在正式 `app/build.gradle` 加入 `implementation project(":ocr-feature")`。
 4. 正式 Manifest 宣告 `tw.searchbefore.ocr.ScanActivity`，保持 `android:exported="false"`；它只能由 App 內部啟動，不可成為外部入口。
@@ -47,6 +48,7 @@
 8. 掃描成功後，以 `OcrContract.resultJsonFrom(resultIntent)` 讀出 JSON，再透過同一個已驗證的 channel 回傳；不得額外加入 Bitmap、Base64、檔案路徑或 URI。
 9. 取消、錯誤或 Activity 被系統回收時，清除尚未完成的 `requestId`，不要重送上一次結果。
 10. 使用正式簽章建立內部測試 AAB，先在實體 Android 手機測試，再提交 Google Play。簽章檔與密碼不得加入 Git。
+11. 正式 App 不得載入或開啟 `web-support-config.js` 內的綠界連結；未來 App 內數位付費另以 Google Play Billing 實作，詳細界線見 `docs/帳號與付款設定.md`。
 
 ## 實機驗收
 
@@ -58,6 +60,7 @@
 - App 儲存空間內沒有留下原始照片；雲端備份與網站 localStorage 也沒有照片。
 - 修改回傳 `requestId`、協定版本、訊息類型或加入圖片欄位時，網站會拒絕資料。
 - 用藥名稱無法唯一對回登記資料時，不能直接建立用藥紀錄。
+- Google Play App 的個人頁、公告與任何其他位置都看不到綠界入口；即使頁面被注入綠界連結，捕獲階段也會阻止開啟。
 
 ## 目前唯一缺口
 

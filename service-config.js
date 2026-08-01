@@ -2,7 +2,7 @@
 
    1. Google 登入：將 Firebase 控制台提供的 Web 設定物件填入 firebase。
    2. 回饋信箱：填入專門接收測試回饋的 email。
-   3. 贊助連結：將各金額的綠界 https 收款網址填入 supportUrls。
+   3. 贊助連結已移到 web-support-config.js，避免 Google Play App 載入外部付款網址。
 
    範例：
    firebase: {
@@ -22,10 +22,9 @@ window.PQC_PUBLIC_CONFIG = {
     appId: "1:934300362639:web:a96c41c1a7e6cd5ea5cdfa"
   },
   feedbackEmail: "searchbefore82@gmail.com",
-  supportUrls: {
-    amount50: "https://p.ecpay.com.tw/C208963",
-    amount100: "https://p.ecpay.com.tw/0503198",
-    amount150: "https://p.ecpay.com.tw/AE7EDCF",
-    custom: "https://p.ecpay.com.tw/D7844AC"
+  /* 未完善功能一律 hidden；只有安排公開測試時才可改成 development，
+     並由前端明確標示「開發中」。正式完成及驗收後才能改成 public。 */
+  features: {
+    formOcr: "hidden"
   }
 };
