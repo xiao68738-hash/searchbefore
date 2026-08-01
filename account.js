@@ -61,14 +61,7 @@
   function renderBox(el,compact,entry){
     const cfg=firebaseConfig();
     if(!cfg){
-      if(compact&&!entry){el.innerHTML="";return}
-      if(entry){
-        el.innerHTML='<button class="btn btn-ghost" type="button" disabled style="width:100%">Google 登入暫時未啟用</button>'
-          +'<p class="hint" style="margin:9px 0 0">仍可選擇下方的訪客身分使用全部現有功能。</p>';
-        return;
-      }
-      el.innerHTML='<div class="account-state"><div class="account-placeholder">'+googleLogo()+'</div><div class="account-copy"><b>Google 登入準備中</b><span>完成 Firebase 設定後即可啟用；目前不會傳送帳號或田間資料。</span></div></div>'
-        +'<button class="btn btn-ghost" type="button" disabled style="width:100%;margin-top:10px">尚未啟用 Google 登入</button>';
+      el.innerHTML="";
       return;
     }
     if(isFilePreview()){
@@ -108,7 +101,19 @@
     el.innerHTML='<button class="btn btn-main google-signin" type="button" onclick="PQC_ACCOUNT.signIn()">'+googleMark()+'<span>使用 Google 帳號登入</span></button>'
       +(entry?'':'<p class="hint" style="margin:9px 0 0">登入為選用功能；登入後仍不會自動上傳田間資料，需由你另外開啟雲端備份。</p>');
   }
+  function renderAvailability(){
+    const available=!!firebaseConfig();
+    ["accountCard","homeAccountCard"].forEach(function(id){
+      const el=document.getElementById(id);
+      if(el)el.hidden=!available;
+    });
+    const entry=document.getElementById("entryAccountInner");
+    if(entry)entry.hidden=!available;
+    const divider=document.getElementById("entryDivider");
+    if(divider)divider.hidden=!available;
+  }
   function render(){
+    renderAvailability();
     accountBoxes().forEach(function(item){renderBox(item.el,item.compact,item.entry)});
     // 已登入就不再提供訪客入口（入口頁專用）
     const guestBlock=document.getElementById("entryGuestBlock");

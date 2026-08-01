@@ -29,7 +29,7 @@ assert.ok(html.indexOf('<script src="./account.js"></script>') < html.indexOf("c
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="0\.3\.6\.1"/);
+assert.match(html, /const APP_VERSION="0\.3\.6\.2"/);
 assert.match(html, /title:"網頁版自願支持管道啟用"/);
 assert.match(html, /提供新台幣 50、100、150 元與自訂金額的自願支持選項/);
 assert.match(html, /action:"support",actionLabel:"查看贊助方式"/);
@@ -65,7 +65,7 @@ assert.match(html, /id="backupNote"/);
    不得檢出是「查無此筆」的預設結果 —— 因此比對失敗與真正未訂容許量
    在系統中無法區分。一旦把查無結果講成「風險」,合法登記藥劑會被誤報,
    農友被誤報一次就會忽略所有警告,包括真正該注意的。 */
-assert.match(html, /MRL 對照目前尚未開放/);
+assert.match(html, /本查詢不含 MRL 判定/);
 assert.match(html, /均只能視為「尚無法確認」/);
 
 /* ── 作物別名的目標必須真的存在於 DATA ──
@@ -108,7 +108,7 @@ assert.match(html, /常用配方與偏好設定仍只存在這台裝置/);
 assert.match(html, /用藥、田間作業、田區與配方只存在這台裝置/);
 assert.match(html, /PQC_SAFETY\.shouldShowVolumeApprox\(unit\)/);
 assert.match(html, /PQC_SAFETY\.directCropLevels\(crop,DATA\)/);
-assert.match(html, /id="rNotify" disabled/);
+assert.doesNotMatch(html, /手機通知暫停|id="rNotify"/, "未完成的手機通知不得出現在前端");
 assert.match(html, /id="phiCustom" type="number" min="1" max="365"/);
 assert.match(html, /function applyCustomPhi\(btn\)/);
 assert.match(html, /PQC_SAFETY\.harvestStatus\(records,input\.plotId,input\.date\)/);
@@ -209,7 +209,7 @@ assert.match(sw, /"\.\/brand-lockup\.png"/);
 assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0\.3\.6\.1-google-play-payment-boundary/);
+assert.match(sw, /v0\.3\.6\.2-feature-release-gate/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.ok(html.indexOf('<script src="./query-aids.js"></script>') < html.indexOf("const DATA="), "query-aids.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./form-ocr.js"></script>') < html.indexOf("const DATA="), "form-ocr.js 必須在主程式前載入");
@@ -276,7 +276,8 @@ assert.match(about, /Google 登入與資料使用/);
 assert.match(html, /class="brand">噴前查 <span class="brand-en">SearchBefore<\/span>/);
 assert.match(html, /雙向合法用藥查詢/);
 assert.match(about, /只取得 Google 提供的基本帳號識別資料/);
-assert.match(about, /不會因 Google 登入而自動上傳至 Google 或 Firebase 資料庫/);
+assert.match(about, /不會因 Google 登入而自動上傳/);
+assert.match(about, /主動開啟雲端備份後/);
 assert.match(about, /href="\.\/privacy\.html"/);
 assert.match(privacy, /噴前查 SearchBefore 隱私權政策/);
 assert.match(manifest.name, /^噴前查 SearchBefore/);

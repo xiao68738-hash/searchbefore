@@ -921,7 +921,7 @@ nav button.on{color:var(--green)}
         </div>
         <div id="agentList"></div>
         <div class="mrl-note" role="note">
-          <b>MRL 對照目前尚未開放</b>
+          <b>本查詢不含 MRL 判定</b>
           <p>目前查詢結果只代表農業部農藥登記，本版尚未提供衛福部農產品殘留容許量（MRL）判定。資料未載入、名稱查無或分類無法完整比對時，均只能視為「尚無法確認」，不能據此推論為「已訂容許量」、「得免訂定容許量」或「不得檢出」。若需送驗或外銷，請另查最新官方規定。</p>
         </div>
       </div>
@@ -1035,7 +1035,7 @@ nav button.on{color:var(--green)}
 
       <section class="record-hub-panel" id="recordPanelFarm" data-record-panel="farm" hidden>
         <button class="record-hub-back" type="button" onclick="showRecordHub()"><span class="record-hub-back-icon" aria-hidden="true">←</span><span>返回紀錄首頁</span></button>
-        <div class="record-hub-panel-head"><h2>其他田區紀錄 <span class="plot-tag">第一版</span></h2><p>請先選擇田區，再記錄實際發生的栽培、施肥、採收、採後處理或資材購入作業。</p></div>
+        <div class="record-hub-panel-head"><h2>其他田區紀錄</h2><p>請先選擇田區，再記錄實際發生的栽培、施肥、採收、採後處理或資材購入作業。</p></div>
         <div id="farmRecordBox"></div>
         <div id="farmRecordList"></div>
       </section>
@@ -1181,13 +1181,6 @@ nav button.on{color:var(--green)}
     </div>
     <div class="field"><label>本次總用水量（公升，選填）</label><input id="rTotalWater" type="number" inputmode="decimal" min="0" placeholder="例如 1700"><div class="hint">產銷履歷要填整批總水量。從計算頁的桶數／面積帶入時會自動估算,可修改;留空則對照表以每桶水量標示。</div></div>
     <div class="field"><label>操作人員（選填）</label><input id="rOperator" placeholder="施藥人員姓名，日後產銷履歷可用"></div>
-    <div class="notify-row">
-      <div>
-        <div class="t">手機通知暫停</div>
-        <div class="d">請先儲存紀錄，再從倒數頁依同田區最晚日期加入行事曆。</div>
-      </div>
-      <label class="switch"><input type="checkbox" id="rNotify" disabled><span class="slider"></span></label>
-    </div>
     <button class="btn btn-main" style="width:100%;margin-top:2px" onclick="commitRecord()">儲存施藥紀錄</button>
   </div>
 </div>
@@ -1265,13 +1258,13 @@ nav button.on{color:var(--green)}
       <div class="entry-choice-card">
       <div id="entryAccountInner" aria-live="polite"><div class="account-loading">正在檢查登入設定…</div></div>
       <div id="entryGuestBlock">
-        <div class="entry-divider"><span>或</span></div>
+        <div class="entry-divider" id="entryDivider"><span>或</span></div>
         <button class="btn-guest" type="button" onclick="guestStart()">以訪客身分使用</button>
         <p class="entry-choice-help">兩種方式都能使用查詢、計算與田間紀錄。</p>
       </div>
       </div>
     </div>
-    <p class="entry-note">田間資料目前只保存在這台裝置。實際用藥請以產品標示與主管機關最新公告為準。<br><a href="./about.html">應用程式介紹</a> ・ <a href="./privacy.html">隱私權政策</a></p>
+    <p class="entry-note">田間資料預設只保存在這台裝置；登入後仍需主動開啟，才會同步指定資料。實際用藥請以產品標示與主管機關最新公告為準。<br><a href="./about.html">應用程式介紹</a> ・ <a href="./privacy.html">隱私權政策</a></p>
   </div>
 </div>
 
@@ -1329,7 +1322,7 @@ const DATA={"木瓜":{"白粉病":[{"name":"快得保淨","form":"WP","content":
 /* ═══ 維護區:改這裡就好 ═══════════════════════════════
    APP_VERSION:每次更新資料或功能時往上加
    ANNOUNCE:公告(新的放最上面,date 改了紅點會自動亮) */
-const APP_VERSION="0.3.6.1";
+const APP_VERSION="0.3.6.2";
 const DATA_VERSION="2026-07-21"; // 農藥資料抓取年月
 const ANNOUNCE=[
  {date:"2026-07-30",version:"0.3.3.1",title:"網頁版自願支持管道啟用",body:"噴前查網頁版現已串接綠界科技收款服務，提供新台幣 50、100、150 元與自訂金額的自願支持選項。付款由綠界處理；是否支持不影響任何功能或服務。",action:"support",actionLabel:"查看贊助方式"},
@@ -1592,7 +1585,7 @@ function renderHome(){
       <button class="g-dismiss" onclick="store.set('guideDone',1);renderHome()">我知道怎麼用了</button>
     </section>`;
   }
-  html+=`<section class="info-card" aria-labelledby="homeAccountTitle">
+  html+=`<section class="info-card" id="homeAccountCard" aria-labelledby="homeAccountTitle">
     <h3 id="homeAccountTitle">Google 帳號 <span class="status-chip">選用</span></h3>
     <div id="homeAccountInner" aria-live="polite"><div class="account-loading">正在檢查登入設定…</div></div>
   </section>`;

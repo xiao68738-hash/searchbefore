@@ -20,6 +20,7 @@ assert.ok(sandbox.window.PQC_PUBLIC_CONFIG.firebase.appId);
    沒有信箱這條承諾就是空的,且 App 內的回報功能也會失效。 */
 assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.feedbackEmail, "searchbefore82@gmail.com");
 assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.supportUrls, undefined, "共用設定不可包含綠界網址");
+assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.features.formOcr, "hidden", "未完成的 OCR 功能必須預設隱藏");
 assert.doesNotMatch(configSource, /p\.ecpay\.com\.tw|supportUrls/, "Google Play 會載入的共用設定不可接上綠界");
 vm.runInNewContext(webSupportSource, sandbox, { filename: "web-support-config.js" });
 assert.deepEqual(
@@ -43,6 +44,8 @@ assert.match(account, /fill="#FBBC05"/);
 assert.match(account, /fill="#34A853"/);
 assert.doesNotMatch(account, /class="google-mark">G</);
 assert.match(account, /accountBoxes\(\)\.forEach/);
+assert.match(account, /function renderAvailability\(\)/);
+assert.doesNotMatch(account, /Google 登入準備中|Google 登入暫時未啟用|尚未啟用 Google 登入/, "設定缺失時不得顯示未完成的 Google 登入佔位");
 assert.match(account, /window\.completeEntryWithGoogle/);
 assert.match(account, /return user/);
 assert.match(account, /location\.protocol==="file:"/);

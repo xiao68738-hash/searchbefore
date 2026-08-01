@@ -8,6 +8,7 @@
   const RESULT_TYPE = "PQC_OCR_SCAN_RESULT";
   const REQUEST_TYPE = "PQC_OCR_SCAN_REQUEST";
   const TRUSTED_ORIGINS = Object.freeze(["https://searchbefore.tw", "android://tw.searchbefore.app"]);
+  const RELEASE_STATES = Object.freeze(["hidden", "development", "public"]);
   let currentDraft = null;
   let twaPort = null;
   let pendingRequestId = null;
@@ -20,6 +21,12 @@
     postharvest: "採後處理",
     purchase: "資材購入"
   });
+
+  function featureReleaseState(key) {
+    const config = root.PQC_PUBLIC_CONFIG && root.PQC_PUBLIC_CONFIG.features;
+    const state = config && config[key];
+    return RELEASE_STATES.indexOf(state) >= 0 ? state : "hidden";
+  }
 
   function esc(value) {
     return String(value == null ? "" : value)
@@ -355,18 +362,23 @@
     document.head.appendChild(style);
   }
 
-  function installPanel() {
+  function installPanel(releaseState) {
     const menu = document.querySelector(".record-hub-menu");
     const records = document.getElementById("scr-records");
     if (!menu || !records || document.getElementById("recordPanelOcr")) return;
-    menu.insertAdjacentHTML("beforeend", '<button class="record-hub-button" type="button" onclick="openRecordHub(\'ocr\')" aria-controls="recordPanelOcr"><span class="record-hub-index" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 11h6l2-3h6l2 3h6v15H5Z"/><circle cx="16" cy="18.5" r="5"/><path d="M23 14h1"/></svg></span><span class="record-hub-copy"><span class="record-hub-label">04・辨識</span><b>拍攝表單建立草稿</b><small>Android App 在手機內辨識文字；逐欄確認後再帶入紀錄，不會自動儲存。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>');
-    records.insertAdjacentHTML("beforeend", '<section class="record-hub-panel" id="recordPanelOcr" data-record-panel="ocr" hidden><button class="record-hub-back" type="button" onclick="showRecordHub()"><span class="record-hub-back-icon" aria-hidden="true">←</span><span>返回紀錄首頁</span></button><div class="record-hub-panel-head"><h2>拍攝表單建立草稿 <span class="plot-tag">測試版</span></h2><p>適合把既有紙本紀錄先辨識成草稿。照片只在 Android 裝置內處理；網站只接收文字與品質指標。</p></div><div class="ocr-card"><h3>先取得表單文字</h3><p class="farm-note">請把紙張攤平、避免陰影與反光，並完整拍到四個角。辨識不清楚時系統會要求重拍。</p><div class="ocr-actions"><button class="btn btn-main" type="button" onclick="PQC_FORM_OCR_UI.requestNativeScan()">開啟 Android 表單掃描</button><button class="btn btn-ghost" type="button" onclick="document.getElementById(\'ocrPasteText\').focus()">沒有掃描器，先貼文字測試</button></div><div id="ocrBridgeNote" class="safety-banner" hidden>此瀏覽器尚未連接 Android 原生掃描器。仍可在下方貼上 OCR 文字測試草稿整理流程。</div><div class="ocr-paste"><label for="ocrPasteText"><b>貼上辨識文字（無模板測試）</b></label><textarea id="ocrPasteText" placeholder="例如：民國115/7/30　番茄　施肥　有機質肥料20公斤"></textarea><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.parsePastedText()">從文字建立草稿</button></div><div id="ocrDraftBox"></div></div></section>');
+    const developing = releaseState === "development";
+    const gateLabel = developing ? "04・開發中" : "04・辨識";
+    const headingTag = developing ? ' <span class="plot-tag">開發中</span>' : "";
+    menu.insertAdjacentHTML("beforeend", '<button class="record-hub-button" type="button" onclick="openRecordHub(\'ocr\')" aria-controls="recordPanelOcr"><span class="record-hub-index" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 11h6l2-3h6l2 3h6v15H5Z"/><circle cx="16" cy="18.5" r="5"/><path d="M23 14h1"/></svg></span><span class="record-hub-copy"><span class="record-hub-label">' + gateLabel + '</span><b>拍攝表單建立草稿</b><small>Android App 在手機內辨識文字；逐欄確認後再帶入紀錄，不會自動儲存。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>');
+    records.insertAdjacentHTML("beforeend", '<section class="record-hub-panel" id="recordPanelOcr" data-record-panel="ocr" hidden><button class="record-hub-back" type="button" onclick="showRecordHub()"><span class="record-hub-back-icon" aria-hidden="true">←</span><span>返回紀錄首頁</span></button><div class="record-hub-panel-head"><h2>拍攝表單建立草稿' + headingTag + '</h2><p>適合把既有紙本紀錄先辨識成草稿。照片只在 Android 裝置內處理；網站只接收文字與品質指標。</p></div><div class="ocr-card"><h3>先取得表單文字</h3><p class="farm-note">請把紙張攤平、避免陰影與反光，並完整拍到四個角。辨識不清楚時系統會要求重拍。</p><div class="ocr-actions"><button class="btn btn-main" type="button" onclick="PQC_FORM_OCR_UI.requestNativeScan()">開啟 Android 表單掃描' + (developing ? '（開發中）' : '') + '</button><button class="btn btn-ghost" type="button" onclick="document.getElementById(\'ocrPasteText\').focus()">沒有掃描器，先貼文字測試</button></div><div id="ocrBridgeNote" class="safety-banner" hidden>此瀏覽器尚未連接 Android 原生掃描器。仍可在下方貼上 OCR 文字測試草稿整理流程。</div><div class="ocr-paste"><label for="ocrPasteText"><b>貼上辨識文字（無模板測試）</b></label><textarea id="ocrPasteText" placeholder="例如：民國115/7/30　番茄　施肥　有機質肥料20公斤"></textarea><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.parsePastedText()">從文字建立草稿</button></div><div id="ocrDraftBox"></div></div></section>');
   }
 
   function init() {
     if (!root.document || !root.PQC_FORM_OCR) return;
+    const releaseState = featureReleaseState("formOcr");
+    if (releaseState === "hidden") return;
     installStyle();
-    installPanel();
+    installPanel(releaseState);
     root.addEventListener("message", function (event) {
       if (TRUSTED_ORIGINS.indexOf(event.origin) < 0) return;
       if (event.origin === "android://tw.searchbefore.app" && typeof root.dispatchEvent === "function" && typeof root.CustomEvent === "function") {
@@ -401,6 +413,8 @@
     RESULT_TYPE,
     REQUEST_TYPE,
     TRUSTED_ORIGINS,
+    RELEASE_STATES,
+    featureReleaseState,
     safePayload,
     matchKey,
     registeredPesticideMatches,

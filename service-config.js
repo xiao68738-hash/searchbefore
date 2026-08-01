@@ -21,5 +21,10 @@ window.PQC_PUBLIC_CONFIG = {
     messagingSenderId: "934300362639",
     appId: "1:934300362639:web:a96c41c1a7e6cd5ea5cdfa"
   },
-  feedbackEmail: "searchbefore82@gmail.com"
+  feedbackEmail: "searchbefore82@gmail.com",
+  /* 未完善功能一律 hidden；只有安排公開測試時才可改成 development，
+     並由前端明確標示「開發中」。正式完成及驗收後才能改成 public。 */
+  features: {
+    formOcr: "hidden"
+  }
 };
