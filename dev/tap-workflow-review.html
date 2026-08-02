@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>資訊服務專員覆核流程｜內部測試</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07110a;
+      --surface: #101c13;
+      --surface-2: #17251a;
+      --line: #334638;
+      --text: #f4f1e8;
+      --muted: #aeb9ad;
+      --green: #54b873;
+      --orange: #f1a148;
+      --danger: #ffbf87;
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: radial-gradient(circle at 85% 0, #183520 0, transparent 32%), var(--bg); color: var(--text); font: 16px/1.6 system-ui, sans-serif; }
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .dev-banner { position: sticky; top: 0; z-index: 10; padding: 10px 16px; background: var(--orange); color: #261605; text-align: center; font-weight: 900; }
+    main { width: min(1080px, calc(100% - 28px)); margin: 0 auto; padding: 34px 0 64px; }
+    .eyebrow, .step { color: var(--orange); font-size: .78rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { max-width: 760px; margin-bottom: 10px; font-size: clamp(2rem, 6vw, 4.5rem); line-height: 1.05; }
+    h2 { margin-bottom: 6px; font-size: 1.35rem; }
+    .lead { max-width: 780px; color: var(--muted); }
+    .limit { margin: 24px 0; padding: 16px 18px; border: 1px solid #76552e; border-radius: 16px; background: #2b2112; color: #f8dab3; }
+    .progress { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 24px 0; padding: 0; list-style: none; }
+    .progress li { padding: 12px; border: 1px solid var(--line); border-radius: 14px; color: var(--muted); }
+    .progress li.active { border-color: var(--green); background: #16301e; color: var(--text); }
+    .progress b { display: inline-grid; width: 26px; height: 26px; margin-right: 8px; place-items: center; border-radius: 50%; background: #26352a; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(310px, .85fr); gap: 18px; align-items: start; }
+    .stack { display: grid; gap: 18px; }
+    .card { padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: color-mix(in srgb, var(--surface) 94%, transparent); box-shadow: 0 18px 45px rgba(0,0,0,.2); }
+    .status-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .status-box { padding: 14px; border: 1px solid var(--line); border-radius: 15px; background: #0c1710; }
+    .status-box small { display: block; color: var(--muted); }
+    .status-box strong { display: block; margin-top: 4px; }
+    .record { display: grid; grid-template-columns: 110px 1fr; margin: 0; }
+    .record dt, .record dd { margin: 0; padding: 9px 0; border-bottom: 1px solid #28372c; }
+    .record dt { color: var(--muted); }
+    label { display: block; margin-top: 14px; color: var(--muted); font-weight: 800; }
+    input, textarea { width: 100%; margin-top: 6px; padding: 12px 13px; border: 1px solid #405344; border-radius: 12px; background: #08100b; color: var(--text); }
+    textarea { min-height: 82px; resize: vertical; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+    .button { min-height: 46px; padding: 10px 16px; border: 1px solid transparent; border-radius: 13px; background: var(--green); color: #07120a; font-weight: 900; }
+    .button.secondary { border-color: #526355; background: transparent; color: var(--text); }
+    .button.orange { background: var(--orange); }
+    .hidden { display: none !important; }
+    .error { min-height: 1.4em; margin-top: 10px; color: var(--danger); font-weight: 800; }
+    .notice { margin-top: 14px; padding: 13px; border-left: 4px solid var(--orange); background: #251c0f; color: #f5d4aa; }
+    .timeline { margin: 16px 0 0; padding: 0; list-style: none; }
+    .timeline li { position: relative; margin-left: 8px; padding: 0 0 18px 24px; border-left: 1px solid #3d5041; }
+    .timeline li::before { content: ""; position: absolute; left: -5px; top: 5px; width: 9px; height: 9px; border-radius: 50%; background: var(--green); }
+    .timeline small { display: block; color: var(--muted); }
+    .plain-note { color: var(--muted); font-size: .92rem; }
+    @media (max-width: 760px) {
+      main { width: min(100% - 20px, 620px); padding-top: 22px; }
+      .progress { grid-template-columns: 1fr; }
+      .layout { grid-template-columns: 1fr; }
+      .status-grid { grid-template-columns: 1fr; }
+      .card { padding: 18px; border-radius: 18px; }
+      .button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dev-banner">開發中測試頁面｜只使用假資料｜不會儲存、上傳或連接 L3</div>
+  <main>
+    <div class="eyebrow">SEARCHBEFORE INTERNAL PROTOTYPE</div>
+    <h1>農友留資料，專員負責最後覆核</h1>
+    <p class="lead">這個頁面用來測試資訊服務專員的協作流程。正式登打仍在既有官方系統完成；噴前查只保留草稿、退回原因與專員聲明。</p>
+
+    <aside class="limit" aria-label="測試限制"><strong>重要界線：</strong>所有人物、田區、藥劑與編號都是虛構資料。最後一步只代表專員自行標記已人工登打，噴前查沒有向官方系統查證。</aside>
+
+    <ol class="progress" aria-label="協作流程">
+      <li id="step-draft"><b>1</b>農友建立草稿</li>
+      <li id="step-review"><b>2</b>專員檢查內容</li>
+      <li id="step-complete"><b>3</b>完成內部覆核</li>
+      <li id="step-claim"><b>4</b>記錄人工登打聲明</li>
+    </ol>
+
+    <div class="layout">
+      <div class="stack">
+        <section class="card">
+          <div class="step">假案例內容</div>
+          <h2>番茄用藥紀錄</h2>
+          <p class="plain-note">目前只讓你驗證流程，不提供自由輸入真實個資。</p>
+          <dl class="record">
+            <dt>農友</dt><dd>測試農友 A</dd>
+            <dt>日期</dt><dd>2026-08-01</dd>
+            <dt>田區／作物</dt><dd>示範田區／番茄</dd>
+            <dt>藥劑</dt><dd>示範藥劑</dd>
+            <dt>防治對象</dt><dd>葉蟎</dd>
+            <dt>施作面積</dt><dd id="record-area">尚未填寫</dd>
+          </dl>
+        </section>
+
+        <section class="card">
+          <div class="step">目前可以做的動作</div>
+          <h2 id="action-title">農友確認後送交專員</h2>
+
+          <div id="draft-actions">
+            <p class="plain-note">送出後只會進入內部待覆核，不會送往政府系統。</p>
+            <button id="submit-review" class="button" type="button">送交內部覆核</button>
+          </div>
+
+          <div id="review-actions" class="hidden">
+            <label for="change-reason">退回補充的原因</label>
+            <textarea id="change-reason" placeholder="例如：缺少施作面積"></textarea>
+            <div class="actions">
+              <button id="request-changes" class="button orange" type="button">退回農友補充</button>
+              <button id="complete-review" class="button" type="button">確認內容完整</button>
+            </div>
+          </div>
+
+          <div id="revision-actions" class="hidden">
+            <label for="revised-area">補上施作面積</label>
+            <input id="revised-area" value="0.2 公頃">
+            <button id="revise-submit" class="button" type="button">套用修訂並重新送審</button>
+          </div>
+
+          <div id="claim-actions" class="hidden">
+            <label for="entry-reference">人工登打參照</label>
+            <input id="entry-reference" placeholder="例如：專員工作紀錄 2026-08-02-01">
+            <label for="entry-note">備註（選填）</label>
+            <textarea id="entry-note" placeholder="例如：依官方畫面逐欄登打"></textarea>
+            <button id="record-claim" class="button orange" type="button">記錄專員的人工登打聲明</button>
+          </div>
+
+          <div id="claim-complete" class="hidden notice"></div>
+          <div id="action-error" class="error" role="alert"></div>
+          <div class="actions"><button id="reset-demo" class="button secondary" type="button">重新開始假案例</button></div>
+        </section>
+      </div>
+
+      <aside class="stack">
+        <section class="card">
+          <div class="step">狀態摘要</div>
+          <h2>這筆資料目前在哪裡？</h2>
+          <div class="status-grid">
+            <div class="status-box"><small>資料版本</small><strong id="state-revision">1</strong></div>
+            <div class="status-box"><small>內部覆核</small><strong id="state-review">草稿</strong></div>
+            <div class="status-box"><small>外部互動</small><strong id="state-l3">尚未連接</strong></div>
+            <div class="status-box"><small>後續處理</small><strong id="state-followup">不需要</strong></div>
+          </div>
+          <div id="safety-notice" class="notice">這筆資料尚未送往任何政府系統。</div>
+        </section>
+
+        <section class="card">
+          <div class="step">可追溯紀錄</div>
+          <h2>每一步都留下來</h2>
+          <ol id="timeline" class="timeline"></ol>
+        </section>
+      </aside>
+    </div>
+  </main>
+  <script src="../tap-workflow.js"></script>
+  <script src="tap-workflow-review-ui.js"></script>
+</body>
+</html>
