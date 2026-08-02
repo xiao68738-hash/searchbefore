@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>噴前查｜特殊作業對照測試台</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #09140d;
+      --surface: #132119;
+      --surface-2: #19291f;
+      --line: #304235;
+      --text: #f5f2e9;
+      --muted: #afbaae;
+      --green: #65bd7c;
+      --green-deep: #2d7746;
+      --orange: #f2a245;
+      --warning: #ffcf78;
+      --danger: #ff8d78;
+      --radius: 22px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: radial-gradient(circle at 100% 0, #163523 0, transparent 32rem), var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      line-height: 1.55;
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+
+    .dev-banner {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      padding: 11px 18px;
+      background: var(--orange);
+      color: #2a1804;
+      text-align: center;
+      font-weight: 900;
+      letter-spacing: .04em;
+    }
+
+    .page { width: min(1080px, calc(100% - 28px)); margin: 0 auto; padding: 26px 0 64px; }
+    header { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; margin-bottom: 24px; }
+    .eyebrow { margin: 0 0 4px; color: var(--orange); font-size: .84rem; font-weight: 900; letter-spacing: .12em; }
+    h1 { margin: 0; font-size: clamp(2rem, 6vw, 3.5rem); line-height: 1.08; font-family: Georgia, "Noto Serif TC", serif; }
+    .lead { max-width: 720px; margin: 14px 0 0; color: var(--muted); font-size: 1.04rem; }
+    .privacy-chip { flex: none; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--green); font-weight: 800; }
+
+    .notice {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding: 16px 18px;
+      border: 1px solid #705425;
+      border-radius: 16px;
+      background: #2b2212;
+      color: #ffe6b6;
+    }
+    .notice strong { display: block; color: var(--warning); }
+
+    .progress { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 0 24px; padding: 0; list-style: none; }
+    .progress li { padding: 13px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--muted); }
+    .progress b { display: inline-grid; place-items: center; width: 26px; height: 26px; margin-right: 7px; border-radius: 50%; background: #28382d; color: var(--text); }
+    .progress li.active { border-color: var(--green); color: var(--text); }
+    .progress li.active b { background: var(--green); color: #07120a; }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(300px, .85fr); gap: 18px; align-items: start; }
+    .stack { display: grid; gap: 18px; }
+    .card { padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: color-mix(in srgb, var(--surface) 94%, transparent); box-shadow: 0 18px 45px rgba(0,0,0,.18); }
+    .card h2 { margin: 0 0 4px; font-size: 1.28rem; }
+    .card .hint { margin: 0 0 18px; color: var(--muted); }
+    .step-label { margin-bottom: 7px; color: var(--orange); font-size: .78rem; font-weight: 900; letter-spacing: .12em; }
+
+    label { display: grid; gap: 7px; margin-top: 14px; color: #dce3d9; font-weight: 800; }
+    textarea, input, select {
+      width: 100%;
+      border: 1px solid #405344;
+      border-radius: 13px;
+      background: #0d1811;
+      color: var(--text);
+      padding: 13px 14px;
+      outline: none;
+    }
+    textarea { min-height: 108px; resize: vertical; }
+    textarea:focus, input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(101,189,124,.14); }
+    .examples { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .chip { padding: 7px 10px; border: 1px solid #3c4b3f; border-radius: 999px; background: transparent; color: #d3dbd1; }
+    .chip:hover { border-color: var(--orange); color: var(--orange); }
+
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+    .button { min-height: 46px; padding: 10px 16px; border: 0; border-radius: 13px; font-weight: 900; }
+    .button.primary { background: var(--green); color: #07120a; }
+    .button.secondary { border: 1px solid #48604e; background: #1a2b20; color: var(--text); }
+    .button.orange { background: var(--orange); color: #251403; }
+    .button.danger { border: 1px solid #7b463d; background: #321c19; color: #ffc3b7; }
+    .button:disabled { cursor: not-allowed; opacity: .4; }
+
+    .state-box { display: grid; gap: 13px; }
+    .state-row { display: grid; grid-template-columns: 112px 1fr; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+    .state-row:last-child { padding-bottom: 0; border-bottom: 0; }
+    .state-row dt { color: var(--muted); }
+    .state-row dd { margin: 0; overflow-wrap: anywhere; font-weight: 750; }
+    .status { display: inline-flex; width: fit-content; padding: 5px 9px; border-radius: 999px; background: #2a382e; color: #dce5da; font-size: .86rem; }
+    .status.exact, .status.other { background: #194029; color: #9ee3ae; }
+    .status.suggested { background: #423116; color: #ffd18b; }
+
+    .candidate-note { margin: 12px 0 0; padding: 11px 12px; border-left: 3px solid var(--orange); background: #241d10; color: #ecd5ab; font-size: .9rem; }
+    .check-row { display: flex; grid-template-columns: none; flex-direction: row; align-items: flex-start; gap: 10px; font-weight: 650; }
+    .check-row input { width: 19px; height: 19px; margin-top: 3px; accent-color: var(--green); }
+
+    .timeline { margin: 0; padding: 0; list-style: none; }
+    .timeline li { position: relative; margin-left: 10px; padding: 0 0 18px 22px; border-left: 1px solid #435448; }
+    .timeline li::before { content: ""; position: absolute; left: -5px; top: 5px; width: 9px; height: 9px; border-radius: 50%; background: var(--orange); }
+    .timeline li:last-child { padding-bottom: 0; }
+    .timeline strong { display: block; }
+    .timeline small { color: var(--muted); }
+    .empty { color: var(--muted); }
+    .error { min-height: 24px; margin: 12px 0 0; color: var(--danger); font-weight: 800; }
+    .hidden { display: none !important; }
+
+    @media (max-width: 780px) {
+      .page { width: min(100% - 20px, 680px); padding-top: 20px; }
+      header { display: block; }
+      .privacy-chip { display: inline-block; margin-top: 16px; }
+      .layout { grid-template-columns: 1fr; }
+      .progress { grid-template-columns: 1fr; }
+      .progress li { padding: 10px 12px; }
+      .card { padding: 18px; border-radius: 18px; }
+      .state-row { grid-template-columns: 96px 1fr; }
+      .button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="dev-banner">開發中測試頁面｜不屬於正式功能｜不會儲存或上傳資料</div>
+  <main class="page">
+    <header>
+      <div>
+        <p class="eyebrow">SEARCHBEFORE INTERNAL PROTOTYPE</p>
+        <h1>特殊作業人工對照</h1>
+        <p class="lead">保留農友原本的說法，再由覆核人員判斷能否對應官方項目。系統只提供候選，不會自行宣稱資料已符合產銷履歷規範。</p>
+      </div>
+      <div class="privacy-chip">僅在這個頁面暫存</div>
+    </header>
+
+    <section class="notice" aria-label="測試限制">
+      <span aria-hidden="true">⚠</span>
+      <div><strong>這裡使用的項目與代碼全部是假資料</strong>頁面只用來確認操作邏輯；尚未取得正式 L3 代碼表，也沒有任何送出按鈕。</div>
+    </section>
+
+    <ol class="progress" aria-label="處理流程">
+      <li id="progress-source" class="active"><b>1</b>保留農友原文</li>
+      <li id="progress-review"><b>2</b>人工選擇對照</li>
+      <li id="progress-result"><b>3</b>留下決定歷程</li>
+    </ol>
+
+    <div class="layout">
+      <div class="stack">
+        <section class="card">
+          <div class="step-label">01 · 農友輸入</div>
+          <h2>實際做了什麼？</h2>
+          <p class="hint">照平常的說法填寫，不需要先猜官方分類。</p>
+          <label for="source-text">農友原始說法
+            <textarea id="source-text" maxlength="2000" placeholder="例如：捕捉飛入溫室內的蝙蝠"></textarea>
+          </label>
+          <div class="examples" aria-label="示範文字">
+            <button class="chip" type="button" data-example="捕捉飛入溫室內的蝙蝠">蝙蝠處理</button>
+            <button class="chip" type="button" data-example="巡查並修補溫室破損的防鳥網">修補防鳥網</button>
+            <button class="chip" type="button" data-example="清理排水溝並移除動物卵塊">清理排水溝</button>
+          </div>
+          <div class="actions">
+            <button id="create-draft" class="button primary" type="button">建立待整理草稿</button>
+            <button id="revise-source" class="button secondary hidden" type="button">套用原文修改</button>
+            <button id="reset-demo" class="button secondary" type="button">全部清除</button>
+          </div>
+          <p id="source-error" class="error" role="alert"></p>
+        </section>
+
+        <section id="review-card" class="card hidden">
+          <div class="step-label">02 · 覆核人員</div>
+          <h2>選擇最適合的處理方式</h2>
+          <p class="hint">候選只幫忙縮小範圍；最後結果必須由人確認。</p>
+
+          <label for="candidate-select">模擬官方項目
+            <select id="candidate-select"></select>
+          </label>
+          <p class="candidate-note">DEMO 代碼不是真實產銷履歷代碼，不得複製到正式紀錄。</p>
+
+          <label for="normalized-text">整理後的作業描述
+            <input id="normalized-text" maxlength="500" placeholder="例如：設施內動物危害處理">
+          </label>
+          <label for="official-note">「其他」類別備註
+            <textarea id="official-note" maxlength="2000" placeholder="選擇其他時，完整保留具體作業內容"></textarea>
+          </label>
+          <label class="check-row" for="confirm-other">
+            <input id="confirm-other" type="checkbox">
+            <span>我已確認目前選到的是「其他作業」示意項目，並會保留完整備註。</span>
+          </label>
+          <label for="unmapped-reason">暫時無法對照的原因
+            <input id="unmapped-reason" maxlength="1000" placeholder="例如：正式代碼表尚未取得">
+          </label>
+
+          <div class="actions">
+            <button id="confirm-exact" class="button primary" type="button">確認精確對照</button>
+            <button id="confirm-other-button" class="button orange" type="button">確認其他＋備註</button>
+            <button id="mark-unmapped" class="button danger" type="button">暫不對照</button>
+          </div>
+          <p id="review-error" class="error" role="alert"></p>
+        </section>
+      </div>
+
+      <aside class="stack">
+        <section class="card">
+          <div class="step-label">目前狀態</div>
+          <h2>對照摘要</h2>
+          <p class="hint">原文與整理結果分開保存，避免覆蓋真實紀錄。</p>
+          <dl id="state-box" class="state-box">
+            <div class="state-row"><dt>狀態</dt><dd><span class="status">尚未建立</span></dd></div>
+            <div class="state-row"><dt>農友原文</dt><dd>—</dd></div>
+            <div class="state-row"><dt>官方項目</dt><dd>—</dd></div>
+            <div class="state-row"><dt>整理描述</dt><dd>—</dd></div>
+            <div class="state-row"><dt>備註／原因</dt><dd>—</dd></div>
+          </dl>
+        </section>
+
+        <section class="card">
+          <div class="step-label">03 · 可追溯紀錄</div>
+          <h2>決定歷程</h2>
+          <p class="hint">修改農友原文後，舊對照會失效，但歷程仍會留下。</p>
+          <ol id="timeline" class="timeline"><li class="empty">尚無操作紀錄</li></ol>
+        </section>
+      </aside>
+    </div>
+  </main>
+  <script src="../tap-activity-mapping.js"></script>
+  <script src="tap-activity-mapping-ui.js"></script>
+</body>
+</html>
