@@ -17,6 +17,13 @@ assert.match(html, /不會儲存或上傳資料/);
 assert.match(html, /全部是假資料/);
 assert.match(html, /尚未取得正式 L3 代碼表/);
 assert.match(uiSource, /DEMO-NOT-OFFICIAL/);
+assert.match(html, /id="queue-list"/);
+assert.match(html, /data-filter="pending"/);
+assert.match(html, /data-filter="confirmed"/);
+assert.match(html, /data-filter="unmapped"/);
+assert.match(uiSource, /DEMO_SOURCE_TEXTS/);
+assert.match(uiSource, /activeFilter/);
+assert.match(uiSource, /loadDemoCases/);
 assert.match(uiSource, /候選只幫忙縮小範圍|系統列出候選項目/);
 
 for (const source of [html, uiSource]) {
