@@ -80,6 +80,58 @@ assert.equal(farm.readBackup(backup).farmRecords.length, 1);
 assert.throws(() => farm.readBackup({ product: "other", formatVersion: 1, data: {} }), /不是噴前查/);
 assert.throws(() => farm.readBackup({ product: "searchbefore-backup", formatVersion: 1, data: { records: {} } }), /records/);
 
+const safeBackupSource = {
+  product: "searchbefore-backup",
+  formatVersion: 1,
+  data: {
+    schemaVersion: 4,
+    records: [{
+      id: "rec-safe_1",
+      crop: "番茄",
+      agent: "測試藥劑",
+      date: "2026-08-03",
+      phi: 3,
+      plotId: "plot-safe_1",
+      operator: "王小明",
+      ignoredField: "不應被還原"
+    }],
+    fieldPlots: [{ id: "plot-safe_1", name: "番茄", crop: "番茄", cropSource: "registered", plantDate: "2026-07-01", createdAt: "2026-07-01" }],
+    farmRecords: [],
+    recipes: [],
+    recentCrops: ["番茄"],
+    activePlotId: "plot-safe_1",
+    lastFarmOperator: "王小明"
+  }
+};
+const safeBackup = farm.readBackup(safeBackupSource);
+assert.equal(safeBackup.records[0].id, "rec-safe_1");
+assert.equal(safeBackup.records[0].ignoredField, undefined, "只應保留已知欄位");
+assert.notEqual(safeBackup.records[0], safeBackupSource.data.records[0], "還原結果應建立乾淨副本");
+
+assert.throws(() => farm.readBackup({
+  product: "searchbefore-backup",
+  formatVersion: 1,
+  data: {
+    records: [{ id: "x');globalThis.pwned=true;//", crop: "番茄", agent: "測試", date: "2026-08-03" }]
+  }
+}), /不安全的編號/);
+
+assert.throws(() => farm.readBackup({
+  product: "searchbefore-backup",
+  formatVersion: 1,
+  data: { recentCrops: new Array(farm.BACKUP_LIMITS.recentCrops + 1).fill("番茄") }
+}), /筆數過多/);
+
+assert.throws(() => farm.readBackup({
+  product: "searchbefore-backup",
+  formatVersion: 1,
+  data: { fieldPlots: [], activePlotId: "plot-missing" }
+}), /預設田區不存在/);
+
+const indexSource = require("node:fs").readFileSync(require("node:path").join(__dirname, "..", "index.html"), "utf8");
+assert.doesNotMatch(indexSource, /pickCrop\('\$\{esc\(c\)\}'\)/, "最近作物不可直接插入 inline JavaScript");
+assert.doesNotMatch(indexSource, /setRecipeBrand\(\$\{i\},'\$\{esc\(b\)\}'\)/, "商品名稱不可直接插入 inline JavaScript");
+
 console.log("✓ 田間作業紀錄建立、驗證與摘要正確");
 console.log("✓ CSV 匯出與完整備份格式正確");
 console.log("✓ 用藥與農務紀錄可建立整合時間軸、概況與 CSV");

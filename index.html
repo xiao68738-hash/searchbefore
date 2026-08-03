@@ -1661,8 +1661,13 @@ function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").repl
 /* ── 作物搜尋 + 最近使用 ── */
 document.getElementById("cropTotal").textContent=`(共 ${CROPS.length} 種)`;
 function renderRecent(){
-  document.getElementById("recentCrops").innerHTML=recent.slice(0,6).map(c=>
-    `<button class="chip mut" onclick="pickCrop('${esc(c)}')">${esc(c)}</button>`).join("");
+  document.getElementById("recentCrops").innerHTML=recent.slice(0,6).map((c,i)=>
+    `<button class="chip mut" onclick="pickRecentCrop(${i})">${esc(c)}</button>`).join("");
+}
+function pickRecentCrop(i){
+  const crop=recent[i];
+  if(typeof crop!=="string"||!DATA[crop]){toast("這筆最近作物已失效");return}
+  pickCrop(crop);
 }
 const _uc={};
 function unionPestCount(c){
@@ -2301,8 +2306,13 @@ function openRecipeBrandPicker(i){
     `選擇你實際使用的商品(選填)·共 ${list.length} 個。以下為同一登記內容下的商品,稀釋倍數與安全採收期相同;實際用法仍以你手上產品的標示為準。`;
   document.getElementById("brandItems").innerHTML=
     `<button class="brand-pick${r.brand?"":" on"}" onclick="setRecipeBrand(${i},'')">不指定(顯示有效成分名稱)</button>`
-    +list.map(b=>`<button class="brand-pick${r.brand===b?" on":""}" onclick="setRecipeBrand(${i},'${esc(b)}')">${esc(b)}</button>`).join("");
+    +list.map((b,brandIndex)=>`<button class="brand-pick${r.brand===b?" on":""}" onclick="setRecipeBrandByIndex(${i},${brandIndex})">${esc(b)}</button>`).join("");
   document.getElementById("brandModal").classList.add("open");
+}
+function setRecipeBrandByIndex(recipeIndex,brandIndex){
+  const r=recipes[recipeIndex],brands=(r&&Array.isArray(r.brands))?r.brands:[];
+  if(!r||!Number.isInteger(brandIndex)||brandIndex<0||brandIndex>=brands.length){toast("找不到這個商品");return}
+  setRecipeBrand(recipeIndex,brands[brandIndex]);
 }
 function setRecipeBrand(i,b){
   const r=recipes[i];if(!r)return;
