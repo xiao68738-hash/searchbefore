@@ -9,6 +9,10 @@
 3. Android 只把文字區塊、位置與品質指標傳回 `https://searchbefore.tw`，不傳照片。
 4. 網頁建立未儲存草稿；使用者逐欄核對後，才可帶入原本的紀錄表單。
 
+依 2026-08-03 訪談調整：OCR 只是其中一種輸入輔助，不是第一階段主要產品入口，也不能以「自動登打」對外宣傳。應先驗證會使用手機的農民能否以常用商品清單直接完成紀錄，以及登打人員逐筆覆核是否真的省時，再決定正式整合時程。
+
+農藥辨識不得只依單一名稱自動決定產品。候選至少要同時顯示商品名、普通名稱、劑型與含量；可取得時再加入許可證識別資訊。資訊不足或有多個候選時只能標為待人工確認。
+
 ## 已完成的可重用部分
 
 `android-ocr-prototype/ocr-feature` 是獨立 Android Library，正式 App 與測試 APK 可共用：
@@ -48,7 +52,7 @@
 8. 掃描成功後，以 `OcrContract.resultJsonFrom(resultIntent)` 讀出 JSON，再透過同一個已驗證的 channel 回傳；不得額外加入 Bitmap、Base64、檔案路徑或 URI。
 9. 取消、錯誤或 Activity 被系統回收時，清除尚未完成的 `requestId`，不要重送上一次結果。
 10. 使用正式簽章建立內部測試 AAB，先在實體 Android 手機測試，再提交 Google Play。簽章檔與密碼不得加入 Git。
-11. 正式 App 不得載入或開啟 `web-support-config.js` 內的綠界連結；未來 App 內數位付費另以 Google Play Billing 實作，詳細界線見 `docs/帳號與付款設定.md`。
+11. 正式 App 可依 `web-support-config.js` 的遠端開關顯示純自願支持；贊助不得換取任何內容、功能或權益。未來 App 內數位付費仍須另以 Google Play Billing 實作，詳細界線見 `docs/帳號與付款設定.md`。
 
 ## 實機驗收
 
@@ -60,7 +64,7 @@
 - App 儲存空間內沒有留下原始照片；雲端備份與網站 localStorage 也沒有照片。
 - 修改回傳 `requestId`、協定版本、訊息類型或加入圖片欄位時，網站會拒絕資料。
 - 用藥名稱無法唯一對回登記資料時，不能直接建立用藥紀錄。
-- Google Play App 的個人頁、公告與任何其他位置都看不到綠界入口；即使頁面被注入綠界連結，捕獲階段也會阻止開啟。
+- `googlePlayVoluntarySupport: true` 時，Google Play App 的個人頁與公告可開啟綠界純自願支持頁；設為 `false` 並部署後，入口、連結與視窗須在使用者下次連線重新載入設定時停用。
 
 ## 目前唯一缺口
 

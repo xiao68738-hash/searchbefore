@@ -1132,7 +1132,7 @@ nav button.on{color:var(--green)}
           </button>
           <button class="profile-list-row" id="supportCard" style="display:none" type="button" onclick="openSponsorModal()">
             <span class="profile-row-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M7 11h16v8a7 7 0 0 1-7 7h-2a7 7 0 0 1-7-7Z"/><path d="M23 13h2a4 4 0 0 1 0 8h-2M10 6c2 2-1 3 1 5M17 6c2 2-1 3 1 5"/></svg></span>
-            <span class="profile-row-copy"><b>請開發者喝杯咖啡</b><small>自願支持工具持續維護；是否贊助都不影響任何功能或服務</small></span><span class="profile-chevron" aria-hidden="true">›</span>
+            <span class="profile-row-copy"><b>請開發者喝杯咖啡</b><small>完全自願；所有使用者都享有相同功能與服務</small></span><span class="profile-chevron" aria-hidden="true">›</span>
           </button>
         </div>
       </section>
@@ -1189,14 +1189,14 @@ nav button.on{color:var(--green)}
 <div class="modal-bg" id="sponsorModal" role="dialog" aria-modal="true" aria-label="贊助方案" onclick="if(event.target===this)closeSponsorModal()">
   <div class="modal">
     <h3><svg class="coffee" aria-hidden="true"><use href="#ic-cup"/></svg>請開發者喝杯咖啡</h3>
-    <p class="hint" style="margin:-4px 0 13px">以咖啡杯數量代表心意。贊助不會解鎖任何內容，也不影響功能或服務，是否贊助完全出於自願。</p>
+    <p class="hint" style="margin:-4px 0 13px">以咖啡杯數量代表心意。贊助完全自願；不會解鎖內容、功能、雲端空間、徽章、優先服務或任何使用權益。</p>
     <div class="tier-list">
       <a class="tier-row" id="supportLink50" target="_blank" rel="noopener noreferrer" aria-label="贊助新台幣 50 元，開啟綠界付款頁"><span class="tier-ic"><svg><use href="#ic-cup"/></svg></span><span class="tier-nm">一杯咖啡</span><span class="tier-amt">NT$50</span></a>
       <a class="tier-row" id="supportLink100" target="_blank" rel="noopener noreferrer" aria-label="贊助新台幣 100 元，開啟綠界付款頁"><span class="tier-ic"><svg><use href="#ic-cup"/></svg><svg><use href="#ic-cup"/></svg></span><span class="tier-nm">兩杯咖啡</span><span class="tier-amt">NT$100</span></a>
       <a class="tier-row hot" id="supportLink150" target="_blank" rel="noopener noreferrer" aria-label="贊助新台幣 150 元，開啟綠界付款頁"><span class="tier-ic"><svg><use href="#ic-cup"/></svg><svg><use href="#ic-cup"/></svg><svg><use href="#ic-cup"/></svg></span><span class="tier-nm">三杯咖啡</span><span class="tier-amt">NT$150</span></a>
       <a class="tier-row" id="supportLink" target="_blank" rel="noopener noreferrer" aria-label="自訂贊助金額，開啟綠界付款頁"><span class="tier-ic"><svg><use href="#ic-heart"/></svg></span><span class="tier-nm">自訂金額</span><span class="tier-amt">自行輸入</span></a>
     </div>
-    <p class="hint" style="margin:0 0 10px;text-align:center">選擇金額後，將開啟綠界安全付款頁。</p>
+    <p class="hint" style="margin:0 0 10px;text-align:center">選擇金額後會離開噴前查並開啟綠界付款頁；除金流處理費外，款項均支付給噴前查開發者。</p>
     <button class="btn btn-ghost" type="button" onclick="closeSponsorModal()" style="width:100%;margin-top:8px">關閉</button>
   </div>
 </div>
@@ -1326,7 +1326,7 @@ const APP_VERSION="0.3.6.4";
 const DATA_VERSION="2026-07-21"; // 農藥資料抓取年月
 const ANNOUNCE=[
  {date:"2026-08-03",version:"0.3.6.4",title:"備份匯入安全性更新",body:"本次更新加強備份檔案的格式與內容檢查，阻擋異常識別碼與不安全內容，並更新離線快取。若裝置顯示有新版本，請按「立即更新」以套用最新版。"},
- {date:"2026-07-30",version:"0.3.3.1",title:"網頁版自願支持管道啟用",body:"噴前查網頁版現已串接綠界科技收款服務，提供新台幣 50、100、150 元與自訂金額的自願支持選項。付款由綠界處理；是否支持不影響任何功能或服務。",action:"support",actionLabel:"查看贊助方式"},
+ {date:"2026-08-01",version:"0.3.6.3",title:"自願支持管道已開放",body:"噴前查提供新台幣 50、100、150 元與自訂金額的自願支持選項。所有使用者獲得相同功能與服務；贊助不會解鎖任何內容或權益，付款由綠界處理。",action:"support",actionLabel:"查看贊助方式"},
 ];
 const FEEDBACK_EMAIL=String(window.PQC_PUBLIC_CONFIG&&window.PQC_PUBLIC_CONFIG.feedbackEmail||"").trim();
 const PRIVACY_URL="https://searchbefore.tw/privacy.html";
@@ -1662,8 +1662,13 @@ function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").repl
 /* ── 作物搜尋 + 最近使用 ── */
 document.getElementById("cropTotal").textContent=`(共 ${CROPS.length} 種)`;
 function renderRecent(){
-  document.getElementById("recentCrops").innerHTML=recent.slice(0,6).map(c=>
-    `<button class="chip mut" onclick="pickCrop('${esc(c)}')">${esc(c)}</button>`).join("");
+  document.getElementById("recentCrops").innerHTML=recent.slice(0,6).map((c,i)=>
+    `<button class="chip mut" onclick="pickRecentCrop(${i})">${esc(c)}</button>`).join("");
+}
+function pickRecentCrop(i){
+  const crop=recent[i];
+  if(typeof crop!=="string"||!DATA[crop]){toast("這筆最近作物已失效");return}
+  pickCrop(crop);
 }
 const _uc={};
 function unionPestCount(c){
@@ -2182,7 +2187,7 @@ openEntryGate();
 
 /* ── 公告 ── */
 function visibleAnnouncements(){
-  return isInstalledAppContext()?ANNOUNCE.filter(a=>a.action!=="support"):ANNOUNCE;
+  return supportAllowedForCurrentContext()?ANNOUNCE:ANNOUNCE.filter(a=>a.action!=="support");
 }
 function latestAnnouncementKey(){
   const latest=visibleAnnouncements()[0];
@@ -2200,12 +2205,25 @@ function openAnn(){
 function closeAnn(){document.getElementById("annModal").classList.remove("open")}
 function openAnnouncementAction(action){
   closeAnn();
-  if(action==="support"&&!isInstalledAppContext())openSponsorModal();
+  if(action==="support")openSponsorModal();
 }
+let _announcementTimer=null;
 function maybeOpenLatestAnnouncement(){
   const key=latestAnnouncementKey();
-  if(!key||store.get("annSeen")===key)return;
-  setTimeout(openAnn,220);
+  if(!key||store.get("annSeen")===key||_announcementTimer)return;
+  _announcementTimer=setTimeout(function(){
+    _announcementTimer=null;
+    const currentKey=latestAnnouncementKey();
+    if(!currentKey||store.get("annSeen")===currentKey||document.body.classList.contains("entry-open"))return;
+    openAnn();
+  },220);
+}
+function refreshAnnouncementAvailability(){
+  const key=latestAnnouncementKey();
+  const unseen=!!key&&store.get("annSeen")!==key;
+  const dot=document.getElementById("annDot");
+  if(dot)dot.classList.toggle("show",unseen);
+  if(unseen&&!document.body.classList.contains("entry-open"))maybeOpenLatestAnnouncement();
 }
 const latestAnnKey=latestAnnouncementKey();
 if(latestAnnKey&&store.get("annSeen")!==latestAnnKey)document.getElementById("annDot").classList.add("show");
@@ -2289,8 +2307,13 @@ function openRecipeBrandPicker(i){
     `選擇你實際使用的商品(選填)·共 ${list.length} 個。以下為同一登記內容下的商品,稀釋倍數與安全採收期相同;實際用法仍以你手上產品的標示為準。`;
   document.getElementById("brandItems").innerHTML=
     `<button class="brand-pick${r.brand?"":" on"}" onclick="setRecipeBrand(${i},'')">不指定(顯示有效成分名稱)</button>`
-    +list.map(b=>`<button class="brand-pick${r.brand===b?" on":""}" onclick="setRecipeBrand(${i},'${esc(b)}')">${esc(b)}</button>`).join("");
+    +list.map((b,brandIndex)=>`<button class="brand-pick${r.brand===b?" on":""}" onclick="setRecipeBrandByIndex(${i},${brandIndex})">${esc(b)}</button>`).join("");
   document.getElementById("brandModal").classList.add("open");
+}
+function setRecipeBrandByIndex(recipeIndex,brandIndex){
+  const r=recipes[recipeIndex],brands=(r&&Array.isArray(r.brands))?r.brands:[];
+  if(!r||!Number.isInteger(brandIndex)||brandIndex<0||brandIndex>=brands.length){toast("找不到這個商品");return}
+  setRecipeBrand(recipeIndex,brands[brandIndex]);
 }
 function setRecipeBrand(i,b){
   const r=recipes[i];if(!r)return;
@@ -2876,9 +2899,8 @@ function openRecordModal(pre){
 }
 function closeRecordModal(){document.getElementById("recModal").classList.remove("open")}
 function openSponsorModal(){
-  if(isInstalledAppContext()){clearSupportLinks();return;}
   loadWebSupportConfig().then(function(loaded){
-    if(!loaded||isInstalledAppContext()){clearSupportLinks();return;}
+    if(!loaded||!supportAllowedForCurrentContext()){clearSupportLinks();return;}
     renderSupportLink();
     if(document.querySelector("#sponsorModal .tier-row[href]")){
       const modal=document.getElementById("sponsorModal");
@@ -3664,6 +3686,13 @@ function isGooglePlayAppContext(){
   if(detected)rememberGooglePlayAppContext();
   return detected;
 }
+function googlePlayVoluntarySupportEnabled(){
+  return !!(window.PQC_WEB_SUPPORT_CONFIG&&window.PQC_WEB_SUPPORT_CONFIG.googlePlayVoluntarySupport===true);
+}
+function supportAllowedForCurrentContext(){
+  /* 採最保守的全通路閘門：App 身分訊號即使晚到，也不會先把付款入口當一般網頁顯示。 */
+  return googlePlayVoluntarySupportEnabled();
+}
 function clearSupportLinks(){
   ["supportLink50","supportLink100","supportLink150","supportLink"].forEach(function(id){
     const link=document.getElementById(id);
@@ -3677,16 +3706,21 @@ function clearSupportLinks(){
   if(modal){modal.classList.remove("open");modal.setAttribute("aria-hidden","true");modal.inert=true}
 }
 function loadWebSupportConfig(){
-  if(isInstalledAppContext()){clearSupportLinks();return Promise.resolve(false)}
-  if(window.PQC_WEB_SUPPORT_CONFIG)return Promise.resolve(true);
+  if(window.PQC_WEB_SUPPORT_CONFIG){
+    const allowed=supportAllowedForCurrentContext();
+    if(!allowed)clearSupportLinks();
+    return Promise.resolve(allowed);
+  }
   if(_webSupportConfigPromise)return _webSupportConfigPromise;
   _webSupportConfigPromise=new Promise(function(resolve){
     const script=document.createElement("script");
     script.src="./web-support-config.js";
     script.async=true;
     script.onload=function(){
-      if(isInstalledAppContext()){clearSupportLinks();resolve(false);return}
-      resolve(!!window.PQC_WEB_SUPPORT_CONFIG);
+      const allowed=!!window.PQC_WEB_SUPPORT_CONFIG&&supportAllowedForCurrentContext();
+      if(!allowed)clearSupportLinks();
+      refreshAnnouncementAvailability();
+      resolve(allowed);
     };
     script.onerror=function(){resolve(false)};
     document.head.appendChild(script);
@@ -3702,13 +3736,13 @@ function renderSupportLink(){
     ["supportLink","custom"]
   ];
   if(!card)return;
-  if(isInstalledAppContext()){
-    clearSupportLinks();
-    return;
-  }
   if(!window.PQC_WEB_SUPPORT_CONFIG){
     clearSupportLinks();
     loadWebSupportConfig().then(function(loaded){if(loaded)renderSupportLink()});
+    return;
+  }
+  if(!supportAllowedForCurrentContext()){
+    clearSupportLinks();
     return;
   }
   let hasAvailableLink=false;
@@ -3727,11 +3761,6 @@ function renderSupportLink(){
   });
   card.style.display=hasAvailableLink?"flex":"none";
 }
-function isInstalledAppContext(){
-  const standalone=typeof window.matchMedia==="function"&&window.matchMedia("(display-mode: standalone)").matches;
-  const iosStandalone=window.navigator&&window.navigator.standalone===true;
-  return !!(isGooglePlayAppContext()||standalone||iosStandalone);
-}
 function publicConfigSupportUrl(key){
   const config=window.PQC_WEB_SUPPORT_CONFIG||{};
   const raw=config.supportUrls&&config.supportUrls[key]||"";
@@ -3744,9 +3773,9 @@ function publicConfigHttpsUrl(key){
   const raw=window.PQC_PUBLIC_CONFIG&&window.PQC_PUBLIC_CONFIG[key]||"";
   try{const parsed=new URL(raw);return parsed.protocol==="https:"?parsed.href:""}catch(e){return ""}
 }
-window.addEventListener("pqc:android-app-context",function(){rememberGooglePlayAppContext();clearSupportLinks()});
+window.addEventListener("pqc:android-app-context",function(){rememberGooglePlayAppContext();renderSupportLink();refreshAnnouncementAvailability()});
 document.addEventListener("click",function(event){
-  if(!isInstalledAppContext())return;
+  if(supportAllowedForCurrentContext())return;
   const link=event.target&&event.target.closest?event.target.closest("a[href]"):null;
   if(!link)return;
   try{
@@ -3755,7 +3784,7 @@ document.addEventListener("click",function(event){
   event.preventDefault();
   event.stopImmediatePropagation();
   clearSupportLinks();
-  if(typeof toast==="function")toast("Google Play 版不提供外部付款；目前所有功能皆可免費使用");
+  if(typeof toast==="function")toast("自願支持目前暫停；所有功能仍可免費使用");
 },true);
 renderRecent();renderRecipes();renderRecords();calc();renderHome();renderRecTable();renderProfile();renderPlotRecordBox();openHomeOnLaunch();
 document.getElementById("verLine").innerHTML=`App v${APP_VERSION} · 資料版本 ${DATA_VERSION} · <a href="#" onclick="openFeedback('');return false" style="color:var(--green);font-weight:700">意見回饋</a>`;

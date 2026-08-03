@@ -8,6 +8,8 @@
     "build": "node scripts/build-release.mjs",
     "release:check": "npm run test && npm run build && node scripts/check-release.mjs",
     "firebase:login": "npx --yes firebase-tools@15.24.0 login",
+    "security:headers": "node scripts/check-security-headers.mjs",
+    "data:check-pesticides": "node scripts/check-pesticide-update.mjs",
     "deploy:preview": "npm run release:check && npx --yes firebase-tools@15.24.0 hosting:channel:deploy preview",
     "deploy:hosting": "npm run release:check && npx --yes firebase-tools@15.24.0 deploy --only hosting",
     "release:bump": "node scripts/bump-version.mjs",
