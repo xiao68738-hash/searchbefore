@@ -15,6 +15,14 @@
 
   const BACKUP_PRODUCT = "searchbefore-backup";
   const BACKUP_FORMAT_VERSION = 1;
+  const BACKUP_LIMITS = Object.freeze({
+    records: 20000,
+    farmRecords: 20000,
+    fieldPlots: 5000,
+    recipes: 5000,
+    recentCrops: 100
+  });
+  const SAFE_ID_RE = /^[A-Za-z0-9_-]{1,100}$/;
 
   function text(value) {
     return String(value == null ? "" : value).trim();
@@ -234,21 +242,190 @@
     };
   }
 
+  function plainObject(value, label) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      throw new Error("備份內容格式錯誤：" + label);
+    }
+    return value;
+  }
+
+  function safeString(value, label, max, requiredValue) {
+    if (value == null) value = "";
+    if (typeof value !== "string" && typeof value !== "number") {
+      throw new Error("備份內容格式錯誤：" + label);
+    }
+    const out = String(value).trim();
+    if (requiredValue && !out) throw new Error("備份內容缺少：" + label);
+    if (out.length > max) throw new Error("備份內容過長：" + label);
+    return out;
+  }
+
+  function safeId(value, label, requiredValue) {
+    const out = safeString(value, label, 100, requiredValue);
+    if (out && !SAFE_ID_RE.test(out)) throw new Error("備份內容含有不安全的編號：" + label);
+    return out;
+  }
+
+  function safeDate(value, label, requiredValue) {
+    const out = safeString(value, label, 10, requiredValue);
+    if (out && !validDate(out)) throw new Error("備份內容日期格式錯誤：" + label);
+    return out;
+  }
+
+  function safeIso(value, label) {
+    const out = safeString(value, label, 40, false);
+    if (out && !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?Z$/.test(out)) {
+      throw new Error("備份內容時間格式錯誤：" + label);
+    }
+    return out;
+  }
+
+  function safeNumber(value, label, options) {
+    const opts = options || {};
+    if (value == null || value === "") return opts.nullable ? null : "";
+    if (typeof value !== "number" && typeof value !== "string") {
+      throw new Error("備份內容格式錯誤：" + label);
+    }
+    const n = Number(value);
+    if (!Number.isFinite(n) || (opts.min != null && n < opts.min) || (opts.max != null && n > opts.max)) {
+      throw new Error("備份內容數值錯誤：" + label);
+    }
+    return opts.asNumber ? n : String(n);
+  }
+
+  function safeArray(value, key, sanitizer) {
+    if (value == null) return [];
+    if (!Array.isArray(value)) throw new Error("備份內容格式錯誤：" + key);
+    if (value.length > BACKUP_LIMITS[key]) throw new Error("備份內容筆數過多：" + key);
+    return value.map(function (item, index) { return sanitizer(item, key + "[" + index + "]"); });
+  }
+
+  function syncFields(source, target, label) {
+    const updatedAt = safeIso(source.updatedAt, label + ".updatedAt");
+    if (updatedAt) target.updatedAt = updatedAt;
+    return target;
+  }
+
+  function sanitizePesticideRecord(value, label) {
+    const r = plainObject(value, label);
+    const phi = safeNumber(r.phi, label + ".phi", { nullable: true, asNumber: true, min: 0, max: 3650 });
+    return syncFields(r, {
+      id: safeId(r.id, label + ".id", true),
+      crop: safeString(r.crop, label + ".crop", 120, true),
+      agent: safeString(r.agent, label + ".agent", 200, true),
+      date: safeDate(r.date, label + ".date", true),
+      phi: phi,
+      moa: safeString(r.moa, label + ".moa", 100, false),
+      pest: safeString(r.pest, label + ".pest", 200, false),
+      dil: safeNumber(r.dil, label + ".dil", { min: 0, max: 10000000 }),
+      water: safeNumber(r.water, label + ".water", { min: 0, max: 10000000 }),
+      totalWater: safeNumber(r.totalWater, label + ".totalWater", { min: 0, max: 100000000 }),
+      plotId: safeId(r.plotId, label + ".plotId", false),
+      operator: safeString(r.operator, label + ".operator", 120, false)
+    }, label);
+  }
+
+  function sanitizeSafetyCheck(value, label) {
+    if (value == null) return null;
+    const s = plainObject(value, label);
+    const status = safeString(s.status, label + ".status", 20, true);
+    if (["none", "safe", "waiting", "unknown"].indexOf(status) < 0) throw new Error("備份內容格式錯誤：" + label + ".status");
+    return {
+      status: status,
+      safeDate: safeDate(s.safeDate, label + ".safeDate", false),
+      daysRemaining: safeNumber(s.daysRemaining, label + ".daysRemaining", { nullable: true, asNumber: true, min: -3650, max: 3650 }),
+      recordCount: safeNumber(s.recordCount, label + ".recordCount", { asNumber: true, min: 0, max: 20000 }),
+      checkedAt: safeIso(s.checkedAt, label + ".checkedAt")
+    };
+  }
+
+  function sanitizeFarmRecord(value, label) {
+    const r = plainObject(value, label);
+    const type = safeString(r.type, label + ".type", 40, true);
+    if (!Object.prototype.hasOwnProperty.call(RECORD_TYPES, type)) throw new Error("備份內容格式錯誤：" + label + ".type");
+    const details = plainObject(r.details, label + ".details");
+    const clean = syncFields(r, {
+      id: safeId(r.id, label + ".id", true),
+      plotId: safeId(r.plotId, label + ".plotId", true),
+      type: type,
+      date: safeDate(r.date, label + ".date", true),
+      operator: safeString(r.operator, label + ".operator", 120, false),
+      notes: safeString(r.notes, label + ".notes", 2000, false),
+      details: makeDetails(type, details),
+      createdAt: safeIso(r.createdAt, label + ".createdAt")
+    }, label);
+    Object.keys(clean.details).forEach(function (key) {
+      clean.details[key] = safeString(clean.details[key], label + ".details." + key, 500, false);
+    });
+    const safetyCheck = sanitizeSafetyCheck(r.safetyCheck, label + ".safetyCheck");
+    if (type === "harvest" && safetyCheck) clean.safetyCheck = safetyCheck;
+    return clean;
+  }
+
+  function sanitizeFieldPlot(value, label) {
+    const p = plainObject(value, label);
+    const cropSource = safeString(p.cropSource, label + ".cropSource", 20, false);
+    if (cropSource && ["registered", "custom"].indexOf(cropSource) < 0) throw new Error("備份內容格式錯誤：" + label + ".cropSource");
+    const crop = safeString(p.crop || p.name, label + ".crop", 120, true);
+    return syncFields(p, {
+      id: safeId(p.id, label + ".id", true),
+      name: safeString(p.name || crop, label + ".name", 120, true),
+      crop: crop,
+      cropSource: cropSource || "custom",
+      plantDate: safeDate(p.plantDate, label + ".plantDate", false),
+      variety: safeString(p.variety, label + ".variety", 120, false),
+      tag: safeString(p.tag, label + ".tag", 120, false),
+      createdAt: safeDate(p.createdAt, label + ".createdAt", false)
+    }, label);
+  }
+
+  function sanitizeRecipe(value, label) {
+    const r = plainObject(value, label);
+    if (r.brands != null && !Array.isArray(r.brands)) throw new Error("備份內容格式錯誤：" + label + ".brands");
+    if ((r.brands || []).length > 500) throw new Error("備份內容筆數過多：" + label + ".brands");
+    return {
+      crop: safeString(r.crop, label + ".crop", 300, true),
+      pest: safeString(r.pest, label + ".pest", 200, false),
+      agent: safeString(r.agent, label + ".agent", 200, true),
+      dil: safeNumber(r.dil, label + ".dil", { asNumber: true, min: 0, max: 10000000 }),
+      phi: safeNumber(r.phi, label + ".phi", { nullable: true, asNumber: true, min: 0, max: 3650 }),
+      water: safeNumber(r.water, label + ".water", { asNumber: true, min: 0, max: 10000000 }),
+      unit: safeString(r.unit, label + ".unit", 80, false),
+      moa: safeString(r.moa, label + ".moa", 100, false),
+      dosePerHa: safeNumber(r.dosePerHa, label + ".dosePerHa", { nullable: true, asNumber: true, min: 0, max: 100000000 }),
+      doseRaw: safeString(r.doseRaw, label + ".doseRaw", 300, false),
+      note: safeString(r.note, label + ".note", 2000, false),
+      brands: (r.brands || []).map(function (brand, index) { return safeString(brand, label + ".brands[" + index + "]", 200, true); }),
+      brand: safeString(r.brand, label + ".brand", 200, false)
+    };
+  }
+
   function readBackup(payload) {
     if (!payload || payload.product !== BACKUP_PRODUCT) throw new Error("這不是噴前查的備份檔");
     if (Number(payload.formatVersion) !== BACKUP_FORMAT_VERSION) throw new Error("備份檔版本不支援");
     if (!payload.data || typeof payload.data !== "object" || Array.isArray(payload.data)) throw new Error("備份內容不完整");
     const d = payload.data;
-    for (const key of ["records", "farmRecords", "fieldPlots", "recipes", "recentCrops"]) {
-      if (d[key] != null && !Array.isArray(d[key])) throw new Error("備份內容格式錯誤：" + key);
-    }
-    return d;
+    const fieldPlots = safeArray(d.fieldPlots, "fieldPlots", sanitizeFieldPlot);
+    const plotIds = new Set(fieldPlots.map(function (plot) { return plot.id; }));
+    const activePlotId = safeId(d.activePlotId, "activePlotId", false);
+    if (activePlotId && !plotIds.has(activePlotId)) throw new Error("備份內容的預設田區不存在");
+    return {
+      schemaVersion: safeNumber(d.schemaVersion, "schemaVersion", { asNumber: true, min: 1, max: 100 }),
+      records: safeArray(d.records, "records", sanitizePesticideRecord),
+      farmRecords: safeArray(d.farmRecords, "farmRecords", sanitizeFarmRecord),
+      fieldPlots: fieldPlots,
+      activePlotId: activePlotId,
+      recipes: safeArray(d.recipes, "recipes", sanitizeRecipe),
+      recentCrops: safeArray(d.recentCrops, "recentCrops", function (crop, label) { return safeString(crop, label, 120, true); }),
+      lastFarmOperator: safeString(d.lastFarmOperator, "lastFarmOperator", 120, false)
+    };
   }
 
   return Object.freeze({
     RECORD_TYPES: RECORD_TYPES,
     BACKUP_PRODUCT: BACKUP_PRODUCT,
     BACKUP_FORMAT_VERSION: BACKUP_FORMAT_VERSION,
+    BACKUP_LIMITS: BACKUP_LIMITS,
     createRecord: createRecord,
     summary: summary,
     buildRecordsTable: buildRecordsTable,
