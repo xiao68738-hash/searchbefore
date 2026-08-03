@@ -1322,9 +1322,10 @@ const DATA={"木瓜":{"白粉病":[{"name":"快得保淨","form":"WP","content":
 /* ═══ 維護區:改這裡就好 ═══════════════════════════════
    APP_VERSION:每次更新資料或功能時往上加
    ANNOUNCE:公告(新的放最上面,date 改了紅點會自動亮) */
-const APP_VERSION="0.3.6.2";
+const APP_VERSION="0.3.6.4";
 const DATA_VERSION="2026-07-21"; // 農藥資料抓取年月
 const ANNOUNCE=[
+ {date:"2026-08-03",version:"0.3.6.4",title:"備份匯入安全性更新",body:"本次更新加強備份檔案的格式與內容檢查，阻擋異常識別碼與不安全內容，並更新離線快取。若裝置顯示有新版本，請按「立即更新」以套用最新版。"},
  {date:"2026-07-30",version:"0.3.3.1",title:"網頁版自願支持管道啟用",body:"噴前查網頁版現已串接綠界科技收款服務，提供新台幣 50、100、150 元與自訂金額的自願支持選項。付款由綠界處理；是否支持不影響任何功能或服務。",action:"support",actionLabel:"查看贊助方式"},
 ];
 const FEEDBACK_EMAIL=String(window.PQC_PUBLIC_CONFIG&&window.PQC_PUBLIC_CONFIG.feedbackEmail||"").trim();
