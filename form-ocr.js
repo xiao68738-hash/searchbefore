@@ -48,15 +48,16 @@
     const sharpness = clamp01(m.sharpness);
     const glare = clamp01(m.glareRatio);
     const skew = Math.abs(Number(m.skewDegrees) || 0);
-    const corners = m.cornersDetected === true;
     const manualPhotoCheck = m.assessment === "user-confirmed-before-upload";
+    const corners = m.cornersDetected === true;
+    const cornersConfirmedByUser = m.cornersConfirmedByUser === true || manualPhotoCheck;
     const issues = [];
 
     function add(code, level, message) {
       issues.push(Object.freeze({ code, level, message }));
     }
 
-    if (!corners) add("missing-corners", "blocking", "沒有完整拍到表單四個角，請重新拍攝。");
+    if (!corners && !cornersConfirmedByUser) add("missing-corners", "blocking", "沒有完整拍到表單四個角，請重新拍攝。");
     if (shortEdge < 720) add("low-resolution", "blocking", "照片解析度不足，請靠近表單重新拍攝。");
     if (!manualPhotoCheck) {
       if (coverage < 0.45) add("document-too-small", "blocking", "表單在畫面中太小，請靠近拍攝。");
@@ -81,6 +82,7 @@
         glareRatio: glare,
         skewDegrees: skew,
         cornersDetected: corners,
+        cornersConfirmedByUser,
         assessment: manualPhotoCheck ? "user-confirmed-before-upload" : "measured"
       })
     });

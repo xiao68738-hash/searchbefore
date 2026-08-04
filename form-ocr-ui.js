@@ -307,7 +307,14 @@
     return user.getIdToken(false);
   }
 
-  async function recognizeCloudImage(file) {
+  function cloudRequestId() {
+    const random = root.crypto && typeof root.crypto.getRandomValues === "function"
+      ? Array.from(root.crypto.getRandomValues(new Uint32Array(2))).map(function (value) { return value.toString(16); }).join("")
+      : Math.random().toString(16).slice(2);
+    return "cloud-" + Date.now() + "-" + random.slice(0, 24);
+  }
+
+  async function recognizeCloudImage(file, requestId) {
     const config = cloudOcrConfig();
     const endpoint = validCloudEndpoint(config.endpoint);
     if (!endpoint) throw new Error("雲端圖片辨識尚未完成設定");
@@ -319,6 +326,7 @@
     const token = await firebaseIdToken();
     const body = new FormData();
     body.append("image", file, file.name || "record-photo.jpg");
+    body.append("request_id", requestId);
     const response = await fetch(endpoint, {
       method: "POST",
       headers: { Authorization: "Bearer " + token },
@@ -355,7 +363,8 @@
     try {
       let payload;
       if (activeOcrProvider() === "cloud-paddleocr") {
-        payload = await recognizeCloudImage(file);
+        pendingRequestId = cloudRequestId();
+        payload = await recognizeCloudImage(file, pendingRequestId);
       } else {
         const paddle = await loadPaddleOcr();
         payload = await paddle.recognize(file, {
@@ -367,6 +376,7 @@
       setBrowserOcrStatus("辨識完成。請逐欄核對下方草稿，系統尚未儲存任何紀錄。", "ok");
       return true;
     } catch (error) {
+      pendingRequestId = null;
       const message = friendlyOcrError(error);
       setBrowserOcrStatus(message, "bad");
       if (typeof root.toast === "function") root.toast(message);
@@ -624,6 +634,7 @@
     featureReleaseState,
     validCloudEndpoint,
     activeOcrProvider,
+    cloudRequestId,
     safePayload,
     matchKey,
     registeredPesticideMatches,

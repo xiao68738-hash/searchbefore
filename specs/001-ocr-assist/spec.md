@@ -63,6 +63,7 @@
 - **FR-002** 系統 MUST 在辨識前顯示照片品質確認。
 - **FR-003** 所有 provider MUST 輸出 `PQC_OCR_SCAN_RESULT` protocol v1。
 - **FR-004** 系統 MUST 驗證協定版本、來源、請求配對與內容上限。
+- **FR-004a** 雲端請求 MUST 由前端產生 requestId，後端驗證後原樣回傳，前端 MUST 拒絕不屬於本次請求的結果。
 - **FR-005** 系統 MUST 將 OCR 結果建立為未確認草稿。
 - **FR-006** 使用者 MUST 逐欄確認後才能帶入既有表單。
 - **FR-007** 用藥草稿 MUST 唯一對回站內正式登記資料，否則阻擋帶入。
@@ -72,6 +73,7 @@
 - **FR-011** 雲端後端 MUST NOT 主動保存原圖、OCR 文字或 Authorization token。
 - **FR-012** 正式 provider 切換 MUST 經由另一個 PR，且在部署與驗收完成前保持 `browser`。
 - **FR-013** 功能在未正式驗收前 MUST 標示「測試中・開發中」。
+- **FR-014** 系統 MUST 區分自動偵測四角與使用者人工確認，不得用 `cornersDetected` 表示人工勾選。
 
 ### Key Entities
 

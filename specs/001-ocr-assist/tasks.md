@@ -10,6 +10,7 @@
 - [x] Android ML Kit 獨立原型與品質資訊協定。
 - [x] FastAPI／PaddleOCR 3.7 雲端服務骨架。
 - [x] Firebase token、Origin、格式、大小、像素、逾時與記憶體限流控制。
+- [x] 雲端 requestId 端到端配對，並區分自動四角偵測與人工確認。
 - [x] 雲端 provider 預設關閉，endpoint 保持空白。
 - [x] 前端與後端基本單元／安全測試。
 

@@ -1,7 +1,9 @@
 import io
 
 from PIL import Image
+from fastapi import HTTPException
 
+from app.main import valid_request_id
 from app.ocr import InvalidImage, decode_image, normalize_results
 from app.security import DEFAULT_ORIGINS, UserRateLimiter, origin_is_allowed
 
@@ -47,3 +49,13 @@ def test_normalize_results_limits_and_shapes_output():
     assert blocks[0]["confidence"] == 0.91
     assert blocks[1]["confidence"] == 1.0
     assert blocks[1]["box"]["left"] == 0.01
+
+
+def test_request_id_is_bounded_and_safe():
+    assert valid_request_id("cloud-1234-abcd") == "cloud-1234-abcd"
+    for value in ("", "contains space", "<script>", "a" * 129):
+        try:
+            valid_request_id(value)
+            assert False
+        except HTTPException as exc:
+            assert exc.status_code == 422

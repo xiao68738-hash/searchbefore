@@ -101,6 +101,7 @@ flowchart LR
     "width": 1600,
     "height": 2200,
     "cornersDetected": true,
+    "cornersConfirmedByUser": false,
     "assessment": "user-confirmed-before-upload"
   },
   "blocks": [
@@ -122,6 +123,8 @@ flowchart LR
 - `confidence` 限制在 0～1。
 - 前端接收後仍只建立 `confirmed: false` 的草稿。
 - Android 訊息必須驗證來源與 `requestId`；網頁不得接收圖片內容。
+- 雲端模式由前端產生 `requestId`，後端驗證格式後原樣回傳，前端只接受本次請求的結果。
+- `cornersDetected` 只代表程式偵測；使用者勾選照片完整時使用 `cornersConfirmedByUser`，兩者不得混用。
 
 ## 5. 雲端 API 契約
 
@@ -135,6 +138,7 @@ flowchart LR
 
 - `Content-Type`: `multipart/form-data`
 - 欄位：`image`
+- 欄位：`request_id`，1～128 字元，只允許英數、`.`、`_`、`:`、`-`，後端須原樣回傳。
 - 驗證：`Authorization: Bearer <Firebase ID token>`
 - 瀏覽器來源：必須精確符合設定的 HTTPS Origin。
 - 格式：JPG、PNG、WebP。

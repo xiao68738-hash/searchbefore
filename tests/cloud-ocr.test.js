@@ -19,11 +19,16 @@ assert.equal(UI.validCloudEndpoint("https://example.com/not-ocr"), "", "OCR 端�
 assert.match(UI.validCloudEndpoint("https://ocr.example.com/v1/ocr"), /^https:\/\/ocr\.example\.com\/v1\/ocr/);
 
 assert.match(uiSource, /cloudOcrConsent/, "傳送照片前必須取得單次明確同意");
+assert.match(uiSource, /body\.append\("request_id", requestId\)/, "雲端請求必須傳送本次請求識別碼");
+assert.match(uiSource, /pendingRequestId = cloudRequestId\(\)/, "前端必須保存本次雲端請求識別碼並核對回應");
 assert.match(uiSource, /Authorization: "Bearer " \+ token/, "雲端 OCR 必須附 Firebase 登入權杖");
 assert.match(uiSource, /credentials: "omit"/, "OCR 請求不得附帶瀏覽器 Cookie");
 assert.match(uiSource, /referrerPolicy: "no-referrer"/, "OCR 請求不得傳送來源路徑");
 assert.match(uiSource, /receiveScanResult\(payload\)/, "雲端結果仍必須走相同安全草稿檢查");
 assert.match(backendSource, /await image\.read\(MAX_UPLOAD_BYTES \+ 1\)/, "後端必須限制上傳大小");
+assert.match(backendSource, /"requestId": safe_request_id/, "後端必須原樣回傳已驗證的請求識別碼");
+assert.match(backendSource, /"cornersDetected": False/, "後端不得把人工勾選誤稱為自動偵測四角");
+assert.match(backendSource, /"cornersConfirmedByUser": True/, "後端必須明確標示四角來自使用者確認");
 assert.match(backendSource, /retention.*not-stored/s, "回應必須聲明原圖不保存");
 assert.match(securitySource, /verify_id_token/, "後端必須驗證 Firebase ID token");
 assert.match(securitySource, /UserRateLimiter/, "後端必須限制單一帳號的短時間請求量");

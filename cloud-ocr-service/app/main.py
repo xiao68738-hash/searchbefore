@@ -1,9 +1,10 @@
 import asyncio
+import re
 import os
 import time
-import uuid
+from datetime import datetime, timezone
 
-from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from .ocr import InvalidImage, decode_image, engine
@@ -12,6 +13,7 @@ from .security import allowed_origins, ensure_firebase_app, verify_request
 
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(12 * 1024 * 1024)))
 OCR_TIMEOUT_SECONDS = int(os.getenv("OCR_TIMEOUT_SECONDS", "45"))
+REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
 origins = allowed_origins()
 
 app = FastAPI(title="SearchBefore Cloud OCR", docs_url=None, redoc_url=None, openapi_url=None)
@@ -36,13 +38,22 @@ def healthz() -> dict:
     return {"status": "ok"}
 
 
+def valid_request_id(value: str) -> str:
+    request_id = str(value or "").strip()
+    if not REQUEST_ID_PATTERN.fullmatch(request_id):
+        raise HTTPException(status_code=422, detail="請求識別碼格式不正確")
+    return request_id
+
+
 @app.post("/v1/ocr")
 async def recognize(
     request: Request,
     image: UploadFile = File(...),
+    request_id: str = Form(...),
     _claims: dict = Depends(verify_request),
 ) -> dict:
     started = time.monotonic()
+    safe_request_id = valid_request_id(request_id)
     content_type = (image.content_type or "").lower()
     data = await image.read(MAX_UPLOAD_BYTES + 1)
     await image.close()
@@ -67,14 +78,15 @@ async def recognize(
     return {
         "type": "PQC_OCR_SCAN_RESULT",
         "protocolVersion": 1,
-        "requestId": f"cloud-{uuid.uuid4().hex}",
-        "createdAt": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).isoformat(),
+        "requestId": safe_request_id,
+        "createdAt": datetime.now(timezone.utc).isoformat(),
         "engine": "PaddleOCR 3.7 / PP-OCRv6-small (Cloud Run)",
         "source": "cloud-paddleocr",
         "quality": {
             "width": decoded.width,
             "height": decoded.height,
-            "cornersDetected": True,
+            "cornersDetected": False,
+            "cornersConfirmedByUser": True,
             "assessment": "user-confirmed-before-upload",
         },
         "blocks": blocks,

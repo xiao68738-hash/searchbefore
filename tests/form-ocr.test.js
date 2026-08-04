@@ -78,12 +78,14 @@ assert.equal(browserDraft.confirmed, false, "瀏覽器辨識結果同樣不得�
 const cloudDraft = O.createDraft({
   source: "cloud-paddleocr",
   engine: "PaddleOCR 3.7 / PP-OCRv6-small (Cloud Run)",
-  quality: { width: 1600, height: 2200, cornersDetected: true, assessment: "user-confirmed-before-upload" },
+  quality: { width: 1600, height: 2200, cornersDetected: false, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
   blocks: [{ text: "民國115/7/30 番茄", confidence: 0.9 }]
 }, { crops: ["番茄"] });
 assert.equal(cloudDraft.source, "cloud-paddleocr", "雲端辨識草稿必須保留來源標示");
 assert.equal(cloudDraft.quality.canProcess, true, "使用者已確認且解析度足夠的雲端照片可進入人工草稿");
 assert.equal(cloudDraft.confirmed, false, "雲端辨識結果不得直接視為已確認");
+assert.equal(cloudDraft.quality.metrics.cornersDetected, false, "人工確認不得冒充系統偵測四角");
+assert.equal(cloudDraft.quality.metrics.cornersConfirmedByUser, true, "雲端草稿應保留人工確認來源");
 
 const pesticideDraft = O.createDraft({
   quality: { width: 1800, height: 2400, documentCoverage: 0.9, sharpness: 0.9, glareRatio: 0, skewDegrees: 0, cornersDetected: true },
