@@ -48,7 +48,8 @@
     const sharpness = clamp01(m.sharpness);
     const glare = clamp01(m.glareRatio);
     const skew = Math.abs(Number(m.skewDegrees) || 0);
-    const corners = m.cornersDetected === true;
+    const cornersConfirmedByUser = m.cornersConfirmedByUser === true;
+    const corners = m.cornersDetected === true || cornersConfirmedByUser;
     const manualPhotoCheck = m.assessment === "user-confirmed-before-upload";
     const issues = [];
 
@@ -81,6 +82,7 @@
         glareRatio: glare,
         skewDegrees: skew,
         cornersDetected: corners,
+        cornersConfirmedByUser,
         assessment: manualPhotoCheck ? "user-confirmed-before-upload" : "measured"
       })
     });
@@ -272,7 +274,7 @@
     return Object.freeze({
       protocolVersion: PROTOCOL_VERSION,
       requestId: String(result.requestId || "").slice(0, 100),
-      source: result.source === "cloud-paddleocr" ? "cloud-paddleocr" : (result.engine ? "browser-paddleocr" : "android-on-device-ocr"),
+      source: result.source === "google-cloud-vision" ? "google-cloud-vision" : "android-on-device-ocr",
       createdAt: String(result.createdAt || new Date().toISOString()),
       confirmed: false,
       quality,

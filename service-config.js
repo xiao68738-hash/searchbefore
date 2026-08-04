@@ -22,19 +22,18 @@ window.PQC_PUBLIC_CONFIG = {
     appId: "1:934300362639:web:a96c41c1a7e6cd5ea5cdfa"
   },
   feedbackEmail: "searchbefore82@gmail.com",
-  /* OCR 執行位置。正式切換到雲端前維持 browser，cloud.endpoint 留空。
-     Cloud Run 網址是公開設定，不是密鑰；後端仍會驗證 Firebase 登入權杖。 */
+  /* OCR 改用 Google Cloud Vision，但正式端點尚未部署，因此入口預設隱藏。
+     Cloud Run 網址可以公開；Google Cloud 憑證與服務帳戶金鑰不得寫入前端或 GitHub。 */
   ocr: {
-    provider: "browser",
+    provider: "google-cloud-vision",
     cloud: {
       endpoint: "",
       requireGoogleLogin: true,
       maxUploadBytes: 12582912
     }
   },
-  /* 未完善功能一律 hidden；只有安排公開測試時才可改成 development，
-     並由前端明確標示「開發中」。正式完成及驗收後才能改成 public。 */
+  /* Cloud Vision 後端完成部署、隱私說明及實機驗收後，才可改為 development。 */
   features: {
-    formOcr: "development"
+    formOcr: "hidden"
   }
 };

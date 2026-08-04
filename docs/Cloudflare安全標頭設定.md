@@ -24,12 +24,7 @@ Cloudflare 控制台 → `searchbefore.tw` → 規則（Rules）→ Transform Ru
 
 `Content-Security-Policy-Report-Only` 只記錄違規、不攔截功能。先觀察 Google 登入、雲端備份與贊助連結至少一週；確認瀏覽器主控台沒有必要資源遭攔截後，再另開 PR 評估改成正式的 `Content-Security-Policy`。
 
-PaddleOCR 圖片辨識測試會在使用者主動開啟功能後，下載瀏覽器執行檔與辨識模型。因此 `connect-src` 還必須包含：
-
-- `https://cdn.jsdelivr.net`
-- `https://paddle-model-ecology.bj.bcebos.com`
-
-請直接以目前 `firebase.json` 的完整值為準，避免日後正式啟用 CSP 時阻擋模型下載。照片只在使用者裝置內交給 PaddleOCR 處理，不會上傳到這兩個網域。
+瀏覽器端 OCR 模型已移除，因此不再需要允許模型 CDN。Google Cloud Vision 只能由 Cloud Run 後端呼叫；正式部署後，前端 `connect-src` 只需加入實際的 Cloud Run HTTPS 網域，不應加入 Vision API 或任何服務帳戶憑證。
 
 ## 驗證
 

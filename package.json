@@ -21,7 +21,6 @@
     "terser": "^5.43.1"
   },
   "dependencies": {
-    "@paddleocr/paddleocr-js": "^0.4.2",
     "pinyin-pro": "^3.18.2"
   }
 }

@@ -12,8 +12,7 @@
   let currentDraft = null;
   let twaPort = null;
   let pendingRequestId = null;
-  let paddleScriptPromise = null;
-  let selectedBrowserFile = null;
+  let selectedOcrFile = null;
 
   const RECORD_TYPE_LABELS = Object.freeze({
     pesticide: "病蟲害防治／用藥",
@@ -51,8 +50,8 @@
 
   function activeOcrProvider() {
     const config = ocrConfig();
-    if (config.provider === "cloud-paddleocr" && validCloudEndpoint(cloudOcrConfig().endpoint)) return "cloud-paddleocr";
-    return "browser";
+    if (config.provider === "google-cloud-vision" && validCloudEndpoint(cloudOcrConfig().endpoint)) return "google-cloud-vision";
+    return "unavailable";
   }
 
   function esc(value) {
@@ -243,7 +242,7 @@
   }
 
   function setBrowserOcrStatus(message, tone) {
-    const box = document.getElementById("paddleOcrStatus");
+    const box = document.getElementById("cloudVisionStatus");
     if (!box) return;
     box.hidden = !message;
     box.className = "ocr-status " + (tone || "warn");
@@ -253,12 +252,12 @@
   function selectBrowserImage(input) {
     const file = input && input.files && input.files[0];
     if (!file) return false;
-    selectedBrowserFile = file;
-    ["paddleOcrCamera", "paddleOcrFile"].forEach(function (id) {
+    selectedOcrFile = file;
+    ["cloudVisionCamera", "cloudVisionFile"].forEach(function (id) {
       const other = document.getElementById(id);
       if (other && other !== input) other.value = "";
     });
-    const label = document.getElementById("paddleOcrSelected");
+    const label = document.getElementById("cloudVisionSelected");
     if (label) {
       label.hidden = false;
       label.textContent = "已選擇：" + file.name;
@@ -269,35 +268,16 @@
 
   function friendlyOcrError(error) {
     const raw = error && error.message ? String(error.message) : "";
-    if (/out of memory|no available backend|memory access out of bounds/i.test(raw)) {
-      return "這支手機的瀏覽器記憶體不足，已無法啟動辨識模型。請關閉其他分頁後重試，或改用較小的照片／文字貼上功能。";
+    if (/429|quota|resource exhausted/i.test(raw)) {
+      return "雲端辨識目前已達使用上限，請稍後再試或改用文字貼上。";
     }
-    if (/failed to fetch|network|load|download|fetch/i.test(raw)) {
-      return "辨識模型下載失敗，請確認網路連線後再試。第一次使用建議連接 Wi-Fi。";
+    if (/failed to fetch|network|load|fetch/i.test(raw)) {
+      return "無法連線至雲端辨識服務，請確認網路後再試。";
+    }
+    if (/401|403|登入|token|permission/i.test(raw)) {
+      return "登入或辨識權限已失效，請重新登入 Google 帳號後再試。";
     }
     return raw || "辨識失敗，請重新拍攝後再試";
-  }
-
-  function loadPaddleOcr() {
-    if (root.PQC_PADDLE_OCR && typeof root.PQC_PADDLE_OCR.recognize === "function") {
-      return Promise.resolve(root.PQC_PADDLE_OCR);
-    }
-    if (paddleScriptPromise) return paddleScriptPromise;
-    paddleScriptPromise = new Promise(function (resolve, reject) {
-      const script = document.createElement("script");
-      script.src = "./paddle-ocr-browser.js";
-      script.async = true;
-      script.onload = function () {
-        if (root.PQC_PADDLE_OCR && typeof root.PQC_PADDLE_OCR.recognize === "function") resolve(root.PQC_PADDLE_OCR);
-        else reject(new Error("PaddleOCR 模組沒有正確啟動"));
-      };
-      script.onerror = function () { reject(new Error("無法載入 PaddleOCR 模組，請確認網路後再試")); };
-      document.head.appendChild(script);
-    }).catch(function (error) {
-      paddleScriptPromise = null;
-      throw error;
-    });
-    return paddleScriptPromise;
   }
 
   async function firebaseIdToken() {
@@ -335,11 +315,11 @@
   }
 
   async function recognizeBrowserImage() {
-    const cameraInput = document.getElementById("paddleOcrCamera");
-    const fileInput = document.getElementById("paddleOcrFile");
-    const confirmCorners = document.getElementById("paddleConfirmCorners");
-    const button = document.getElementById("paddleOcrRun");
-    const file = selectedBrowserFile
+    const cameraInput = document.getElementById("cloudVisionCamera");
+    const fileInput = document.getElementById("cloudVisionFile");
+    const confirmCorners = document.getElementById("cloudVisionConfirmCorners");
+    const button = document.getElementById("cloudVisionRun");
+    const file = selectedOcrFile
       || (cameraInput && cameraInput.files && cameraInput.files[0])
       || (fileInput && fileInput.files && fileInput.files[0]);
     if (!file) {
@@ -351,17 +331,11 @@
       return false;
     }
     if (button) button.disabled = true;
-    setBrowserOcrStatus(activeOcrProvider() === "cloud-paddleocr" ? "正在準備雲端辨識…" : "正在準備裝置內辨識…", "warn");
+    setBrowserOcrStatus("正在準備 Google Cloud Vision 雲端辨識…", "warn");
     try {
-      let payload;
-      if (activeOcrProvider() === "cloud-paddleocr") {
-        payload = await recognizeCloudImage(file);
-      } else {
-        const paddle = await loadPaddleOcr();
-        payload = await paddle.recognize(file, {
-          onStatus: function (message) { setBrowserOcrStatus(message, "warn"); }
-        });
-      }
+      if (activeOcrProvider() !== "google-cloud-vision") throw new Error("Google Cloud Vision 尚未完成正式設定");
+      pendingRequestId = cloudRequestId();
+      const payload = await recognizeCloudImage(file, pendingRequestId);
       if (!payload.blocks || !payload.blocks.length) throw new Error("沒有辨識到文字，請靠近表單並避免反光後重拍");
       if (!receiveScanResult(payload)) throw new Error("辨識結果未通過安全格式檢查");
       setBrowserOcrStatus("辨識完成。請逐欄核對下方草稿，系統尚未儲存任何紀錄。", "ok");
@@ -528,16 +502,13 @@
     const records = document.getElementById("scr-records");
     if (!menu || !records || document.getElementById("recordPanelOcr")) return;
     const developing = releaseState === "development";
-    const cloudMode = activeOcrProvider() === "cloud-paddleocr";
-    const ocrHeading = cloudMode ? "PaddleOCR 雲端圖片辨識（測試中・開發中）" : "PaddleOCR 圖片辨識（測試中・開發中）";
-    const cloudConsent = cloudMode ? '<label class="ocr-cloud-consent"><input id="cloudOcrConsent" type="checkbox"><span><b>同意本次雲端辨識</b><small>照片會加密傳送至噴前查 OCR 服務，辨識完成後不保留原始照片；辨識結果仍需由你確認。</small></span></label>' : "";
-    const ocrRunLabel = cloudMode ? "開始雲端辨識（測試中）" : "開始圖片辨識（測試中）";
-    const ocrNote = cloudMode
-      ? "辨識運算在雲端進行，不占用手機載入模型的記憶體。此功能需要 Google 登入及網路；照片只在你按下按鈕後傳送。"
-      : "系統會先縮小照片，降低手機記憶體用量，再檢查解析度與清晰度。第一次使用會下載辨識模型，請先連接 Wi-Fi；模型來源不會收到你選擇的照片。";
+    const ocrHeading = "Google Cloud Vision 圖片辨識（測試中・開發中）";
+    const cloudConsent = '<label class="ocr-cloud-consent"><input id="cloudOcrConsent" type="checkbox"><span><b>同意本次雲端辨識</b><small>照片會加密傳送至噴前查後端，再交由 Google Cloud Vision 辨識；目前設計不保存原始照片，結果仍須由你確認。</small></span></label>';
+    const ocrRunLabel = "開始雲端辨識（測試中）";
+    const ocrNote = "辨識運算在 Google Cloud 進行，不占用手機載入模型的記憶體。此功能需要 Google 登入及網路；照片只在你勾選同意並按下按鈕後傳送。";
     const gateLabel = developing ? "04・測試中／開發中" : "04・辨識";
     const headingTag = developing ? ' <span class="plot-tag">測試中・開發中</span>' : "";
-    const entryCopy = cloudMode ? "選擇照片後由雲端辨識；逐欄確認後再帶入紀錄，不會自動儲存。" : "選擇照片後在目前裝置內辨識；逐欄確認後再帶入紀錄，不會自動儲存。";
+    const entryCopy = "選擇照片後由 Google Cloud Vision 辨識；逐欄確認後再帶入紀錄，不會自動儲存。";
     menu.insertAdjacentHTML("beforeend", '<button class="record-hub-button" type="button" onclick="openRecordHub(\'ocr\')" aria-controls="recordPanelOcr"><span class="record-hub-index" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 11h6l2-3h6l2 3h6v15H5Z"/><circle cx="16" cy="18.5" r="5"/><path d="M23 14h1"/></svg></span><span class="record-hub-copy"><span class="record-hub-label">' + gateLabel + '</span><b>拍攝表單建立草稿</b><small>' + entryCopy + '</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>');
     records.insertAdjacentHTML("beforeend", `
       <section class="record-hub-panel" id="recordPanelOcr" data-record-panel="ocr" hidden>
@@ -550,29 +521,29 @@
             <p class="ocr-source-title">選擇照片來源</p>
             <div class="ocr-source-actions">
               <label class="ocr-source-button">
-                <input id="paddleOcrCamera" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onchange="PQC_FORM_OCR_UI.selectBrowserImage(this)">
+                <input id="cloudVisionCamera" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onchange="PQC_FORM_OCR_UI.selectBrowserImage(this)">
                 <span class="ocr-source-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 11h6l2-3h6l2 3h6v15H5Z"/><circle cx="16" cy="18.5" r="5"/></svg></span>
                 <b>立即拍照</b><small>開啟手機相機</small>
               </label>
               <label class="ocr-source-button">
-                <input id="paddleOcrFile" type="file" accept="image/jpeg,image/png,image/webp" onchange="PQC_FORM_OCR_UI.selectBrowserImage(this)">
+                <input id="cloudVisionFile" type="file" accept="image/jpeg,image/png,image/webp" onchange="PQC_FORM_OCR_UI.selectBrowserImage(this)">
                 <span class="ocr-source-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 9h9l2 3h13v14H4Z"/><path d="M4 12h24"/></svg></span>
                 <b>選擇檔案</b><small>從照片或檔案挑選</small>
               </label>
             </div>
-            <p id="paddleOcrSelected" class="ocr-selected-file" hidden></p>
+            <p id="cloudVisionSelected" class="ocr-selected-file" hidden></p>
             <label class="ocr-quality-confirm">
-              <input id="paddleConfirmCorners" type="checkbox">
+              <input id="cloudVisionConfirmCorners" type="checkbox">
               <span class="ocr-quality-check" aria-hidden="true">✓</span>
               <span class="ocr-quality-copy"><b>拍照品質確認</b><span>四角完整・文字清楚・沒有強烈反光</span></span>
             </label>
             ${cloudConsent}
-            <button class="btn btn-main" id="paddleOcrRun" type="button" onclick="PQC_FORM_OCR_UI.recognizeBrowserImage()">${ocrRunLabel}</button>
+            <button class="btn btn-main" id="cloudVisionRun" type="button" onclick="PQC_FORM_OCR_UI.recognizeBrowserImage()">${ocrRunLabel}</button>
             <p class="ocr-browser-note">${ocrNote}</p>
           </div>
-          <div id="paddleOcrStatus" class="ocr-status warn" role="status" aria-live="polite" hidden></div>
+          <div id="cloudVisionStatus" class="ocr-status warn" role="status" aria-live="polite" hidden></div>
           <div class="ocr-actions"><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.requestNativeScan()">使用 Android 原生掃描（開發中）</button><button class="btn btn-ghost" type="button" onclick="document.getElementById('ocrPasteText').focus()">改用文字貼上測試</button></div>
-          <div id="ocrBridgeNote" class="safety-banner" hidden>此版本尚未連接 Android 原生掃描器，請改用上方 PaddleOCR 圖片辨識。</div>
+          <div id="ocrBridgeNote" class="safety-banner" hidden>此版本尚未連接 Android 原生掃描器，請改用上方 Google Cloud Vision 圖片辨識。</div>
           <div class="ocr-paste"><label for="ocrPasteText"><b>貼上辨識文字（備用測試）</b></label><textarea id="ocrPasteText" placeholder="例如：民國115/7/30　番茄　施肥　有機質肥料20公斤"></textarea><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.parsePastedText()">從文字建立草稿</button></div>
           <div id="ocrDraftBox"></div>
         </div>
