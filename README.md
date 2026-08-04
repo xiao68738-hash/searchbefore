@@ -70,7 +70,7 @@ node tests/run-all.js
 - 更新 `index.html` 後同步更新 `sw.js` 的 `CACHE_VERSION`。
 - Firebase 公開設定只放在 `service-config.js`；服務帳戶 JSON、管理員私鑰與金流密鑰不得上傳。
 - `private_key.pem`、其他 `.pem` 私鑰檔不得上傳。
-- 內部開發分兩類：`formOcr` 這類前端測試模組可進成品，但必須由 `features` 保持 `hidden`；`tap-workflow.js` 這類純內部模組則不得被 `index.html`、Service Worker 或正式 build 載入。
+- 內部開發分兩類：`formOcr` 目前經明確決定以 `development` 開放圖片辨識測試，入口、標題與操作都必須標示「測試中・開發中」；`tap-workflow.js` 這類純內部模組仍不得被 `index.html`、Service Worker 或正式 build 載入。
 
 ## 重要安全聲明
 

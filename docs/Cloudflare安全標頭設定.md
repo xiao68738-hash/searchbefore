@@ -1,6 +1,6 @@
 # Cloudflare 安全標頭設定
 
-最後更新：2026-08-03
+最後更新：2026-08-04
 
 ## 為什麼還要在 Cloudflare 設定
 
@@ -23,6 +23,13 @@ Cloudflare 控制台 → `searchbefore.tw` → 規則（Rules）→ Transform Ru
 | `Content-Security-Policy-Report-Only` | 複製 `firebase.json` 內同名標頭的完整值 |
 
 `Content-Security-Policy-Report-Only` 只記錄違規、不攔截功能。先觀察 Google 登入、雲端備份與贊助連結至少一週；確認瀏覽器主控台沒有必要資源遭攔截後，再另開 PR 評估改成正式的 `Content-Security-Policy`。
+
+PaddleOCR 圖片辨識測試會在使用者主動開啟功能後，下載瀏覽器執行檔與辨識模型。因此 `connect-src` 還必須包含：
+
+- `https://cdn.jsdelivr.net`
+- `https://paddle-model-ecology.bj.bcebos.com`
+
+請直接以目前 `firebase.json` 的完整值為準，避免日後正式啟用 CSP 時阻擋模型下載。照片只在使用者裝置內交給 PaddleOCR 處理，不會上傳到這兩個網域。
 
 ## 驗證
 

@@ -67,6 +67,14 @@ assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄" }), false);
 assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType: "pesticide" }), false, "用藥草稿缺少藥劑不可帶入");
 assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType: "pesticide", material: "亞滅培" }), true);
 
+const browserDraft = O.createDraft({
+  engine: "PaddleOCR.js PP-OCRv5",
+  quality: { width: 1600, height: 2200, documentCoverage: 1, sharpness: 0.9, glareRatio: 0, skewDegrees: 0, cornersDetected: true },
+  blocks: [{ text: "民國115/7/30 番茄", confidence: 0.9 }]
+}, { crops: ["番茄"] });
+assert.equal(browserDraft.source, "browser-paddleocr", "瀏覽器 PaddleOCR 草稿必須標示來源");
+assert.equal(browserDraft.confirmed, false, "瀏覽器辨識結果同樣不得直接視為已確認");
+
 const pesticideDraft = O.createDraft({
   quality: { width: 1800, height: 2400, documentCoverage: 0.9, sharpness: 0.9, glareRatio: 0, skewDegrees: 0, cornersDetected: true },
   blocks: [{ text: "表11 病蟲害防治或環境消毒資材施用紀錄\n使用日期 民國115年7月30日\n田區代號 A+B區\n作物 番茄\n防治對象 葉蟎\n資材名稱 亞滅培\n稀釋倍數 4000倍\n安全採收期 6天\n操作人員 王小明", confidence: 0.9 }]
