@@ -1,9 +1,12 @@
 import { PaddleOCR } from "@paddleocr/paddleocr-js";
 
-const MODEL_VERSION = "PP-OCRv5";
+const MODEL_VERSION = "PP-OCRv6-tiny";
+const DETECTION_MODEL = "PP-OCRv6_tiny_det";
+const RECOGNITION_MODEL = "PP-OCRv6_tiny_rec";
 const RUNTIME_VERSION = "1.22.0";
 const WASM_PATH = `https://cdn.jsdelivr.net/npm/onnxruntime-web@${RUNTIME_VERSION}/dist/`;
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
+const MAX_INPUT_SIDE = 1600;
 let enginePromise = null;
 
 function status(callback, message) {
@@ -82,6 +85,32 @@ async function inspectImage(file) {
   };
 }
 
+async function prepareImage(file, onStatus) {
+  status(onStatus, "正在縮小照片，避免手機記憶體不足…");
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, MAX_INPUT_SIDE / Math.max(bitmap.width, bitmap.height));
+  if (scale === 1) {
+    bitmap.close();
+    return file;
+  }
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+  canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+  const context = canvas.getContext("2d", { alpha: false });
+  if (!context) {
+    bitmap.close();
+    throw new Error("無法縮小照片，請改用較小的圖片檔案");
+  }
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob((result) => result ? resolve(result) : reject(new Error("照片縮小失敗")), "image/jpeg", 0.9);
+  });
+  canvas.width = 1;
+  canvas.height = 1;
+  return blob;
+}
+
 function validateFile(file) {
   if (!(file instanceof Blob)) throw new Error("請先選擇照片");
   if (!/^image\/(?:jpeg|png|webp)$/i.test(file.type || "")) {
@@ -96,8 +125,10 @@ async function getEngine(onStatus) {
   if (!enginePromise) {
     status(onStatus, "第一次使用正在下載 PaddleOCR 模型，請保持網路連線…");
     enginePromise = PaddleOCR.create({
-      lang: "ch",
-      ocrVersion: MODEL_VERSION,
+      textDetectionModelName: DETECTION_MODEL,
+      textRecognitionModelName: RECOGNITION_MODEL,
+      textDetectionBatchSize: 1,
+      textRecognitionBatchSize: 1,
       ortOptions: {
         backend: "wasm",
         wasmPaths: WASM_PATH,
@@ -116,11 +147,12 @@ async function getEngine(onStatus) {
 async function recognize(file, options = {}) {
   validateFile(file);
   const onStatus = options.onStatus;
+  const preparedFile = await prepareImage(file, onStatus);
   status(onStatus, "正在檢查照片清晰度…");
-  const quality = await inspectImage(file);
+  const quality = await inspectImage(preparedFile);
   status(onStatus, "正在裝置內辨識文字，請勿關閉頁面…");
   const engine = await getEngine(onStatus);
-  const results = await engine.predict(file, {
+  const results = await engine.predict(preparedFile, {
     textDetLimitSideLen: 1280,
     textDetLimitType: "max",
     textRecScoreThresh: 0.35
@@ -151,7 +183,10 @@ async function recognize(file, options = {}) {
 
 globalThis.PQC_PADDLE_OCR = Object.freeze({
   MODEL_VERSION,
+  DETECTION_MODEL,
+  RECOGNITION_MODEL,
   RUNTIME_VERSION,
   MAX_FILE_BYTES,
+  MAX_INPUT_SIDE,
   recognize
 });

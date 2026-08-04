@@ -68,7 +68,7 @@ assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType
 assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType: "pesticide", material: "亞滅培" }), true);
 
 const browserDraft = O.createDraft({
-  engine: "PaddleOCR.js PP-OCRv5",
+  engine: "PaddleOCR.js PP-OCRv6-tiny",
   quality: { width: 1600, height: 2200, documentCoverage: 1, sharpness: 0.9, glareRatio: 0, skewDegrees: 0, cornersDetected: true },
   blocks: [{ text: "民國115/7/30 番茄", confidence: 0.9 }]
 }, { crops: ["番茄"] });
