@@ -13,6 +13,7 @@
   let twaPort = null;
   let pendingRequestId = null;
   let paddleScriptPromise = null;
+  let selectedBrowserFile = null;
 
   const RECORD_TYPE_LABELS = Object.freeze({
     pesticide: "病蟲害防治／用藥",
@@ -224,6 +225,34 @@
     box.textContent = message || "";
   }
 
+  function selectBrowserImage(input) {
+    const file = input && input.files && input.files[0];
+    if (!file) return false;
+    selectedBrowserFile = file;
+    ["paddleOcrCamera", "paddleOcrFile"].forEach(function (id) {
+      const other = document.getElementById(id);
+      if (other && other !== input) other.value = "";
+    });
+    const label = document.getElementById("paddleOcrSelected");
+    if (label) {
+      label.hidden = false;
+      label.textContent = "已選擇：" + file.name;
+    }
+    setBrowserOcrStatus("照片已選擇，確認品質後即可開始辨識。", "ok");
+    return true;
+  }
+
+  function friendlyOcrError(error) {
+    const raw = error && error.message ? String(error.message) : "";
+    if (/out of memory|no available backend|memory access out of bounds/i.test(raw)) {
+      return "這支手機的瀏覽器記憶體不足，已無法啟動辨識模型。請關閉其他分頁後重試，或改用較小的照片／文字貼上功能。";
+    }
+    if (/failed to fetch|network|load|download|fetch/i.test(raw)) {
+      return "辨識模型下載失敗，請確認網路連線後再試。第一次使用建議連接 Wi-Fi。";
+    }
+    return raw || "辨識失敗，請重新拍攝後再試";
+  }
+
   function loadPaddleOcr() {
     if (root.PQC_PADDLE_OCR && typeof root.PQC_PADDLE_OCR.recognize === "function") {
       return Promise.resolve(root.PQC_PADDLE_OCR);
@@ -247,10 +276,13 @@
   }
 
   async function recognizeBrowserImage() {
-    const input = document.getElementById("paddleOcrFile");
+    const cameraInput = document.getElementById("paddleOcrCamera");
+    const fileInput = document.getElementById("paddleOcrFile");
     const confirmCorners = document.getElementById("paddleConfirmCorners");
     const button = document.getElementById("paddleOcrRun");
-    const file = input && input.files && input.files[0];
+    const file = selectedBrowserFile
+      || (cameraInput && cameraInput.files && cameraInput.files[0])
+      || (fileInput && fileInput.files && fileInput.files[0]);
     if (!file) {
       if (typeof root.toast === "function") root.toast("請先選擇或拍攝表單照片");
       return false;
@@ -271,13 +303,12 @@
       setBrowserOcrStatus("辨識完成。請逐欄核對下方草稿，系統尚未儲存任何紀錄。", "ok");
       return true;
     } catch (error) {
-      const message = error && error.message ? error.message : "辨識失敗，請重新拍攝後再試";
+      const message = friendlyOcrError(error);
       setBrowserOcrStatus(message, "bad");
       if (typeof root.toast === "function") root.toast(message);
       return false;
     } finally {
       if (button) button.disabled = false;
-      if (input) input.value = "";
     }
   }
 
@@ -424,7 +455,7 @@
 
   function installStyle() {
     const style = document.createElement("style");
-    style.textContent = ".ocr-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}.ocr-card h3{font-size:19px;color:var(--green-deep);margin:0 0 6px}.ocr-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}.ocr-browser-import{border:1px solid var(--orange);background:color-mix(in srgb,var(--orange) 9%,var(--card));border-radius:15px;padding:15px;margin:14px 0;display:grid;gap:11px}.ocr-browser-import input[type=file]{width:100%;padding:10px;background:var(--card);border:1px solid var(--line);border-radius:11px}.ocr-browser-import label{font-weight:800}.ocr-browser-note{font-size:13px;color:var(--muted);line-height:1.6}.ocr-paste{border-top:1px solid var(--line);padding-top:15px}.ocr-paste textarea,.ocr-review textarea{min-height:110px}.ocr-status{border-radius:13px;padding:13px 15px;margin:14px 0;display:grid;gap:4px}.ocr-status.ok{background:var(--ok-bg);color:var(--green-deep)}.ocr-status.warn{background:#fff4d6;color:#6f4b00}.ocr-status.bad{background:#fff0ed;color:#982d20}.ocr-status ul{margin:5px 0 0;padding-left:20px}.ocr-review{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ocr-review .field{display:grid;gap:6px}.ocr-review .field input,.ocr-review .field select{width:100%}.ocr-review .field select+input{margin-top:6px}.ocr-review .wide{grid-column:1/-1}.ocr-confirm{border:1px solid var(--line);border-radius:13px;padding:12px;display:grid;gap:8px}.ocr-confirm legend{font-weight:900;color:var(--green-deep);padding:0 5px}.ocr-confirm label{font-weight:700}@media(max-width:620px){.ocr-actions,.ocr-review{grid-template-columns:1fr}.ocr-review .wide{grid-column:auto}}";
+    style.textContent = ".ocr-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}.ocr-card h3{font-size:19px;color:var(--green-deep);margin:0 0 6px}.ocr-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}.ocr-browser-import{border:1px solid var(--orange);background:color-mix(in srgb,var(--orange) 9%,var(--card));border-radius:15px;padding:15px;margin:14px 0;display:grid;gap:11px}.ocr-browser-import input[type=file]{width:100%;padding:10px;background:var(--card);border:1px solid var(--line);border-radius:11px}.ocr-browser-import label{font-weight:800}.ocr-browser-note{font-size:13px;color:var(--muted);line-height:1.6}.ocr-paste{border-top:1px solid var(--line);padding-top:15px}.ocr-paste textarea,.ocr-review textarea{min-height:110px}.ocr-status[hidden]{display:none}.ocr-status{border-radius:13px;padding:13px 15px;margin:14px 0;display:grid;gap:4px}.ocr-status.ok{background:var(--ok-bg);color:var(--green-deep)}.ocr-status.warn{background:#fff4d6;color:#6f4b00}.ocr-status.bad{background:#fff0ed;color:#982d20}.ocr-status ul{margin:5px 0 0;padding-left:20px}.ocr-review{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ocr-review .field{display:grid;gap:6px}.ocr-review .field input,.ocr-review .field select{width:100%}.ocr-review .field select+input{margin-top:6px}.ocr-review .wide{grid-column:1/-1}.ocr-confirm{border:1px solid var(--line);border-radius:13px;padding:12px;display:grid;gap:8px}.ocr-confirm legend{font-weight:900;color:var(--green-deep);padding:0 5px}.ocr-confirm label{font-weight:700}.ocr-source-title{font-size:14px;font-weight:900;color:var(--green-deep);margin:2px 0 0}.ocr-source-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ocr-source-button{position:relative;min-height:92px;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:13px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;cursor:pointer;transition:border-color .18s,transform .18s,background .18s}.ocr-source-button:hover{border-color:var(--orange);transform:translateY(-1px)}.ocr-source-button input{position:absolute;opacity:0;pointer-events:none}.ocr-source-button:has(input:focus-visible){outline:3px solid color-mix(in srgb,var(--orange) 35%,transparent);outline-offset:2px}.ocr-source-icon{width:32px;height:32px;color:var(--orange);display:grid;place-items:center}.ocr-source-icon svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.ocr-source-button b{font-size:15px;color:var(--green-deep)}.ocr-source-button small{font-size:12px;color:var(--muted)}.ocr-selected-file{margin:0;padding:9px 11px;border-radius:10px;background:color-mix(in srgb,var(--green) 10%,var(--card));color:var(--green-deep);font-size:12px;font-weight:800;overflow-wrap:anywhere}.ocr-quality-confirm{position:relative;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:13px;display:grid!important;grid-template-columns:34px 1fr;gap:11px;align-items:center;cursor:pointer}.ocr-quality-confirm input{position:absolute;opacity:0;pointer-events:none}.ocr-quality-check{width:32px;height:32px;border:2px solid var(--line);border-radius:10px;display:grid;place-items:center;color:transparent;background:var(--paper);font-size:20px;font-weight:900;transition:.18s}.ocr-quality-copy{display:grid;gap:4px}.ocr-quality-copy b{color:var(--green-deep);font-size:15px}.ocr-quality-copy span{color:var(--muted);font-size:12px;font-weight:700}.ocr-quality-confirm:has(input:checked){border-color:var(--green);background:color-mix(in srgb,var(--green) 8%,var(--card))}.ocr-quality-confirm:has(input:checked) .ocr-quality-check{border-color:var(--green);background:var(--green);color:white}.ocr-quality-confirm:has(input:focus-visible){outline:3px solid color-mix(in srgb,var(--orange) 35%,transparent);outline-offset:2px}@media(max-width:620px){.ocr-actions,.ocr-review{grid-template-columns:1fr}.ocr-review .wide{grid-column:auto}}";
     document.head.appendChild(style);
   }
 
@@ -436,7 +467,44 @@
     const gateLabel = developing ? "04・測試中／開發中" : "04・辨識";
     const headingTag = developing ? ' <span class="plot-tag">測試中・開發中</span>' : "";
     menu.insertAdjacentHTML("beforeend", '<button class="record-hub-button" type="button" onclick="openRecordHub(\'ocr\')" aria-controls="recordPanelOcr"><span class="record-hub-index" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 11h6l2-3h6l2 3h6v15H5Z"/><circle cx="16" cy="18.5" r="5"/><path d="M23 14h1"/></svg></span><span class="record-hub-copy"><span class="record-hub-label">' + gateLabel + '</span><b>拍攝表單建立草稿</b><small>選擇照片後在目前裝置內辨識；逐欄確認後再帶入紀錄，不會自動儲存。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>');
-    records.insertAdjacentHTML("beforeend", '<section class="record-hub-panel" id="recordPanelOcr" data-record-panel="ocr" hidden><button class="record-hub-back" type="button" onclick="showRecordHub()"><span class="record-hub-back-icon" aria-hidden="true">←</span><span>返回紀錄首頁</span></button><div class="record-hub-panel-head"><h2>拍攝表單建立草稿' + headingTag + '</h2><p>適合把既有紙本紀錄先辨識成草稿。這項功能仍在測試，辨識結果必須逐欄人工確認。</p></div><div class="ocr-card"><h3>PaddleOCR 圖片辨識（測試中・開發中）</h3><p class="farm-note">請把紙張攤平、避免陰影與反光，並完整拍到四個角。照片只在目前裝置內處理，不會上傳或自動儲存。</p><div class="ocr-browser-import"><label for="paddleOcrFile">選擇或拍攝表單照片</label><input id="paddleOcrFile" type="file" accept="image/jpeg,image/png,image/webp" capture="environment"><label><input id="paddleConfirmCorners" type="checkbox"> 我已確認完整拍到四角、文字清楚且沒有強烈反光</label><button class="btn btn-main" id="paddleOcrRun" type="button" onclick="PQC_FORM_OCR_UI.recognizeBrowserImage()">開始圖片辨識（測試中）</button><p class="ocr-browser-note">測試中功能會自動檢查解析度與清晰度；四角與反光目前由你人工確認。第一次使用會下載約數十 MB 的辨識模型與執行元件，請先連接 Wi-Fi。下載來源只會收到一般網路連線資訊，不會收到你選擇的照片。</p></div><div id="paddleOcrStatus" class="ocr-status warn" role="status" aria-live="polite" hidden></div><div class="ocr-actions"><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.requestNativeScan()">使用 Android 原生掃描（開發中）</button><button class="btn btn-ghost" type="button" onclick="document.getElementById(\'ocrPasteText\').focus()">改用文字貼上測試</button></div><div id="ocrBridgeNote" class="safety-banner" hidden>此版本尚未連接 Android 原生掃描器，請改用上方 PaddleOCR 圖片辨識。</div><div class="ocr-paste"><label for="ocrPasteText"><b>貼上辨識文字（備用測試）</b></label><textarea id="ocrPasteText" placeholder="例如：民國115/7/30　番茄　施肥　有機質肥料20公斤"></textarea><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.parsePastedText()">從文字建立草稿</button></div><div id="ocrDraftBox"></div></div></section>');
+    records.insertAdjacentHTML("beforeend", `
+      <section class="record-hub-panel" id="recordPanelOcr" data-record-panel="ocr" hidden>
+        <button class="record-hub-back" type="button" onclick="showRecordHub()"><span class="record-hub-back-icon" aria-hidden="true">←</span><span>返回紀錄首頁</span></button>
+        <div class="record-hub-panel-head"><h2>拍攝表單建立草稿${headingTag}</h2><p>適合把既有紙本紀錄先辨識成草稿。這項功能仍在測試，辨識結果必須逐欄人工確認。</p></div>
+        <div class="ocr-card">
+          <h3>PaddleOCR 圖片辨識（測試中・開發中）</h3>
+          <p class="farm-note">請把紙張攤平、避免陰影與反光，並完整拍到四個角。照片只在目前裝置內處理，不會上傳或自動儲存。</p>
+          <div class="ocr-browser-import">
+            <p class="ocr-source-title">選擇照片來源</p>
+            <div class="ocr-source-actions">
+              <label class="ocr-source-button">
+                <input id="paddleOcrCamera" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" onchange="PQC_FORM_OCR_UI.selectBrowserImage(this)">
+                <span class="ocr-source-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 11h6l2-3h6l2 3h6v15H5Z"/><circle cx="16" cy="18.5" r="5"/></svg></span>
+                <b>立即拍照</b><small>開啟手機相機</small>
+              </label>
+              <label class="ocr-source-button">
+                <input id="paddleOcrFile" type="file" accept="image/jpeg,image/png,image/webp" onchange="PQC_FORM_OCR_UI.selectBrowserImage(this)">
+                <span class="ocr-source-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 9h9l2 3h13v14H4Z"/><path d="M4 12h24"/></svg></span>
+                <b>選擇檔案</b><small>從照片或檔案挑選</small>
+              </label>
+            </div>
+            <p id="paddleOcrSelected" class="ocr-selected-file" hidden></p>
+            <label class="ocr-quality-confirm">
+              <input id="paddleConfirmCorners" type="checkbox">
+              <span class="ocr-quality-check" aria-hidden="true">✓</span>
+              <span class="ocr-quality-copy"><b>拍照品質確認</b><span>四角完整・文字清楚・沒有強烈反光</span></span>
+            </label>
+            <button class="btn btn-main" id="paddleOcrRun" type="button" onclick="PQC_FORM_OCR_UI.recognizeBrowserImage()">開始圖片辨識（測試中）</button>
+            <p class="ocr-browser-note">系統會先縮小照片，降低手機記憶體用量，再檢查解析度與清晰度。第一次使用會下載辨識模型，請先連接 Wi-Fi；模型來源不會收到你選擇的照片。</p>
+          </div>
+          <div id="paddleOcrStatus" class="ocr-status warn" role="status" aria-live="polite" hidden></div>
+          <div class="ocr-actions"><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.requestNativeScan()">使用 Android 原生掃描（開發中）</button><button class="btn btn-ghost" type="button" onclick="document.getElementById('ocrPasteText').focus()">改用文字貼上測試</button></div>
+          <div id="ocrBridgeNote" class="safety-banner" hidden>此版本尚未連接 Android 原生掃描器，請改用上方 PaddleOCR 圖片辨識。</div>
+          <div class="ocr-paste"><label for="ocrPasteText"><b>貼上辨識文字（備用測試）</b></label><textarea id="ocrPasteText" placeholder="例如：民國115/7/30　番茄　施肥　有機質肥料20公斤"></textarea><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.parsePastedText()">從文字建立草稿</button></div>
+          <div id="ocrDraftBox"></div>
+        </div>
+      </section>
+    `);
   }
 
   function init() {
@@ -486,6 +554,7 @@
     registeredPesticideMatches,
     receiveScanResult,
     requestNativeScan,
+    selectBrowserImage,
     recognizeBrowserImage,
     parsePastedText,
     applyToPesticideRecord,
