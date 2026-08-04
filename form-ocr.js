@@ -268,7 +268,7 @@
     return Object.freeze({
       protocolVersion: PROTOCOL_VERSION,
       requestId: String(result.requestId || "").slice(0, 100),
-      source: "android-on-device-ocr",
+      source: result.engine ? "browser-paddleocr" : "android-on-device-ocr",
       createdAt: String(result.createdAt || new Date().toISOString()),
       confirmed: false,
       quality,

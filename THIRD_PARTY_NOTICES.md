@@ -30,3 +30,12 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+## PaddleOCR.js
+
+- 用途：在使用者瀏覽器內執行 PP-OCRv5 中文文字偵測與辨識，將照片轉成待人工確認的文字草稿。
+- 版本：`@paddleocr/paddleocr-js` 0.4.2
+- 授權：Apache License 2.0
+- 專案：https://github.com/PaddlePaddle/PaddleOCR/tree/main/paddleocr-js
+
+PaddleOCR.js、其依賴的 ONNX Runtime Web 與官方模型只在使用者主動啟動圖片辨識時載入；照片不會送往第三方辨識服務。完整 Apache License 2.0 條款可於上游專案與套件中查閱。

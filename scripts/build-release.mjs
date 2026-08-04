@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { minify as minifyHtml } from "html-minifier-terser";
 import { minify as minifyJs } from "terser";
+import { build as bundleJs } from "esbuild";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..");
@@ -61,6 +62,21 @@ for (const name of jsFiles) {
   if (!result.code) throw new Error(`無法產生 ${name}`);
   await writeFile(path.join(outDir, name), result.code, "utf8");
 }
+
+await bundleJs({
+  absWorkingDir: root,
+  entryPoints: ["./paddle-ocr-browser-entry.js"],
+  outfile: path.join(root, "paddle-ocr-browser.js"),
+  bundle: true,
+  format: "iife",
+  platform: "browser",
+  external: ["fs", "path"],
+  target: ["es2020"],
+  minify: true,
+  sourcemap: false,
+  legalComments: "none"
+});
+await copyFile(path.join(root, "paddle-ocr-browser.js"), path.join(outDir, "paddle-ocr-browser.js"));
 
 const manifest = JSON.parse(await readFile(path.join(root, "manifest.webmanifest"), "utf8"));
 manifest.start_url = "/";

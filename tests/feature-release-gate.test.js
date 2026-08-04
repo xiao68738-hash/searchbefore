@@ -24,10 +24,13 @@ delete global.PQC_PUBLIC_CONFIG;
 
 const sandbox = { window: {} };
 vm.runInNewContext(configSource, sandbox, { filename: "service-config.js" });
-assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.features.formOcr, "hidden", "OCR 未完成前不得出現在正式前端");
+assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.features.formOcr, "development", "OCR 公開測試期間必須以 development 狀態顯示");
 
 assert.match(uiSource, /if \(releaseState === "hidden"\) return;/, "hidden 狀態不得建立前端入口");
 assert.ok((uiSource.match(/開發中/g) || []).length >= 3, "development 狀態必須在入口與內容中明確標示");
+assert.ok((uiSource.match(/測試中/g) || []).length >= 3, "OCR 入口、標題與操作必須明確標示測試中");
+assert.match(uiSource, /paddle-ocr-browser\.js/, "OCR 必須按需載入 PaddleOCR 瀏覽器模組");
+assert.match(uiSource, /recognizeBrowserImage/, "OCR 必須提供實際圖片匯入流程");
 assert.doesNotMatch(uiSource, /測試版/, "未完成功能不可只以測試版模糊標示");
 assert.doesNotMatch(html, /其他田區紀錄\s*<span[^>]*>第一版<\/span>/, "已公開功能不應殘留第一版標籤");
 

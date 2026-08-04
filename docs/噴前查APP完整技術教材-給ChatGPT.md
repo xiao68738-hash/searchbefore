@@ -94,7 +94,7 @@ flowchart TD
 | 正式 | Google 登入、選用 Firestore 同步 | 已公開，但需使用者另行同意同步 |
 | 正式 | PWA 離線使用與網站更新提示 | 已公開 |
 | 條件式 | 綠界純自願支持 | 由環境與遠端設定控制，不提供任何功能權益 |
-| 隱藏 | 拍照辨識表單建立草稿 | Web 與 Android 原型已存在，`formOcr=hidden` |
+| 測試中／開發中 | 拍照辨識表單建立草稿 | PaddleOCR.js 圖片匯入已開放測試，`formOcr=development`；結果仍須人工確認 |
 | 內部 | 資訊服務專員協作流程 | 純狀態模型與本機假資料介面，不進正式 build |
 | 內部 | 特殊作業對應官方項目 | 純狀態模型與本機假資料介面，不進正式 build |
 | 後端資料準備 | MRL 對照 | 人工複核中，未接前端 |
@@ -120,7 +120,7 @@ flowchart TD
 | `cloud-sync.js` | Firestore 雲端同步，只負責資料同步 |
 | `service-config.js` | 可公開的 Firebase Web 設定、回饋信箱、功能旗標 |
 | `web-support-config.js` | 按需載入的綠界支持連結與遠端開關 |
-| `form-ocr.js` | OCR 文字品質與欄位候選解析核心，目前仍是隱藏功能 |
+| `form-ocr.js` | OCR 文字品質與欄位候選解析核心，目前為明確標示的測試功能 |
 | `form-ocr-ui.js` | Web 與 Android OCR 訊息橋接及人工確認介面 |
 | `sw.js` | Service Worker：離線快取、更新版本與執行期設定載入 |
 | `manifest.webmanifest` | PWA 名稱、顏色、啟動方式與圖示 |
@@ -626,7 +626,7 @@ form-ocr-ui.js 發出帶 requestId 的掃描請求
 - 驗證訊息類型、協定版本、大小與 `requestId`。
 - 藥劑內容必須唯一對回正式登記資料。
 - 低品質或不明欄位要求重拍／人工確認。
-- `formOcr` 目前保持 `hidden`。
+- `formOcr` 目前為 `development`，只可顯示為「測試中・開發中」，不得宣稱已完成自動登打。
 
 目前缺口：正式 TWA Android 原始碼尚未留存，只有已編譯套件與 OCR Prototype；要正式整合，需重新取得或建立正式 Android 工程並使用原簽章流程發布。
 
