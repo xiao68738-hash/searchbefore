@@ -16,6 +16,19 @@ for (let p = i; p < html.length; p++) {
 }
 const DATA = JSON.parse(html.slice(i, end + 1));
 
+/* ── 搜尋容錯:只能提供建議,不得自動選定 ── */
+assert.equal(A.normalizeSearchText(" 番 茄（果） "), "番茄果");
+assert.equal(A.damerauLevenshtein("番茄", "茄番"), 1, "相鄰字顛倒應算一次編輯");
+assert.equal(A.bopomofoToPinyin("ㄈㄢㄑㄧㄝ"), "fanqie", "連續注音應能轉成拼音");
+assert.equal(A.candidateMatch("番笳", "番茄").kind, "typo", "錯一字只能列為可能錯字");
+assert.equal(A.candidateMatch("茄番", "番茄").kind, "reordered", "字序顛倒應明確標示");
+assert.equal(A.candidateMatch("蕃茄", "番茄").kind, "homophone", "中文同音字應能提出建議");
+assert.equal(A.candidateMatch("fanqie", "番茄").kind, "pinyin", "完整拼音應能查中文名稱");
+assert.equal(A.candidateMatch("fq", "番茄").kind, "pinyin-initials", "拼音縮寫應能查中文名稱");
+assert.equal(A.candidateMatch("ㄈㄢㄑㄧㄝ", "番茄").kind, "bopomofo", "注音應能查中文名稱");
+assert.equal(A.candidateMatch("我想找番茄可以用什麼", "番茄").kind, "semantic", "句子中已知名稱只能列為待確認候選");
+assert.equal(A.candidateMatch("完全不相關", "番茄"), null, "不相關內容不得硬猜");
+
 /* ── A. 害物從屬 ── */
 assert.equal(A.groupStem("夜蛾類"), "夜蛾");
 assert.equal(A.groupStem("斜紋夜蛾"), null, "非群組不得有字根");
@@ -146,6 +159,17 @@ console.log("✓ 種子/種苗處理辨識正確,且該類藥劑採收期皆為�
 
   /* limit 必須生效(賽洛寧類的常見字會命中很多) */
   assert.ok(A.agentSuggestions("松", idx, 3).length <= 3, "limit 必須生效");
+
+  /* 近似藥名只回候選與原因,不得自行進入某支藥的登記內容 */
+  if (idx.byName.has("納乃得")) {
+    for (const q of ["納乃德", "nanaide", "ㄋㄚˋㄋㄞˇㄉㄜˊ", "乃納得", "我想找納乃得的登記資料"]) {
+      const fuzzy = A.agentSuggestions(q, idx, 24);
+      const hit = fuzzy.find(h => h.name === "納乃得");
+      assert.ok(hit, `近似輸入「${q}」應建議納乃得`);
+      assert.ok(hit.reasonLabel, `近似輸入「${q}」必須顯示命中原因`);
+      assert.deepEqual(A.agentRegistrations(q, idx), [], "近似輸入本身不得被當成正式藥名");
+    }
+  }
 
   /* 分組:只列實際登記,且分組後的總列數等於該藥劑的全部列數(不遺漏、不外推) */
   const big = [...idx.byName.values()].sort((a, b) => b.rows.length - a.rows.length)[0];
