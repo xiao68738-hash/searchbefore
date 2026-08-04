@@ -33,7 +33,7 @@ SOFTWARE.
 
 ## PaddleOCR.js
 
-- 用途：在使用者瀏覽器內執行 PP-OCRv5 中文文字偵測與辨識，將照片轉成待人工確認的文字草稿。
+- 用途：在使用者瀏覽器內執行 PP-OCRv6 tiny 文字偵測與辨識，將照片轉成待人工確認的文字草稿；照片會先縮小以降低行動裝置記憶體用量。
 - 版本：`@paddleocr/paddleocr-js` 0.4.2
 - 授權：Apache License 2.0
 - 專案：https://github.com/PaddlePaddle/PaddleOCR/tree/main/paddleocr-js
