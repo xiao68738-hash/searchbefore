@@ -2,6 +2,16 @@
 
 這個資料夾是獨立的 Cloud Run 後端。GitHub Pages 仍只放 PWA；大型 PaddleOCR 模型在伺服器執行，手機不會再承擔模型記憶體。
 
+第一次審查請先閱讀 [`../docs/OCR系統規格與架構書.md`](../docs/OCR系統規格與架構書.md)；需求、計畫與待辦位於 [`../specs/001-ocr-assist/`](../specs/001-ocr-assist/)。目前正式前端沒有啟用這個服務。
+
+## 程式結構
+
+- `app/main.py`：`/healthz`、`/v1/ocr`、請求大小與逾時。
+- `app/security.py`：Origin、Firebase ID token 與每 UID 記憶體限流。
+- `app/ocr.py`：圖片驗證、PaddleOCR 模型與輸出正規化。
+- `tests/test_ocr.py`：純邏輯測試；目前不涵蓋真實模型推論。
+- `Dockerfile`：Python 3.11、非 root 使用者、建置期模型快取、單 worker。
+
 ## 安全邊界
 
 - `/v1/ocr` 只接受 `searchbefore.tw`、JPG／PNG／WebP、12 MB 以下及 2,400 萬像素以下圖片。
@@ -34,3 +44,5 @@ gcloud run deploy searchbefore-ocr --image asia-east1-docker.pkg.dev/PROJECT_ID/
 ```powershell
 python -m pytest tests -q
 ```
+
+目前分支只完成 Python AST 語法檢查與純邏輯測試準備，尚未在本機實際安裝完整 Paddle 依賴、建置容器或跑真實圖片推論。請勿將這個狀態視為已可部署。

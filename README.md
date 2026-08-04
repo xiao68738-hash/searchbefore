@@ -20,6 +20,17 @@
 node tests/run-all.js
 ```
 
+## OCR 技術交接
+
+若要審查「拍攝紙本表單建立草稿」功能，請先閱讀：
+
+1. [`docs/OCR系統規格與架構書.md`](docs/OCR系統規格與架構書.md)：整體架構、資料流、API、安全邊界與評審問題。
+2. [`specs/001-ocr-assist/spec.md`](specs/001-ocr-assist/spec.md)：以 Spec Kit 邏輯反推的需求、使用情境與驗收條件。
+3. [`specs/001-ocr-assist/plan.md`](specs/001-ocr-assist/plan.md)：元件責任、技術選擇與部署方案。
+4. [`specs/001-ocr-assist/tasks.md`](specs/001-ocr-assist/tasks.md)：已完成、待驗證與不得提前上線的工作清單。
+
+目前有三條 OCR 路徑：公開前端使用瀏覽器內的 PaddleOCR.js；Android ML Kit 掃描器仍是未接入正式 App 的獨立原型；`cloud-ocr-service/` 是預設關閉、尚未部署的 PaddleOCR 3.7／Cloud Run 方案。三者的輸出都必須轉成同一份未確認草稿，不能自動寫入正式田間紀錄。
+
 ## 帳號與自願贊助
 
 - Google 登入為選用功能；**只有登入不會上傳田間資料**。使用者另行開啟雲端同步後，田區、用藥與農務紀錄才會同步到其 Google 帳號對應的 Firestore 空間。
