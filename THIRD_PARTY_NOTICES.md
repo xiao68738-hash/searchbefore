@@ -1,5 +1,12 @@
 # 第三方軟體聲明
 
+## PaddleOCR Python service（尚未部署）
+
+- 用途：`cloud-ocr-service/` 的選用伺服器端圖片文字辨識。
+- 版本：3.7.0
+- 授權：Apache License 2.0
+- 專案：https://github.com/PaddlePaddle/PaddleOCR
+
 ## pinyin-pro
 
 - 用途：在使用者裝置內把中文查詢轉成拼音，提供同音、拼音與注音搜尋建議。

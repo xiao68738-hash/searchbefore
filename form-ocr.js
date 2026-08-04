@@ -1,5 +1,5 @@
 /* 表單拍照辨識的共用核心。
- * Android 端只回傳裝置內辨識出的文字與品質指標；本檔不接收或保存照片。
+ * OCR 端只回傳辨識文字與品質指標；本檔不接收或保存照片。
  * 所有結果先形成草稿，必須由使用者逐欄確認後才能寫入紀錄。
  */
 (function (root, factory) {
@@ -38,7 +38,7 @@
     return normalizeText(value).replace(/\s+/g, "").toLocaleLowerCase("zh-Hant");
   }
 
-  /* Android 端提供 0~1 的 sharpness/glareRatio；越清晰 sharpness 越高。 */
+  /* 裝置端可提供客觀品質指標；雲端模式目前改由使用者在上傳前明確確認照片品質。 */
   function assessQuality(meta) {
     const m = meta || {};
     const width = Math.max(0, Number(m.width) || 0);
@@ -49,6 +49,7 @@
     const glare = clamp01(m.glareRatio);
     const skew = Math.abs(Number(m.skewDegrees) || 0);
     const corners = m.cornersDetected === true;
+    const manualPhotoCheck = m.assessment === "user-confirmed-before-upload";
     const issues = [];
 
     function add(code, level, message) {
@@ -57,14 +58,16 @@
 
     if (!corners) add("missing-corners", "blocking", "沒有完整拍到表單四個角，請重新拍攝。");
     if (shortEdge < 720) add("low-resolution", "blocking", "照片解析度不足，請靠近表單重新拍攝。");
-    if (coverage < 0.45) add("document-too-small", "blocking", "表單在畫面中太小，請靠近拍攝。");
-    else if (coverage < 0.65) add("document-could-be-closer", "warning", "表單可以再靠近一些，辨識會更準確。");
-    if (sharpness < 0.45) add("too-blurry", "blocking", "照片太模糊，請拿穩手機重新拍攝。");
-    else if (sharpness < 0.65) add("slightly-blurry", "warning", "照片稍微模糊，請特別核對辨識內容。");
-    if (glare > 0.22) add("too-much-glare", "blocking", "表單反光太嚴重，請調整角度或光線。");
-    else if (glare > 0.1) add("some-glare", "warning", "照片有些反光，請核對反光區域的文字。");
-    if (skew > 14) add("too-skewed", "blocking", "拍攝角度過斜，請從表單正上方重新拍攝。");
-    else if (skew > 8) add("some-skew", "warning", "表單略為傾斜，請仔細核對辨識內容。");
+    if (!manualPhotoCheck) {
+      if (coverage < 0.45) add("document-too-small", "blocking", "表單在畫面中太小，請靠近拍攝。");
+      else if (coverage < 0.65) add("document-could-be-closer", "warning", "表單可以再靠近一些，辨識會更準確。");
+      if (sharpness < 0.45) add("too-blurry", "blocking", "照片太模糊，請拿穩手機重新拍攝。");
+      else if (sharpness < 0.65) add("slightly-blurry", "warning", "照片稍微模糊，請特別核對辨識內容。");
+      if (glare > 0.22) add("too-much-glare", "blocking", "表單反光太嚴重，請調整角度或光線。");
+      else if (glare > 0.1) add("some-glare", "warning", "照片有些反光，請核對反光區域的文字。");
+      if (skew > 14) add("too-skewed", "blocking", "拍攝角度過斜，請從表單正上方重新拍攝。");
+      else if (skew > 8) add("some-skew", "warning", "表單略為傾斜，請仔細核對辨識內容。");
+    }
 
     return Object.freeze({
       canProcess: !issues.some(function (issue) { return issue.level === "blocking"; }),
@@ -77,7 +80,8 @@
         sharpness,
         glareRatio: glare,
         skewDegrees: skew,
-        cornersDetected: corners
+        cornersDetected: corners,
+        assessment: manualPhotoCheck ? "user-confirmed-before-upload" : "measured"
       })
     });
   }
@@ -268,7 +272,7 @@
     return Object.freeze({
       protocolVersion: PROTOCOL_VERSION,
       requestId: String(result.requestId || "").slice(0, 100),
-      source: result.engine ? "browser-paddleocr" : "android-on-device-ocr",
+      source: result.source === "cloud-paddleocr" ? "cloud-paddleocr" : (result.engine ? "browser-paddleocr" : "android-on-device-ocr"),
       createdAt: String(result.createdAt || new Date().toISOString()),
       confirmed: false,
       quality,
