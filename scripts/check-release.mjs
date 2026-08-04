@@ -10,7 +10,7 @@ const outDir = path.join(root, "dist");
 const expected = [
   "about.html", "account.js", "brand-lockup.png", "cloud-sync.js", "delete-account.html", "brand-logo-120.png", "crop-forms.js", "export-formats.js", "farm-records.js", "form-ocr-ui.js", "form-ocr.js", "icon-180.png", "icon-192.png", "icon-512.png",
   "icon-maskable-512.png", "index.html", "manifest.webmanifest", "privacy.html",
-  "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"
+  "pinyin-pro.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"
 ].sort();
 
 const actual = (await readdir(outDir)).sort();
@@ -31,7 +31,7 @@ assert.match(combined, /https:\/\/searchbefore\.tw\/delete-account\.html/);
 assert.match(combined, /https:\/\/searchbefore\.tw\/about\.html/);
 assert.match(combined, /噴前查 SearchBefore/);
 
-for (const name of ["account.js", "cloud-sync.js", "crop-forms.js", "export-formats.js", "farm-records.js", "form-ocr-ui.js", "form-ocr.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"]) {
+for (const name of ["account.js", "cloud-sync.js", "crop-forms.js", "export-formats.js", "farm-records.js", "form-ocr-ui.js", "form-ocr.js", "pinyin-pro.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"]) {
   new vm.Script(await readFile(path.join(outDir, name), "utf8"), { filename: `dist/${name}` });
 }
 

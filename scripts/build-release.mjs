@@ -24,6 +24,7 @@ const jsFiles = [
   "sw.js"
 ];
 const imageFiles = ["brand-lockup.png", "brand-logo-120.png", "icon-180.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
+const vendorFiles = ["pinyin-pro.js"];
 
 await rm(outDir, { recursive: true, force: true });
 await mkdir(outDir, { recursive: true });
@@ -67,6 +68,10 @@ manifest.scope = "/";
 await writeFile(path.join(outDir, "manifest.webmanifest"), JSON.stringify(manifest), "utf8");
 
 for (const name of imageFiles) {
+  await copyFile(path.join(root, name), path.join(outDir, name));
+}
+
+for (const name of vendorFiles) {
   await copyFile(path.join(root, name), path.join(outDir, name));
 }
 
