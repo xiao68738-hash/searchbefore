@@ -1,5 +1,5 @@
 from pathlib import Path
-from PIL import Image
+from PIL import Image, ImageChops
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "brand-lockup.png"
@@ -7,20 +7,22 @@ SOURCE = ROOT / "brand-lockup.png"
 
 def emblem_source():
     image = Image.open(SOURCE).convert("RGB")
-    width, height = image.size
-    # 取出上半部的放大鏡、植物與噴頭；比例以生成的品牌母圖為基準。
-    left = round(width * 0.315)
-    top = round(height * 0.015)
-    side = round(height * 0.69)
-    return image.crop((left, top, left + side, top + side))
+    # 以左上角背景色找出實際圖樣範圍，避免母圖尺寸更換後依舊使用固定裁切比例。
+    background = Image.new("RGB", image.size, image.getpixel((0, 0)))
+    difference = ImageChops.difference(image, background).convert("L")
+    mask = difference.point(lambda value: 255 if value > 12 else 0)
+    bounds = mask.getbbox()
+    return image.crop(bounds) if bounds else image
 
 
 def icon_canvas(emblem, size, coverage):
     canvas = Image.new("RGB", (size, size), "#FFFFFF")
-    logo_size = round(size * coverage)
-    logo = emblem.resize((logo_size, logo_size), Image.Resampling.LANCZOS)
-    offset = (size - logo_size) // 2
-    canvas.paste(logo, (offset, offset))
+    available = round(size * coverage)
+    scale = available / max(emblem.size)
+    logo_size = tuple(max(1, round(value * scale)) for value in emblem.size)
+    logo = emblem.resize(logo_size, Image.Resampling.LANCZOS)
+    offset = tuple((size - value) // 2 for value in logo_size)
+    canvas.paste(logo, offset)
     return canvas
 
 

@@ -1313,6 +1313,7 @@ window.addEventListener("load",function(){
 <script src="./safety.js"></script>
 <script src="./farm-records.js"></script>
 <script src="./crop-forms.js"></script>
+<script src="./pinyin-pro.js"></script>
 <script src="./query-aids.js"></script>
 <script src="./form-ocr.js"></script>
 <script src="./form-ocr-ui.js"></script>
@@ -1677,19 +1678,14 @@ function unionPestCount(c){
   chainOf(c).forEach(lv=>Object.keys(DATA[lv]).forEach(p=>s.add(p)));
   return _uc[c]=s.size;
 }
-function fuzzyScore(q,c){ // 共同字元數/查詢長度,粗略容錯
-  let hit=0;
-  for(const ch of new Set(q))if(c.includes(ch))hit++;
-  return hit/q.length;
-}
 function cropSuggestions(q,limit=24,allowFuzzy=true){
   q=(q||"").trim();
   if(!q)return [];
   const seen=new Set();
   const out=[];
-  const add=(c,kind,alias,form)=>{
+  const add=(c,kind,alias,form,reason)=>{
     if(!DATA[c]||seen.has(c))return;
-    seen.add(c);out.push({c,kind,alias,form:form||""});
+    seen.add(c);out.push({c,kind,alias,form:form||"",reason:reason||""});
   };
   const FA=(window.PQC_CROP_FORMS&&PQC_CROP_FORMS.FORM_ALIAS)||{};
   for(const [alias,t] of Object.entries(FA)){
@@ -1708,9 +1704,21 @@ function cropSuggestions(q,limit=24,allowFuzzy=true){
     if(alias.includes(q)||q.includes(alias))add(t.crop,"alias",alias,t.form);
   }
   if(out.length||!allowFuzzy||q.length<2)return out.slice(0,limit);
-  CROPS.map(c=>({c,s:fuzzyScore(q,c)})).filter(x=>x.s>=0.5)
-    .sort((a,b)=>b.s-a.s||a.c.length-b.c.length).slice(0,limit)
-    .forEach(x=>add(x.c,"fuzzy",""));
+  const guesses=[];
+  CROPS.forEach(c=>{
+    const m=PQC_AIDS.candidateMatch(q,c);
+    if(m&&m.kind!=="exact"&&m.kind!=="contains")guesses.push({c,kind:m.kind,score:m.score,reason:m.label,alias:"",form:""});
+  });
+  for(const [alias,targets] of Object.entries(CROP_ALIAS)){
+    const m=PQC_AIDS.candidateMatch(q,alias);
+    if(m&&m.kind!=="exact"&&m.kind!=="contains")targets.forEach(c=>guesses.push({c,kind:m.kind,score:m.score,reason:m.label,alias,form:""}));
+  }
+  for(const [alias,t] of Object.entries(FA)){
+    const m=PQC_AIDS.candidateMatch(q,alias);
+    if(m&&m.kind!=="exact"&&m.kind!=="contains")guesses.push({c:t.crop,kind:m.kind,score:m.score,reason:m.label,alias,form:t.form||""});
+  }
+  guesses.sort((a,b)=>b.score-a.score||a.c.length-b.c.length).slice(0,limit)
+    .forEach(x=>add(x.c,"fuzzy",x.alias,x.form,x.reason));
   return out.slice(0,limit);
 }
 function searchCrops(q){
@@ -1725,7 +1733,7 @@ function searchCrops(q){
   }
   const sug=hits.filter(h=>h.kind==="fuzzy");
   box.innerHTML=`<div class="hint" style="width:100%">找不到「${esc(q)}」。${sug.length?"你要找的是不是:":"可試上層分類(例:小葉菜類),或回報給我們補上。"}</div>`
-    +sug.map(h=>`<button class="chip" onclick="pickCrop('${esc(h.c)}')">${esc(h.c)}<small>${unionPestCount(h.c)} 項</small></button>`).join("")
+    +sug.map(h=>`<button class="chip" onclick="pickCrop('${esc(h.c)}','${esc(h.form||"")}')">${esc(h.c)}<small>${unionPestCount(h.c)} 項</small><span class="alias">${esc(h.reason||"名稱相近")}${h.alias?` · ${esc(h.alias)}`:""}</span></button>`).join("")
     +`<button class="chip mut" onclick="reportMissingCrop()">回報查不到「${esc(q)}」</button>`;
 }
 function reportMissingCrop(){
@@ -2483,7 +2491,7 @@ function searchPlotCrops(raw){
   if(!q){closePlotCropResults();return}
   const hits=cropSuggestions(q,12,true);
   const options=hits.map(function(h){
-    const note=h.alias?"俗名「"+h.alias+"」對應的正式名稱":(h.kind==="fuzzy"?"可能符合的登記作物":"登記作物");
+    const note=h.alias?(h.kind==="fuzzy"?(h.reason||"名稱相近")+" · 俗名「"+h.alias+"」":"俗名「"+h.alias+"」對應的正式名稱"):(h.kind==="fuzzy"?(h.reason||"可能符合的登記作物"):"登記作物");
     return '<button type="button" class="plot-crop-option" data-crop="'+esc(h.c)+'" onclick="pickPlotCrop(\''+esc(h.c)+'\')"><b>'+esc(h.c)+'</b><small>'+esc(note)+'</small></button>';
   }).join("");
   const custom='<button type="button" class="plot-crop-custom" onclick="useCustomPlotCrop()">找不到？使用自訂名稱「'+esc(q)+'」</button>';
@@ -3197,9 +3205,15 @@ function agentSuggest(q){
   agentPicked=null;renderHome();
   box.innerHTML=hits.length?hits.map(h=>
     `<button class="chip mut" onclick="pickAgent('${esc(h.name)}')">${esc(h.name)}`+
-    (h.kind==="brand"?`<span class="alias">商品:${esc(h.brand)}</span>`:"")+
+    ((h.kind==="brand"||h.kind==="brand-fuzzy")?`<span class="alias">商品:${esc(h.brand)}</span>`:"")+
+    (h.reasonLabel?`<span class="alias">${esc(h.reasonLabel)} · 請確認名稱</span>`:"")+
     `<span class="alias">${h.cropCount} 作物</span></button>`).join("")
-    :`<div class="hint" style="width:100%">找不到「${esc(q)}」。可試普通名稱(如 納乃得)或商品名;查無不代表這支藥不存在,可能只是名稱寫法不同。</div>`;
+    :`<div class="hint" style="width:100%">找不到「${esc(q)}」。可試普通名稱(如 納乃得)、商品名、拼音或注音;查無不代表這支藥不存在,可能只是名稱寫法或地方稱呼不同。</div>`+
+     `<button class="chip mut" onclick="reportMissingAgent()">回報查不到「${esc(q)}」</button>`;
+}
+function reportMissingAgent(){
+  const q=(document.getElementById("agentSearch").value||"").trim();
+  openFeedback(`查詢不到藥劑或地方稱呼:「${q.slice(0,80)}」`);
 }
 /* 結果依作物分組。單一藥劑最多可登記 87 種作物、1,054 筆用法(賽洛寧),
    故分組預設摺疊並提供作物篩選,不一次全展開。 */
