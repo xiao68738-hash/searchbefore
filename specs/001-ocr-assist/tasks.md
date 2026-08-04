@@ -12,7 +12,7 @@
 - [x] Re-encode images and strip original EXIF before the third-party call.
 - [x] Preserve Firebase token, exact Origin, size, pixel, timeout and per-user limits.
 - [x] Preserve common draft protocol and mark source as `google-cloud-vision`.
-- [x] Keep the production endpoint empty and `formOcr=hidden`.
+- [x] Keep the production endpoint empty, set `formOcr=development`, and require the browser-session verification gate.
 - [x] Update privacy, architecture, deployment and release-gate documentation.
 
 ## Google Cloud setup
@@ -30,5 +30,5 @@
 - [ ] Measure per-field accuracy and missed-field rate on consented samples.
 - [ ] Compare total manual time against OCR-assisted time.
 - [ ] Update privacy text to match the final Google Cloud retention and logging settings.
-- [ ] Set endpoint and temporarily change release state to `development` for a named test cohort.
+- [ ] Set endpoint and give the verification code only to a named test cohort.
 - [ ] Complete PWA, iOS browser, Android TWA and desktop regression tests.

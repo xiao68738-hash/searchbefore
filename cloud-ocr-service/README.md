@@ -2,7 +2,7 @@
 
 這是獨立的 Cloud Run 後端。PWA 不直接接觸 Vision API、服務帳戶或金鑰；前端只把使用者主動選取的照片送到 `/v1/ocr`，後端驗證 Firebase ID token 後再呼叫 Google Cloud Vision `DOCUMENT_TEXT_DETECTION`。
 
-目前 `service-config.js` 的 `formOcr` 為 `hidden`，正式端點也是空白。未完成部署、隱私與實機驗收前，公開版本不會出現入口或上傳照片。
+目前 `service-config.js` 的 `formOcr` 為 `development`，入口受測試驗證碼、Google 登入及逐次同意限制；正式端點仍是空白，因此尚未完成部署、隱私與實機驗收前不會真正上傳照片，也不得切到 `public`。
 
 ## 資料流程
 
@@ -52,7 +52,7 @@ Cloud Run 必須允許網路請求進入，因為瀏覽器帶的是 Firebase tok
 4. 確認 Cloud Logging 不含圖片、完整 OCR 文字或 token。
 5. 更新 `privacy.html` 的實際處理方式與 Google 服務說明。
 6. 將 Cloud Run `/v1/ocr` HTTPS 網址填入 `service-config.js`。
-7. 將 `formOcr` 從 `hidden` 改為 `development`，只做指定測試。
+7. 部署並驗收端點後，維持 `development` 做指定測試；完成正確率、實際省工、隱私及費用驗收後，才評估是否改為 `public`。
 8. 通過欄位正確率、人工覆核與省工比較後，才評估 `public`。
 
 ## 成本邊界

@@ -7,7 +7,7 @@
 - PWA 只連到噴前查 Cloud Run；Cloud Run 再以服務身分呼叫 Google Cloud Vision。
 - 使用 `DOCUMENT_TEXT_DETECTION`，因為來源是密集文字、表格與手寫紀錄照片。
 - OCR 永遠只產生待人工確認草稿，不會直接建立正式紀錄。
-- 正式端點尚未部署，所以 `formOcr=hidden`。
+- 正式端點尚未部署，所以 `formOcr=development` 只顯示測試入口；入口另有測試驗證碼、Google 登入與單次同意閘門。
 
 ## 上線前必做
 

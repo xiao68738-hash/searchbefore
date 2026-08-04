@@ -25,7 +25,7 @@ specs/001-ocr-assist/               # specification, plan and task tracking
 
 1. Remove device and server Paddle dependencies.
 2. Implement Vision normalization without changing the frontend result protocol.
-3. Keep `formOcr=hidden` and endpoint empty.
+3. Keep `formOcr=development`, require the test verification gate, and keep the endpoint empty until deployment.
 4. Deploy with a dedicated Cloud Run service identity and no downloaded service-account key.
 5. Add budgets, quotas and log-content checks.
 6. Open only a `development` test cohort.

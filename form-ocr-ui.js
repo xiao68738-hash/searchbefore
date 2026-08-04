@@ -39,6 +39,92 @@
     return config && typeof config === "object" ? config : {};
   }
 
+  function ocrVerificationConfig() {
+    const config = cloudOcrConfig().verification;
+    return config && typeof config === "object" ? config : {};
+  }
+
+  function ocrVerificationStorage() {
+    try {
+      return root.sessionStorage || null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function isOcrUnlocked() {
+    const config = ocrVerificationConfig();
+    if (config.required === false) return true;
+    const storage = ocrVerificationStorage();
+    if (!storage || !config.hash || !config.sessionKey) return false;
+    try {
+      return storage.getItem(config.sessionKey) === config.hash;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function sha256Hex(value) {
+    if (!root.crypto || !root.crypto.subtle || typeof root.TextEncoder !== "function") return Promise.resolve("");
+    return root.crypto.subtle.digest("SHA-256", new root.TextEncoder().encode(String(value || ""))).then(function (buffer) {
+      return Array.from(new Uint8Array(buffer)).map(function (byte) { return byte.toString(16).padStart(2, "0"); }).join("");
+    });
+  }
+
+  function setOcrVerificationStatus(message, tone) {
+    const box = root.document && root.document.getElementById("ocrVerificationStatus");
+    if (!box) return;
+    box.hidden = !message;
+    box.className = "ocr-status " + (tone || "warn");
+    box.textContent = message || "";
+  }
+
+  function applyOcrVerificationState() {
+    const locked = !isOcrUnlocked();
+    const gate = root.document && root.document.getElementById("ocrVerificationGate");
+    const content = root.document && root.document.getElementById("ocrVisionLockedContent");
+    if (gate) gate.hidden = !locked;
+    if (content) content.hidden = locked;
+    return !locked;
+  }
+
+  async function unlockOcr() {
+    const input = root.document && root.document.getElementById("ocrVerificationCode");
+    const value = input ? String(input.value || "").trim() : "";
+    const config = ocrVerificationConfig();
+    if (!value) {
+      setOcrVerificationStatus("請輸入測試驗證碼。", "warn");
+      return false;
+    }
+    if (!config.hash || !config.sessionKey) {
+      setOcrVerificationStatus("OCR 驗證設定尚未完成，請暫勿使用。", "bad");
+      return false;
+    }
+    const digest = await sha256Hex(value);
+    if (!digest || digest !== config.hash) {
+      setOcrVerificationStatus("驗證碼不正確，尚未解鎖 OCR 測試功能。", "bad");
+      if (input) {
+        input.value = "";
+        input.focus();
+      }
+      return false;
+    }
+    const storage = ocrVerificationStorage();
+    if (!storage) {
+      setOcrVerificationStatus("此瀏覽器無法建立測試工作階段，請改用一般瀏覽器視窗。", "bad");
+      return false;
+    }
+    try {
+      storage.setItem(config.sessionKey, config.hash);
+    } catch (_) {
+      setOcrVerificationStatus("無法保存本次解鎖狀態，請檢查瀏覽器隱私設定。", "bad");
+      return false;
+    }
+    applyOcrVerificationState();
+    setOcrVerificationStatus("驗證完成。本次瀏覽器工作階段已解鎖 OCR 測試功能。", "ok");
+    return true;
+  }
+
   function validCloudEndpoint(value) {
     try {
       const url = new URL(String(value || ""));
@@ -221,6 +307,10 @@
   }
 
   function requestNativeScan() {
+    if (!isOcrUnlocked()) {
+      if (typeof root.toast === "function") root.toast("請先輸入 OCR 測試驗證碼");
+      return false;
+    }
     const request = { type: REQUEST_TYPE, protocolVersion: 1, requestId: "ocr-" + Date.now() };
     pendingRequestId = request.requestId;
     if (root.PQC_ANDROID_OCR && typeof root.PQC_ANDROID_OCR.scanForm === "function") {
@@ -315,6 +405,10 @@
   }
 
   async function recognizeBrowserImage() {
+    if (!isOcrUnlocked()) {
+      if (typeof root.toast === "function") root.toast("請先輸入 OCR 測試驗證碼");
+      return false;
+    }
     const cameraInput = document.getElementById("cloudVisionCamera");
     const fileInput = document.getElementById("cloudVisionFile");
     const confirmCorners = document.getElementById("cloudVisionConfirmCorners");
@@ -351,6 +445,10 @@
   }
 
   function parsePastedText() {
+    if (!isOcrUnlocked()) {
+      if (typeof root.toast === "function") root.toast("請先輸入 OCR 測試驗證碼");
+      return false;
+    }
     const input = document.getElementById("ocrPasteText");
     const text = input ? input.value.trim() : "";
     if (!text) {
@@ -494,6 +592,7 @@
   function installStyle() {
     const style = document.createElement("style");
     style.textContent = ".ocr-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}.ocr-card h3{font-size:19px;color:var(--green-deep);margin:0 0 6px}.ocr-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}.ocr-browser-import{border:1px solid var(--orange);background:color-mix(in srgb,var(--orange) 9%,var(--card));border-radius:15px;padding:15px;margin:14px 0;display:grid;gap:11px}.ocr-browser-import input[type=file]{width:100%;padding:10px;background:var(--card);border:1px solid var(--line);border-radius:11px}.ocr-browser-import label{font-weight:800}.ocr-browser-note{font-size:13px;color:var(--muted);line-height:1.6}.ocr-paste{border-top:1px solid var(--line);padding-top:15px}.ocr-paste textarea,.ocr-review textarea{min-height:110px}.ocr-status[hidden]{display:none}.ocr-status{border-radius:13px;padding:13px 15px;margin:14px 0;display:grid;gap:4px}.ocr-status.ok{background:var(--ok-bg);color:var(--green-deep)}.ocr-status.warn{background:#fff4d6;color:#6f4b00}.ocr-status.bad{background:#fff0ed;color:#982d20}.ocr-status ul{margin:5px 0 0;padding-left:20px}.ocr-review{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ocr-review .field{display:grid;gap:6px}.ocr-review .field input,.ocr-review .field select{width:100%}.ocr-review .field select+input{margin-top:6px}.ocr-review .wide{grid-column:1/-1}.ocr-confirm{border:1px solid var(--line);border-radius:13px;padding:12px;display:grid;gap:8px}.ocr-confirm legend{font-weight:900;color:var(--green-deep);padding:0 5px}.ocr-confirm label{font-weight:700}.ocr-source-title{font-size:14px;font-weight:900;color:var(--green-deep);margin:2px 0 0}.ocr-source-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ocr-source-button{position:relative;min-height:92px;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:13px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;cursor:pointer;transition:border-color .18s,transform .18s,background .18s}.ocr-source-button:hover{border-color:var(--orange);transform:translateY(-1px)}.ocr-source-button input{position:absolute;opacity:0;pointer-events:none}.ocr-source-button:has(input:focus-visible){outline:3px solid color-mix(in srgb,var(--orange) 35%,transparent);outline-offset:2px}.ocr-source-icon{width:32px;height:32px;color:var(--orange);display:grid;place-items:center}.ocr-source-icon svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.ocr-source-button b{font-size:15px;color:var(--green-deep)}.ocr-source-button small{font-size:12px;color:var(--muted)}.ocr-selected-file{margin:0;padding:9px 11px;border-radius:10px;background:color-mix(in srgb,var(--green) 10%,var(--card));color:var(--green-deep);font-size:12px;font-weight:800;overflow-wrap:anywhere}.ocr-quality-confirm,.ocr-cloud-consent{position:relative;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:13px;display:grid!important;grid-template-columns:34px 1fr;gap:11px;align-items:center;cursor:pointer}.ocr-quality-confirm input{position:absolute;opacity:0;pointer-events:none}.ocr-quality-check{width:32px;height:32px;border:2px solid var(--line);border-radius:10px;display:grid;place-items:center;color:transparent;background:var(--paper);font-size:20px;font-weight:900;transition:.18s}.ocr-quality-copy{display:grid;gap:4px}.ocr-quality-copy b{color:var(--green-deep);font-size:15px}.ocr-quality-copy span{color:var(--muted);font-size:12px;font-weight:700}.ocr-quality-confirm:has(input:checked){border-color:var(--green);background:color-mix(in srgb,var(--green) 8%,var(--card))}.ocr-quality-confirm:has(input:checked) .ocr-quality-check{border-color:var(--green);background:var(--green);color:white}.ocr-quality-confirm:has(input:focus-visible){outline:3px solid color-mix(in srgb,var(--orange) 35%,transparent);outline-offset:2px}.ocr-cloud-consent{grid-template-columns:22px 1fr}.ocr-cloud-consent input{width:20px;height:20px;accent-color:var(--green)}.ocr-cloud-consent span{display:grid;gap:3px}.ocr-cloud-consent b{color:var(--green-deep)}.ocr-cloud-consent small{color:var(--muted);font-weight:600;line-height:1.5}@media(max-width:620px){.ocr-actions,.ocr-review{grid-template-columns:1fr}.ocr-review .wide{grid-column:auto}}";
+    style.textContent += ".ocr-gate{border:1px solid var(--orange);background:color-mix(in srgb,var(--orange) 8%,var(--card));border-radius:16px;padding:18px;display:grid;gap:10px}.ocr-gate h3{margin:0;color:var(--green-deep)}.ocr-gate p{margin:0;color:var(--muted);line-height:1.6}.ocr-gate-row{display:grid;grid-template-columns:1fr auto;gap:10px}.ocr-gate-row input{min-width:0;width:100%;border:1px solid var(--line);border-radius:11px;padding:12px;background:var(--card);font-size:16px}.ocr-gate-status{margin:0}.ocr-gate-warning{font-size:12px;color:var(--muted)}@media(max-width:620px){.ocr-gate-row{grid-template-columns:1fr}}";
     document.head.appendChild(style);
   }
 
@@ -514,7 +613,14 @@
       <section class="record-hub-panel" id="recordPanelOcr" data-record-panel="ocr" hidden>
         <button class="record-hub-back" type="button" onclick="showRecordHub()"><span class="record-hub-back-icon" aria-hidden="true">←</span><span>返回紀錄首頁</span></button>
         <div class="record-hub-panel-head"><h2>拍攝表單建立草稿${headingTag}</h2><p>適合把既有紙本紀錄先辨識成草稿。這項功能仍在測試，辨識結果必須逐欄人工確認。</p></div>
-        <div class="ocr-card">
+        <div class="ocr-gate" id="ocrVerificationGate">
+          <h3>Google Cloud Vision 測試驗證</h3>
+          <p>這是尚未公開的 OCR 測試功能。請輸入指定驗證碼後，才會顯示照片辨識工具。</p>
+          <div class="ocr-gate-row"><input id="ocrVerificationCode" type="password" autocomplete="off" placeholder="輸入測試驗證碼" aria-label="OCR 測試驗證碼"><button class="btn btn-main" type="button" onclick="PQC_FORM_OCR_UI.unlockOcr()">解鎖測試功能</button></div>
+          <div id="ocrVerificationStatus" class="ocr-status ocr-gate-status" role="status" aria-live="polite" hidden></div>
+          <small class="ocr-gate-warning">驗證碼只代表測試入口，不取代 Google 登入、雲端同意與後端安全檢查。</small>
+        </div>
+        <div class="ocr-card" id="ocrVisionLockedContent" hidden>
           <h3>${ocrHeading}</h3>
           <p class="farm-note">請把紙張攤平、避免陰影與反光，並完整拍到四個角。辨識只建立待確認草稿，不會自動儲存。</p>
           <div class="ocr-browser-import">
@@ -549,6 +655,7 @@
         </div>
       </section>
     `);
+    applyOcrVerificationState();
   }
 
   function init() {
@@ -595,6 +702,8 @@
     featureReleaseState,
     validCloudEndpoint,
     activeOcrProvider,
+    isOcrUnlocked,
+    unlockOcr,
     safePayload,
     matchKey,
     registeredPesticideMatches,

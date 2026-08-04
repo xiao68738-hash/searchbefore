@@ -20,7 +20,9 @@ assert.ok(sandbox.window.PQC_PUBLIC_CONFIG.firebase.appId);
    沒有信箱這條承諾就是空的,且 App 內的回報功能也會失效。 */
 assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.feedbackEmail, "searchbefore82@gmail.com");
 assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.supportUrls, undefined, "共用設定不可包含綠界網址");
-assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.features.formOcr, "hidden", "Cloud Vision 未部署前 OCR 必須隱藏");
+assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.features.formOcr, "development", "OCR 測試入口必須標示為 development");
+assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.ocr.cloud.verification.required, true, "OCR 必須要求驗證碼");
+assert.match(sandbox.window.PQC_PUBLIC_CONFIG.ocr.cloud.verification.hash, /^[a-f0-9]{64}$/, "OCR 驗證碼只能以 SHA-256 雜湊保存");
 assert.doesNotMatch(configSource, /p\.ecpay\.com\.tw|supportUrls/, "帳號共用設定不可混入按需載入的綠界網址");
 vm.runInNewContext(webSupportSource, sandbox, { filename: "web-support-config.js" });
 assert.equal(sandbox.window.PQC_WEB_SUPPORT_CONFIG.googlePlayVoluntarySupport, true, "Google Play 純自願支持必須由獨立遠端開關明確啟用");
