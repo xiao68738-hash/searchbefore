@@ -75,6 +75,16 @@ const browserDraft = O.createDraft({
 assert.equal(browserDraft.source, "browser-paddleocr", "瀏覽器 PaddleOCR 草稿必須標示來源");
 assert.equal(browserDraft.confirmed, false, "瀏覽器辨識結果同樣不得直接視為已確認");
 
+const cloudDraft = O.createDraft({
+  source: "cloud-paddleocr",
+  engine: "PaddleOCR 3.7 / PP-OCRv6-small (Cloud Run)",
+  quality: { width: 1600, height: 2200, cornersDetected: true, assessment: "user-confirmed-before-upload" },
+  blocks: [{ text: "民國115/7/30 番茄", confidence: 0.9 }]
+}, { crops: ["番茄"] });
+assert.equal(cloudDraft.source, "cloud-paddleocr", "雲端辨識草稿必須保留來源標示");
+assert.equal(cloudDraft.quality.canProcess, true, "使用者已確認且解析度足夠的雲端照片可進入人工草稿");
+assert.equal(cloudDraft.confirmed, false, "雲端辨識結果不得直接視為已確認");
+
 const pesticideDraft = O.createDraft({
   quality: { width: 1800, height: 2400, documentCoverage: 0.9, sharpness: 0.9, glareRatio: 0, skewDegrees: 0, cornersDetected: true },
   blocks: [{ text: "表11 病蟲害防治或環境消毒資材施用紀錄\n使用日期 民國115年7月30日\n田區代號 A+B區\n作物 番茄\n防治對象 葉蟎\n資材名稱 亞滅培\n稀釋倍數 4000倍\n安全採收期 6天\n操作人員 王小明", confidence: 0.9 }]

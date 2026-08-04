@@ -30,6 +30,31 @@
     return RELEASE_STATES.indexOf(state) >= 0 ? state : "hidden";
   }
 
+  function ocrConfig() {
+    const config = root.PQC_PUBLIC_CONFIG && root.PQC_PUBLIC_CONFIG.ocr;
+    return config && typeof config === "object" ? config : {};
+  }
+
+  function cloudOcrConfig() {
+    const config = ocrConfig().cloud;
+    return config && typeof config === "object" ? config : {};
+  }
+
+  function validCloudEndpoint(value) {
+    try {
+      const url = new URL(String(value || ""));
+      return url.protocol === "https:" && /\/v1\/ocr\/?$/.test(url.pathname) ? url.toString() : "";
+    } catch (_) {
+      return "";
+    }
+  }
+
+  function activeOcrProvider() {
+    const config = ocrConfig();
+    if (config.provider === "cloud-paddleocr" && validCloudEndpoint(cloudOcrConfig().endpoint)) return "cloud-paddleocr";
+    return "browser";
+  }
+
   function esc(value) {
     return String(value == null ? "" : value)
       .replace(/&/g, "&amp;")
@@ -275,6 +300,40 @@
     return paddleScriptPromise;
   }
 
+  async function firebaseIdToken() {
+    const account = root.PQC_ACCOUNT;
+    const user = account && typeof account.getUser === "function" ? account.getUser() : null;
+    if (!user || typeof user.getIdToken !== "function") throw new Error("請先使用 Google 帳號登入，才能使用雲端圖片辨識");
+    return user.getIdToken(false);
+  }
+
+  async function recognizeCloudImage(file) {
+    const config = cloudOcrConfig();
+    const endpoint = validCloudEndpoint(config.endpoint);
+    if (!endpoint) throw new Error("雲端圖片辨識尚未完成設定");
+    const consent = document.getElementById("cloudOcrConsent");
+    if (!consent || !consent.checked) throw new Error("請先勾選同意本次將照片傳送至雲端辨識");
+    const maxBytes = Number(config.maxUploadBytes) || 12 * 1024 * 1024;
+    if (file.size > maxBytes) throw new Error("照片超過 12 MB，請改用較小的原始照片");
+    setBrowserOcrStatus("正在安全傳送照片並進行雲端辨識…", "warn");
+    const token = await firebaseIdToken();
+    const body = new FormData();
+    body.append("image", file, file.name || "record-photo.jpg");
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { Authorization: "Bearer " + token },
+      body,
+      credentials: "omit",
+      cache: "no-store",
+      referrerPolicy: "no-referrer"
+    });
+    let payload = null;
+    try { payload = await response.json(); } catch (_) {}
+    if (!response.ok) throw new Error(payload && payload.detail ? payload.detail : "雲端辨識服務暫時無法使用");
+    if (!safePayload(payload)) throw new Error("雲端辨識結果格式不正確，未匯入任何資料");
+    return payload;
+  }
+
   async function recognizeBrowserImage() {
     const cameraInput = document.getElementById("paddleOcrCamera");
     const fileInput = document.getElementById("paddleOcrFile");
@@ -292,12 +351,17 @@
       return false;
     }
     if (button) button.disabled = true;
-    setBrowserOcrStatus("正在準備裝置內辨識…", "warn");
+    setBrowserOcrStatus(activeOcrProvider() === "cloud-paddleocr" ? "正在準備雲端辨識…" : "正在準備裝置內辨識…", "warn");
     try {
-      const paddle = await loadPaddleOcr();
-      const payload = await paddle.recognize(file, {
-        onStatus: function (message) { setBrowserOcrStatus(message, "warn"); }
-      });
+      let payload;
+      if (activeOcrProvider() === "cloud-paddleocr") {
+        payload = await recognizeCloudImage(file);
+      } else {
+        const paddle = await loadPaddleOcr();
+        payload = await paddle.recognize(file, {
+          onStatus: function (message) { setBrowserOcrStatus(message, "warn"); }
+        });
+      }
       if (!payload.blocks || !payload.blocks.length) throw new Error("沒有辨識到文字，請靠近表單並避免反光後重拍");
       if (!receiveScanResult(payload)) throw new Error("辨識結果未通過安全格式檢查");
       setBrowserOcrStatus("辨識完成。請逐欄核對下方草稿，系統尚未儲存任何紀錄。", "ok");
@@ -455,7 +519,7 @@
 
   function installStyle() {
     const style = document.createElement("style");
-    style.textContent = ".ocr-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}.ocr-card h3{font-size:19px;color:var(--green-deep);margin:0 0 6px}.ocr-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}.ocr-browser-import{border:1px solid var(--orange);background:color-mix(in srgb,var(--orange) 9%,var(--card));border-radius:15px;padding:15px;margin:14px 0;display:grid;gap:11px}.ocr-browser-import input[type=file]{width:100%;padding:10px;background:var(--card);border:1px solid var(--line);border-radius:11px}.ocr-browser-import label{font-weight:800}.ocr-browser-note{font-size:13px;color:var(--muted);line-height:1.6}.ocr-paste{border-top:1px solid var(--line);padding-top:15px}.ocr-paste textarea,.ocr-review textarea{min-height:110px}.ocr-status[hidden]{display:none}.ocr-status{border-radius:13px;padding:13px 15px;margin:14px 0;display:grid;gap:4px}.ocr-status.ok{background:var(--ok-bg);color:var(--green-deep)}.ocr-status.warn{background:#fff4d6;color:#6f4b00}.ocr-status.bad{background:#fff0ed;color:#982d20}.ocr-status ul{margin:5px 0 0;padding-left:20px}.ocr-review{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ocr-review .field{display:grid;gap:6px}.ocr-review .field input,.ocr-review .field select{width:100%}.ocr-review .field select+input{margin-top:6px}.ocr-review .wide{grid-column:1/-1}.ocr-confirm{border:1px solid var(--line);border-radius:13px;padding:12px;display:grid;gap:8px}.ocr-confirm legend{font-weight:900;color:var(--green-deep);padding:0 5px}.ocr-confirm label{font-weight:700}.ocr-source-title{font-size:14px;font-weight:900;color:var(--green-deep);margin:2px 0 0}.ocr-source-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ocr-source-button{position:relative;min-height:92px;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:13px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;cursor:pointer;transition:border-color .18s,transform .18s,background .18s}.ocr-source-button:hover{border-color:var(--orange);transform:translateY(-1px)}.ocr-source-button input{position:absolute;opacity:0;pointer-events:none}.ocr-source-button:has(input:focus-visible){outline:3px solid color-mix(in srgb,var(--orange) 35%,transparent);outline-offset:2px}.ocr-source-icon{width:32px;height:32px;color:var(--orange);display:grid;place-items:center}.ocr-source-icon svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.ocr-source-button b{font-size:15px;color:var(--green-deep)}.ocr-source-button small{font-size:12px;color:var(--muted)}.ocr-selected-file{margin:0;padding:9px 11px;border-radius:10px;background:color-mix(in srgb,var(--green) 10%,var(--card));color:var(--green-deep);font-size:12px;font-weight:800;overflow-wrap:anywhere}.ocr-quality-confirm{position:relative;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:13px;display:grid!important;grid-template-columns:34px 1fr;gap:11px;align-items:center;cursor:pointer}.ocr-quality-confirm input{position:absolute;opacity:0;pointer-events:none}.ocr-quality-check{width:32px;height:32px;border:2px solid var(--line);border-radius:10px;display:grid;place-items:center;color:transparent;background:var(--paper);font-size:20px;font-weight:900;transition:.18s}.ocr-quality-copy{display:grid;gap:4px}.ocr-quality-copy b{color:var(--green-deep);font-size:15px}.ocr-quality-copy span{color:var(--muted);font-size:12px;font-weight:700}.ocr-quality-confirm:has(input:checked){border-color:var(--green);background:color-mix(in srgb,var(--green) 8%,var(--card))}.ocr-quality-confirm:has(input:checked) .ocr-quality-check{border-color:var(--green);background:var(--green);color:white}.ocr-quality-confirm:has(input:focus-visible){outline:3px solid color-mix(in srgb,var(--orange) 35%,transparent);outline-offset:2px}@media(max-width:620px){.ocr-actions,.ocr-review{grid-template-columns:1fr}.ocr-review .wide{grid-column:auto}}";
+    style.textContent = ".ocr-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}.ocr-card h3{font-size:19px;color:var(--green-deep);margin:0 0 6px}.ocr-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}.ocr-browser-import{border:1px solid var(--orange);background:color-mix(in srgb,var(--orange) 9%,var(--card));border-radius:15px;padding:15px;margin:14px 0;display:grid;gap:11px}.ocr-browser-import input[type=file]{width:100%;padding:10px;background:var(--card);border:1px solid var(--line);border-radius:11px}.ocr-browser-import label{font-weight:800}.ocr-browser-note{font-size:13px;color:var(--muted);line-height:1.6}.ocr-paste{border-top:1px solid var(--line);padding-top:15px}.ocr-paste textarea,.ocr-review textarea{min-height:110px}.ocr-status[hidden]{display:none}.ocr-status{border-radius:13px;padding:13px 15px;margin:14px 0;display:grid;gap:4px}.ocr-status.ok{background:var(--ok-bg);color:var(--green-deep)}.ocr-status.warn{background:#fff4d6;color:#6f4b00}.ocr-status.bad{background:#fff0ed;color:#982d20}.ocr-status ul{margin:5px 0 0;padding-left:20px}.ocr-review{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ocr-review .field{display:grid;gap:6px}.ocr-review .field input,.ocr-review .field select{width:100%}.ocr-review .field select+input{margin-top:6px}.ocr-review .wide{grid-column:1/-1}.ocr-confirm{border:1px solid var(--line);border-radius:13px;padding:12px;display:grid;gap:8px}.ocr-confirm legend{font-weight:900;color:var(--green-deep);padding:0 5px}.ocr-confirm label{font-weight:700}.ocr-source-title{font-size:14px;font-weight:900;color:var(--green-deep);margin:2px 0 0}.ocr-source-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ocr-source-button{position:relative;min-height:92px;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:13px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;cursor:pointer;transition:border-color .18s,transform .18s,background .18s}.ocr-source-button:hover{border-color:var(--orange);transform:translateY(-1px)}.ocr-source-button input{position:absolute;opacity:0;pointer-events:none}.ocr-source-button:has(input:focus-visible){outline:3px solid color-mix(in srgb,var(--orange) 35%,transparent);outline-offset:2px}.ocr-source-icon{width:32px;height:32px;color:var(--orange);display:grid;place-items:center}.ocr-source-icon svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.ocr-source-button b{font-size:15px;color:var(--green-deep)}.ocr-source-button small{font-size:12px;color:var(--muted)}.ocr-selected-file{margin:0;padding:9px 11px;border-radius:10px;background:color-mix(in srgb,var(--green) 10%,var(--card));color:var(--green-deep);font-size:12px;font-weight:800;overflow-wrap:anywhere}.ocr-quality-confirm,.ocr-cloud-consent{position:relative;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:13px;display:grid!important;grid-template-columns:34px 1fr;gap:11px;align-items:center;cursor:pointer}.ocr-quality-confirm input{position:absolute;opacity:0;pointer-events:none}.ocr-quality-check{width:32px;height:32px;border:2px solid var(--line);border-radius:10px;display:grid;place-items:center;color:transparent;background:var(--paper);font-size:20px;font-weight:900;transition:.18s}.ocr-quality-copy{display:grid;gap:4px}.ocr-quality-copy b{color:var(--green-deep);font-size:15px}.ocr-quality-copy span{color:var(--muted);font-size:12px;font-weight:700}.ocr-quality-confirm:has(input:checked){border-color:var(--green);background:color-mix(in srgb,var(--green) 8%,var(--card))}.ocr-quality-confirm:has(input:checked) .ocr-quality-check{border-color:var(--green);background:var(--green);color:white}.ocr-quality-confirm:has(input:focus-visible){outline:3px solid color-mix(in srgb,var(--orange) 35%,transparent);outline-offset:2px}.ocr-cloud-consent{grid-template-columns:22px 1fr}.ocr-cloud-consent input{width:20px;height:20px;accent-color:var(--green)}.ocr-cloud-consent span{display:grid;gap:3px}.ocr-cloud-consent b{color:var(--green-deep)}.ocr-cloud-consent small{color:var(--muted);font-weight:600;line-height:1.5}@media(max-width:620px){.ocr-actions,.ocr-review{grid-template-columns:1fr}.ocr-review .wide{grid-column:auto}}";
     document.head.appendChild(style);
   }
 
@@ -464,16 +528,24 @@
     const records = document.getElementById("scr-records");
     if (!menu || !records || document.getElementById("recordPanelOcr")) return;
     const developing = releaseState === "development";
+    const cloudMode = activeOcrProvider() === "cloud-paddleocr";
+    const ocrHeading = cloudMode ? "PaddleOCR 雲端圖片辨識（測試中・開發中）" : "PaddleOCR 圖片辨識（測試中・開發中）";
+    const cloudConsent = cloudMode ? '<label class="ocr-cloud-consent"><input id="cloudOcrConsent" type="checkbox"><span><b>同意本次雲端辨識</b><small>照片會加密傳送至噴前查 OCR 服務，辨識完成後不保留原始照片；辨識結果仍需由你確認。</small></span></label>' : "";
+    const ocrRunLabel = cloudMode ? "開始雲端辨識（測試中）" : "開始圖片辨識（測試中）";
+    const ocrNote = cloudMode
+      ? "辨識運算在雲端進行，不占用手機載入模型的記憶體。此功能需要 Google 登入及網路；照片只在你按下按鈕後傳送。"
+      : "系統會先縮小照片，降低手機記憶體用量，再檢查解析度與清晰度。第一次使用會下載辨識模型，請先連接 Wi-Fi；模型來源不會收到你選擇的照片。";
     const gateLabel = developing ? "04・測試中／開發中" : "04・辨識";
     const headingTag = developing ? ' <span class="plot-tag">測試中・開發中</span>' : "";
-    menu.insertAdjacentHTML("beforeend", '<button class="record-hub-button" type="button" onclick="openRecordHub(\'ocr\')" aria-controls="recordPanelOcr"><span class="record-hub-index" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 11h6l2-3h6l2 3h6v15H5Z"/><circle cx="16" cy="18.5" r="5"/><path d="M23 14h1"/></svg></span><span class="record-hub-copy"><span class="record-hub-label">' + gateLabel + '</span><b>拍攝表單建立草稿</b><small>選擇照片後在目前裝置內辨識；逐欄確認後再帶入紀錄，不會自動儲存。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>');
+    const entryCopy = cloudMode ? "選擇照片後由雲端辨識；逐欄確認後再帶入紀錄，不會自動儲存。" : "選擇照片後在目前裝置內辨識；逐欄確認後再帶入紀錄，不會自動儲存。";
+    menu.insertAdjacentHTML("beforeend", '<button class="record-hub-button" type="button" onclick="openRecordHub(\'ocr\')" aria-controls="recordPanelOcr"><span class="record-hub-index" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 11h6l2-3h6l2 3h6v15H5Z"/><circle cx="16" cy="18.5" r="5"/><path d="M23 14h1"/></svg></span><span class="record-hub-copy"><span class="record-hub-label">' + gateLabel + '</span><b>拍攝表單建立草稿</b><small>' + entryCopy + '</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>');
     records.insertAdjacentHTML("beforeend", `
       <section class="record-hub-panel" id="recordPanelOcr" data-record-panel="ocr" hidden>
         <button class="record-hub-back" type="button" onclick="showRecordHub()"><span class="record-hub-back-icon" aria-hidden="true">←</span><span>返回紀錄首頁</span></button>
         <div class="record-hub-panel-head"><h2>拍攝表單建立草稿${headingTag}</h2><p>適合把既有紙本紀錄先辨識成草稿。這項功能仍在測試，辨識結果必須逐欄人工確認。</p></div>
         <div class="ocr-card">
-          <h3>PaddleOCR 圖片辨識（測試中・開發中）</h3>
-          <p class="farm-note">請把紙張攤平、避免陰影與反光，並完整拍到四個角。照片只在目前裝置內處理，不會上傳或自動儲存。</p>
+          <h3>${ocrHeading}</h3>
+          <p class="farm-note">請把紙張攤平、避免陰影與反光，並完整拍到四個角。辨識只建立待確認草稿，不會自動儲存。</p>
           <div class="ocr-browser-import">
             <p class="ocr-source-title">選擇照片來源</p>
             <div class="ocr-source-actions">
@@ -494,8 +566,9 @@
               <span class="ocr-quality-check" aria-hidden="true">✓</span>
               <span class="ocr-quality-copy"><b>拍照品質確認</b><span>四角完整・文字清楚・沒有強烈反光</span></span>
             </label>
-            <button class="btn btn-main" id="paddleOcrRun" type="button" onclick="PQC_FORM_OCR_UI.recognizeBrowserImage()">開始圖片辨識（測試中）</button>
-            <p class="ocr-browser-note">系統會先縮小照片，降低手機記憶體用量，再檢查解析度與清晰度。第一次使用會下載辨識模型，請先連接 Wi-Fi；模型來源不會收到你選擇的照片。</p>
+            ${cloudConsent}
+            <button class="btn btn-main" id="paddleOcrRun" type="button" onclick="PQC_FORM_OCR_UI.recognizeBrowserImage()">${ocrRunLabel}</button>
+            <p class="ocr-browser-note">${ocrNote}</p>
           </div>
           <div id="paddleOcrStatus" class="ocr-status warn" role="status" aria-live="polite" hidden></div>
           <div class="ocr-actions"><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.requestNativeScan()">使用 Android 原生掃描（開發中）</button><button class="btn btn-ghost" type="button" onclick="document.getElementById('ocrPasteText').focus()">改用文字貼上測試</button></div>
@@ -549,12 +622,15 @@
     TRUSTED_ORIGINS,
     RELEASE_STATES,
     featureReleaseState,
+    validCloudEndpoint,
+    activeOcrProvider,
     safePayload,
     matchKey,
     registeredPesticideMatches,
     receiveScanResult,
     requestNativeScan,
     selectBrowserImage,
+    recognizeCloudImage,
     recognizeBrowserImage,
     parsePastedText,
     applyToPesticideRecord,

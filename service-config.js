@@ -22,6 +22,16 @@ window.PQC_PUBLIC_CONFIG = {
     appId: "1:934300362639:web:a96c41c1a7e6cd5ea5cdfa"
   },
   feedbackEmail: "searchbefore82@gmail.com",
+  /* OCR 執行位置。正式切換到雲端前維持 browser，cloud.endpoint 留空。
+     Cloud Run 網址是公開設定，不是密鑰；後端仍會驗證 Firebase 登入權杖。 */
+  ocr: {
+    provider: "browser",
+    cloud: {
+      endpoint: "",
+      requireGoogleLogin: true,
+      maxUploadBytes: 12582912
+    }
+  },
   /* 未完善功能一律 hidden；只有安排公開測試時才可改成 development，
      並由前端明確標示「開發中」。正式完成及驗收後才能改成 public。 */
   features: {
