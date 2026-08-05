@@ -21,6 +21,7 @@
     harvest: Object.freeze({ label: "採收", markers: Object.freeze(["採收紀錄", "採收日期", "採收量"]) }),
     postharvest: Object.freeze({ label: "採後處理", markers: Object.freeze(["採後處理", "分級", "包裝", "預冷"]) }),
     equipmentMaintenance: Object.freeze({ label: "器具／機械／設備管理", markers: Object.freeze(["器具/機械/設備之保養、維修、校正及清潔管理紀錄", "器具/機械/設備", "作業內容", "噴霧機", "清潔", "保養", "維修", "校正"]) }),
+    selfInspection: Object.freeze({ label: "生產及出貨自我查核表", markers: Object.freeze(["農作物生產及出貨作業自我查核表", "查核項目", "查核頻率", "查核者", "確認日期", "程度", "備註"]) }),
     profile: Object.freeze({ label: "基本資料／田區資料", markers: Object.freeze(["基本資料", "經營農戶姓名", "農地地籍號碼", "栽培總面積"]) })
   });
 
@@ -417,7 +418,7 @@
         dilution: findDilutions(text),
         amount: findAmounts(text),
         safetyInterval: findSafetyIntervals(text),
-        operator: findLabeledValues(text, ["記錄人", "紀錄人", "操作人員", "執行人"], "operator")
+        operator: findLabeledValues(text, ["記錄人", "紀錄人", "操作人員", "執行人", "查核者", "確認者"], "operator")
       }),
       recordGroups: equipmentRows,
       blocks
