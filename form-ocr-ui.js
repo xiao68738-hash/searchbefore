@@ -40,6 +40,21 @@
     return config && typeof config === "object" ? config : {};
   }
 
+  function cloudRequestId() {
+    const cryptoApi = root.crypto;
+    if (cryptoApi && typeof cryptoApi.randomUUID === "function") {
+      return "ocr-" + cryptoApi.randomUUID();
+    }
+    if (cryptoApi && typeof cryptoApi.getRandomValues === "function") {
+      const bytes = new Uint8Array(12);
+      cryptoApi.getRandomValues(bytes);
+      return "ocr-" + Array.from(bytes, function (byte) {
+        return byte.toString(16).padStart(2, "0");
+      }).join("");
+    }
+    return "ocr-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 14);
+  }
+
   function ocrVerificationConfig() {
     const config = cloudOcrConfig().verification;
     return config && typeof config === "object" ? config : {};
@@ -713,6 +728,7 @@
     featureReleaseState,
     validCloudEndpoint,
     activeOcrProvider,
+    cloudRequestId,
     isOcrUnlocked,
     unlockOcr,
     safePayload,
