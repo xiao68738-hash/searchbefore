@@ -34,6 +34,7 @@ def startup() -> None:
     app.state.ocr_test_code_sha256 = configured_test_code_hash()
 
 
+@app.get("/v1/health", include_in_schema=False)
 @app.get("/healthz", include_in_schema=False)
 def healthz() -> dict:
     return {"status": "ok"}
