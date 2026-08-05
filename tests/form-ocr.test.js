@@ -105,6 +105,9 @@ assert.deepEqual(equipmentDraft.recordGroups[0].actions.filter(item => item.sele
 assert.equal(equipmentDraft.recordGroups[0].operator[0].value, "施坤寶");
 assert.equal(equipmentDraft.recordGroups[1].date[0].value, "2026-03-10");
 
+const checklistTypes = O.detectFormTypes("農作物生產及出貨作業自我查核表\n查核項目 查核頻率 程度 備註\n確認日期：115.6.1 查核者：王小明");
+assert.equal(checklistTypes[0].value, "selfInspection", "查核表不得誤判成田間作業紀錄");
+
 const pastedEquipmentRows = O.findEquipmentMaintenanceRows([{ id: "paste", text: "民國115/2/23 ☑噴霧機 ☑清潔\n民國115/3/10 ☑割草機 ☑保養", confidence: 1 }]);
 assert.equal(pastedEquipmentRows.length, 2, "同一段 OCR 原文中的多個日期也必須拆成多筆");
 assert.deepEqual(pastedEquipmentRows[0].equipment.filter(item => item.selected).map(item => item.value), ["噴霧機"]);

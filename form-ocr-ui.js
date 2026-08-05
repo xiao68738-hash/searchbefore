@@ -12,7 +12,10 @@
   let currentDraft = null;
   let twaPort = null;
   let pendingRequestId = null;
-  let selectedOcrFile = null;
+  let selectedOcrFiles = [];
+  let selectedOcrPreviewUrls = [];
+  let ocrBatchDrafts = [];
+  let ocrBatchIndex = 0;
   let ocrVerificationCode = "";
 
   const RECORD_TYPE_LABELS = Object.freeze({
@@ -306,6 +309,34 @@
       + '<p class="disclaimer wide">辨識結果只會帶入批次編輯清單，不會自動儲存。未勾選或看不清楚的內容必須由使用者確認。</p>';
   }
 
+  function batchNavigatorHtml() {
+    if (!ocrBatchDrafts.length) return "";
+    const item = ocrBatchDrafts[ocrBatchIndex];
+    return '<div class="ocr-batch-nav">'
+      + '<div><b>照片 ' + (ocrBatchIndex + 1) + ' / ' + ocrBatchDrafts.length + '</b><span>' + esc(item.fileName) + '</span></div>'
+      + '<div class="ocr-batch-nav-actions"><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.showOcrBatchDraft(' + (ocrBatchIndex - 1) + ')"' + (ocrBatchIndex <= 0 ? " disabled" : "") + '>上一張</button>'
+      + '<button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.openOcrImagePreview(' + item.previewIndex + ')">查看原圖</button>'
+      + '<button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.showOcrBatchDraft(' + (ocrBatchIndex + 1) + ')"' + (ocrBatchIndex >= ocrBatchDrafts.length - 1 ? " disabled" : "") + '>下一張</button></div>'
+      + '</div>';
+  }
+
+  function renderReferenceDocumentDraft(draft, text, detectedType) {
+    const box = document.getElementById("ocrDraftBox");
+    if (!box) return;
+    const isChecklist = detectedType && detectedType.value === "selfInspection";
+    const title = isChecklist ? "辨識到生產及出貨自我查核表" : "辨識到基本資料／田區資料";
+    const explanation = isChecklist
+      ? "這類文件是查核與備查資料，不是單筆田間作業。為避免誤存，系統先保留辨識原文與日期／查核者候選，暫不帶入作業紀錄。"
+      : "這類文件包含農戶、田區或聯絡資料，不是單筆作業紀錄。系統先提供核對結果，暫不自動寫入個人資料或田區。";
+    box.innerHTML = batchNavigatorHtml()
+      + qualityHtml(draft.quality)
+      + '<section class="ocr-reference-review"><div class="ocr-reference-title"><b>' + title + '</b><span>' + explanation + '</span></div>'
+      + '<div class="ocr-reference-summary"><div><span>日期候選</span><b>' + esc((draft.fields.date || []).map(function (item) { return item.value; }).join("、") || "未辨識到") + '</b></div>'
+      + '<div><span>填寫／查核者候選</span><b>' + esc((draft.fields.operator || []).map(function (item) { return item.value; }).join("、") || "未辨識到") + '</b></div></div>'
+      + '<label class="field"><span>辨識原文（供人工整理與核對）</span><textarea id="ocrRawText" readonly>' + esc(text) + '</textarea></label>'
+      + '<p class="disclaimer">目前只做辨識與分類，不會將查核勾選結果或個人資料誤存為田間紀錄。</p></section>';
+  }
+
   function setValue(id, value) {
     const element = document.getElementById(id);
     if (element) element.value = value == null ? "" : value;
@@ -316,11 +347,17 @@
     const box = document.getElementById("ocrDraftBox");
     if (!box) return;
     const text = draft.blocks.map(function (block) { return block.text; }).join("\n");
-    if (draft.recordGroups && draft.recordGroups.length) {
-      renderEquipmentMaintenanceDraft(draft, text);
+    const detectedType = draft.fields.recordType && draft.fields.recordType[0];
+    if (detectedType && (detectedType.value === "selfInspection" || detectedType.value === "profile")) {
+      renderReferenceDocumentDraft(draft, text, detectedType);
       return;
     }
-    box.innerHTML = qualityHtml(draft.quality)
+    if (draft.recordGroups && draft.recordGroups.length) {
+      renderEquipmentMaintenanceDraft(draft, text);
+      box.insertAdjacentHTML("afterbegin", batchNavigatorHtml());
+      return;
+    }
+    box.innerHTML = batchNavigatorHtml() + qualityHtml(draft.quality)
       + '<div class="ocr-review">'
       + '<div class="field"><label>紀錄類型 *</label><select id="ocrRecordType">' + recordTypeOptions(draft.fields.recordType) + '</select></div>'
       + '<div class="field"><label>日期候選 *</label><select id="ocrDateCandidate">' + optionList(draft.fields.date) + '</select><input id="ocrDateManual" type="date" aria-label="手動修正日期"></div>'
@@ -403,20 +440,80 @@
     box.textContent = message || "";
   }
 
-  function selectBrowserImage(input) {
-    const file = input && input.files && input.files[0];
-    if (!file) return false;
-    selectedOcrFile = file;
-    ["cloudVisionCamera", "cloudVisionFile"].forEach(function (id) {
-      const other = document.getElementById(id);
-      if (other && other !== input) other.value = "";
-    });
+  function setOcrProgress(value, label, active) {
+    const box = document.getElementById("cloudVisionProgress");
+    const bar = document.getElementById("cloudVisionProgressBar");
+    const text = document.getElementById("cloudVisionProgressText");
+    if (!box || !bar || !text) return;
+    const progress = Math.max(0, Math.min(100, Number(value) || 0));
+    box.hidden = active === false;
+    box.setAttribute("aria-valuenow", String(Math.round(progress)));
+    bar.style.width = progress + "%";
+    text.textContent = label || "正在處理照片…";
+  }
+
+  function closeOcrImagePreview() {
+    const modal = document.getElementById("ocrImagePreviewModal");
+    if (modal) modal.hidden = true;
+  }
+
+  function openOcrImagePreview(index) {
+    const safeIndex = Math.max(0, Math.min(selectedOcrPreviewUrls.length - 1, Number(index) || 0));
+    const modal = document.getElementById("ocrImagePreviewModal");
+    const image = document.getElementById("ocrImagePreviewLarge");
+    const title = document.getElementById("ocrImagePreviewTitle");
+    if (!modal || !image || !selectedOcrPreviewUrls[safeIndex]) return false;
+    image.src = selectedOcrPreviewUrls[safeIndex];
+    image.alt = "待辨識照片：" + (selectedOcrFiles[safeIndex] ? selectedOcrFiles[safeIndex].name : "照片");
+    if (title) title.textContent = (safeIndex + 1) + " / " + selectedOcrFiles.length + "　" + (selectedOcrFiles[safeIndex] ? selectedOcrFiles[safeIndex].name : "照片");
+    modal.hidden = false;
+    return true;
+  }
+
+  function renderSelectedOcrFiles() {
     const label = document.getElementById("cloudVisionSelected");
+    const preview = document.getElementById("cloudVisionPreviewList");
     if (label) {
-      label.hidden = false;
-      label.textContent = "已選擇：" + file.name;
+      label.hidden = !selectedOcrFiles.length;
+      label.textContent = selectedOcrFiles.length
+        ? "已加入 " + selectedOcrFiles.length + " 張照片，可再拍照或繼續加入"
+        : "";
     }
-    setBrowserOcrStatus("照片已選擇，確認品質後即可開始辨識。", "ok");
+    if (!preview) return;
+    preview.hidden = !selectedOcrFiles.length;
+    preview.innerHTML = selectedOcrFiles.map(function (file, index) {
+      return '<div class="ocr-preview-thumb">'
+        + '<button class="ocr-preview-open" type="button" onclick="PQC_FORM_OCR_UI.openOcrImagePreview(' + index + ')" aria-label="放大查看第 ' + (index + 1) + ' 張照片"><img src="' + esc(selectedOcrPreviewUrls[index]) + '" alt=""><span><b>第 ' + (index + 1) + ' 張</b><small>' + esc(file.name) + '</small></span></button>'
+        + '<button class="ocr-preview-remove" type="button" onclick="PQC_FORM_OCR_UI.removeSelectedOcrFile(' + index + ')" aria-label="移除第 ' + (index + 1) + ' 張照片">移除</button>'
+        + '</div>';
+    }).join("");
+  }
+
+  function removeSelectedOcrFile(index) {
+    const safeIndex = Number(index);
+    if (!Number.isInteger(safeIndex) || safeIndex < 0 || safeIndex >= selectedOcrFiles.length) return false;
+    if (selectedOcrPreviewUrls[safeIndex]) URL.revokeObjectURL(selectedOcrPreviewUrls[safeIndex]);
+    selectedOcrFiles.splice(safeIndex, 1);
+    selectedOcrPreviewUrls.splice(safeIndex, 1);
+    renderSelectedOcrFiles();
+    if (!selectedOcrFiles.length) setBrowserOcrStatus("尚未加入照片。可立即拍照或一次選取多張。", "warn");
+    return true;
+  }
+
+  function selectBrowserImage(input) {
+    const files = Array.from(input && input.files ? input.files : []);
+    if (!files.length) return false;
+    files.forEach(function (file) {
+      const duplicate = selectedOcrFiles.some(function (existing) {
+        return existing.name === file.name && existing.size === file.size && existing.lastModified === file.lastModified;
+      });
+      if (duplicate) return;
+      selectedOcrFiles.push(file);
+      selectedOcrPreviewUrls.push(URL.createObjectURL(file));
+    });
+    if (input) input.value = "";
+    renderSelectedOcrFiles();
+    setBrowserOcrStatus("照片已加入。可一次加入多張，系統會依序辨識並分張核對。", "ok");
     return true;
   }
 
@@ -449,7 +546,6 @@
     if (!consent || !consent.checked) throw new Error("請先勾選同意本次將照片傳送至雲端辨識");
     const maxBytes = Number(config.maxUploadBytes) || 12 * 1024 * 1024;
     if (file.size > maxBytes) throw new Error("照片超過 12 MB，請改用較小的原始照片");
-    setBrowserOcrStatus("正在安全傳送照片並進行雲端辨識…", "warn");
     const token = await firebaseIdToken();
     const testCode = String(ocrVerificationCode || "");
     if (config.verification && config.verification.required !== false && !testCode) {
@@ -484,10 +580,10 @@
     const fileInput = document.getElementById("cloudVisionFile");
     const confirmCorners = document.getElementById("cloudVisionConfirmCorners");
     const button = document.getElementById("cloudVisionRun");
-    const file = selectedOcrFile
-      || (cameraInput && cameraInput.files && cameraInput.files[0])
-      || (fileInput && fileInput.files && fileInput.files[0]);
-    if (!file) {
+    const queuedFiles = selectedOcrFiles.length
+      ? selectedOcrFiles.slice()
+      : [cameraInput && cameraInput.files && cameraInput.files[0], fileInput && fileInput.files && fileInput.files[0]].filter(Boolean);
+    if (!queuedFiles.length) {
       if (typeof root.toast === "function") root.toast("請先選擇或拍攝表單照片");
       return false;
     }
@@ -496,23 +592,54 @@
       return false;
     }
     if (button) button.disabled = true;
+    ocrBatchDrafts = [];
+    ocrBatchIndex = 0;
+    setOcrProgress(5, "準備辨識 " + queuedFiles.length + " 張照片", true);
     setBrowserOcrStatus("正在準備 Google Cloud Vision 雲端辨識…", "warn");
     try {
       if (activeOcrProvider() !== "google-cloud-vision") throw new Error("Google Cloud Vision 尚未完成正式設定");
-      pendingRequestId = cloudRequestId();
-      const payload = await recognizeCloudImage(file, pendingRequestId);
-      if (!payload.blocks || !payload.blocks.length) throw new Error("沒有辨識到文字，請靠近表單並避免反光後重拍");
-      if (!receiveScanResult(payload)) throw new Error("辨識結果未通過安全格式檢查");
-      setBrowserOcrStatus("辨識完成。請逐欄核對下方草稿，系統尚未儲存任何紀錄。", "ok");
+      const failedFiles = [];
+      for (let index = 0; index < queuedFiles.length; index += 1) {
+        const file = queuedFiles[index];
+        const start = 8 + (index / queuedFiles.length) * 82;
+        setOcrProgress(start, "第 " + (index + 1) + " / " + queuedFiles.length + " 張：安全傳送與辨識中", true);
+        try {
+          pendingRequestId = cloudRequestId();
+          const payload = await recognizeCloudImage(file, pendingRequestId);
+          if (!payload.blocks || !payload.blocks.length) throw new Error("沒有辨識到文字");
+          if (!safePayload(payload)) throw new Error("結果未通過安全格式檢查");
+          ocrBatchDrafts.push({
+            fileName: file.name || ("第 " + (index + 1) + " 張照片"),
+            previewIndex: index,
+            draft: root.PQC_FORM_OCR.createDraft(payload, dictionaries())
+          });
+        } catch (fileError) {
+          failedFiles.push({ name: file.name || ("第 " + (index + 1) + " 張"), message: friendlyOcrError(fileError) });
+        }
+        setOcrProgress(8 + ((index + 1) / queuedFiles.length) * 82, "已完成 " + (index + 1) + " / " + queuedFiles.length + " 張", true);
+      }
+      pendingRequestId = null;
+      if (!ocrBatchDrafts.length) throw new Error(failedFiles.length ? failedFiles[0].message : "沒有可供核對的辨識結果");
+      setOcrProgress(100, "全部辨識完成，請分張核對", true);
+      showOcrBatchDraft(0);
+      setBrowserOcrStatus("成功辨識 " + ocrBatchDrafts.length + " 張" + (failedFiles.length ? "，另有 " + failedFiles.length + " 張未成功，可查看原圖後重試" : "") + "。請使用下方上一張／下一張逐張核對；系統尚未儲存任何紀錄。", failedFiles.length ? "warn" : "ok");
       return true;
     } catch (error) {
       const message = friendlyOcrError(error);
+      setOcrProgress(100, "辨識未完成，請依提示重試", true);
       setBrowserOcrStatus(message, "bad");
       if (typeof root.toast === "function") root.toast(message);
       return false;
     } finally {
       if (button) button.disabled = false;
     }
+  }
+
+  function showOcrBatchDraft(index) {
+    if (!ocrBatchDrafts.length) return false;
+    ocrBatchIndex = Math.max(0, Math.min(ocrBatchDrafts.length - 1, Number(index) || 0));
+    renderDraft(ocrBatchDrafts[ocrBatchIndex].draft);
+    return true;
   }
 
   function parsePastedText() {
@@ -709,7 +836,8 @@
   function installStyle() {
     const style = document.createElement("style");
     style.textContent = ".ocr-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}.ocr-card h3{font-size:19px;color:var(--green-deep);margin:0 0 6px}.ocr-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}.ocr-browser-import{border:1px solid var(--orange);background:color-mix(in srgb,var(--orange) 9%,var(--card));border-radius:15px;padding:15px;margin:14px 0;display:grid;gap:11px}.ocr-browser-import input[type=file]{width:100%;padding:10px;background:var(--card);border:1px solid var(--line);border-radius:11px}.ocr-browser-import label{font-weight:800}.ocr-browser-note{font-size:13px;color:var(--muted);line-height:1.6}.ocr-paste{border-top:1px solid var(--line);padding-top:15px}.ocr-paste textarea,.ocr-review textarea{min-height:110px}.ocr-status[hidden]{display:none}.ocr-status{border-radius:13px;padding:13px 15px;margin:14px 0;display:grid;gap:4px}.ocr-status.ok{background:var(--ok-bg);color:var(--green-deep)}.ocr-status.warn{background:#fff4d6;color:#6f4b00}.ocr-status.bad{background:#fff0ed;color:#982d20}.ocr-status ul{margin:5px 0 0;padding-left:20px}.ocr-review{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ocr-review .field{display:grid;gap:6px}.ocr-review .field input,.ocr-review .field select{width:100%}.ocr-review .field select+input{margin-top:6px}.ocr-review .wide{grid-column:1/-1}.ocr-confirm{border:1px solid var(--line);border-radius:13px;padding:12px;display:grid;gap:8px}.ocr-confirm legend{font-weight:900;color:var(--green-deep);padding:0 5px}.ocr-confirm label{font-weight:700}.ocr-source-title{font-size:14px;font-weight:900;color:var(--green-deep);margin:2px 0 0}.ocr-source-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ocr-source-button{position:relative;min-height:92px;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:13px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;cursor:pointer;transition:border-color .18s,transform .18s,background .18s}.ocr-source-button:hover{border-color:var(--orange);transform:translateY(-1px)}.ocr-source-button input{position:absolute;opacity:0;pointer-events:none}.ocr-source-button:has(input:focus-visible){outline:3px solid color-mix(in srgb,var(--orange) 35%,transparent);outline-offset:2px}.ocr-source-icon{width:32px;height:32px;color:var(--orange);display:grid;place-items:center}.ocr-source-icon svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.ocr-source-button b{font-size:15px;color:var(--green-deep)}.ocr-source-button small{font-size:12px;color:var(--muted)}.ocr-selected-file{margin:0;padding:9px 11px;border-radius:10px;background:color-mix(in srgb,var(--green) 10%,var(--card));color:var(--green-deep);font-size:12px;font-weight:800;overflow-wrap:anywhere}.ocr-quality-confirm,.ocr-cloud-consent{position:relative;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:13px;display:grid!important;grid-template-columns:34px 1fr;gap:11px;align-items:center;cursor:pointer}.ocr-quality-confirm input{position:absolute;opacity:0;pointer-events:none}.ocr-quality-check{width:32px;height:32px;border:2px solid var(--line);border-radius:10px;display:grid;place-items:center;color:transparent;background:var(--paper);font-size:20px;font-weight:900;transition:.18s}.ocr-quality-copy{display:grid;gap:4px}.ocr-quality-copy b{color:var(--green-deep);font-size:15px}.ocr-quality-copy span{color:var(--muted);font-size:12px;font-weight:700}.ocr-quality-confirm:has(input:checked){border-color:var(--green);background:color-mix(in srgb,var(--green) 8%,var(--card))}.ocr-quality-confirm:has(input:checked) .ocr-quality-check{border-color:var(--green);background:var(--green);color:white}.ocr-quality-confirm:has(input:focus-visible){outline:3px solid color-mix(in srgb,var(--orange) 35%,transparent);outline-offset:2px}.ocr-cloud-consent{grid-template-columns:22px 1fr}.ocr-cloud-consent input{width:20px;height:20px;accent-color:var(--green)}.ocr-cloud-consent span{display:grid;gap:3px}.ocr-cloud-consent b{color:var(--green-deep)}.ocr-cloud-consent small{color:var(--muted);font-weight:600;line-height:1.5}@media(max-width:620px){.ocr-actions,.ocr-review{grid-template-columns:1fr}.ocr-review .wide{grid-column:auto}}";
-    style.textContent += ".ocr-gate{border:1px solid var(--orange);background:color-mix(in srgb,var(--orange) 8%,var(--card));border-radius:16px;padding:18px;display:grid;gap:10px}.ocr-gate h3{margin:0;color:var(--green-deep)}.ocr-gate p{margin:0;color:var(--muted);line-height:1.6}.ocr-gate-row{display:grid;grid-template-columns:1fr auto;gap:10px}.ocr-gate-row input{min-width:0;width:100%;border:1px solid var(--line);border-radius:11px;padding:12px;background:var(--card);font-size:16px}.ocr-gate-status{margin:0}.ocr-gate-warning{font-size:12px;color:var(--muted)}.ocr-equipment-intro{display:grid;gap:4px;margin:14px 0;padding:13px;border-radius:13px;background:var(--ok-bg);color:var(--green-deep)}.ocr-equipment-intro span{font-size:13px;line-height:1.55}.ocr-equipment-rows{display:grid;gap:12px}.ocr-equipment-row{border:1px solid var(--line);border-radius:14px;padding:13px;background:var(--card);display:grid;grid-template-columns:1fr 1fr;gap:10px}.ocr-equipment-row-head{grid-column:1/-1;display:flex;justify-content:space-between;gap:10px}.ocr-equipment-row-head b{color:var(--green-deep)}.ocr-equipment-row-head span{font-size:12px;color:var(--muted)}@media(max-width:620px){.ocr-gate-row,.ocr-equipment-row{grid-template-columns:1fr}.ocr-equipment-row-head{grid-column:auto}}";
+    style.textContent += ".ocr-gate{border:1px solid var(--orange);background:color-mix(in srgb,var(--orange) 8%,var(--card));border-radius:16px;padding:18px;display:grid;gap:10px}.ocr-gate h3{margin:0;color:var(--green-deep)}.ocr-gate p{margin:0;color:var(--muted);line-height:1.6}.ocr-gate-row{display:grid;grid-template-columns:1fr auto;gap:10px}.ocr-gate-row input{min-width:0;width:100%;border:1px solid var(--line);border-radius:11px;padding:12px;background:var(--card);font-size:16px}.ocr-gate-status{margin:0}.ocr-gate-warning{font-size:12px;color:var(--muted)}.ocr-equipment-intro{display:grid;gap:4px;margin:14px 0;padding:13px;border-radius:13px;background:var(--ok-bg);color:var(--green-deep)}.ocr-equipment-intro span{font-size:13px;line-height:1.55}.ocr-equipment-rows{display:grid;gap:12px}.ocr-equipment-row{border:1px solid var(--line);border-radius:14px;padding:13px;background:var(--card);display:grid;grid-template-columns:1fr 1fr;gap:10px}.ocr-equipment-row-head{grid-column:1/-1;display:flex;justify-content:space-between;gap:10px}.ocr-equipment-row-head b{color:var(--green-deep)}.ocr-equipment-row-head span{font-size:12px;color:var(--muted)}.ocr-quality-confirm,.ocr-cloud-consent{grid-template-columns:36px 1fr;padding:14px;min-height:78px}.ocr-cloud-consent input{position:absolute;opacity:0;pointer-events:none}.ocr-cloud-consent:has(input:checked){border-color:var(--green);background:color-mix(in srgb,var(--green) 8%,var(--card))}.ocr-cloud-consent:has(input:checked) .ocr-quality-check{border-color:var(--green);background:var(--green);color:#fff}.ocr-preview-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.ocr-preview-thumb{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:7px;display:grid;gap:6px;text-align:left;min-width:0}.ocr-preview-thumb img{width:100%;height:76px;object-fit:cover;border-radius:8px;background:var(--paper)}.ocr-preview-thumb span{display:grid;min-width:0}.ocr-preview-thumb b{font-size:12px;color:var(--green-deep)}.ocr-preview-thumb small{font-size:10px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ocr-preview-modal{position:fixed;inset:0;z-index:10020;background:rgba(0,0,0,.82);padding:18px;display:grid;grid-template-rows:auto 1fr;gap:12px}.ocr-preview-modal[hidden]{display:none}.ocr-preview-modal-head{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#fff}.ocr-preview-modal-head button{min-width:48px}.ocr-preview-modal img{width:100%;height:100%;object-fit:contain;min-height:0}.ocr-progress{display:grid;gap:7px;border:1px solid var(--line);border-radius:13px;padding:12px;background:var(--card)}.ocr-progress[hidden]{display:none}.ocr-progress-track{height:10px;border-radius:999px;background:color-mix(in srgb,var(--green) 12%,var(--paper));overflow:hidden}.ocr-progress-bar{height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,var(--green),var(--orange));transition:width .25s ease}.ocr-progress span{font-size:12px;font-weight:800;color:var(--green-deep)}.ocr-batch-nav{margin:14px 0;border:1px solid var(--orange);border-radius:14px;padding:12px;background:color-mix(in srgb,var(--orange) 7%,var(--card));display:grid;gap:10px}.ocr-batch-nav>div:first-child{display:grid;gap:3px}.ocr-batch-nav b{color:var(--green-deep)}.ocr-batch-nav span{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.ocr-batch-nav-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}.ocr-reference-review{display:grid;gap:12px}.ocr-reference-title{display:grid;gap:5px;padding:14px;border-radius:13px;background:var(--ok-bg);color:var(--green-deep)}.ocr-reference-title span{font-size:13px;line-height:1.6}.ocr-reference-summary{display:grid;grid-template-columns:1fr 1fr;gap:9px}.ocr-reference-summary div{border:1px solid var(--line);border-radius:12px;padding:11px;display:grid;gap:4px}.ocr-reference-summary span{font-size:12px;color:var(--muted)}.ocr-reference-summary b{font-size:14px;color:var(--green-deep)}@media(max-width:620px){.ocr-gate-row,.ocr-equipment-row,.ocr-reference-summary{grid-template-columns:1fr}.ocr-equipment-row-head{grid-column:auto}.ocr-preview-list{grid-template-columns:repeat(2,minmax(0,1fr))}.ocr-batch-nav-actions{grid-template-columns:1fr 1fr}.ocr-batch-nav-actions button:nth-child(2){grid-column:1/-1;grid-row:2}}";
+    style.textContent += ".ocr-preview-open{border:0;background:transparent;padding:0;display:grid;gap:6px;text-align:left;min-width:0;width:100%;cursor:pointer}.ocr-preview-remove{border:0;border-top:1px solid var(--line);background:transparent;color:var(--muted);font-size:11px;font-weight:800;padding:6px 2px 0;cursor:pointer}.ocr-preview-remove:hover{color:#982d20}";
     document.head.appendChild(style);
   }
 
@@ -719,7 +847,7 @@
     if (!menu || !records || document.getElementById("recordPanelOcr")) return;
     const developing = releaseState === "development";
     const ocrHeading = "Google Cloud Vision 圖片辨識（測試中・開發中）";
-    const cloudConsent = '<label class="ocr-cloud-consent"><input id="cloudOcrConsent" type="checkbox"><span><b>同意本次雲端辨識</b><small>照片會加密傳送至噴前查後端，再交由 Google Cloud Vision 辨識；目前設計不保存原始照片，結果仍須由你確認。</small></span></label>';
+    const cloudConsent = '<label class="ocr-cloud-consent"><input id="cloudOcrConsent" type="checkbox"><span class="ocr-quality-check" aria-hidden="true">✓</span><span class="ocr-quality-copy"><b>同意本次雲端辨識</b><span>本次選取的照片會逐張加密傳送至噴前查後端，再交由 Google Cloud Vision 辨識；目前設計不保存原始照片。</span></span></label>';
     const ocrRunLabel = "開始雲端辨識（測試中）";
     const ocrNote = "辨識運算在 Google Cloud 進行，不占用手機載入模型的記憶體。此功能需要 Google 登入及網路；照片只在你勾選同意並按下按鈕後傳送。";
     const gateLabel = developing ? "04・測試中／開發中" : "04・辨識";
@@ -739,7 +867,7 @@
         </div>
         <div class="ocr-card" id="ocrVisionLockedContent" hidden>
           <h3>${ocrHeading}</h3>
-          <p class="farm-note">可拍整本紀錄、跨頁表格或帶有背景的照片；系統會嘗試拆成多筆草稿。只要主要表格與手寫內容可閱讀即可，辨識結果不會自動儲存。</p>
+          <p class="farm-note">可拍整本紀錄、跨頁表格或帶有背景的照片，也可一次加入多張。系統會逐張辨識、分張核對；只要主要內容可閱讀即可，不會自動儲存。</p>
           <div class="ocr-browser-import">
             <p class="ocr-source-title">選擇照片來源</p>
             <div class="ocr-source-actions">
@@ -749,12 +877,13 @@
                 <b>立即拍照</b><small>開啟手機相機</small>
               </label>
               <label class="ocr-source-button">
-                <input id="cloudVisionFile" type="file" accept="image/jpeg,image/png,image/webp" onchange="PQC_FORM_OCR_UI.selectBrowserImage(this)">
+                <input id="cloudVisionFile" type="file" accept="image/jpeg,image/png,image/webp" multiple onchange="PQC_FORM_OCR_UI.selectBrowserImage(this)">
                 <span class="ocr-source-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 9h9l2 3h13v14H4Z"/><path d="M4 12h24"/></svg></span>
-                <b>選擇檔案</b><small>從照片或檔案挑選</small>
+                <b>選擇照片</b><small>可一次選取多張</small>
               </label>
             </div>
             <p id="cloudVisionSelected" class="ocr-selected-file" hidden></p>
+            <div id="cloudVisionPreviewList" class="ocr-preview-list" hidden></div>
             <label class="ocr-quality-confirm">
               <input id="cloudVisionConfirmCorners" type="checkbox">
               <span class="ocr-quality-check" aria-hidden="true">✓</span>
@@ -762,14 +891,13 @@
             </label>
             ${cloudConsent}
             <button class="btn btn-main" id="cloudVisionRun" type="button" onclick="PQC_FORM_OCR_UI.recognizeBrowserImage()">${ocrRunLabel}</button>
+            <div id="cloudVisionProgress" class="ocr-progress" role="progressbar" aria-label="照片辨識進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden><div class="ocr-progress-track"><div id="cloudVisionProgressBar" class="ocr-progress-bar"></div></div><span id="cloudVisionProgressText">準備辨識</span></div>
             <p class="ocr-browser-note">${ocrNote}</p>
           </div>
           <div id="cloudVisionStatus" class="ocr-status warn" role="status" aria-live="polite" hidden></div>
-          <div class="ocr-actions"><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.requestNativeScan()">使用 Android 原生掃描（開發中）</button><button class="btn btn-ghost" type="button" onclick="document.getElementById('ocrPasteText').focus()">改用文字貼上測試</button></div>
-          <div id="ocrBridgeNote" class="safety-banner" hidden>此版本尚未連接 Android 原生掃描器，請改用上方 Google Cloud Vision 圖片辨識。</div>
-          <div class="ocr-paste"><label for="ocrPasteText"><b>貼上辨識文字（備用測試）</b></label><textarea id="ocrPasteText" placeholder="例如：民國115/7/30　番茄　施肥　有機質肥料20公斤"></textarea><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.parsePastedText()">從文字建立草稿</button></div>
           <div id="ocrDraftBox"></div>
         </div>
+        <div id="ocrImagePreviewModal" class="ocr-preview-modal" role="dialog" aria-modal="true" aria-labelledby="ocrImagePreviewTitle" hidden><div class="ocr-preview-modal-head"><b id="ocrImagePreviewTitle">查看待辨識照片</b><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.closeOcrImagePreview()">關閉</button></div><img id="ocrImagePreviewLarge" alt=""></div>
       </section>
     `);
     applyOcrVerificationState();
@@ -828,8 +956,12 @@
     receiveScanResult,
     requestNativeScan,
     selectBrowserImage,
+    removeSelectedOcrFile,
+    openOcrImagePreview,
+    closeOcrImagePreview,
     recognizeCloudImage,
     recognizeBrowserImage,
+    showOcrBatchDraft,
     parsePastedText,
     applyToPesticideRecord,
     applyToFarmForm,
