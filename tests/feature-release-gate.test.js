@@ -32,6 +32,11 @@ assert.ok((uiSource.match(/測試中/g) || []).length >= 3, "OCR 入口、標題
 assert.match(uiSource, /recognizeBrowserImage/, "OCR 必須提供實際圖片匯入流程");
 assert.match(uiSource, /id="cloudVisionCamera"[^>]*capture="environment"/, "OCR 必須提供明確的手機拍照入口");
 assert.match(uiSource, /id="cloudVisionFile"[^>]*onchange=/, "OCR 必須提供明確的檔案選擇入口");
+assert.match(uiSource, /id="cloudVisionFile"[^>]*multiple/, "OCR 必須允許一次選取多張照片");
+assert.match(uiSource, /id="cloudVisionProgress"[^>]*role="progressbar"/, "多張 OCR 必須顯示處理進度");
+assert.match(uiSource, /id="cloudVisionPreviewList"/, "OCR 必須讓使用者隨時查看待辨識照片");
+assert.doesNotMatch(uiSource, /使用 Android 原生掃描（開發中）/, "雲端 OCR 介面不應顯示冗餘的 Android 掃描入口");
+assert.doesNotMatch(uiSource, /貼上辨識文字（備用測試）/, "正式測試介面不應顯示冗餘的文字貼上區");
 assert.match(uiSource, /主要內容可閱讀/, "OCR 必須提供不過度限制版面的可讀性確認元件");
 assert.match(uiSource, /跨頁表格|跨頁或背景/, "OCR 必須明示可接受整本、跨頁或帶背景的實際紀錄照片");
 assert.match(uiSource, /applyEquipmentMaintenanceBatch/, "OCR 必須支援設備管理表單的多筆人工覆核流程");
