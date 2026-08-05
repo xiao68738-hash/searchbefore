@@ -1,8 +1,8 @@
-# 噴前查 Google Cloud Vision OCR（尚未部署）
+# 噴前查 Google Cloud Vision OCR（staging 測試中）
 
 這是獨立的 Cloud Run 後端。PWA 不直接接觸 Vision API、服務帳戶或金鑰；前端只把使用者主動選取的照片送到 `/v1/ocr`，後端驗證 Firebase ID token 後再呼叫 Google Cloud Vision `DOCUMENT_TEXT_DETECTION`。
 
-目前 `service-config.js` 的 `formOcr` 為 `development`，入口受測試驗證碼、Google 登入及逐次同意限制；正式端點仍是空白，因此尚未完成部署、隱私與實機驗收前不會真正上傳照片，也不得切到 `public`。
+目前 `service-config.js` 的 `formOcr` 為 `development`，入口受測試驗證碼、Google 登入及逐次同意限制；已部署 staging Cloud Run endpoint，但尚未完成品質、隱私、費用與實機驗收，因此不得切到 `public`。
 
 ## 資料流程
 
