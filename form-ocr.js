@@ -13,6 +13,58 @@
   const ALLOWED_UNITS = Object.freeze(["毫升", "公升", "公克", "公斤", "台斤", "c.c.", "c.c", "cc", "ml", "mL", "L", "g", "kg", "包", "袋"]);
   const EQUIPMENT_ITEMS = Object.freeze(["噴霧機", "割草機", "中耕機", "選別機", "貯藏／溫控設備", "搬運車", "冷藏車"]);
   const EQUIPMENT_ACTIONS = Object.freeze(["清潔", "保養", "維修", "校正"]);
+  const SELF_INSPECTION_TEMPLATE = Object.freeze({
+    id: "fruit-tgap-self-inspection-v1",
+    title: "水果類作物生產及出貨自我查核表",
+    sections: Object.freeze([
+      Object.freeze({
+        code: "3.1", title: "種苗使用管理", items: Object.freeze([
+          Object.freeze({ code: "3.1.1", title: "種苗來源與證明文件" }),
+          Object.freeze({ code: "3.1.2", title: "定植或嫁接作業紀錄" }),
+          Object.freeze({ code: "3.1.3", title: "繁殖材料保管與環境清潔" }),
+          Object.freeze({ code: "3.1.4", title: "繁殖材料處理或檢驗紀錄" })
+        ])
+      }),
+      Object.freeze({
+        code: "3.2", title: "樹體管理（含採收前果實）", items: Object.freeze([
+          Object.freeze({ code: "3.2.1", title: "病蟲害部位清除與果園清潔" }),
+          Object.freeze({ code: "3.2.2", title: "整枝修剪與通風採光" }),
+          Object.freeze({ code: "3.2.3", title: "依最適期執行套袋" }),
+          Object.freeze({ code: "3.2.4", title: "查詢災害預警並預先因應" }),
+          Object.freeze({ code: "3.2.5", title: "防風林或防鳥設施" })
+        ])
+      }),
+      Object.freeze({
+        code: "3.3", title: "灌溉", items: Object.freeze([
+          Object.freeze({ code: "3.3.1", title: "供水設備檢查、清潔與維護" }),
+          Object.freeze({ code: "3.3.2", title: "異常天候後灌溉水質檢測" }),
+          Object.freeze({ code: "3.3.3", title: "水源與穩定供水管理" }),
+          Object.freeze({ code: "3.3.4", title: "排水避免污染環境" }),
+          Object.freeze({ code: "3.3.5", title: "營養液設備清潔維護" }),
+          Object.freeze({ code: "3.3.6", title: "供應養液管線定期清洗" }),
+          Object.freeze({ code: "3.3.7", title: "選用合適資材並管理輸送管路" }),
+          Object.freeze({ code: "3.3.8", title: "依作物需求正確施用肥灌資材" })
+        ])
+      }),
+      Object.freeze({
+        code: "3.4", title: "肥料", items: Object.freeze([
+          Object.freeze({ code: "3.4.1", title: "依施肥標準或診斷結果訂定計畫" }),
+          Object.freeze({ code: "3.4.2", title: "作業人員熟悉肥料施用管理" }),
+          Object.freeze({ code: "3.4.3", title: "合法肥料、來源標示與採購憑據" }),
+          Object.freeze({ code: "3.4.4", title: "自製肥料原料與製程紀錄" }),
+          Object.freeze({ code: "3.4.5", title: "自製堆肥原料、製程與腐熟" }),
+          Object.freeze({ code: "3.4.6", title: "自製堆肥檢驗報告" }),
+          Object.freeze({ code: "3.4.7", title: "肥料施用紀錄完整性" }),
+          Object.freeze({ code: "3.4.8", title: "採收前避免污染可食部位" }),
+          Object.freeze({ code: "3.4.9", title: "肥料入出庫管理紀錄" }),
+          Object.freeze({ code: "3.4.10", title: "肥料離地並遠離水源與農產品" }),
+          Object.freeze({ code: "3.4.11", title: "儲放場所防漏與遮蔽" }),
+          Object.freeze({ code: "3.4.12", title: "肥料分類儲放與環境清潔" }),
+          Object.freeze({ code: "3.4.13", title: "危險物確認與安全儲存" })
+        ])
+      })
+    ])
+  });
   const FORM_TYPES = Object.freeze({
     pesticide: Object.freeze({ label: "病蟲害防治／用藥", markers: Object.freeze(["病蟲害防治", "環境消毒", "防治對象", "安全採收期", "稀釋倍數"]) }),
     fertilizer: Object.freeze({ label: "肥料施用", markers: Object.freeze(["肥料施用紀錄", "施肥別", "基肥", "追肥", "肥適用"]) }),
@@ -381,6 +433,72 @@
     return Object.freeze(rows);
   }
 
+  function findSelfInspectionInspectors(text) {
+    const source = normalizeText(text);
+    const out = [];
+    const seen = new Set();
+    const pattern = /(?:查核者|確認者)\s*[:：]?\s*([^\n|｜]{2,12})/g;
+    let match;
+    while ((match = pattern.exec(source))) {
+      const value = normalizeText(match[1])
+        .replace(/\s*(?:查核|頻率|程度|備註|\d+(?:\.\d+)+).*$/, "")
+        .trim();
+      const key = compact(value);
+      if (!key || seen.has(key) || value.length > 8) continue;
+      seen.add(key);
+      out.push(Object.freeze({ value, sourceText: match[0], confidence: 0.62 }));
+    }
+    return Object.freeze(out.slice(0, 8));
+  }
+
+  function findSelfInspectionCodes(text) {
+    const source = normalizeText(text);
+    const found = new Set();
+    const pattern = /(?:^|[^\d])(\d{1,2})\s*[.．]\s*(\d{1,2})\s*[.．]\s*(\d{1,2})(?=$|[^\d])/g;
+    let match;
+    while ((match = pattern.exec(source))) found.add([match[1], match[2], match[3]].join("."));
+    return found;
+  }
+
+  function createSelfInspectionDraft(text) {
+    const codes = findSelfInspectionCodes(text);
+    const body = compact(text);
+    const dates = findDates(text);
+    const inspectors = findSelfInspectionInspectors(text);
+    const sections = SELF_INSPECTION_TEMPLATE.sections.map(function (section) {
+      const sectionDetected = body.includes(compact(section.code)) || body.includes(compact(section.title));
+      const detectedItems = section.items.filter(function (item) { return codes.has(item.code); });
+      if (!sectionDetected && !detectedItems.length) return null;
+      return Object.freeze({
+        code: section.code,
+        title: section.title,
+        detectedFromOcr: sectionDetected || detectedItems.length > 0,
+        dates,
+        inspectors,
+        items: Object.freeze(section.items.map(function (item) {
+          const detected = codes.has(item.code);
+          return Object.freeze({
+            code: item.code,
+            title: item.title,
+            detectedFromOcr: detected,
+            status: "unresolved",
+            confidence: detected ? 0.82 : 0.35,
+            evidence: detected ? "辨識到項目代碼 " + item.code : "依查核表版型補回固定欄位"
+          });
+        }))
+      });
+    }).filter(Boolean);
+    return Object.freeze({
+      templateId: SELF_INSPECTION_TEMPLATE.id,
+      title: SELF_INSPECTION_TEMPLATE.title,
+      dates,
+      inspectors,
+      sections: Object.freeze(sections),
+      manualReviewRequired: true,
+      fieldPolicy: "fixed-template-plus-handwriting-review"
+    });
+  }
+
   function createDraft(scanResult, dictionaries) {
     const result = scanResult || {};
     const quality = assessQuality(result.quality);
@@ -389,6 +507,7 @@
     const dict = dictionaries || {};
     const recordTypes = detectFormTypes(text);
     const isEquipmentForm = recordTypes.some(function (item) { return item.value === "equipmentMaintenance" && item.markerCount >= 2; });
+    const isSelfInspection = recordTypes.some(function (item) { return item.value === "selfInspection" && item.markerCount >= 2; });
     let equipmentRows = isEquipmentForm ? findEquipmentMaintenanceRows(blocks) : Object.freeze([]);
     if (isEquipmentForm && !equipmentRows.length) {
       equipmentRows = Object.freeze([Object.freeze({
@@ -421,6 +540,7 @@
         operator: findLabeledValues(text, ["記錄人", "紀錄人", "操作人員", "執行人", "查核者", "確認者"], "operator")
       }),
       recordGroups: equipmentRows,
+      selfInspection: isSelfInspection ? createSelfInspectionDraft(text) : null,
       blocks
     });
   }
@@ -447,6 +567,8 @@
     dictionaryCandidates,
     findMarkedOptions,
     findEquipmentMaintenanceRows,
+    findSelfInspectionInspectors,
+    createSelfInspectionDraft,
     createDraft,
     canCommit
   });

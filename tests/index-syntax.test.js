@@ -29,7 +29,7 @@ assert.ok(html.indexOf('<script src="./account.js"></script>') < html.indexOf("c
 assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("const DATA="), "safety.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="0\.3\.9\.1"/);
+assert.match(html, /const APP_VERSION="0\.3\.9\.2"/);
 assert.doesNotMatch(sw, /["']\.\/paddle-ocr-browser\.js["']/, "PaddleOCR 大型套件不得加入啟動預快取");
 assert.match(html, /title:"備份匯入安全性更新"/);
 assert.match(html, /title:"表單辨識測試方式更新"/);
@@ -219,7 +219,7 @@ assert.match(sw, /"\.\/brand-lockup\.png"/);
 assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0\.3\.9\.1-ocr-multi-photo/);
+assert.match(sw, /v0\.3\.9\.2-ocr-self-inspection/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.match(sw, /"\.\/pinyin-pro\.js"/);
 assert.ok(html.indexOf('<script src="./pinyin-pro.js"></script>') < html.indexOf('<script src="./query-aids.js"></script>'), "拼音核心必須在搜尋輔助前載入");
