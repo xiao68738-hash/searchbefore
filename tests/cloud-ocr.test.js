@@ -19,12 +19,17 @@ assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.ocr.cloud.verification.required, t
 assert.equal(UI.validCloudEndpoint("http://example.com/v1/ocr"), "", "OCR 端點必須使用 HTTPS");
 assert.equal(UI.validCloudEndpoint("https://example.com/not-ocr"), "", "OCR 端點路徑必須固定為 /v1/ocr");
 assert.match(UI.validCloudEndpoint("https://ocr.example.com/v1/ocr"), /^https:\/\/ocr\.example\.com\/v1\/ocr/);
+const firstRequestId = UI.cloudRequestId();
+const secondRequestId = UI.cloudRequestId();
+assert.match(firstRequestId, /^ocr-[A-Za-z0-9-]+$/, "Cloud OCR 必須產生後端允許的請求識別碼");
+assert.notEqual(firstRequestId, secondRequestId, "每次 Cloud OCR 請求必須使用不同識別碼");
 
 assert.match(uiSource, /cloudOcrConsent/, "傳送照片前必須取得單次明確同意");
 assert.match(uiSource, /Authorization: "Bearer " \+ token/, "雲端 OCR 必須附 Firebase 登入權杖");
 assert.match(uiSource, /headers\["X-OCR-Test-Code"\] = testCode/, "雲端 OCR 必須把本次輸入的測試驗證碼交由後端再次驗證");
 assert.match(uiSource, /let ocrVerificationCode = ""/, "測試驗證碼只能保存在目前頁面的記憶體中");
 assert.doesNotMatch(uiSource, /sessionStorage\.setItem\([^\n]*ocrVerificationCode/, "不得把測試驗證碼明文寫入 sessionStorage");
+assert.match(uiSource, /function cloudRequestId\(\)/, "Cloud OCR 請求識別碼函式不可遺漏");
 assert.match(uiSource, /body\.append\("request_id", String\(requestId \|\| cloudRequestId\(\)\)\)/, "雲端 OCR 必須送出後端必填的請求識別碼");
 assert.match(uiSource, /credentials: "omit"/, "OCR 請求不得附帶瀏覽器 Cookie");
 assert.match(uiSource, /referrerPolicy: "no-referrer"/, "OCR 請求不得傳送來源路徑");
