@@ -75,6 +75,7 @@ const cloudDraft = O.createDraft({
 }, { crops: ["番茄"] });
 assert.equal(cloudDraft.source, "google-cloud-vision", "雲端辨識草稿必須保留來源標示");
 assert.equal(cloudDraft.quality.canProcess, true, "使用者已確認且解析度足夠的雲端照片可進入人工草稿");
+assert.deepEqual(O.findDates("誤讀年份 1114/11/15"), [], "不把四位數 OCR 雜訊誤當民國年份");
 assert.equal(cloudDraft.confirmed, false, "雲端辨識結果不得直接視為已確認");
 
 const pesticideDraft = O.createDraft({
@@ -86,5 +87,34 @@ assert.equal(pesticideDraft.fields.fieldPlot[0].value, "A+B區");
 assert.equal(pesticideDraft.fields.target[0].value, "葉蟎");
 assert.equal(pesticideDraft.fields.safetyInterval[0].value, 6);
 assert.equal(pesticideDraft.fields.operator[0].value, "王小明");
+
+const equipmentDraft = O.createDraft({
+  source: "google-cloud-vision",
+  quality: { width: 1800, height: 2400, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
+  blocks: [
+    { id: "title", text: "表18 器具/機械/設備之保養、維修、校正及清潔管理紀錄 作業內容", confidence: 0.96, box: { left: 0.1, top: 0.03, right: 0.9, bottom: 0.08 } },
+    { id: "row-1", text: "民國115/2/23 ☑噴霧機 ☑割草機 ☑清潔 ☑保養 記錄人：施坤寶", confidence: 0.9, box: { left: 0.08, top: 0.18, right: 0.92, bottom: 0.28 } },
+    { id: "row-2", text: "民國115/3/10 ☑中耕機 ☑維修", confidence: 0.84, box: { left: 0.08, top: 0.36, right: 0.92, bottom: 0.46 } }
+  ]
+});
+assert.equal(equipmentDraft.fields.recordType[0].value, "equipmentMaintenance");
+assert.equal(equipmentDraft.recordGroups.length, 2, "同一張表的兩個日期應建立兩筆待確認草稿");
+assert.equal(equipmentDraft.recordGroups[0].date[0].value, "2026-02-23");
+assert.deepEqual(equipmentDraft.recordGroups[0].equipment.filter(item => item.selected).map(item => item.value), ["噴霧機", "割草機"]);
+assert.deepEqual(equipmentDraft.recordGroups[0].actions.filter(item => item.selected).map(item => item.value), ["清潔", "保養"]);
+assert.equal(equipmentDraft.recordGroups[0].operator[0].value, "施坤寶");
+assert.equal(equipmentDraft.recordGroups[1].date[0].value, "2026-03-10");
+
+const pastedEquipmentRows = O.findEquipmentMaintenanceRows([{ id: "paste", text: "民國115/2/23 ☑噴霧機 ☑清潔\n民國115/3/10 ☑割草機 ☑保養", confidence: 1 }]);
+assert.equal(pastedEquipmentRows.length, 2, "同一段 OCR 原文中的多個日期也必須拆成多筆");
+assert.deepEqual(pastedEquipmentRows[0].equipment.filter(item => item.selected).map(item => item.value), ["噴霧機"]);
+assert.deepEqual(pastedEquipmentRows[1].equipment.filter(item => item.selected).map(item => item.value), ["割草機"]);
+
+const inheritedYearRows = O.findEquipmentMaintenanceRows([
+  { id: "row-a", text: "115 2月23日 ☑噴霧機 ☑清潔", confidence: 1 },
+  { id: "row-b", text: "3月10日 ☑割草機 ☑保養", confidence: 1 },
+  { id: "background", text: "新聞預告 8月27日上映", confidence: 1 }
+]);
+assert.deepEqual(inheritedYearRows.map(row => row.date[0].value), ["2026-02-23", "2026-03-10"], "後續列省略年份時沿用同頁最近年份並保留人工確認");
 
 console.log("表單 OCR 核心：品質閘門、候選解析與人工確認規則通過");

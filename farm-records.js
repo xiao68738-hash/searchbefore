@@ -10,8 +10,12 @@
     fertilizer: "施肥",
     harvest: "採收",
     postharvest: "採後處理",
-    materialPurchase: "資材購入"
+    materialPurchase: "資材購入",
+    equipmentMaintenance: "器具／機械／設備管理"
   });
+
+  const EQUIPMENT_ITEMS = Object.freeze(["噴霧機", "割草機", "中耕機", "選別機", "貯藏／溫控設備", "搬運車", "冷藏車"]);
+  const EQUIPMENT_ACTIONS = Object.freeze(["清潔", "保養", "維修", "校正"]);
 
   const BACKUP_PRODUCT = "searchbefore-backup";
   const BACKUP_FORMAT_VERSION = 1;
@@ -46,6 +50,21 @@
   function required(value, label) {
     const out = text(value);
     if (!out) throw new Error("請填寫" + label);
+    return out;
+  }
+
+  function textList(value, label) {
+    const source = Array.isArray(value) ? value : text(value).split(/[、,，]/);
+    const seen = new Set();
+    const out = [];
+    source.forEach(function (item) {
+      const clean = text(item);
+      if (!clean || seen.has(clean)) return;
+      if (clean.length > 120) throw new Error(label + "內容過長");
+      seen.add(clean);
+      out.push(clean);
+    });
+    if (out.length > 20) throw new Error(label + "項目過多");
     return out;
   }
 
@@ -95,6 +114,20 @@
         receiptNo: text(d.receiptNo)
       };
     }
+    if (type === "equipmentMaintenance") {
+      const equipment = textList(d.equipment, "設備");
+      const actions = textList(d.actions, "作業內容");
+      const otherEquipment = text(d.otherEquipment);
+      const otherAction = text(d.otherAction);
+      if (otherEquipment) equipment.push(otherEquipment);
+      if (otherAction) actions.push(otherAction);
+      if (!equipment.length) throw new Error("請至少選擇一項器具／機械／設備");
+      if (!actions.length) throw new Error("請至少選擇一項保養、維修、校正或清潔作業");
+      return {
+        equipment: Array.from(new Set(equipment)),
+        actions: Array.from(new Set(actions))
+      };
+    }
     throw new Error("不支援的紀錄類型");
   }
 
@@ -109,7 +142,7 @@
       : function () { return "farm-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10); };
     const record = {
       id: required(makeId("farm"), "紀錄編號"),
-      plotId: required(source.plotId, "田區／種植批次"),
+      plotId: type === "equipmentMaintenance" ? text(source.plotId) : required(source.plotId, "田區／種植批次"),
       type: type,
       date: date,
       operator: text(source.operator),
@@ -140,6 +173,7 @@
     if (r.type === "harvest") return [d.quantity && d.unit ? d.quantity + " " + d.unit : "", d.grade, d.batchNo ? "批號 " + d.batchNo : ""].filter(Boolean).join(" · ");
     if (r.type === "postharvest") return [d.process, d.quantity && d.unit ? d.quantity + " " + d.unit : "", d.destination].filter(Boolean).join(" · ");
     if (r.type === "materialPurchase") return [d.materialName, d.quantity && d.unit ? d.quantity + " " + d.unit : "", d.supplier].filter(Boolean).join(" · ");
+    if (r.type === "equipmentMaintenance") return [(d.equipment || []).join("、"), (d.actions || []).join("、")].filter(Boolean).join(" · ");
     return "";
   }
 
@@ -162,6 +196,7 @@
       if (r.type === "harvest") { item = d.grade || "採收"; quantity = d.quantity; unit = d.unit; lot = d.batchNo; }
       if (r.type === "postharvest") { item = d.process; quantity = d.quantity; unit = d.unit; method = d.process; party = d.destination; }
       if (r.type === "materialPurchase") { item = d.materialName; quantity = d.quantity; unit = d.unit; method = d.category; party = d.supplier; lot = d.lotNo; receipt = d.receiptNo; }
+      if (r.type === "equipmentMaintenance") { item = (d.equipment || []).join("、"); method = (d.actions || []).join("、"); }
       return [label(r.plotId), r.date, RECORD_TYPES[r.type] || r.type, item, quantity, unit, method, party, lot, receipt, r.operator, r.notes]
         .map(function (v) { return v == null ? "" : v; });
     });
@@ -190,7 +225,7 @@
   }
 
   function recordCoverage(pesticideRecords, farmRecords, plotId) {
-    const counts = { pesticide: 0, cultivation: 0, fertilizer: 0, harvest: 0, postharvest: 0, materialPurchase: 0 };
+    const counts = { pesticide: 0, cultivation: 0, fertilizer: 0, harvest: 0, postharvest: 0, materialPurchase: 0, equipmentMaintenance: 0 };
     (Array.isArray(pesticideRecords) ? pesticideRecords : []).forEach(function (record) {
       if (!plotId || record.plotId === plotId) counts.pesticide += 1;
     });
@@ -221,6 +256,7 @@
       if (r.type === "harvest") { item = d.grade || "採收"; quantity = [d.quantity, d.unit].filter(Boolean).join(" "); lot = d.batchNo; safety = r.safetyCheck ? r.safetyCheck.status + (r.safetyCheck.safeDate ? " / " + r.safetyCheck.safeDate : "") : "未連動檢查"; }
       if (r.type === "postharvest") { item = d.process; method = d.process; quantity = [d.quantity, d.unit].filter(Boolean).join(" "); party = d.destination; }
       if (r.type === "materialPurchase") { item = d.category; material = d.materialName; quantity = [d.quantity, d.unit].filter(Boolean).join(" "); lot = d.lotNo; party = d.supplier; }
+      if (r.type === "equipmentMaintenance") { item = (d.equipment || []).join("、"); method = (d.actions || []).join("、"); }
       return [plotName(r.plotId), r.date, RECORD_TYPES[r.type] || r.type, item, method, material, quantity, "", safety, lot, party, r.operator, r.notes, r.id];
     });
     return { head: head, rows: rows };
@@ -346,7 +382,7 @@
     const details = plainObject(r.details, label + ".details");
     const clean = syncFields(r, {
       id: safeId(r.id, label + ".id", true),
-      plotId: safeId(r.plotId, label + ".plotId", true),
+      plotId: safeId(r.plotId, label + ".plotId", type !== "equipmentMaintenance"),
       type: type,
       date: safeDate(r.date, label + ".date", true),
       operator: safeString(r.operator, label + ".operator", 120, false),
@@ -355,6 +391,12 @@
       createdAt: safeIso(r.createdAt, label + ".createdAt")
     }, label);
     Object.keys(clean.details).forEach(function (key) {
+      if (Array.isArray(clean.details[key])) {
+        clean.details[key] = clean.details[key].map(function (item, index) {
+          return safeString(item, label + ".details." + key + "[" + index + "]", 120, true);
+        });
+        return;
+      }
       clean.details[key] = safeString(clean.details[key], label + ".details." + key, 500, false);
     });
     const safetyCheck = sanitizeSafetyCheck(r.safetyCheck, label + ".safetyCheck");
@@ -423,6 +465,8 @@
 
   return Object.freeze({
     RECORD_TYPES: RECORD_TYPES,
+    EQUIPMENT_ITEMS: EQUIPMENT_ITEMS,
+    EQUIPMENT_ACTIONS: EQUIPMENT_ACTIONS,
     BACKUP_PRODUCT: BACKUP_PRODUCT,
     BACKUP_FORMAT_VERSION: BACKUP_FORMAT_VERSION,
     BACKUP_LIMITS: BACKUP_LIMITS,

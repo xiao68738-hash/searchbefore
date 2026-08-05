@@ -34,6 +34,31 @@ const harvest = farm.createRecord({
 assert.equal(harvest.safetyCheck.status, "safe");
 assert.equal(harvest.safetyCheck.recordCount, 2);
 
+const equipmentRecords = [
+  farm.createRecord({
+    plotId: "",
+    type: "equipmentMaintenance",
+    date: "2026-02-23",
+    operator: "施坤寶",
+    details: { equipment: ["噴霧機", "割草機"], actions: ["清潔", "保養"] }
+  }, () => "farm-equipment-1"),
+  farm.createRecord({
+    plotId: "plot-1",
+    type: "equipmentMaintenance",
+    date: "2026-03-10",
+    details: { equipment: ["中耕機"], otherEquipment: "自走式搬運機", actions: ["維修"] }
+  }, () => "farm-equipment-2")
+];
+assert.equal(equipmentRecords[0].plotId, "", "共用設備管理紀錄不應強制綁定田區");
+assert.deepEqual(equipmentRecords[0].details.equipment, ["噴霧機", "割草機"]);
+assert.match(farm.summary(equipmentRecords[0]), /清潔、保養/);
+assert.deepEqual(equipmentRecords[1].details.equipment, ["中耕機", "自走式搬運機"]);
+assert.throws(() => farm.createRecord({
+  type: "equipmentMaintenance",
+  date: "2026-03-10",
+  details: { equipment: [], actions: ["清潔"] }
+}), /至少選擇一項器具/);
+
 assert.throws(() => farm.createRecord({
   plotId: "plot-1",
   type: "harvest",
@@ -48,10 +73,11 @@ assert.throws(() => farm.createRecord({
   details: { category: "肥料", materialName: "測試肥", quantity: "1", unit: "包" }
 }), /供應商/);
 
-const csv = farm.exportCsv([fertilizer, cultivation], id => id === "plot-1" ? "番茄 / A區" : "");
+const csv = farm.exportCsv([fertilizer, cultivation].concat(equipmentRecords), id => id === "plot-1" ? "番茄 / A區" : "全場共用設備");
 assert.ok(csv.startsWith("\uFEFF"));
 assert.match(csv, /番茄 \/ A區/);
 assert.match(csv, /施肥/);
+assert.match(csv, /器具／機械／設備管理/);
 assert.ok(csv.indexOf("2026-07-14") < csv.indexOf("2026-07-15"));
 
 const pesticide = { id: "rec-1", plotId: "plot-1", crop: "番茄", pest: "疫病", agent: "測試藥", date: "2026-07-16", phi: 3, dil: "1000", operator: "王小明" };
@@ -74,9 +100,10 @@ assert.match(combined, /safe \/ 2026-07-18/);
 assert.match(combined, /基肥/);
 assert.match(combined, /王小明/);
 
-const backup = farm.buildBackup({ records: [], farmRecords: [fertilizer], fieldPlots: [] }, "1.4.0");
+const backup = farm.buildBackup({ records: [], farmRecords: [fertilizer].concat(equipmentRecords), fieldPlots: [] }, "1.4.0");
 assert.equal(backup.product, "searchbefore-backup");
-assert.equal(farm.readBackup(backup).farmRecords.length, 1);
+assert.equal(farm.readBackup(backup).farmRecords.length, 3);
+assert.deepEqual(farm.readBackup(backup).farmRecords[1].details.actions, ["清潔", "保養"]);
 assert.throws(() => farm.readBackup({ product: "other", formatVersion: 1, data: {} }), /不是噴前查/);
 assert.throws(() => farm.readBackup({ product: "searchbefore-backup", formatVersion: 1, data: { records: {} } }), /records/);
 

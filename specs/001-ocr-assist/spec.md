@@ -8,7 +8,7 @@
 
 ### US1 — Build a draft from a paper record
 
-An authenticated user selects or photographs a record, confirms its quality, explicitly consents to this upload, and receives field candidates. Nothing becomes a record until the user reviews and saves it.
+An authenticated user selects or photographs a record, confirms that its main table and handwriting remain readable, explicitly consents to this upload, and receives field candidates. The photo may contain a bound booklet, multiple pages, repeated rows or background material. Nothing becomes a record until the user reviews and saves it.
 
 Acceptance criteria:
 
@@ -25,6 +25,10 @@ The user can distinguish recognized text, candidate fields and unresolved values
 
 Invalid type, oversized image, excessive pixels, missing authentication, disallowed origin, quota exhaustion, timeout or malformed OCR output produces a clear error and stores nothing.
 
+### US4 — Review several records from one photo
+
+When one equipment maintenance form contains several dated rows, the system creates separate unconfirmed rows. Each row supports multiple equipment and action selections. The user can correct, add or remove rows before saving them as a batch; shared equipment does not require a field plot.
+
 ## Functional requirements
 
 - FR-001: Use Google Cloud Vision `DOCUMENT_TEXT_DETECTION` only through the SearchBefore backend.
@@ -34,6 +38,9 @@ Invalid type, oversized image, excessive pixels, missing authentication, disallo
 - FR-005: Treat every result as an unconfirmed draft.
 - FR-006: Keep the feature hidden until deployment, privacy, cost and real-device gates pass.
 - FR-007: Do not log or persist images, full OCR text or tokens in application-controlled storage.
+- FR-008: Do not reject an otherwise readable photo merely because page corners, a second page or background objects are visible.
+- FR-009: Recognize equipment maintenance as a first-class record type and split repeated dated rows without auto-saving.
+- FR-010: Treat inherited years, checkbox detection and uncertain row boundaries as reviewable candidates, never confirmed facts.
 
 ## Success criteria
 
@@ -48,6 +55,8 @@ Invalid type, oversized image, excessive pixels, missing authentication, disallo
 - The declared MIME type does not match the actual image.
 - A compressed image expands beyond the pixel limit.
 - The form is incomplete, skewed, blurred or affected by glare.
+- The photo includes a bound two-page spread, newspaper/background text or several record rows.
+- Later rows omit the year and rely on the nearest previous year on the page.
 - ROC and Gregorian dates coexist on one page.
 - A pesticide name maps to multiple formulations or registrations.
 - The token expires, quota is exhausted or Cloud Run times out.
@@ -57,4 +66,5 @@ Invalid type, oversized image, excessive pixels, missing authentication, disallo
 - **OCR Request**: photo, request ID, Firebase identity and one-time consent state.
 - **OCR Result Envelope**: protocol version, source, quality and normalized text blocks.
 - **OCR Draft**: unconfirmed field candidates awaiting manual review.
+- **OCR Record Group**: one dated row extracted from a multi-record page, with independently reviewable equipment and action candidates.
 - **Registered Pesticide Match**: the unique official registration match required before transfer.
