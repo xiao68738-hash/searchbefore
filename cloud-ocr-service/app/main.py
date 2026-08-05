@@ -8,7 +8,7 @@ from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, Upload
 from fastapi.middleware.cors import CORSMiddleware
 
 from .ocr import InvalidImage, decode_image, engine
-from .security import allowed_origins, ensure_firebase_app, verify_request
+from .security import allowed_origins, configured_test_code_hash, ensure_firebase_app, verify_request
 
 
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_BYTES", str(12 * 1024 * 1024)))
@@ -23,7 +23,7 @@ app.add_middleware(
     allow_origins=list(origins),
     allow_credentials=False,
     allow_methods=["POST", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type", "X-OCR-Test-Code"],
     max_age=3600,
 )
 
@@ -31,6 +31,7 @@ app.add_middleware(
 @app.on_event("startup")
 def startup() -> None:
     ensure_firebase_app()
+    app.state.ocr_test_code_sha256 = configured_test_code_hash()
 
 
 @app.get("/healthz", include_in_schema=False)

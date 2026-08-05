@@ -13,6 +13,7 @@
   let twaPort = null;
   let pendingRequestId = null;
   let selectedOcrFile = null;
+  let ocrVerificationCode = "";
 
   const RECORD_TYPE_LABELS = Object.freeze({
     pesticide: "病蟲害防治／用藥",
@@ -55,6 +56,7 @@
   function isOcrUnlocked() {
     const config = ocrVerificationConfig();
     if (config.required === false) return true;
+    if (!ocrVerificationCode) return false;
     const storage = ocrVerificationStorage();
     if (!storage || !config.hash || !config.sessionKey) return false;
     try {
@@ -116,6 +118,8 @@
     }
     try {
       storage.setItem(config.sessionKey, config.hash);
+      ocrVerificationCode = value;
+      if (input) input.value = "";
     } catch (_) {
       setOcrVerificationStatus("無法保存本次解鎖狀態，請檢查瀏覽器隱私設定。", "bad");
       return false;
@@ -377,7 +381,7 @@
     return user.getIdToken(false);
   }
 
-  async function recognizeCloudImage(file) {
+  async function recognizeCloudImage(file, requestId) {
     const config = cloudOcrConfig();
     const endpoint = validCloudEndpoint(config.endpoint);
     if (!endpoint) throw new Error("雲端圖片辨識尚未完成設定");
@@ -387,11 +391,18 @@
     if (file.size > maxBytes) throw new Error("照片超過 12 MB，請改用較小的原始照片");
     setBrowserOcrStatus("正在安全傳送照片並進行雲端辨識…", "warn");
     const token = await firebaseIdToken();
+    const testCode = String(ocrVerificationCode || "");
+    if (config.verification && config.verification.required !== false && !testCode) {
+      throw new Error("請重新輸入 OCR 測試驗證碼");
+    }
     const body = new FormData();
     body.append("image", file, file.name || "record-photo.jpg");
+    body.append("request_id", String(requestId || cloudRequestId()));
+    const headers = { Authorization: "Bearer " + token };
+    if (testCode) headers["X-OCR-Test-Code"] = testCode;
     const response = await fetch(endpoint, {
       method: "POST",
-      headers: { Authorization: "Bearer " + token },
+      headers,
       body,
       credentials: "omit",
       cache: "no-store",

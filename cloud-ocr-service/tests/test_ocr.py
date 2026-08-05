@@ -1,4 +1,5 @@
 import io
+import hashlib
 from types import SimpleNamespace
 
 from PIL import Image
@@ -6,7 +7,7 @@ from fastapi import HTTPException
 
 from app.main import valid_request_id
 from app.ocr import InvalidImage, decode_image, normalize_results
-from app.security import DEFAULT_ORIGINS, UserRateLimiter, origin_is_allowed
+from app.security import DEFAULT_ORIGINS, UserRateLimiter, matches_test_code, origin_is_allowed
 
 
 def sample_image(width=800, height=800):
@@ -28,6 +29,14 @@ def test_rate_limiter_is_per_user_and_windowed():
     assert not limiter.allow("farmer-a", 102)
     assert limiter.allow("farmer-b", 102)
     assert limiter.allow("farmer-a", 161)
+
+
+def test_staging_code_is_checked_by_hash_without_storing_plaintext():
+    expected = hashlib.sha256(b"temporary-test-code").hexdigest()
+    assert matches_test_code("temporary-test-code", expected)
+    assert not matches_test_code("wrong-code", expected)
+    assert not matches_test_code("", expected)
+    assert not matches_test_code("temporary-test-code", "invalid")
 
 
 def test_decode_rejects_wrong_type_and_low_resolution():

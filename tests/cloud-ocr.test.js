@@ -22,6 +22,10 @@ assert.match(UI.validCloudEndpoint("https://ocr.example.com/v1/ocr"), /^https:\/
 
 assert.match(uiSource, /cloudOcrConsent/, "傳送照片前必須取得單次明確同意");
 assert.match(uiSource, /Authorization: "Bearer " \+ token/, "雲端 OCR 必須附 Firebase 登入權杖");
+assert.match(uiSource, /headers\["X-OCR-Test-Code"\] = testCode/, "雲端 OCR 必須把本次輸入的測試驗證碼交由後端再次驗證");
+assert.match(uiSource, /let ocrVerificationCode = ""/, "測試驗證碼只能保存在目前頁面的記憶體中");
+assert.doesNotMatch(uiSource, /sessionStorage\.setItem\([^\n]*ocrVerificationCode/, "不得把測試驗證碼明文寫入 sessionStorage");
+assert.match(uiSource, /body\.append\("request_id", String\(requestId \|\| cloudRequestId\(\)\)\)/, "雲端 OCR 必須送出後端必填的請求識別碼");
 assert.match(uiSource, /credentials: "omit"/, "OCR 請求不得附帶瀏覽器 Cookie");
 assert.match(uiSource, /referrerPolicy: "no-referrer"/, "OCR 請求不得傳送來源路徑");
 assert.match(uiSource, /receiveScanResult\(payload\)/, "雲端結果仍必須走相同安全草稿檢查");
