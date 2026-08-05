@@ -2,14 +2,14 @@
 
 這是獨立的 Cloud Run 後端。PWA 不直接接觸 Vision API、服務帳戶或金鑰；前端只把使用者主動選取的照片送到 `/v1/ocr`，後端驗證 Firebase ID token 後再呼叫 Google Cloud Vision `DOCUMENT_TEXT_DETECTION`。
 
-目前 `service-config.js` 的 `formOcr` 為 `development`，入口受測試驗證碼、Google 登入及逐次同意限制；已部署 staging Cloud Run endpoint，但尚未完成品質、隱私、費用與實機驗收，因此不得切到 `public`。
+目前 `service-config.js` 的 `formOcr` 為 `development`，入口受測試驗證碼、Google 登入及逐次同意限制；前端解鎖後，後端仍會以 `OCR_TEST_CODE_SHA256` 再次核對驗證碼。已部署 staging Cloud Run endpoint，但尚未完成品質、隱私、費用與實機驗收，因此不得切到 `public`。
 
 ## 資料流程
 
 1. 使用者以 Google 帳號登入。
 2. 使用者選擇照片、確認四角與清晰度，並勾選本次雲端處理同意。
-3. PWA 以 Firebase ID token 呼叫 Cloud Run `/v1/ocr`。
-4. 後端限制 Origin、帳號頻率、檔案格式、12 MB 與 2,400 萬像素。
+3. PWA 以 Firebase ID token 與本次輸入的測試驗證碼呼叫 Cloud Run `/v1/ocr`；驗證碼只保留在目前頁面的記憶體中。
+4. 後端限制 Origin、登入帳號、測試驗證碼、帳號頻率、檔案格式、12 MB 與 2,400 萬像素。
 5. 後端修正 EXIF 方向、重新編碼成 JPEG，再使用 Cloud Run 服務身分呼叫 Vision API。
 6. 後端只回傳文字、信心值與位置；前端建立未確認草稿，不自動儲存。
 
@@ -52,10 +52,10 @@ uvicorn app.main:app --reload
 gcloud services enable vision.googleapis.com run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com --project PROJECT_ID
 gcloud iam service-accounts create searchbefore-ocr --project PROJECT_ID
 gcloud projects add-iam-policy-binding PROJECT_ID --member="serviceAccount:searchbefore-ocr@PROJECT_ID.iam.gserviceaccount.com" --role="roles/serviceusage.serviceUsageConsumer"
-gcloud run deploy searchbefore-ocr --source cloud-ocr-service --project PROJECT_ID --region REGION --service-account "searchbefore-ocr@PROJECT_ID.iam.gserviceaccount.com" --allow-unauthenticated --set-env-vars "ALLOWED_ORIGINS=https://searchbefore.tw,OCR_REQUESTS_PER_MINUTE=10"
+gcloud run deploy searchbefore-ocr --source cloud-ocr-service --project PROJECT_ID --region REGION --service-account "searchbefore-ocr@PROJECT_ID.iam.gserviceaccount.com" --allow-unauthenticated --set-env-vars "ALLOWED_ORIGINS=https://searchbefore.tw,OCR_REQUESTS_PER_MINUTE=10,OCR_TEST_CODE_SHA256=<64-char-sha256>"
 ```
 
-Cloud Run 必須允許網路請求進入，因為瀏覽器帶的是 Firebase token，不是 Cloud Run IAM token；真正的使用者驗證由 `app/security.py` 完成。不要因此移除 Firebase token、Origin 或頻率限制。
+Cloud Run 必須允許網路請求進入，因為瀏覽器帶的是 Firebase token，不是 Cloud Run IAM token；真正的使用者驗證由 `app/security.py` 完成。不要因此移除 Firebase token、測試驗證碼、Origin 或頻率限制。
 
 生產環境使用 Cloud Run 附加的服務帳戶與 Application Default Credentials。不要下載 JSON 金鑰，也不要把 API key、服務帳戶金鑰或 access token 寫進 GitHub、前端設定或 App。
 

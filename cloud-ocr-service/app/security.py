@@ -1,4 +1,7 @@
+import hashlib
+import hmac
 import os
+import re
 import threading
 import time
 from collections import defaultdict, deque
@@ -9,6 +12,8 @@ from firebase_admin import auth, get_app, initialize_app
 
 
 DEFAULT_ORIGINS = ("https://searchbefore.tw", "https://www.searchbefore.tw")
+TEST_CODE_HEADER = "x-ocr-test-code"
+SHA256_PATTERN = re.compile(r"^[a-f0-9]{64}$")
 
 
 class UserRateLimiter:
@@ -56,6 +61,21 @@ def ensure_firebase_app() -> None:
         initialize_app()
 
 
+def configured_test_code_hash() -> str:
+    value = os.getenv("OCR_TEST_CODE_SHA256", "").strip().lower()
+    if not SHA256_PATTERN.fullmatch(value):
+        raise RuntimeError("OCR_TEST_CODE_SHA256 必須設定為 64 字元 SHA-256 雜湊")
+    return value
+
+
+def matches_test_code(value: str | None, expected_hash: str) -> bool:
+    candidate = str(value or "")
+    if not candidate or len(candidate) > 128 or not SHA256_PATTERN.fullmatch(expected_hash):
+        return False
+    actual_hash = hashlib.sha256(candidate.encode("utf-8")).hexdigest()
+    return hmac.compare_digest(actual_hash, expected_hash)
+
+
 async def verify_request(request: Request) -> dict:
     if not origin_is_allowed(request.headers.get("origin"), request.app.state.allowed_origins):
         raise HTTPException(status_code=403, detail="不允許的網站來源")
@@ -70,6 +90,11 @@ async def verify_request(request: Request) -> dict:
         user_id = str(claims.get("uid") or claims.get("sub") or "")
         if not user_id or not rate_limiter.allow(user_id):
             raise HTTPException(status_code=429, detail="操作太頻繁，請稍候一分鐘再試")
+        expected_hash = str(getattr(request.app.state, "ocr_test_code_sha256", ""))
+        if not expected_hash:
+            raise HTTPException(status_code=503, detail="OCR 測試驗證尚未完成設定")
+        if not matches_test_code(request.headers.get(TEST_CODE_HEADER), expected_hash):
+            raise HTTPException(status_code=403, detail="OCR 測試驗證碼不正確，請重新輸入")
         return claims
     except HTTPException:
         raise
