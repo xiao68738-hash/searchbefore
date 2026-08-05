@@ -32,14 +32,17 @@ assert.ok((uiSource.match(/測試中/g) || []).length >= 3, "OCR 入口、標題
 assert.match(uiSource, /recognizeBrowserImage/, "OCR 必須提供實際圖片匯入流程");
 assert.match(uiSource, /id="cloudVisionCamera"[^>]*capture="environment"/, "OCR 必須提供明確的手機拍照入口");
 assert.match(uiSource, /id="cloudVisionFile"[^>]*onchange=/, "OCR 必須提供明確的檔案選擇入口");
-assert.match(uiSource, /拍照品質確認/, "OCR 必須提供清楚的照片品質確認元件");
+assert.match(uiSource, /主要內容可閱讀/, "OCR 必須提供不過度限制版面的可讀性確認元件");
+assert.match(uiSource, /跨頁表格|跨頁或背景/, "OCR 必須明示可接受整本、跨頁或帶背景的實際紀錄照片");
+assert.match(uiSource, /applyEquipmentMaintenanceBatch/, "OCR 必須支援設備管理表單的多筆人工覆核流程");
+assert.match(html, /一次儲存設備管理紀錄/, "田間紀錄介面必須支援一次建立多筆設備管理紀錄");
 assert.match(uiSource, /Google Cloud Vision/, "OCR 介面必須清楚標示第三方雲端服務");
 assert.match(uiSource, /cloudOcrConsent/, "照片送出前必須取得單次同意");
 assert.match(uiSource, /ocrVerificationGate/, "OCR 必須先通過驗證碼閘門");
 assert.match(uiSource, /sessionStorage/, "OCR 解鎖狀態只能保留在目前瀏覽器工作階段");
 assert.doesNotMatch(uiSource, /PaddleOCR|paddle-ocr-browser/, "前端不得殘留 PaddleOCR 依賴");
 assert.doesNotMatch(uiSource, /測試版/, "未完成功能不可只以測試版模糊標示");
-assert.doesNotMatch(html, /其他田區紀錄\s*<span[^>]*>第一版<\/span>/, "已公開功能不應殘留第一版標籤");
+assert.doesNotMatch(html, /農務與設備紀錄\s*<span[^>]*>第一版<\/span>/, "已公開功能不應殘留第一版標籤");
 
 console.log("通過前端功能發布閘門測試");
 

@@ -707,6 +707,18 @@ nav button.on{color:var(--green)}
   .farm-grid .field{margin:0}
   .farm-grid .field input,.farm-grid .field select,.farm-grid .field textarea{font-size:15px;font-weight:700}
   .farm-grid .field textarea{width:100%;min-height:76px;border:1.5px solid var(--line);border-radius:11px;padding:10px 12px;font-family:inherit;resize:vertical;background:white;color:var(--ink)}
+  .equipment-batch{display:grid;gap:12px}
+  .equipment-batch-head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+  .equipment-batch-head p{margin:0;color:var(--ink-soft);font-size:12.5px;line-height:1.55}
+  .equipment-batch-row{border:1px solid var(--line);border-radius:14px;padding:13px;background:var(--card);display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .equipment-batch-row-head{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .equipment-batch-row-head b{color:var(--green-deep)}
+  .equipment-choice{grid-column:1/-1;display:grid;gap:7px}
+  .equipment-choice>span{font-size:13px;font-weight:900;color:var(--green-deep)}
+  .equipment-choice-list{display:flex;flex-wrap:wrap;gap:7px}
+  .equipment-choice-list label{display:flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:999px;padding:7px 10px;background:var(--paper);font-size:13px;font-weight:700;cursor:pointer}
+  .equipment-choice-list input{width:17px;height:17px;accent-color:var(--green)}
+  .equipment-other{grid-column:1/-1}
   .farm-list{display:grid;gap:8px;margin-top:10px}
   .farm-item{display:flex;gap:10px;align-items:flex-start;background:#fbfaf6;border:1px solid var(--line);border-radius:12px;padding:10px}
   .farm-item .farm-date{flex:none;width:86px;font-family:var(--serif);font-weight:900;color:var(--green-deep);font-size:13px}
@@ -717,7 +729,7 @@ nav button.on{color:var(--green)}
   .backup-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
   .backup-file{display:flex;align-items:center;justify-content:center;cursor:pointer}
   @media(max-width:520px){.plot-add{grid-template-columns:1fr}.plot-add button{width:100%}.risk-card{align-items:flex-start}.risk-gauge{width:116px}.risk-gauge svg{width:116px}.record-chain{grid-template-columns:repeat(2,1fr)}}
-  @media(max-width:520px){.farm-grid{grid-template-columns:1fr}.farm-grid .wide{grid-column:auto}.backup-actions{grid-template-columns:1fr}.farm-item{gap:7px}.farm-item .farm-date{width:76px}}
+  @media(max-width:520px){.farm-grid,.equipment-batch-row{grid-template-columns:1fr}.farm-grid .wide,.equipment-batch-row-head,.equipment-choice,.equipment-other{grid-column:auto}.backup-actions{grid-template-columns:1fr}.farm-item{gap:7px}.farm-item .farm-date{width:76px}}
   /* 害物從屬提示 */
   .pest-rel{border:1.5px solid var(--line);border-left:4px solid var(--orange);border-radius:12px;padding:11px 14px;margin:0 0 12px;background:#fffdf7}
   .pest-rel b{display:block;font-size:14px;color:var(--green-deep);margin-bottom:3px}
@@ -1022,7 +1034,7 @@ nav button.on{color:var(--green)}
       <div class="record-hub-home" id="recordHubHome">
         <div class="record-hub-menu" aria-label="紀錄功能選單">
           <button class="record-hub-button" type="button" onclick="openRecordHub('plots')" aria-controls="recordPanelPlots"><span class="record-hub-index" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="5" y="6" width="22" height="20" rx="4"/><path d="M15 6v20M15 15h12M5 19h10"/></svg></span><span class="record-hub-copy"><span class="record-hub-label">01・田區</span><b>田區新增／田區管理</b><small>建立種植批次、設定預設田區，並查看每個田區的完整作業鏈。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>
-          <button class="record-hub-button" type="button" onclick="openRecordHub('farm')" aria-controls="recordPanelFarm"><span class="record-hub-index" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 5h16v22H8zM12 10h8M12 15h8M12 20h5"/><path d="m20 23 2 2 5-6"/></svg></span><span class="record-hub-copy"><span class="record-hub-label">02・作業</span><b>其他田區紀錄</b><small>記錄栽培、施肥、採收、採後處理與資材購入等日常作業。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>
+          <button class="record-hub-button" type="button" onclick="openRecordHub('farm')" aria-controls="recordPanelFarm"><span class="record-hub-index" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 5h16v22H8zM12 10h8M12 15h8M12 20h5"/><path d="m20 23 2 2 5-6"/></svg></span><span class="record-hub-copy"><span class="record-hub-label">02・作業</span><b>農務與設備紀錄</b><small>記錄栽培、施肥、採收、採後處理、資材購入及設備保養等作業。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>
           <button class="record-hub-button" type="button" onclick="openRecordHub('export')" aria-controls="recordPanelExport"><span class="record-hub-index" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 5v16M10 15l6 6 6-6M6 25h20"/></svg></span><span class="record-hub-copy"><span class="record-hub-label">03・整理</span><b>用藥歷史／匯出用藥紀錄</b><small>查看過去的施藥內容，再依日期與田區篩選並匯出 Excel、PDF 或 CSV。</small></span><span class="record-hub-arrow" aria-hidden="true">›</span></button>
         </div>
       </div>
@@ -1035,7 +1047,7 @@ nav button.on{color:var(--green)}
 
       <section class="record-hub-panel" id="recordPanelFarm" data-record-panel="farm" hidden>
         <button class="record-hub-back" type="button" onclick="showRecordHub()"><span class="record-hub-back-icon" aria-hidden="true">←</span><span>返回紀錄首頁</span></button>
-        <div class="record-hub-panel-head"><h2>其他田區紀錄</h2><p>請先選擇田區，再記錄實際發生的栽培、施肥、採收、採後處理或資材購入作業。</p></div>
+        <div class="record-hub-panel-head"><h2>農務與設備紀錄</h2><p>田間作業可依田區整理；共用設備則可直接記錄保養、維修、校正或清潔，不必指定田區。</p></div>
         <div id="farmRecordBox"></div>
         <div id="farmRecordList"></div>
       </section>
@@ -1323,9 +1335,10 @@ const DATA={"木瓜":{"白粉病":[{"name":"快得保淨","form":"WP","content":
 /* ═══ 維護區:改這裡就好 ═══════════════════════════════
    APP_VERSION:每次更新資料或功能時往上加
    ANNOUNCE:公告(新的放最上面,date 改了紅點會自動亮) */
-const APP_VERSION="0.3.8.1";
+const APP_VERSION="0.3.9.0";
 const DATA_VERSION="2026-07-21"; // 農藥資料抓取年月
 const ANNOUNCE=[
+ {date:"2026-08-05",version:"0.3.9.0",title:"新增設備管理與多筆表單草稿（測試中）",body:"新增器具、機械與設備的保養、維修、校正及清潔紀錄，可一次建立多筆。表單辨識現在可將同頁多個日期拆成待確認草稿，並接受整本、跨頁或帶背景的照片；結果仍須逐筆確認，不會自動儲存。"},
  {date:"2026-08-05",version:"0.3.8.1",title:"修正表單辨識送出錯誤",body:"修正表單照片辨識在送出前發生的請求識別碼錯誤。Google Cloud Vision 測試入口、驗證碼與 Google 登入限制維持不變。"},
  {date:"2026-08-05",version:"0.3.8.0",title:"表單辨識測試方式更新",body:"表單照片辨識已改為 Google Cloud Vision 測試架構。這項功能仍在測試中，必須先輸入指定驗證碼並使用 Google 帳號登入；辨識結果只會建立待確認草稿，不會自動儲存。"},
  {date:"2026-08-03",version:"0.3.6.4",title:"備份匯入安全性更新",body:"本次更新加強備份檔案的格式與內容檢查，阻擋異常識別碼與不安全內容，並更新離線快取。若裝置顯示有新版本，請按「立即更新」以套用最新版。"},
@@ -1599,7 +1612,7 @@ function renderHome(){
       <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="14" cy="14" r="8"/><path d="m20 20 7 7M11 17c0-5 3-8 8-8-1 5-3 8-8 8Z"/></svg></span><h4>雙向合法用藥查詢</h4><p>可依作物與病蟲害找藥，也可由藥劑反查實際登記作物；逐筆顯示倍數與安全採收期。</p></article>
       <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 4h16v24H8zM12 9h8M12 15h2M18 15h2M12 21h2M18 21h2"/></svg></span><h4>配藥換算</h4><p>把藥劑倍數帶入水量、桶數或面積，快速算出現場需要的實際用量。</p></article>
       <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="17" r="10"/><path d="M16 12v6l4 3M12 3h8"/></svg></span><h4>施藥紀錄與安全採收連動</h4><p>完成施藥後留下紀錄，依同田區全部用藥判斷最晚可採日；資料不足時不誤顯示可採收。</p></article>
-      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 7h20v20H6zM10 3v8M22 3v8M6 13h20M11 18h4M18 18h4M11 23h4"/></svg></span><h4>田區與農務管理</h4><p>用田區時間軸整理栽培、施肥、採收、採後處理、資材購入及施藥等工作。</p></article>
+      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M6 7h20v20H6zM10 3v8M22 3v8M6 13h20M11 18h4M18 18h4M11 23h4"/></svg></span><h4>農務與設備管理</h4><p>整理栽培、施肥、採收、資材與施藥紀錄，也可一次登錄多筆設備保養、維修、校正或清潔作業。</p></article>
       <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 5h16v22H8zM12 10h8M12 15h8M12 20h5"/><path d="m20 23 2 2 5-6"/></svg></span><h4>履歷整理與多格式匯出</h4><p>依日期與田區整理紀錄，匯出 Excel、PDF 或 CSV，方便自行保存、查閱與後續登打。</p></article>
       <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 5v16M10 15l6 6 6-6M6 25h20"/></svg></span><h4>本機備份與選用雲端</h4><p>預設只存在這台裝置，可下載 JSON 完整備份；明確同意後才會同步部分田間資料。</p></article>
     </div>
@@ -2716,6 +2729,7 @@ document.addEventListener("click",function(event){
 });
 
 /* ── 田間作業紀錄（栽培、施肥、採收、採後與資材購入） ── */
+let equipmentBatchCounter=0;
 function farmTypeOptions(selected){
   return Object.entries(PQC_FARM.RECORD_TYPES).map(function(entry){
     return '<option value="'+entry[0]+'"'+(selected===entry[0]?' selected':'')+'>'+esc(entry[1])+'</option>';
@@ -2727,6 +2741,76 @@ function farmInputValue(id){
 }
 function farmUnitOptions(items,selected){
   return items.map(function(unit){return '<option value="'+esc(unit)+'"'+(unit===selected?' selected':'')+'>'+esc(unit)+'</option>'}).join("");
+}
+function equipmentChoiceHtml(items,selected,attribute){
+  const picked=new Set(Array.isArray(selected)?selected:[]);
+  return items.map(function(item){
+    return '<label><input type="checkbox" '+attribute+' value="'+esc(item)+'"'+(picked.has(item)?' checked':'')+'> '+esc(item)+'</label>';
+  }).join("");
+}
+function equipmentBatchRowHtml(data){
+  const row=data||{};
+  const id='equipment-batch-'+(++equipmentBatchCounter);
+  const equipment=Array.isArray(row.equipment)?row.equipment:[];
+  const actions=Array.isArray(row.actions)?row.actions:[];
+  const knownEquipment=new Set(PQC_FARM.EQUIPMENT_ITEMS);
+  const knownActions=new Set(PQC_FARM.EQUIPMENT_ACTIONS);
+  const otherEquipment=equipment.filter(function(item){return !knownEquipment.has(item)}).join('、');
+  const otherAction=actions.filter(function(item){return !knownActions.has(item)}).join('、');
+  return '<section class="equipment-batch-row" id="'+id+'" data-equipment-row>'
+    +'<div class="equipment-batch-row-head"><b>設備管理紀錄</b><button class="btn btn-ghost" type="button" onclick="removeEquipmentBatchRow(\''+id+'\')">移除這筆</button></div>'
+    +'<div class="field"><label>日期 *</label><input class="equipment-date" type="date" value="'+esc(row.date||todayIso())+'"></div>'
+    +'<div class="field"><label>記錄人</label><input class="equipment-operator" value="'+esc(row.operator||store.get("lastFarmOperator")||'')+'" placeholder="例：王小明"></div>'
+    +'<div class="equipment-choice"><span>器具／機械／設備 *</span><div class="equipment-choice-list">'+equipmentChoiceHtml(PQC_FARM.EQUIPMENT_ITEMS,equipment,'data-equipment-item')+'</div></div>'
+    +'<div class="field equipment-other"><label>其他設備</label><input class="equipment-other-input" value="'+esc(otherEquipment)+'" placeholder="沒有列出的設備可自行填寫"></div>'
+    +'<div class="equipment-choice"><span>作業內容 *</span><div class="equipment-choice-list">'+equipmentChoiceHtml(PQC_FARM.EQUIPMENT_ACTIONS,actions,'data-equipment-action')+'</div></div>'
+    +'<div class="field equipment-other"><label>其他作業</label><input class="equipment-other-action" value="'+esc(otherAction)+'" placeholder="沒有列出的作業可自行填寫"></div>'
+    +'<div class="field wide"><label>備註</label><textarea class="equipment-notes" placeholder="維修內容、校正結果或其他說明">'+esc(row.notes||'')+'</textarea></div>'
+    +'</section>';
+}
+function addEquipmentBatchRow(data){
+  const box=document.getElementById("equipmentBatchRows");
+  if(!box)return;
+  box.insertAdjacentHTML("beforeend",equipmentBatchRowHtml(data));
+  updateEquipmentBatchLabels();
+}
+function removeEquipmentBatchRow(id){
+  const row=document.getElementById(id);
+  if(row)row.remove();
+  const box=document.getElementById("equipmentBatchRows");
+  if(box&&!box.querySelector("[data-equipment-row]"))addEquipmentBatchRow();
+  updateEquipmentBatchLabels();
+}
+function updateEquipmentBatchLabels(){
+  document.querySelectorAll("#equipmentBatchRows [data-equipment-row]").forEach(function(row,index){
+    const label=row.querySelector(".equipment-batch-row-head b");
+    if(label)label.textContent="第 "+(index+1)+" 筆設備管理紀錄";
+  });
+}
+function equipmentBatchValues(){
+  return Array.from(document.querySelectorAll("#equipmentBatchRows [data-equipment-row]")).map(function(row){
+    return {
+      date:String((row.querySelector(".equipment-date")||{}).value||"").trim(),
+      operator:String((row.querySelector(".equipment-operator")||{}).value||"").trim(),
+      equipment:Array.from(row.querySelectorAll("[data-equipment-item]:checked")).map(function(input){return input.value}),
+      otherEquipment:String((row.querySelector(".equipment-other-input")||{}).value||"").trim(),
+      actions:Array.from(row.querySelectorAll("[data-equipment-action]:checked")).map(function(input){return input.value}),
+      otherAction:String((row.querySelector(".equipment-other-action")||{}).value||"").trim(),
+      notes:String((row.querySelector(".equipment-notes")||{}).value||"").trim()
+    };
+  });
+}
+function loadEquipmentBatchDraft(rows){
+  const type=document.getElementById("farmType");
+  if(!type)return false;
+  type.value="equipmentMaintenance";
+  renderFarmDetailFields();
+  updateFarmRecordRequirements();
+  const box=document.getElementById("equipmentBatchRows");
+  if(!box)return false;
+  box.innerHTML="";
+  (Array.isArray(rows)&&rows.length?rows:[{}]).forEach(addEquipmentBatchRow);
+  return true;
 }
 function renderFarmDetailFields(){
   const el=document.getElementById("farmDetailFields");
@@ -2761,6 +2845,11 @@ function renderFarmDetailFields(){
       +'<div class="field wide"><label>去向／存放位置</label><input id="farmDestination" placeholder="例：冷藏庫 A、交貨給合作社"></div>';
     return;
   }
+  if(type==="equipmentMaintenance"){
+    el.innerHTML='<div class="equipment-batch wide"><div class="equipment-batch-head"><p>同一張紀錄表可包含多個日期與多項設備。請逐筆確認後一次儲存。</p><button class="btn btn-ghost" type="button" onclick="addEquipmentBatchRow()">＋ 新增一筆</button></div><div id="equipmentBatchRows"></div></div>';
+    addEquipmentBatchRow();
+    return;
+  }
   el.innerHTML='<div class="field"><label>資材類別 *</label><select id="farmCategory"><option>種苗</option><option>肥料</option><option>農藥</option><option>有機資材</option><option>包裝資材</option><option>其他</option></select></div>'
     +'<div class="field"><label>資材名稱 *</label><input id="farmMaterialName" placeholder="依包裝或憑證填寫"></div>'
     +'<div class="field"><label>購入數量 *</label><input id="farmQuantity" type="number" min="0" step="any" inputmode="decimal" placeholder="例：10"></div>'
@@ -2768,6 +2857,31 @@ function renderFarmDetailFields(){
     +'<div class="field wide"><label>供應商 *</label><input id="farmSupplier" placeholder="商家或供應單位名稱"></div>'
     +'<div class="field"><label>批號</label><input id="farmLotNo" placeholder="包裝上有才填"></div>'
     +'<div class="field"><label>發票／收據號碼</label><input id="farmReceiptNo" placeholder="選填"></div>';
+}
+function updateFarmRecordRequirements(){
+  const type=farmInputValue("farmType")||"cultivation";
+  const equipment=type==="equipmentMaintenance";
+  const plot=document.getElementById("farmPlot");
+  const plotRequired=document.getElementById("farmPlotRequired");
+  const dateField=document.getElementById("farmDateField");
+  const operatorField=document.getElementById("farmOperatorField");
+  const notesField=document.getElementById("farmNotesField");
+  const save=document.getElementById("farmSaveButton");
+  if(plot){
+    plot.disabled=!equipment&&!fieldPlots.length;
+    plot.required=!equipment;
+    const emptyOption=Array.from(plot.options).find(function(option){return !option.value});
+    if(emptyOption)emptyOption.textContent=equipment?"全場共用設備／不指定田區":"請選擇";
+  }
+  if(plotRequired)plotRequired.hidden=equipment;
+  if(dateField)dateField.hidden=equipment;
+  if(operatorField)operatorField.hidden=equipment;
+  if(notesField)notesField.hidden=equipment;
+  if(save){
+    save.disabled=!equipment&&!fieldPlots.length;
+    save.style.opacity=save.disabled?".55":"";
+    save.textContent=equipment?"一次儲存設備管理紀錄":"儲存作業紀錄";
+  }
 }
 function renderFarmRecordBox(){
   const el=document.getElementById("farmRecordBox");
@@ -2778,17 +2892,18 @@ function renderFarmRecordBox(){
   const operator=store.get("lastFarmOperator")||"";
   el.innerHTML='<div class="farm-card"><h3>新增作業紀錄</h3>'
     +'<p class="farm-note">先選田區／種植批次，再記錄實際發生的作業。欄位參考 TGAP 常見紀錄需求，方便自行保存與查閱。</p>'
-    +(fieldPlots.length?'':'<div class="safety-banner" role="note">請先在上方建立田區／種植批次，才能新增作業紀錄。</div>')
+    +(fieldPlots.length?'':'<div class="safety-banner" role="note">一般田間作業須先建立田區／種植批次；共用設備管理紀錄可不指定田區。</div>')
     +'<div class="farm-grid">'
-    +'<div class="field"><label>田區／種植批次 *</label><select id="farmPlot" onchange="renderHarvestSafetyBanner()" '+(fieldPlots.length?'':'disabled')+'><option value="">請選擇</option>'+plotOptions+'</select></div>'
-    +'<div class="field"><label>紀錄類型 *</label><select id="farmType" onchange="renderFarmDetailFields()">'+farmTypeOptions(currentType)+'</select></div>'
-    +'<div class="field"><label>日期 *</label><input id="farmDate" type="date" value="'+todayIso()+'" onchange="renderHarvestSafetyBanner()"></div>'
-    +'<div class="field"><label>執行人</label><input id="farmOperator" value="'+esc(operator)+'" placeholder="例：王小明"></div>'
+    +'<div class="field"><label>田區／種植批次 <span id="farmPlotRequired">*</span></label><select id="farmPlot" onchange="renderHarvestSafetyBanner()" '+(fieldPlots.length?'':'disabled')+'><option value="">'+(currentType==='equipmentMaintenance'?'全場共用設備／不指定田區':'請選擇')+'</option>'+plotOptions+'</select></div>'
+    +'<div class="field"><label>紀錄類型 *</label><select id="farmType" onchange="renderFarmDetailFields();updateFarmRecordRequirements()">'+farmTypeOptions(currentType)+'</select></div>'
+    +'<div class="field" id="farmDateField"><label>日期 *</label><input id="farmDate" type="date" value="'+todayIso()+'" onchange="renderHarvestSafetyBanner()"></div>'
+    +'<div class="field" id="farmOperatorField"><label>執行人</label><input id="farmOperator" value="'+esc(operator)+'" placeholder="例：王小明"></div>'
     +'<div id="farmDetailFields" class="farm-grid wide"></div>'
-    +'<div class="field wide"><label>備註</label><textarea id="farmNotes" placeholder="天候、設備或其他補充資訊"></textarea></div>'
-    +'<button class="btn btn-main wide" onclick="addFarmRecord()" '+(fieldPlots.length?'':'disabled style="opacity:.55"')+'>儲存作業紀錄</button>'
+    +'<div class="field wide" id="farmNotesField"><label>備註</label><textarea id="farmNotes" placeholder="天候、設備或其他補充資訊"></textarea></div>'
+    +'<button class="btn btn-main wide" id="farmSaveButton" onclick="addFarmRecord()" '+(fieldPlots.length?'':'disabled style="opacity:.55"')+'>儲存作業紀錄</button>'
     +'</div></div>';
   renderFarmDetailFields();
+  updateFarmRecordRequirements();
   renderHarvestSafetyBanner();
   renderFarmRecordList();
 }
@@ -2827,6 +2942,23 @@ function renderHarvestSafetyBanner(){
 function addFarmRecord(){
   try{
     const input=farmRecordInput();
+    if(input.type==="equipmentMaintenance"){
+      const rows=equipmentBatchValues();
+      if(!rows.length)throw new Error("請至少建立一筆設備管理紀錄");
+      const created=rows.map(function(row){
+        return PQC_FARM.createRecord({
+          plotId:farmInputValue("farmPlot"),type:"equipmentMaintenance",date:row.date,operator:row.operator,notes:row.notes,
+          details:{equipment:row.equipment,otherEquipment:row.otherEquipment,actions:row.actions,otherAction:row.otherAction}
+        },makeRecordId);
+      });
+      farmRecords=created.concat(farmRecords);
+      store.set("farmRecords",farmRecords);
+      const lastOperator=created.map(function(record){return record.operator}).filter(Boolean).pop();
+      if(lastOperator)store.set("lastFarmOperator",lastOperator);
+      renderPlotRecordBox();
+      toast("已一次儲存 "+created.length+" 筆設備管理紀錄");
+      return;
+    }
     if(input.type==="harvest"){
       const status=PQC_SAFETY.harvestStatus(records,input.plotId,input.date);
       if(status.status==="invalid")throw new Error("請填寫正確的採收日期");
@@ -2855,10 +2987,10 @@ function delFarmRecord(id){
 function renderFarmRecordList(){
   const el=document.getElementById("farmRecordList");
   if(!el)return;
-  if(!farmRecords.length){el.innerHTML='<div class="empty" style="margin-top:10px"><b>還沒有其他田間作業紀錄</b>可從上方開始新增栽培、施肥、採收、採後處理或資材購入紀錄。</div>';return}
+  if(!farmRecords.length){el.innerHTML='<div class="empty" style="margin-top:10px"><b>還沒有農務或設備紀錄</b>可從上方新增田間作業、資材購入或設備管理紀錄。</div>';return}
   const rows=[...farmRecords].sort(function(a,b){return a.date<b.date?1:a.date>b.date?-1:0}).map(function(r){
     const type=PQC_FARM.RECORD_TYPES[r.type]||r.type;
-    const plot=plotLabel(r.plotId)||"未知田區";
+    const plot=r.type==="equipmentMaintenance"&&!r.plotId?"全場共用設備":(plotLabel(r.plotId)||"未知田區");
     return '<div class="farm-item"><span class="farm-date">'+esc(r.date)+'</span><div class="farm-main"><b>'+esc(type)+' · '+esc(plot)+'</b>'
       +esc(PQC_FARM.summary(r))
       +((r.operator||r.notes)?'<small>'+(r.operator?'執行人：'+esc(r.operator):'')+(r.operator&&r.notes?' · ':'')+(r.notes?esc(r.notes):'')+'</small>':'')

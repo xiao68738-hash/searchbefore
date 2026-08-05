@@ -8,7 +8,7 @@
    這個動作本身就是觸發更新的開關,不要忘記。
 */
 
-const CACHE_VERSION = "v0.3.8.1-cloud-ocr-request-id-2026-08-05";
+const CACHE_VERSION = "v0.3.9.0-ocr-multi-record-2026-08-05";
 const CACHE_NAME = "pqc-" + CACHE_VERSION;
 
 /* 只放骨架。App 本體(index.html)約 1MB gzip,用 reload 強制繞過 HTTP 快取抓最新版。 */

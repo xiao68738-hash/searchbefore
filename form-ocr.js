@@ -11,6 +11,8 @@
 
   const PROTOCOL_VERSION = 1;
   const ALLOWED_UNITS = Object.freeze(["毫升", "公升", "公克", "公斤", "台斤", "c.c.", "c.c", "cc", "ml", "mL", "L", "g", "kg", "包", "袋"]);
+  const EQUIPMENT_ITEMS = Object.freeze(["噴霧機", "割草機", "中耕機", "選別機", "貯藏／溫控設備", "搬運車", "冷藏車"]);
+  const EQUIPMENT_ACTIONS = Object.freeze(["清潔", "保養", "維修", "校正"]);
   const FORM_TYPES = Object.freeze({
     pesticide: Object.freeze({ label: "病蟲害防治／用藥", markers: Object.freeze(["病蟲害防治", "環境消毒", "防治對象", "安全採收期", "稀釋倍數"]) }),
     fertilizer: Object.freeze({ label: "肥料施用", markers: Object.freeze(["肥料施用紀錄", "施肥別", "基肥", "追肥", "肥適用"]) }),
@@ -18,6 +20,7 @@
     cultivation: Object.freeze({ label: "栽培作業", markers: Object.freeze(["栽培工作紀錄", "工作事項", "整地", "水份管理", "田間作業"]) }),
     harvest: Object.freeze({ label: "採收", markers: Object.freeze(["採收紀錄", "採收日期", "採收量"]) }),
     postharvest: Object.freeze({ label: "採後處理", markers: Object.freeze(["採後處理", "分級", "包裝", "預冷"]) }),
+    equipmentMaintenance: Object.freeze({ label: "器具／機械／設備管理", markers: Object.freeze(["器具/機械/設備之保養、維修、校正及清潔管理紀錄", "器具/機械/設備", "作業內容", "噴霧機", "清潔", "保養", "維修", "校正"]) }),
     profile: Object.freeze({ label: "基本資料／田區資料", markers: Object.freeze(["基本資料", "經營農戶姓名", "農地地籍號碼", "栽培總面積"]) })
   });
 
@@ -93,7 +96,8 @@
     const m = Number(month);
     const d = Number(day);
     if (!Number.isInteger(y) || !Number.isInteger(m) || !Number.isInteger(d)) return "";
-    const westernYear = y < 1911 ? y + 1911 : y;
+    const westernYear = y >= 1 && y <= 300 ? y + 1911 : (y >= 1912 && y <= 2200 ? y : 0);
+    if (!westernYear) return "";
     const date = new Date(Date.UTC(westernYear, m - 1, d));
     if (date.getUTCFullYear() !== westernYear || date.getUTCMonth() !== m - 1 || date.getUTCDate() !== d) return "";
     return String(westernYear).padStart(4, "0") + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0");
@@ -105,6 +109,8 @@
     const seen = new Set();
     const patterns = [
       /(?:民國\s*)?(\d{2,4})\s*[年/.\-]\s*(\d{1,2})\s*[月/.\-]\s*(\d{1,2})\s*日?/g,
+      /(?:民國\s*)?(\d{2,4})\s*[,，]\s*(\d{1,2})\s*(?:月|[/.,，\-])\s*(\d{1,2})\s*日?/g,
+      /(?:民國\s*)?(\d{3,4})\s+(\d{1,2})\s*月\s*(\d{1,2})\s*日?/g,
       /(\d{2,4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日?/g
     ];
     patterns.forEach(function (pattern) {
@@ -113,7 +119,7 @@
         const value = isoDate(match[1], match[2], match[3]);
         if (value && !seen.has(value)) {
           seen.add(value);
-          out.push(Object.freeze({ value, sourceText: match[0], confidence: 0.9 }));
+          out.push(Object.freeze({ value, sourceText: match[0], sourceIndex: match.index, confidence: 0.9 }));
         }
       }
     });
@@ -249,6 +255,28 @@
     return Object.freeze(out.sort(function (a, b) { return b.value.length - a.value.length; }).slice(0, 12));
   }
 
+  function optionPattern(value) {
+    return normalizeText(value).split("").map(function (char) {
+      return char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }).join("\\s*");
+  }
+
+  function findMarkedOptions(text, values, kind) {
+    const source = normalizeText(text);
+    const body = compact(source);
+    return Object.freeze((values || []).map(function (value) {
+      if (!body.includes(compact(value))) return null;
+      const marked = new RegExp("(?:☑|✓|√|■|▣|[Vv])\\s*" + optionPattern(value)).test(source);
+      return Object.freeze({
+        value,
+        sourceText: value,
+        confidence: marked ? 0.84 : 0.46,
+        selected: marked,
+        kind
+      });
+    }).filter(Boolean));
+  }
+
   function safeBlocks(blocks) {
     return Object.freeze((Array.isArray(blocks) ? blocks : []).slice(0, 500).map(function (block, index) {
       return Object.freeze({
@@ -265,12 +293,113 @@
     }).filter(function (block) { return block.text; }));
   }
 
+  function blockCenter(block) {
+    if (!block || !block.box) return null;
+    return (block.box.top + block.box.bottom) / 2;
+  }
+
+  function findEquipmentMaintenanceRows(blocks) {
+    const list = Array.isArray(blocks) ? blocks : [];
+    const anchors = [];
+    let inheritedYear = "";
+    list.forEach(function (block, blockIndex) {
+      const fullDates = findDates(block.text);
+      const fullRanges = fullDates.map(function (date) {
+        return [date.sourceIndex, date.sourceIndex + date.sourceText.length];
+      });
+      const dateParts = fullDates.map(function (date) { return { date, full: true }; });
+      const partialPattern = /(?:^|[^\d])(\d{1,2})\s*月\s*(\d{1,2})\s*日?/g;
+      let partialMatch;
+      while ((partialMatch = partialPattern.exec(block.text))) {
+        const leading = /^\d/.test(partialMatch[0]) ? 0 : 1;
+        const sourceIndex = partialMatch.index + leading;
+        if (fullRanges.some(function (range) { return sourceIndex >= range[0] && sourceIndex < range[1]; })) continue;
+        dateParts.push({ month: partialMatch[1], day: partialMatch[2], sourceIndex, sourceText: partialMatch[0].slice(leading), full: false });
+      }
+      dateParts.sort(function (a, b) {
+        const aIndex = a.full ? a.date.sourceIndex : a.sourceIndex;
+        const bIndex = b.full ? b.date.sourceIndex : b.sourceIndex;
+        return aIndex - bIndex;
+      });
+      const dates = [];
+      dateParts.forEach(function (part) {
+        if (part.full) {
+          inheritedYear = part.date.value.slice(0, 4);
+          dates.push(part.date);
+          return;
+        }
+        if (!inheritedYear) return;
+        const value = isoDate(inheritedYear, part.month, part.day);
+        if (!value) return;
+        dates.push(Object.freeze({ value, sourceText: part.sourceText, sourceIndex: part.sourceIndex, confidence: 0.68, inheritedYear: true }));
+      });
+      dates.forEach(function (date, dateIndex) {
+        const nextDate = dates[dateIndex + 1];
+        anchors.push({
+          date,
+          blockIndex,
+          dateIndex,
+          center: blockCenter(block),
+          segmentText: dates.length > 1
+            ? block.text.slice(date.sourceIndex, nextDate ? nextDate.sourceIndex : block.text.length)
+            : ""
+        });
+      });
+    });
+    anchors.sort(function (a, b) {
+      const aCenter = a.center == null ? Number.POSITIVE_INFINITY : a.center;
+      const bCenter = b.center == null ? Number.POSITIVE_INFINITY : b.center;
+      return aCenter - bCenter || a.blockIndex - b.blockIndex || a.dateIndex - b.dateIndex;
+    });
+    const rows = anchors.slice(0, 30).map(function (anchor, index) {
+      const previous = anchors[index - 1];
+      const next = anchors[index + 1];
+      const top = anchor.center == null || !previous || previous.center == null ? -1 : (previous.center + anchor.center) / 2;
+      const bottom = anchor.center == null || !next || next.center == null ? 2 : (anchor.center + next.center) / 2;
+      const nearby = list.filter(function (block, blockIndex) {
+        const center = blockCenter(block);
+        if (center != null && anchor.center != null) return center >= top && center < bottom;
+        return blockIndex === anchor.blockIndex;
+      });
+      const rowText = anchor.segmentText || nearby.map(function (block) { return block.text; }).join("\n");
+      const equipment = findMarkedOptions(rowText, EQUIPMENT_ITEMS, "equipment");
+      const actions = findMarkedOptions(rowText, EQUIPMENT_ACTIONS, "equipmentAction");
+      if (!equipment.length || !actions.length) return null;
+      return Object.freeze({
+        id: "equipment-row-" + (index + 1),
+        date: Object.freeze([anchor.date]),
+        equipment,
+        actions,
+        operator: findLabeledValues(rowText, ["記錄人", "紀錄人", "操作人員", "執行人"], "operator"),
+        sourceBlockIds: Object.freeze(nearby.map(function (block) { return block.id; })),
+        confidence: clamp01(anchor.date.confidence)
+      });
+    }).filter(Boolean).map(function (row, index) {
+      return Object.freeze(Object.assign({}, row, { id: "equipment-row-" + (index + 1) }));
+    });
+    return Object.freeze(rows);
+  }
+
   function createDraft(scanResult, dictionaries) {
     const result = scanResult || {};
     const quality = assessQuality(result.quality);
     const blocks = safeBlocks(result.blocks);
     const text = blocks.map(function (block) { return block.text; }).join("\n");
     const dict = dictionaries || {};
+    const recordTypes = detectFormTypes(text);
+    const isEquipmentForm = recordTypes.some(function (item) { return item.value === "equipmentMaintenance" && item.markerCount >= 2; });
+    let equipmentRows = isEquipmentForm ? findEquipmentMaintenanceRows(blocks) : Object.freeze([]);
+    if (isEquipmentForm && !equipmentRows.length) {
+      equipmentRows = Object.freeze([Object.freeze({
+        id: "equipment-row-1",
+        date: Object.freeze([]),
+        equipment: findMarkedOptions(text, EQUIPMENT_ITEMS, "equipment"),
+        actions: findMarkedOptions(text, EQUIPMENT_ACTIONS, "equipmentAction"),
+        operator: findLabeledValues(text, ["記錄人", "紀錄人", "操作人員", "執行人"], "operator"),
+        sourceBlockIds: Object.freeze(blocks.map(function (block) { return block.id; })),
+        confidence: 0.35
+      })]);
+    }
     return Object.freeze({
       protocolVersion: PROTOCOL_VERSION,
       requestId: String(result.requestId || "").slice(0, 100),
@@ -279,7 +408,7 @@
       confirmed: false,
       quality,
       fields: Object.freeze({
-        recordType: detectFormTypes(text),
+        recordType: recordTypes,
         date: findDates(text),
         crop: dictionaryCandidates(text, dict.crops, "crop"),
         fieldPlot: findPlotCodes(text),
@@ -288,8 +417,9 @@
         dilution: findDilutions(text),
         amount: findAmounts(text),
         safetyInterval: findSafetyIntervals(text),
-        operator: findLabeledValues(text, ["操作人員", "執行人"], "operator")
+        operator: findLabeledValues(text, ["記錄人", "紀錄人", "操作人員", "執行人"], "operator")
       }),
+      recordGroups: equipmentRows,
       blocks
     });
   }
@@ -314,6 +444,8 @@
     findPlotCodes,
     findLabeledValues,
     dictionaryCandidates,
+    findMarkedOptions,
+    findEquipmentMaintenanceRows,
     createDraft,
     canCommit
   });

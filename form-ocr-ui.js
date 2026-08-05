@@ -21,7 +21,8 @@
     fertilizer: "施肥",
     harvest: "採收",
     postharvest: "採後處理",
-    purchase: "資材購入"
+    purchase: "資材購入",
+    equipmentMaintenance: "器具／機械／設備管理"
   });
 
   function featureReleaseState(key) {
@@ -265,6 +266,46 @@
     }).join("") + '</ul></div>';
   }
 
+  function equipmentReviewOptions(items, selectedValues, attribute) {
+    const selected = new Set(selectedValues || []);
+    return (items || []).map(function (item) {
+      return '<label><input type="checkbox" ' + attribute + ' value="' + esc(item) + '"' + (selected.has(item) ? " checked" : "") + '> ' + esc(item) + '</label>';
+    }).join("");
+  }
+
+  function renderEquipmentMaintenanceDraft(draft, text) {
+    const box = document.getElementById("ocrDraftBox");
+    if (!box) return;
+    const farm = root.PQC_FARM || {};
+    const equipmentItems = farm.EQUIPMENT_ITEMS || ["噴霧機", "割草機", "中耕機", "選別機", "貯藏／溫控設備", "搬運車", "冷藏車"];
+    const actionItems = farm.EQUIPMENT_ACTIONS || ["清潔", "保養", "維修", "校正"];
+    const rows = draft.recordGroups && draft.recordGroups.length ? draft.recordGroups : [{ id: "equipment-row-1", date: [], equipment: [], actions: [], operator: [] }];
+    box.innerHTML = qualityHtml(draft.quality)
+      + '<div class="ocr-equipment-intro"><b>辨識到設備管理表單</b><span>同一張表可能包含多筆日期。系統先拆成 ' + rows.length + ' 筆待確認草稿；看不清楚的欄位保留空白。</span></div>'
+      + '<div id="ocrEquipmentRows" class="ocr-equipment-rows">'
+      + rows.map(function (row, index) {
+        const selectedEquipment = (row.equipment || []).filter(function (item) { return item.selected; }).map(function (item) { return item.value; });
+        const selectedActions = (row.actions || []).filter(function (item) { return item.selected; }).map(function (item) { return item.value; });
+        const date = row.date && row.date[0] ? row.date[0].value : "";
+        const operator = row.operator && row.operator[0] ? row.operator[0].value : "";
+        return '<section class="ocr-equipment-row" data-ocr-equipment-row>'
+          + '<div class="ocr-equipment-row-head"><b>第 ' + (index + 1) + ' 筆</b><span>' + (date ? "已找到日期候選" : "日期待確認") + '</span><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.removeEquipmentDraftRow(this)">排除這筆</button></div>'
+          + '<div class="field"><label>日期 *</label><input class="ocr-equipment-date" type="date" value="' + esc(date) + '"></div>'
+          + '<div class="field"><label>記錄人</label><input class="ocr-equipment-operator" value="' + esc(operator) + '" placeholder="看不清楚可留空"></div>'
+          + '<div class="equipment-choice"><span>器具／機械／設備 *</span><div class="equipment-choice-list">' + equipmentReviewOptions(equipmentItems, selectedEquipment, "data-ocr-equipment-item") + '</div></div>'
+          + '<div class="field equipment-other"><label>其他設備</label><input class="ocr-equipment-other" placeholder="可自行輸入"></div>'
+          + '<div class="equipment-choice"><span>作業內容 *</span><div class="equipment-choice-list">' + equipmentReviewOptions(actionItems, selectedActions, "data-ocr-equipment-action") + '</div></div>'
+          + '<div class="field equipment-other"><label>其他作業</label><input class="ocr-equipment-other-action" placeholder="可自行輸入"></div>'
+          + '<div class="field wide"><label>備註</label><textarea class="ocr-equipment-notes" placeholder="維修內容、校正結果或其他說明"></textarea></div>'
+          + '</section>';
+      }).join("")
+      + '</div>'
+      + '<div class="field wide"><label>辨識原文</label><textarea id="ocrRawText" readonly>' + esc(text) + '</textarea></div>'
+      + '<fieldset class="ocr-confirm wide"><legend>帶入前必須確認</legend><label><input id="ocrConfirmEquipmentRows" type="checkbox"> 我已逐筆核對日期、設備與作業內容</label></fieldset>'
+      + '<button class="btn btn-main wide" type="button" onclick="PQC_FORM_OCR_UI.applyEquipmentMaintenanceBatch()"' + (draft.quality.canProcess ? "" : " disabled") + '>帶入多筆設備管理紀錄</button>'
+      + '<p class="disclaimer wide">辨識結果只會帶入批次編輯清單，不會自動儲存。未勾選或看不清楚的內容必須由使用者確認。</p>';
+  }
+
   function setValue(id, value) {
     const element = document.getElementById(id);
     if (element) element.value = value == null ? "" : value;
@@ -275,6 +316,10 @@
     const box = document.getElementById("ocrDraftBox");
     if (!box) return;
     const text = draft.blocks.map(function (block) { return block.text; }).join("\n");
+    if (draft.recordGroups && draft.recordGroups.length) {
+      renderEquipmentMaintenanceDraft(draft, text);
+      return;
+    }
     box.innerHTML = qualityHtml(draft.quality)
       + '<div class="ocr-review">'
       + '<div class="field"><label>紀錄類型 *</label><select id="ocrRecordType">' + recordTypeOptions(draft.fields.recordType) + '</select></div>'
@@ -447,7 +492,7 @@
       return false;
     }
     if (!confirmCorners || !confirmCorners.checked) {
-      if (typeof root.toast === "function") root.toast("請先確認照片完整拍到表單四個角");
+      if (typeof root.toast === "function") root.toast("請先確認主要表格與手寫內容仍可閱讀");
       return false;
     }
     if (button) button.disabled = true;
@@ -615,10 +660,56 @@
     if (typeof root.toast === "function") root.toast("草稿已帶入，請再次核對後再儲存");
   }
 
+  function applyEquipmentMaintenanceBatch() {
+    if (!currentDraft || !checked("ocrConfirmEquipmentRows")) {
+      if (typeof root.toast === "function") root.toast("請先逐筆核對日期、設備與作業內容");
+      return false;
+    }
+    const rowElements = Array.from(document.querySelectorAll("#ocrEquipmentRows [data-ocr-equipment-row]"));
+    const rows = rowElements.map(function (row) {
+      return {
+        date: String((row.querySelector(".ocr-equipment-date") || {}).value || "").trim(),
+        operator: String((row.querySelector(".ocr-equipment-operator") || {}).value || "").trim(),
+        equipment: Array.from(row.querySelectorAll("[data-ocr-equipment-item]:checked")).map(function (input) { return input.value; }),
+        actions: Array.from(row.querySelectorAll("[data-ocr-equipment-action]:checked")).map(function (input) { return input.value; }),
+        notes: String((row.querySelector(".ocr-equipment-notes") || {}).value || "").trim()
+      };
+    }).map(function (row, index) {
+      const source = rowElements[index];
+      const otherEquipment = String((source.querySelector(".ocr-equipment-other") || {}).value || "").trim();
+      const otherAction = String((source.querySelector(".ocr-equipment-other-action") || {}).value || "").trim();
+      if (otherEquipment) row.equipment.push(otherEquipment);
+      if (otherAction) row.actions.push(otherAction);
+      return row;
+    });
+    if (!rows.length || rows.some(function (row) { return !row.date || !row.equipment.length || !row.actions.length; })) {
+      if (typeof root.toast === "function") root.toast("每一筆都需要日期、至少一項設備與一項作業內容");
+      return false;
+    }
+    if (typeof root.openRecordHub !== "function" || typeof root.renderFarmRecordBox !== "function" || typeof root.loadEquipmentBatchDraft !== "function") return false;
+    root.openRecordHub("farm");
+    root.renderFarmRecordBox();
+    if (!root.loadEquipmentBatchDraft(rows)) return false;
+    if (typeof root.toast === "function") root.toast("已帶入 " + rows.length + " 筆設備管理草稿，請再次核對後一次儲存");
+    return true;
+  }
+
+  function removeEquipmentDraftRow(button) {
+    const row = button && button.closest ? button.closest("[data-ocr-equipment-row]") : null;
+    if (row) row.remove();
+    const rows = Array.from(document.querySelectorAll("#ocrEquipmentRows [data-ocr-equipment-row]"));
+    rows.forEach(function (item, index) {
+      const label = item.querySelector(".ocr-equipment-row-head b");
+      if (label) label.textContent = "第 " + (index + 1) + " 筆";
+    });
+    if (!rows.length && typeof root.toast === "function") root.toast("已排除所有辨識列；請返回手動新增設備紀錄");
+    return Boolean(rows.length);
+  }
+
   function installStyle() {
     const style = document.createElement("style");
     style.textContent = ".ocr-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}.ocr-card h3{font-size:19px;color:var(--green-deep);margin:0 0 6px}.ocr-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}.ocr-browser-import{border:1px solid var(--orange);background:color-mix(in srgb,var(--orange) 9%,var(--card));border-radius:15px;padding:15px;margin:14px 0;display:grid;gap:11px}.ocr-browser-import input[type=file]{width:100%;padding:10px;background:var(--card);border:1px solid var(--line);border-radius:11px}.ocr-browser-import label{font-weight:800}.ocr-browser-note{font-size:13px;color:var(--muted);line-height:1.6}.ocr-paste{border-top:1px solid var(--line);padding-top:15px}.ocr-paste textarea,.ocr-review textarea{min-height:110px}.ocr-status[hidden]{display:none}.ocr-status{border-radius:13px;padding:13px 15px;margin:14px 0;display:grid;gap:4px}.ocr-status.ok{background:var(--ok-bg);color:var(--green-deep)}.ocr-status.warn{background:#fff4d6;color:#6f4b00}.ocr-status.bad{background:#fff0ed;color:#982d20}.ocr-status ul{margin:5px 0 0;padding-left:20px}.ocr-review{display:grid;grid-template-columns:1fr 1fr;gap:12px}.ocr-review .field{display:grid;gap:6px}.ocr-review .field input,.ocr-review .field select{width:100%}.ocr-review .field select+input{margin-top:6px}.ocr-review .wide{grid-column:1/-1}.ocr-confirm{border:1px solid var(--line);border-radius:13px;padding:12px;display:grid;gap:8px}.ocr-confirm legend{font-weight:900;color:var(--green-deep);padding:0 5px}.ocr-confirm label{font-weight:700}.ocr-source-title{font-size:14px;font-weight:900;color:var(--green-deep);margin:2px 0 0}.ocr-source-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ocr-source-button{position:relative;min-height:92px;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:13px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;cursor:pointer;transition:border-color .18s,transform .18s,background .18s}.ocr-source-button:hover{border-color:var(--orange);transform:translateY(-1px)}.ocr-source-button input{position:absolute;opacity:0;pointer-events:none}.ocr-source-button:has(input:focus-visible){outline:3px solid color-mix(in srgb,var(--orange) 35%,transparent);outline-offset:2px}.ocr-source-icon{width:32px;height:32px;color:var(--orange);display:grid;place-items:center}.ocr-source-icon svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}.ocr-source-button b{font-size:15px;color:var(--green-deep)}.ocr-source-button small{font-size:12px;color:var(--muted)}.ocr-selected-file{margin:0;padding:9px 11px;border-radius:10px;background:color-mix(in srgb,var(--green) 10%,var(--card));color:var(--green-deep);font-size:12px;font-weight:800;overflow-wrap:anywhere}.ocr-quality-confirm,.ocr-cloud-consent{position:relative;border:1px solid var(--line);border-radius:14px;background:var(--card);padding:13px;display:grid!important;grid-template-columns:34px 1fr;gap:11px;align-items:center;cursor:pointer}.ocr-quality-confirm input{position:absolute;opacity:0;pointer-events:none}.ocr-quality-check{width:32px;height:32px;border:2px solid var(--line);border-radius:10px;display:grid;place-items:center;color:transparent;background:var(--paper);font-size:20px;font-weight:900;transition:.18s}.ocr-quality-copy{display:grid;gap:4px}.ocr-quality-copy b{color:var(--green-deep);font-size:15px}.ocr-quality-copy span{color:var(--muted);font-size:12px;font-weight:700}.ocr-quality-confirm:has(input:checked){border-color:var(--green);background:color-mix(in srgb,var(--green) 8%,var(--card))}.ocr-quality-confirm:has(input:checked) .ocr-quality-check{border-color:var(--green);background:var(--green);color:white}.ocr-quality-confirm:has(input:focus-visible){outline:3px solid color-mix(in srgb,var(--orange) 35%,transparent);outline-offset:2px}.ocr-cloud-consent{grid-template-columns:22px 1fr}.ocr-cloud-consent input{width:20px;height:20px;accent-color:var(--green)}.ocr-cloud-consent span{display:grid;gap:3px}.ocr-cloud-consent b{color:var(--green-deep)}.ocr-cloud-consent small{color:var(--muted);font-weight:600;line-height:1.5}@media(max-width:620px){.ocr-actions,.ocr-review{grid-template-columns:1fr}.ocr-review .wide{grid-column:auto}}";
-    style.textContent += ".ocr-gate{border:1px solid var(--orange);background:color-mix(in srgb,var(--orange) 8%,var(--card));border-radius:16px;padding:18px;display:grid;gap:10px}.ocr-gate h3{margin:0;color:var(--green-deep)}.ocr-gate p{margin:0;color:var(--muted);line-height:1.6}.ocr-gate-row{display:grid;grid-template-columns:1fr auto;gap:10px}.ocr-gate-row input{min-width:0;width:100%;border:1px solid var(--line);border-radius:11px;padding:12px;background:var(--card);font-size:16px}.ocr-gate-status{margin:0}.ocr-gate-warning{font-size:12px;color:var(--muted)}@media(max-width:620px){.ocr-gate-row{grid-template-columns:1fr}}";
+    style.textContent += ".ocr-gate{border:1px solid var(--orange);background:color-mix(in srgb,var(--orange) 8%,var(--card));border-radius:16px;padding:18px;display:grid;gap:10px}.ocr-gate h3{margin:0;color:var(--green-deep)}.ocr-gate p{margin:0;color:var(--muted);line-height:1.6}.ocr-gate-row{display:grid;grid-template-columns:1fr auto;gap:10px}.ocr-gate-row input{min-width:0;width:100%;border:1px solid var(--line);border-radius:11px;padding:12px;background:var(--card);font-size:16px}.ocr-gate-status{margin:0}.ocr-gate-warning{font-size:12px;color:var(--muted)}.ocr-equipment-intro{display:grid;gap:4px;margin:14px 0;padding:13px;border-radius:13px;background:var(--ok-bg);color:var(--green-deep)}.ocr-equipment-intro span{font-size:13px;line-height:1.55}.ocr-equipment-rows{display:grid;gap:12px}.ocr-equipment-row{border:1px solid var(--line);border-radius:14px;padding:13px;background:var(--card);display:grid;grid-template-columns:1fr 1fr;gap:10px}.ocr-equipment-row-head{grid-column:1/-1;display:flex;justify-content:space-between;gap:10px}.ocr-equipment-row-head b{color:var(--green-deep)}.ocr-equipment-row-head span{font-size:12px;color:var(--muted)}@media(max-width:620px){.ocr-gate-row,.ocr-equipment-row{grid-template-columns:1fr}.ocr-equipment-row-head{grid-column:auto}}";
     document.head.appendChild(style);
   }
 
@@ -648,7 +739,7 @@
         </div>
         <div class="ocr-card" id="ocrVisionLockedContent" hidden>
           <h3>${ocrHeading}</h3>
-          <p class="farm-note">請把紙張攤平、避免陰影與反光，並完整拍到四個角。辨識只建立待確認草稿，不會自動儲存。</p>
+          <p class="farm-note">可拍整本紀錄、跨頁表格或帶有背景的照片；系統會嘗試拆成多筆草稿。只要主要表格與手寫內容可閱讀即可，辨識結果不會自動儲存。</p>
           <div class="ocr-browser-import">
             <p class="ocr-source-title">選擇照片來源</p>
             <div class="ocr-source-actions">
@@ -667,7 +758,7 @@
             <label class="ocr-quality-confirm">
               <input id="cloudVisionConfirmCorners" type="checkbox">
               <span class="ocr-quality-check" aria-hidden="true">✓</span>
-              <span class="ocr-quality-copy"><b>拍照品質確認</b><span>四角完整・文字清楚・沒有強烈反光</span></span>
+              <span class="ocr-quality-copy"><b>主要內容可閱讀</b><span>表格與手寫內容未被遮住；可包含書本邊緣、跨頁或背景</span></span>
             </label>
             ${cloudConsent}
             <button class="btn btn-main" id="cloudVisionRun" type="button" onclick="PQC_FORM_OCR_UI.recognizeBrowserImage()">${ocrRunLabel}</button>
@@ -742,6 +833,8 @@
     parsePastedText,
     applyToPesticideRecord,
     applyToFarmForm,
+    applyEquipmentMaintenanceBatch,
+    removeEquipmentDraftRow,
     init
   });
 });
