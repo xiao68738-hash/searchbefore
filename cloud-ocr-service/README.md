@@ -44,6 +44,10 @@ uvicorn app.main:app --reload
 
 測試期間不得把 staging 端點切換為 `public`，也不得使用農民真實含個資的表單；完成品質、隱私、費用與實際省工驗收後，才重新評估公開範圍。
 
+## 健康檢查
+
+部署後請使用 `GET /v1/health` 確認服務可用，預期回應為 `{"status":"ok"}`。Cloud Run 的 Google 前端可能攔截 `/healthz`，因此外部監控不要使用該路徑；`/healthz` 僅保留給本機相容用途。
+
 ## Google Cloud 前置作業
 
 以 `PROJECT_ID`、`REGION` 與服務帳戶名稱替換範例值：

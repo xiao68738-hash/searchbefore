@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from PIL import Image
 from fastapi import HTTPException
 
-from app.main import valid_request_id
+from app.main import app, healthz, valid_request_id
 from app.ocr import InvalidImage, decode_image, normalize_results
 from app.security import DEFAULT_ORIGINS, UserRateLimiter, matches_test_code, origin_is_allowed
 
@@ -82,3 +82,10 @@ def test_request_id_is_bounded_and_safe():
             assert False
         except HTTPException as exc:
             assert exc.status_code == 422
+
+
+def test_health_check_is_available_on_versioned_path():
+    routes = {route.path: getattr(route, "methods", set()) for route in app.routes}
+    assert "/v1/health" in routes
+    assert "GET" in routes["/v1/health"]
+    assert healthz() == {"status": "ok"}
