@@ -14,7 +14,7 @@ const sandbox = { window: {} };
 vm.runInNewContext(configSource, sandbox, { filename: "service-config.js" });
 assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.ocr.provider, "google-cloud-vision", "OCR 供應者必須切換為 Google Cloud Vision");
 assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.features.formOcr, "development", "OCR 只能以 development 測試狀態呈現");
-assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.ocr.cloud.endpoint, "", "未驗收的雲端網址必須保持空白");
+assert.match(sandbox.window.PQC_PUBLIC_CONFIG.ocr.cloud.endpoint, /^https:\/\/searchbefore-ocr-[^/]+\.a\.run\.app\/v1\/ocr$/, "development 測試端點必須是固定的 HTTPS Cloud Run OCR 路徑");
 assert.equal(sandbox.window.PQC_PUBLIC_CONFIG.ocr.cloud.verification.required, true, "OCR 測試必須要求驗證碼");
 assert.equal(UI.validCloudEndpoint("http://example.com/v1/ocr"), "", "OCR 端點必須使用 HTTPS");
 assert.equal(UI.validCloudEndpoint("https://example.com/not-ocr"), "", "OCR 端點路徑必須固定為 /v1/ocr");

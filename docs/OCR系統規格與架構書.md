@@ -1,6 +1,6 @@
 # 噴前查 OCR 系統規格與架構書
 
-> 文件基準：2026-08-05。OCR 已由裝置內／自架模型改為 Google Cloud Vision；目前後端程式完成、尚未部署，前端入口為 `development`，受測試驗證碼鎖定。
+> 文件基準：2026-08-05。OCR 已由裝置內／自架模型改為 Google Cloud Vision；staging Cloud Run 後端已部署，前端入口仍為 `development`，並受測試驗證碼鎖定。
 
 ## 1. 目標與非目標
 

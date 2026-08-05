@@ -28,7 +28,7 @@ window.PQC_PUBLIC_CONFIG = {
   ocr: {
     provider: "google-cloud-vision",
     cloud: {
-      endpoint: "",
+      endpoint: "https://searchbefore-ocr-vfq42fh4pq-de.a.run.app/v1/ocr",
       requireGoogleLogin: true,
       maxUploadBytes: 12582912,
       verification: {
