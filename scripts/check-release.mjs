@@ -10,7 +10,7 @@ const outDir = path.join(root, "dist");
 const expected = [
   "about.html", "account.js", "brand-lockup.png", "cloud-sync.js", "delete-account.html", "brand-logo-120.png", "crop-forms.js", "export-formats.js", "farm-records.js", "form-ocr-ui.js", "form-ocr.js", "icon-180.png", "icon-192.png", "icon-512.png",
   "icon-maskable-512.png", "index.html", "manifest.webmanifest", "privacy.html",
-  "paddle-ocr-browser.js", "pinyin-pro.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"
+  "pinyin-pro.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"
 ].sort();
 
 const actual = (await readdir(outDir)).sort();
@@ -31,7 +31,7 @@ assert.match(combined, /https:\/\/searchbefore\.tw\/delete-account\.html/);
 assert.match(combined, /https:\/\/searchbefore\.tw\/about\.html/);
 assert.match(combined, /噴前查 SearchBefore/);
 
-for (const name of ["account.js", "cloud-sync.js", "crop-forms.js", "export-formats.js", "farm-records.js", "form-ocr-ui.js", "form-ocr.js", "paddle-ocr-browser.js", "pinyin-pro.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"]) {
+for (const name of ["account.js", "cloud-sync.js", "crop-forms.js", "export-formats.js", "farm-records.js", "form-ocr-ui.js", "form-ocr.js", "pinyin-pro.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"]) {
   new vm.Script(await readFile(path.join(outDir, name), "utf8"), { filename: `dist/${name}` });
 }
 
@@ -45,7 +45,7 @@ vm.runInNewContext(webSupportConfig, webSupportSandbox, { filename: "dist/web-su
 assert.equal(webSupportSandbox.window.PQC_WEB_SUPPORT_CONFIG.googlePlayVoluntarySupport, true, "Google Play 純自願支持必須由獨立遠端開關明確啟用");
 assert.match(webSupportConfig, /https:\/\/p\.ecpay\.com\.tw\//, "按需載入的自願支持設定應保留綠界網址");
 assert.doesNotMatch(html, /<script[^>]+web-support-config\.js/i, "正式頁面不可靜態載入付款設定，才能保留遠端停用能力");
-assert.match(ocrUi, /paddle-ocr-browser\.js/, "PaddleOCR bundle 必須只在使用者主動操作時按需載入");
+assert.match(ocrUi, /Google Cloud Vision/, "OCR 前端必須標示目前使用的雲端辨識服務");
 const referencedScripts = [...html.matchAll(/<script[^>]+\bsrc=["']\.\/([^"'?#]+)["']/gi)].map(match => match[1]);
 assert.ok(referencedScripts.length >= 7, "index.html 應載入必要的外部程式");
 for (const name of referencedScripts) assert.ok(actual.includes(name), `dist 缺少 index.html 引用的 ${name}`);

@@ -1,9 +1,7 @@
 import io
-import threading
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Iterable
 
-import numpy as np
 from PIL import Image, ImageOps, UnidentifiedImageError
 
 
@@ -17,12 +15,13 @@ class InvalidImage(ValueError):
 
 @dataclass(frozen=True)
 class DecodedImage:
-    pixels: np.ndarray
+    content: bytes
     width: int
     height: int
 
 
 def decode_image(data: bytes, content_type: str) -> DecodedImage:
+    """驗證圖片並重新編碼，避免把原始檔案或 EXIF 直接送至第三方服務。"""
     if content_type not in ALLOWED_MIME_TYPES:
         raise InvalidImage("只接受 JPG、PNG 或 WebP 圖片")
     try:
@@ -34,85 +33,82 @@ def decode_image(data: bytes, content_type: str) -> DecodedImage:
             if width < 480 or height < 480:
                 raise InvalidImage("照片解析度太低，請靠近表單重新拍攝")
             if width * height > MAX_PIXELS:
-                raise InvalidImage("照片像素過大，請使用 2400 萬像素以下的圖片")
-            return DecodedImage(np.asarray(image), width, height)
+                raise InvalidImage("照片像素過高，請改用 2400 萬像素以下的圖片")
+            output = io.BytesIO()
+            image.save(output, format="JPEG", quality=92, optimize=True)
+            return DecodedImage(output.getvalue(), width, height)
     except (UnidentifiedImageError, OSError, ValueError) as exc:
         if isinstance(exc, InvalidImage):
             raise
-        raise InvalidImage("圖片格式損壞或無法讀取") from exc
+        raise InvalidImage("圖片內容無法讀取，請重新選擇照片") from exc
 
 
-def _value(result: Any, key: str, default: Any = None) -> Any:
-    if isinstance(result, dict):
-        return result.get(key, default)
-    data = getattr(result, "json", None)
-    if isinstance(data, dict):
-        return data.get("res", data).get(key, default)
-    data = getattr(result, "res", None)
-    if isinstance(data, dict):
-        return data.get(key, default)
-    return default
+def _vertices(box: Any) -> list[Any]:
+    return list(getattr(box, "vertices", None) or [])
 
 
-def normalize_results(results: list[Any], width: int = 1, height: int = 1) -> list[dict]:
+def _normalized_box(vertices: Iterable[Any], width: int, height: int) -> dict | None:
+    points = [(float(getattr(v, "x", 0) or 0), float(getattr(v, "y", 0) or 0)) for v in vertices]
+    if not points:
+        return None
+    xs = [point[0] for point in points]
+    ys = [point[1] for point in points]
+    return {
+        "left": max(0.0, min(min(xs) / max(width, 1), 1.0)),
+        "top": max(0.0, min(min(ys) / max(height, 1), 1.0)),
+        "right": max(0.0, min(max(xs) / max(width, 1), 1.0)),
+        "bottom": max(0.0, min(max(ys) / max(height, 1), 1.0)),
+    }
+
+
+def _paragraph_text(paragraph: Any) -> str:
+    words = []
+    for word in getattr(paragraph, "words", None) or []:
+        text = "".join(str(getattr(symbol, "text", "") or "") for symbol in getattr(word, "symbols", None) or [])
+        if text:
+            words.append(text)
+    return " ".join(words).strip()
+
+
+def normalize_results(annotation: Any, width: int = 1, height: int = 1) -> list[dict]:
+    """將 Vision 的頁／區塊／段落結構轉成前端共用的 OCR blocks。"""
     blocks: list[dict] = []
-    for result in results:
-        texts = list(_value(result, "rec_texts", []) or [])
-        scores = list(_value(result, "rec_scores", []) or [])
-        boxes = list(_value(result, "rec_polys", []) or _value(result, "dt_polys", []) or [])
-        for index, text in enumerate(texts):
-            clean = str(text or "").strip()
-            if not clean:
-                continue
-            score = float(scores[index]) if index < len(scores) else 0.0
-            polygon = boxes[index] if index < len(boxes) else []
-            if hasattr(polygon, "tolist"):
-                polygon = polygon.tolist()
-            points = [point for point in polygon if isinstance(point, (list, tuple)) and len(point) >= 2]
-            box = None
-            if points:
-                xs = [float(point[0]) for point in points]
-                ys = [float(point[1]) for point in points]
-                box = {
-                    "left": max(0.0, min(min(xs) / max(width, 1), 1.0)),
-                    "top": max(0.0, min(min(ys) / max(height, 1), 1.0)),
-                    "right": max(0.0, min(max(xs) / max(width, 1), 1.0)),
-                    "bottom": max(0.0, min(max(ys) / max(height, 1), 1.0)),
-                }
-            blocks.append({
-                "id": f"cloud-{len(blocks) + 1}",
-                "text": clean[:500],
-                "confidence": max(0.0, min(score, 1.0)),
-                "box": box,
-            })
-    return blocks[:500]
+    for page in getattr(annotation, "pages", None) or []:
+        for block in getattr(page, "blocks", None) or []:
+            for paragraph in getattr(block, "paragraphs", None) or []:
+                text = _paragraph_text(paragraph)
+                if not text:
+                    continue
+                confidence = float(getattr(paragraph, "confidence", 0.0) or 0.0)
+                blocks.append({
+                    "id": f"cloud-{len(blocks) + 1}",
+                    "text": text[:500],
+                    "confidence": max(0.0, min(confidence, 1.0)),
+                    "box": _normalized_box(_vertices(getattr(paragraph, "bounding_box", None)), width, height),
+                })
+                if len(blocks) >= 500:
+                    return blocks
+    return blocks
 
 
-class PaddleEngine:
+class GoogleVisionEngine:
     def __init__(self) -> None:
-        self._engine = None
-        self._lock = threading.Lock()
+        self._client = None
 
     def _load(self):
-        if self._engine is None:
-            from paddleocr import PaddleOCR
+        if self._client is None:
+            from google.cloud import vision
 
-            self._engine = PaddleOCR(
-                text_detection_model_name="PP-OCRv6_small_det",
-                text_recognition_model_name="PP-OCRv6_small_rec",
-                use_doc_orientation_classify=False,
-                use_doc_unwarping=False,
-                use_textline_orientation=False,
-                device="cpu",
-                cpu_threads=4,
-            )
-        return self._engine
+            self._client = vision.ImageAnnotatorClient()
+        return self._client
 
-    def recognize(self, image: np.ndarray) -> list[dict]:
-        # Paddle 推論物件不是設計給同一行程多執行緒同時使用。
-        with self._lock:
-            height, width = image.shape[:2]
-            return normalize_results(list(self._load().predict(image)), width, height)
+    def recognize(self, content: bytes, width: int, height: int) -> list[dict]:
+        from google.cloud import vision
+
+        response = self._load().document_text_detection(image=vision.Image(content=content))
+        if response.error.message:
+            raise RuntimeError(f"Google Cloud Vision 辨識失敗：{response.error.message}")
+        return normalize_results(response.full_text_annotation, width, height)
 
 
-engine = PaddleEngine()
+engine = GoogleVisionEngine()

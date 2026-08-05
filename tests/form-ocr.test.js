@@ -67,21 +67,13 @@ assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄" }), false);
 assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType: "pesticide" }), false, "用藥草稿缺少藥劑不可帶入");
 assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType: "pesticide", material: "亞滅培" }), true);
 
-const browserDraft = O.createDraft({
-  engine: "PaddleOCR.js PP-OCRv6-tiny",
-  quality: { width: 1600, height: 2200, documentCoverage: 1, sharpness: 0.9, glareRatio: 0, skewDegrees: 0, cornersDetected: true },
-  blocks: [{ text: "民國115/7/30 番茄", confidence: 0.9 }]
-}, { crops: ["番茄"] });
-assert.equal(browserDraft.source, "browser-paddleocr", "瀏覽器 PaddleOCR 草稿必須標示來源");
-assert.equal(browserDraft.confirmed, false, "瀏覽器辨識結果同樣不得直接視為已確認");
-
 const cloudDraft = O.createDraft({
-  source: "cloud-paddleocr",
-  engine: "PaddleOCR 3.7 / PP-OCRv6-small (Cloud Run)",
-  quality: { width: 1600, height: 2200, cornersDetected: true, assessment: "user-confirmed-before-upload" },
+  source: "google-cloud-vision",
+  engine: "Google Cloud Vision DOCUMENT_TEXT_DETECTION",
+  quality: { width: 1600, height: 2200, cornersDetected: false, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
   blocks: [{ text: "民國115/7/30 番茄", confidence: 0.9 }]
 }, { crops: ["番茄"] });
-assert.equal(cloudDraft.source, "cloud-paddleocr", "雲端辨識草稿必須保留來源標示");
+assert.equal(cloudDraft.source, "google-cloud-vision", "雲端辨識草稿必須保留來源標示");
 assert.equal(cloudDraft.quality.canProcess, true, "使用者已確認且解析度足夠的雲端照片可進入人工草稿");
 assert.equal(cloudDraft.confirmed, false, "雲端辨識結果不得直接視為已確認");
 

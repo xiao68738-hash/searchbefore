@@ -29,12 +29,12 @@ node tests/run-all.js
 3. [`specs/001-ocr-assist/plan.md`](specs/001-ocr-assist/plan.md)：元件責任、技術選擇與部署方案。
 4. [`specs/001-ocr-assist/tasks.md`](specs/001-ocr-assist/tasks.md)：已完成、待驗證與不得提前上線的工作清單。
 
-目前有三條 OCR 路徑：公開前端使用瀏覽器內的 PaddleOCR.js；Android ML Kit 掃描器仍是未接入正式 App 的獨立原型；`cloud-ocr-service/` 是預設關閉、尚未部署的 PaddleOCR 3.7／Cloud Run 方案。三者的輸出都必須轉成同一份未確認草稿，不能自動寫入正式田間紀錄。
+OCR 已改採 Google Cloud Vision 架構：PWA 只負責選取照片、取得單次同意與顯示待確認草稿；`cloud-ocr-service/` 會在 Cloud Run 驗證 Firebase 登入後，以 `DOCUMENT_TEXT_DETECTION` 呼叫 Vision API。Android ML Kit 掃描器仍是未接入正式 App 的獨立原型。所有辨識結果都只能轉成未確認草稿，不能自動寫入正式田間紀錄。
 
 ## 帳號與自願贊助
 
 - Google 登入為選用功能；**只有登入不會上傳田間資料**。使用者另行開啟雲端同步後，田區、用藥與農務紀錄才會同步到其 Google 帳號對應的 Firestore 空間。
-- 表單 OCR 目前仍使用瀏覽器本機模式。`cloud-ocr-service/` 是尚未啟用的 Cloud Run PaddleOCR 後端；部署、隱私與實機驗收完成前，公開設定維持 `provider: "browser"`，不會把照片傳上雲端。
+- 表單 OCR 已停止瀏覽器本機模型，改為 Cloud Run／Google Cloud Vision 後端。現在以 `development` 顯示指定測試入口，需輸入測試驗證碼、Google 登入及逐次雲端同意；正式端點尚未填入前不會真正上傳照片，完成實機驗收前不得改為 `public`。
 - 公開測試期間不顯示試用申請、授權碼、方案或購買入口，現有功能全部開放。
 - 首頁以「完成一項真實工作」引導測試者查詢、留下紀錄並在之後回訪，不把按讚或單次瀏覽當成有效驗證。
 - 自願贊助不影響任何功能；`web-support-config.js` 可分別設定 50、100、150 元與自訂金額的 HTTPS 贊助網址。

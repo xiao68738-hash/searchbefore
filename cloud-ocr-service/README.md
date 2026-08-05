@@ -1,48 +1,60 @@
-# 噴前查雲端 PaddleOCR（尚未部署）
+# 噴前查 Google Cloud Vision OCR（尚未部署）
 
-這個資料夾是獨立的 Cloud Run 後端。GitHub Pages 仍只放 PWA；大型 PaddleOCR 模型在伺服器執行，手機不會再承擔模型記憶體。
+這是獨立的 Cloud Run 後端。PWA 不直接接觸 Vision API、服務帳戶或金鑰；前端只把使用者主動選取的照片送到 `/v1/ocr`，後端驗證 Firebase ID token 後再呼叫 Google Cloud Vision `DOCUMENT_TEXT_DETECTION`。
 
-第一次審查請先閱讀 [`../docs/OCR系統規格與架構書.md`](../docs/OCR系統規格與架構書.md)；需求、計畫與待辦位於 [`../specs/001-ocr-assist/`](../specs/001-ocr-assist/)。目前正式前端沒有啟用這個服務。
+目前 `service-config.js` 的 `formOcr` 為 `development`，入口受測試驗證碼、Google 登入及逐次同意限制；正式端點仍是空白，因此尚未完成部署、隱私與實機驗收前不會真正上傳照片，也不得切到 `public`。
 
-## 程式結構
+## 資料流程
 
-- `app/main.py`：`/healthz`、`/v1/ocr`、請求大小與逾時。
-- `app/security.py`：Origin、Firebase ID token 與每 UID 記憶體限流。
-- `app/ocr.py`：圖片驗證、PaddleOCR 模型與輸出正規化。
-- `tests/test_ocr.py`：純邏輯測試；目前不涵蓋真實模型推論。
-- `Dockerfile`：Python 3.11、非 root 使用者、建置期模型快取、單 worker。
+1. 使用者以 Google 帳號登入。
+2. 使用者選擇照片、確認四角與清晰度，並勾選本次雲端處理同意。
+3. PWA 以 Firebase ID token 呼叫 Cloud Run `/v1/ocr`。
+4. 後端限制 Origin、帳號頻率、檔案格式、12 MB 與 2,400 萬像素。
+5. 後端修正 EXIF 方向、重新編碼成 JPEG，再使用 Cloud Run 服務身分呼叫 Vision API。
+6. 後端只回傳文字、信心值與位置；前端建立未確認草稿，不自動儲存。
 
-## 安全邊界
-
-- `/v1/ocr` 只接受 `searchbefore.tw`、JPG／PNG／WebP、12 MB 以下及 2,400 萬像素以下圖片。
-- 每次請求都要附 Firebase ID token；後端用 Firebase Admin 驗證，前端不保存任何私鑰。
-- 圖片只在記憶體解碼，不寫入磁碟；應用程式不記錄圖片、OCR 文字或 token。
-- 回傳內容只建立前端草稿，仍須由使用者逐欄確認，不會自動存成正式紀錄。
-- 服務採單一 worker，避免同一 Paddle 推論物件被平行執行緒共用。Cloud Run 的單一執行個體並行數也應設為 1。
-
-## 部署前置作業
-
-1. 在 Google Cloud 選定專案並啟用 Cloud Run、Cloud Build、Artifact Registry。
-2. 確認 Cloud Run 使用的服務帳戶可呼叫 Firebase Authentication 驗證。
-3. 於本目錄建置容器；第一次建置會下載 Paddle 套件，第一次啟動會下載模型。
-4. 部署時設定至少 4 GiB 記憶體、2 CPU、concurrency 1、timeout 60 秒、min instances 0。
-5. 先用測試網址驗證，再將 `service-config.js` 的 `ocr.provider` 改為 `cloud-paddleocr`，並填入 HTTPS endpoint。
-
-參考指令（專案 ID 與區域需自行替換）：
-
-```powershell
-gcloud builds submit --tag asia-east1-docker.pkg.dev/PROJECT_ID/searchbefore/ocr:0.1
-gcloud run deploy searchbefore-ocr --image asia-east1-docker.pkg.dev/PROJECT_ID/searchbefore/ocr:0.1 --region asia-east1 --allow-unauthenticated --cpu 2 --memory 4Gi --concurrency 1 --timeout 60 --min 0 --max 3 --set-env-vars "ALLOWED_ORIGINS=https://searchbefore.tw,https://www.searchbefore.tw"
-```
-
-`--allow-unauthenticated` 只代表瀏覽器能連到 Cloud Run；應用層仍強制驗證 Firebase ID token。正式公開前還應加上 App Check、用量警報與 API 配額。
+應用程式程式碼不寫入照片、OCR 文字或 token。仍須在 Cloud Logging 確認不記錄 request body，並設定合理的日誌保存期限。
 
 ## 本機測試
 
-不安裝 Paddle 也能先執行純驗證測試：
-
 ```powershell
-python -m pytest tests -q
+cd cloud-ocr-service
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements-dev.txt
+gcloud auth application-default login
+pytest -q
+uvicorn app.main:app --reload
 ```
 
-目前分支只完成 Python AST 語法檢查與純邏輯測試準備，尚未在本機實際安裝完整 Paddle 依賴、建置容器或跑真實圖片推論。請勿將這個狀態視為已可部署。
+純邏輯測試不會呼叫 Vision API。需要實際辨識時，必須先啟用 API、設定計費與 ADC，並使用不含真實個資的測試圖片。
+
+## Google Cloud 前置作業
+
+以 `PROJECT_ID`、`REGION` 與服務帳戶名稱替換範例值：
+
+```bash
+gcloud services enable vision.googleapis.com run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com --project PROJECT_ID
+gcloud iam service-accounts create searchbefore-ocr --project PROJECT_ID
+gcloud projects add-iam-policy-binding PROJECT_ID --member="serviceAccount:searchbefore-ocr@PROJECT_ID.iam.gserviceaccount.com" --role="roles/serviceusage.serviceUsageConsumer"
+gcloud run deploy searchbefore-ocr --source cloud-ocr-service --project PROJECT_ID --region REGION --service-account "searchbefore-ocr@PROJECT_ID.iam.gserviceaccount.com" --allow-unauthenticated --set-env-vars "ALLOWED_ORIGINS=https://searchbefore.tw,OCR_REQUESTS_PER_MINUTE=10"
+```
+
+Cloud Run 必須允許網路請求進入，因為瀏覽器帶的是 Firebase token，不是 Cloud Run IAM token；真正的使用者驗證由 `app/security.py` 完成。不要因此移除 Firebase token、Origin 或頻率限制。
+
+生產環境使用 Cloud Run 附加的服務帳戶與 Application Default Credentials。不要下載 JSON 金鑰，也不要把 API key、服務帳戶金鑰或 access token 寫進 GitHub、前端設定或 App。
+
+## 啟用順序
+
+1. 啟用 Vision API 與計費，建立預算通知和可接受的配額。
+2. 以專用服務帳戶部署 Cloud Run。
+3. 使用測試帳號驗證 401、403、413、422、429、逾時與正常回應。
+4. 確認 Cloud Logging 不含圖片、完整 OCR 文字或 token。
+5. 更新 `privacy.html` 的實際處理方式與 Google 服務說明。
+6. 將 Cloud Run `/v1/ocr` HTTPS 網址填入 `service-config.js`。
+7. 部署並驗收端點後，維持 `development` 做指定測試；完成正確率、實際省工、隱私及費用驗收後，才評估是否改為 `public`。
+8. 通過欄位正確率、人工覆核與省工比較後，才評估 `public`。
+
+## 成本邊界
+
+Vision 依圖片／頁面及使用的功能計價，Cloud Run 另行計費。除了帳號頻率限制，還要在 Google Cloud 設定預算通知、配額與異常流量監控；應用程式端限流不能取代雲端配額。
