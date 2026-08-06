@@ -108,6 +108,19 @@ assert.equal(equipmentDraft.recordGroups[1].date[0].value, "2026-03-10");
 const checklistTypes = O.detectFormTypes("農作物生產及出貨作業自我查核表\n查核項目 查核頻率 程度 備註\n確認日期：115.6.1 查核者：王小明");
 assert.equal(checklistTypes[0].value, "selfInspection", "查核表不得誤判成田間作業紀錄");
 
+const checklistDraft = O.createDraft({
+  source: "google-cloud-vision",
+  quality: { width: 1800, height: 2400, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
+  blocks: [{ text: "農作物生產及出貨作業自我查核表\n查核項目 查核頻率 程度 備註\n3.1 種苗使用管理\n確認日期：115.2.1 查核者：施坤寶\n3.1.1 種苗來源是否明確\n3.1.2 是否保留定植紀錄\n3.2 樹體管理\n3.2.1 是否清除病蟲害部位", confidence: 0.91 }]
+});
+assert.ok(checklistDraft.selfInspection, "自我查核表必須建立獨立的結構化草稿");
+assert.equal(checklistDraft.selfInspection.sections.length, 2);
+assert.equal(checklistDraft.selfInspection.sections[0].items[0].code, "3.1.1");
+assert.equal(checklistDraft.selfInspection.sections[0].items[0].status, "unresolved", "OCR 不得依失去版面關係的勾選文字猜測查核結果");
+assert.equal(checklistDraft.selfInspection.sections[0].items[2].detectedFromOcr, false, "同章固定欄位可由版型補回，但必須標示不是 OCR 證據");
+assert.equal(checklistDraft.selfInspection.dates[0].value, "2026-02-01");
+assert.equal(checklistDraft.selfInspection.inspectors[0].value.replace(/\s/g, ""), "施坤寶");
+
 const pastedEquipmentRows = O.findEquipmentMaintenanceRows([{ id: "paste", text: "民國115/2/23 ☑噴霧機 ☑清潔\n民國115/3/10 ☑割草機 ☑保養", confidence: 1 }]);
 assert.equal(pastedEquipmentRows.length, 2, "同一段 OCR 原文中的多個日期也必須拆成多筆");
 assert.deepEqual(pastedEquipmentRows[0].equipment.filter(item => item.selected).map(item => item.value), ["噴霧機"]);

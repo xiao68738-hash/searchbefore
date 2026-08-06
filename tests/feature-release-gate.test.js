@@ -40,8 +40,11 @@ assert.doesNotMatch(uiSource, /貼上辨識文字（備用測試）/, "正式測
 assert.match(uiSource, /主要內容可閱讀/, "OCR 必須提供不過度限制版面的可讀性確認元件");
 assert.match(uiSource, /跨頁表格|跨頁或背景/, "OCR 必須明示可接受整本、跨頁或帶背景的實際紀錄照片");
 assert.match(uiSource, /applyEquipmentMaintenanceBatch/, "OCR 必須支援設備管理表單的多筆人工覆核流程");
+assert.match(uiSource, /exportSelfInspectionDraft/, "OCR 必須提供獨立的自我查核草稿輸出，不得誤存成田間紀錄");
 assert.match(html, /一次儲存設備管理紀錄/, "田間紀錄介面必須支援一次建立多筆設備管理紀錄");
-assert.match(uiSource, /Google Cloud Vision/, "OCR 介面必須清楚標示第三方雲端服務");
+assert.match(uiSource, /第三方雲端辨識服務/, "OCR 單次同意必須揭露照片會交由第三方處理");
+assert.match(uiSource, /資料處理服務說明[\s\S]*Google Cloud Vision/, "展開的資料處理說明必須揭露實際處理服務商");
+assert.doesNotMatch(uiSource, /const ocrHeading = "Google Cloud Vision/, "主操作標題不應以供應商品牌取代產品功能名稱");
 assert.match(uiSource, /cloudOcrConsent/, "照片送出前必須取得單次同意");
 assert.match(uiSource, /ocrVerificationGate/, "OCR 必須先通過驗證碼閘門");
 assert.match(uiSource, /sessionStorage/, "OCR 解鎖狀態只能保留在目前瀏覽器工作階段");
