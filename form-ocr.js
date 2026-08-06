@@ -451,6 +451,72 @@
     return Object.freeze(out.slice(0, 8));
   }
 
+  function spacedLiteral(value) {
+    return Array.from(String(value || "").replace(/\s+/g, "")).map(function (char) {
+      return char.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }).join("\\s*");
+  }
+
+  function findInventoryLabeledValues(text, labels, stopLabels, kind) {
+    const source = normalizeText(text);
+    const labelPattern = (labels || []).map(spacedLiteral).filter(Boolean).join("|");
+    const stopPattern = (stopLabels || []).map(spacedLiteral).filter(Boolean).join("|");
+    if (!labelPattern) return Object.freeze([]);
+    const end = stopPattern ? "(?=[ \\t]*(?:" + stopPattern + ")[ \\t]*[:：]?|[ \\t]*\\n|$)" : "(?=[ \\t]*\\n|$)";
+    const pattern = new RegExp("(?:" + labelPattern + ")[ \\t]*[:：]?[ \\t]*([^\\n]{1,40}?)" + end, "g");
+    const out = [];
+    const seen = new Set();
+    let match;
+    while ((match = pattern.exec(source))) {
+      const value = normalizeText(match[1])
+        .replace(/[□☑√✓]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+      const key = compact(value);
+      if (!key || seen.has(key) || /^(未填|無|其他)$/.test(key)) continue;
+      seen.add(key);
+      out.push(Object.freeze({ value: value.replace(/\s+/g, ""), sourceText: match[0], confidence: 0.8, kind }));
+    }
+    return Object.freeze(out.slice(0, 12));
+  }
+
+  function mergeCandidates() {
+    const seen = new Set();
+    const out = [];
+    Array.from(arguments).forEach(function (items) {
+      (items || []).forEach(function (item) {
+        const key = compact(item && item.value);
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        out.push(item);
+      });
+    });
+    return Object.freeze(out);
+  }
+
+  function createMaterialInventoryDraft(text) {
+    const stopLabels = ["資材名稱", "廠商", "供應商", "包裝單位", "包裝容量", "日期", "購入量", "使用量", "剩餘量"];
+    const materials = findInventoryLabeledValues(text, ["資材名稱", "肥料名稱"], stopLabels, "inventoryMaterial");
+    const manufacturers = findInventoryLabeledValues(text, ["廠商", "製造商"], stopLabels, "manufacturer");
+    const suppliers = findInventoryLabeledValues(text, ["供應商", "購入處"], stopLabels, "supplier");
+    const packageCapacities = findInventoryLabeledValues(text, ["包裝容量"], stopLabels, "packageCapacity");
+    const dates = findDates(text);
+    const amounts = findAmounts(text);
+    return Object.freeze({
+      title: "肥料／資材入出庫草稿",
+      materials,
+      manufacturers,
+      suppliers,
+      packageCapacities,
+      dates,
+      amounts,
+      suggestedRowCount: Math.max(1, dates.length),
+      manualReviewRequired: true,
+      l3Mapping: "unconfirmed",
+      fieldPolicy: "inventory-ledger-manual-row-review"
+    });
+  }
+
   function findSelfInspectionCodes(text) {
     const source = normalizeText(text);
     const found = new Set();
@@ -508,6 +574,8 @@
     const recordTypes = detectFormTypes(text);
     const isEquipmentForm = recordTypes.some(function (item) { return item.value === "equipmentMaintenance" && item.markerCount >= 2; });
     const isSelfInspection = recordTypes.some(function (item) { return item.value === "selfInspection" && item.markerCount >= 2; });
+    const isMaterialInventory = recordTypes.some(function (item) { return item.value === "purchase" && item.markerCount >= 2; });
+    const materialInventory = isMaterialInventory ? createMaterialInventoryDraft(text) : null;
     let equipmentRows = isEquipmentForm ? findEquipmentMaintenanceRows(blocks) : Object.freeze([]);
     if (isEquipmentForm && !equipmentRows.length) {
       equipmentRows = Object.freeze([Object.freeze({
@@ -533,7 +601,7 @@
         crop: dictionaryCandidates(text, dict.crops, "crop"),
         fieldPlot: findPlotCodes(text),
         target: dictionaryCandidates(text, dict.targets, "target"),
-        material: dictionaryCandidates(text, dict.materials, "material"),
+        material: mergeCandidates(dictionaryCandidates(text, dict.materials, "material"), materialInventory && materialInventory.materials),
         dilution: findDilutions(text),
         amount: findAmounts(text),
         safetyInterval: findSafetyIntervals(text),
@@ -541,6 +609,7 @@
       }),
       recordGroups: equipmentRows,
       selfInspection: isSelfInspection ? createSelfInspectionDraft(text) : null,
+      materialInventory,
       blocks
     });
   }
@@ -564,6 +633,8 @@
     detectFormTypes,
     findPlotCodes,
     findLabeledValues,
+    findInventoryLabeledValues,
+    createMaterialInventoryDraft,
     dictionaryCandidates,
     findMarkedOptions,
     findEquipmentMaintenanceRows,
