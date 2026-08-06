@@ -121,6 +121,19 @@ assert.equal(checklistDraft.selfInspection.sections[0].items[2].detectedFromOcr,
 assert.equal(checklistDraft.selfInspection.dates[0].value, "2026-02-01");
 assert.equal(checklistDraft.selfInspection.inspectors[0].value.replace(/\s/g, ""), "施坤寶");
 
+const inventoryDraft = O.createDraft({
+  source: "google-cloud-vision",
+  quality: { width: 1800, height: 2400, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
+  blocks: [{ text: "表 10. 肥料 入 出 庫 紀錄\n資 材 名稱 : 苦土 石灰 廠商 : 資礦 供 應 商 : 豐公農業資材行 包裝 容量 : 25 公斤\n資 材 名稱 : 硫酸鉀 廠商 : 東成\n115年5月10日 購入量 15包 使用量 5包 剩餘量 10包", confidence: 0.9 }]
+});
+assert.equal(inventoryDraft.fields.recordType[0].value, "purchase", "肥料入出庫表應分類為資材庫存，不可當成施肥紀錄");
+assert.ok(inventoryDraft.materialInventory, "肥料入出庫表必須建立獨立庫存草稿");
+assert.deepEqual(inventoryDraft.materialInventory.materials.map(item => item.value), ["苦土石灰", "硫酸鉀"]);
+assert.ok(inventoryDraft.materialInventory.suppliers.some(item => item.value.includes("豐公農業資材行")));
+assert.ok(inventoryDraft.materialInventory.manufacturers.some(item => item.value === "東成"), JSON.stringify(inventoryDraft.materialInventory.manufacturers));
+assert.equal(inventoryDraft.materialInventory.l3Mapping, "unconfirmed", "未取得 L3 欄位規格前不得宣稱可直接上傳");
+assert.equal(inventoryDraft.materialInventory.manualReviewRequired, true);
+
 const pastedEquipmentRows = O.findEquipmentMaintenanceRows([{ id: "paste", text: "民國115/2/23 ☑噴霧機 ☑清潔\n民國115/3/10 ☑割草機 ☑保養", confidence: 1 }]);
 assert.equal(pastedEquipmentRows.length, 2, "同一段 OCR 原文中的多個日期也必須拆成多筆");
 assert.deepEqual(pastedEquipmentRows[0].equipment.filter(item => item.selected).map(item => item.value), ["噴霧機"]);
