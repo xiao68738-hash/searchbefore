@@ -41,6 +41,9 @@ assert.match(uiSource, /主要內容可閱讀/, "OCR 必須提供不過度限制
 assert.match(uiSource, /跨頁表格|跨頁或背景/, "OCR 必須明示可接受整本、跨頁或帶背景的實際紀錄照片");
 assert.match(uiSource, /applyEquipmentMaintenanceBatch/, "OCR 必須支援設備管理表單的多筆人工覆核流程");
 assert.match(uiSource, /exportSelfInspectionDraft/, "OCR 必須提供獨立的自我查核草稿輸出，不得誤存成田間紀錄");
+assert.match(uiSource, /備查文件（非 L3 登打）/, "自我檢核表必須明示為非 L3 登打文件");
+assert.match(uiSource, /renderMaterialInventoryDraft/, "肥料入出庫表必須使用獨立的資材庫存覆核介面");
+assert.match(uiSource, /exportMaterialInventoryDraft/, "資材庫存草稿必須可由人工核對後匯出");
 assert.match(html, /一次儲存設備管理紀錄/, "田間紀錄介面必須支援一次建立多筆設備管理紀錄");
 assert.match(uiSource, /第三方雲端辨識服務/, "OCR 單次同意必須揭露照片會交由第三方處理");
 assert.match(uiSource, /資料處理服務說明[\s\S]*Google Cloud Vision/, "展開的資料處理說明必須揭露實際處理服務商");
