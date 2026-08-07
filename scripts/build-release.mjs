@@ -8,7 +8,10 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..");
 const outDir = path.join(root, "dist");
 
-const htmlFiles = ["index.html", "about.html", "privacy.html", "delete-account.html"];
+const htmlFiles = [
+  "index.html", "about.html", "privacy.html", "delete-account.html", "guides.html",
+  "guide-label.html", "guide-dilution.html", "guide-phi.html", "guide-ppe.html"
+];
 const jsFiles = [
   "service-config.js",
   "web-support-config.js",
@@ -21,10 +24,12 @@ const jsFiles = [
   "form-ocr.js",
   "form-ocr-ui.js",
   "export-formats.js",
+  "field-summary.js",
   "sw.js"
 ];
 const imageFiles = ["brand-lockup.png", "brand-logo-120.png", "icon-180.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 const vendorFiles = ["pinyin-pro.js"];
+const publicFiles = ["guide.css", "ads.txt", "robots.txt", "sitemap.xml"];
 
 await rm(outDir, { recursive: true, force: true });
 await mkdir(outDir, { recursive: true });
@@ -72,6 +77,10 @@ for (const name of imageFiles) {
 }
 
 for (const name of vendorFiles) {
+  await copyFile(path.join(root, name), path.join(outDir, name));
+}
+
+for (const name of publicFiles) {
   await copyFile(path.join(root, name), path.join(outDir, name));
 }
 

@@ -8,8 +8,9 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..");
 const outDir = path.join(root, "dist");
 const expected = [
-  "about.html", "account.js", "brand-lockup.png", "cloud-sync.js", "delete-account.html", "brand-logo-120.png", "crop-forms.js", "export-formats.js", "farm-records.js", "form-ocr-ui.js", "form-ocr.js", "icon-180.png", "icon-192.png", "icon-512.png",
-  "icon-maskable-512.png", "index.html", "manifest.webmanifest", "privacy.html",
+  "about.html", "account.js", "ads.txt", "brand-lockup.png", "cloud-sync.js", "delete-account.html", "brand-logo-120.png", "crop-forms.js", "export-formats.js", "farm-records.js", "form-ocr-ui.js", "form-ocr.js", "guide.css", "guide-dilution.html", "guide-label.html", "guide-phi.html", "guide-ppe.html", "guides.html", "icon-180.png", "icon-192.png", "icon-512.png",
+  "icon-maskable-512.png", "index.html", "manifest.webmanifest", "privacy.html", "robots.txt", "sitemap.xml",
+  "field-summary.js",
   "pinyin-pro.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"
 ].sort();
 
@@ -17,7 +18,7 @@ const actual = (await readdir(outDir)).sort();
 assert.deepEqual(actual, expected, "dist 只能包含網站執行必要檔案");
 assert.ok(actual.every(name => !/\.(?:md|map)$/i.test(name)), "不得發布文件或 Source Map");
 
-const textFiles = actual.filter(name => /\.(?:html|js|webmanifest)$/i.test(name));
+const textFiles = actual.filter(name => /\.(?:html|js|css|txt|xml|webmanifest)$/i.test(name));
 let combined = "";
 for (const name of textFiles) combined += `\n${await readFile(path.join(outDir, name), "utf8")}`;
 
@@ -30,8 +31,10 @@ assert.match(combined, /https:\/\/searchbefore\.tw\/privacy\.html/);
 assert.match(combined, /https:\/\/searchbefore\.tw\/delete-account\.html/);
 assert.match(combined, /https:\/\/searchbefore\.tw\/about\.html/);
 assert.match(combined, /噴前查 SearchBefore/);
+assert.match(combined, /ca-pub-1085605483379036/);
+assert.match(combined, /https:\/\/searchbefore\.tw\/guides\.html/);
 
-for (const name of ["account.js", "cloud-sync.js", "crop-forms.js", "export-formats.js", "farm-records.js", "form-ocr-ui.js", "form-ocr.js", "pinyin-pro.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"]) {
+for (const name of ["account.js", "cloud-sync.js", "crop-forms.js", "export-formats.js", "farm-records.js", "field-summary.js", "form-ocr-ui.js", "form-ocr.js", "pinyin-pro.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"]) {
   new vm.Script(await readFile(path.join(outDir, name), "utf8"), { filename: `dist/${name}` });
 }
 
