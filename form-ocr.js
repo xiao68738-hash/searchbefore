@@ -77,6 +77,18 @@
     profile: Object.freeze({ label: "基本資料／田區資料", markers: Object.freeze(["基本資料", "經營農戶姓名", "農地地籍號碼", "栽培總面積"]) })
   });
 
+  const DOCUMENT_ROUTES = Object.freeze({
+    pesticide: Object.freeze({ route: "production-record", destination: "farm-form", l3MappingStatus: "unmapped" }),
+    fertilizer: Object.freeze({ route: "production-record", destination: "farm-form", l3MappingStatus: "unmapped" }),
+    cultivation: Object.freeze({ route: "production-record", destination: "farm-form", l3MappingStatus: "unmapped" }),
+    harvest: Object.freeze({ route: "production-record", destination: "farm-form", l3MappingStatus: "unmapped" }),
+    postharvest: Object.freeze({ route: "production-record", destination: "farm-form", l3MappingStatus: "unmapped" }),
+    equipmentMaintenance: Object.freeze({ route: "supporting-record", destination: "local-equipment-record", l3MappingStatus: "unconfirmed" }),
+    purchase: Object.freeze({ route: "material-ledger", destination: "material-inventory-review", l3MappingStatus: "unconfirmed" }),
+    selfInspection: Object.freeze({ route: "reference-only", destination: "reference-review", l3MappingStatus: "not-applicable" }),
+    profile: Object.freeze({ route: "master-data", destination: "manual-review-only", l3MappingStatus: "unmapped" })
+  });
+
   function clamp01(value) {
     const n = Number(value);
     return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 0;
@@ -249,6 +261,51 @@
     return Object.freeze(out.sort(function (a, b) {
       return b.markerCount - a.markerCount || b.confidence - a.confidence;
     }));
+  }
+
+  function decideDocumentRoute(recordTypes) {
+    const candidates = Array.isArray(recordTypes) ? recordTypes : [];
+    const top = candidates[0];
+    const runnerUp = candidates[1];
+    if (!top || top.markerCount < 2) {
+      return Object.freeze({
+        status: "unknown",
+        type: null,
+        route: "unknown",
+        destination: "manual-classification",
+        l3MappingStatus: "not-mapped",
+        reason: "沒有足夠的同類表單標記，必須由使用者選擇文件用途"
+      });
+    }
+    if (runnerUp && runnerUp.markerCount === top.markerCount) {
+      return Object.freeze({
+        status: "ambiguous",
+        type: null,
+        route: "unknown",
+        destination: "manual-classification",
+        l3MappingStatus: "not-mapped",
+        reason: "兩種文件的辨識標記數相同，禁止自動採用第一名"
+      });
+    }
+    const route = DOCUMENT_ROUTES[top.value];
+    if (!route) {
+      return Object.freeze({
+        status: "unknown",
+        type: null,
+        route: "unknown",
+        destination: "manual-classification",
+        l3MappingStatus: "not-mapped",
+        reason: "沒有可用的文件分流規則"
+      });
+    }
+    return Object.freeze({
+      status: "exact",
+      type: top.value,
+      route: route.route,
+      destination: route.destination,
+      l3MappingStatus: route.l3MappingStatus,
+      reason: "辨識到 " + top.markerCount + " 個同類表單標記"
+    });
   }
 
   function findPlotCodes(text) {
@@ -572,9 +629,10 @@
     const text = blocks.map(function (block) { return block.text; }).join("\n");
     const dict = dictionaries || {};
     const recordTypes = detectFormTypes(text);
-    const isEquipmentForm = recordTypes.some(function (item) { return item.value === "equipmentMaintenance" && item.markerCount >= 2; });
-    const isSelfInspection = recordTypes.some(function (item) { return item.value === "selfInspection" && item.markerCount >= 2; });
-    const isMaterialInventory = recordTypes.some(function (item) { return item.value === "purchase" && item.markerCount >= 2; });
+    const routeDecision = decideDocumentRoute(recordTypes);
+    const isEquipmentForm = routeDecision.status === "exact" && routeDecision.type === "equipmentMaintenance";
+    const isSelfInspection = routeDecision.status === "exact" && routeDecision.type === "selfInspection";
+    const isMaterialInventory = routeDecision.status === "exact" && routeDecision.type === "purchase";
     const materialInventory = isMaterialInventory ? createMaterialInventoryDraft(text) : null;
     let equipmentRows = isEquipmentForm ? findEquipmentMaintenanceRows(blocks) : Object.freeze([]);
     if (isEquipmentForm && !equipmentRows.length) {
@@ -595,6 +653,13 @@
       createdAt: String(result.createdAt || new Date().toISOString()),
       confirmed: false,
       quality,
+      routeDecision,
+      route: Object.freeze({
+        route: routeDecision.route,
+        destination: routeDecision.destination,
+        l3MappingStatus: routeDecision.l3MappingStatus,
+        reason: routeDecision.reason
+      }),
       fields: Object.freeze({
         recordType: recordTypes,
         date: findDates(text),
@@ -617,6 +682,10 @@
   function canCommit(draft, confirmedFields) {
     if (!draft || draft.confirmed || !draft.quality || !draft.quality.canProcess) return false;
     const fields = confirmedFields || {};
+    const allowedTypes = ["pesticide", "cultivation", "fertilizer", "harvest", "postharvest", "materialPurchase"];
+    if (allowedTypes.indexOf(fields.recordType) < 0) return false;
+    if (draft.routeDecision && draft.routeDecision.status === "exact" && draft.route && draft.route.destination !== "farm-form") return false;
+    if (draft.routeDecision && draft.routeDecision.status !== "exact" && fields.routeConfirmed !== true) return false;
     if (!fields.date || !fields.crop || !fields.recordType) return false;
     if (fields.recordType === "pesticide" && !fields.material) return false;
     return true;
@@ -631,6 +700,7 @@
     findAmounts,
     findSafetyIntervals,
     detectFormTypes,
+    decideDocumentRoute,
     findPlotCodes,
     findLabeledValues,
     findInventoryLabeledValues,

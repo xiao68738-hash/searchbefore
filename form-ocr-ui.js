@@ -24,9 +24,13 @@
     fertilizer: "施肥",
     harvest: "採收",
     postharvest: "採後處理",
-    purchase: "資材購入",
+    materialPurchase: "資材購入",
     equipmentMaintenance: "器具／機械／設備管理"
   });
+
+  function canonicalRecordType(value) {
+    return value === "purchase" ? "materialPurchase" : value;
+  }
 
   function featureReleaseState(key) {
     const config = root.PQC_PUBLIC_CONFIG && root.PQC_PUBLIC_CONFIG.features;
@@ -251,11 +255,20 @@
   }
 
   function recordTypeOptions(items) {
-    const detected = new Map((items || []).map(function (item) { return [item.value, item]; }));
+    const detected = new Map((items || []).map(function (item) { return [canonicalRecordType(item.value), item]; }));
     return '<option value="">請選擇</option>' + Object.keys(RECORD_TYPE_LABELS).map(function (value) {
       const item = detected.get(value);
       return '<option value="' + value + '">' + esc(RECORD_TYPE_LABELS[value] + (item ? "（辨識候選）" : "")) + '</option>';
     }).join("");
+  }
+
+  function routeDecisionHtml(draft) {
+    const decision = draft && draft.routeDecision;
+    if (!decision || decision.status === "exact") return "";
+    const message = decision.status === "ambiguous"
+      ? "這張照片同時像多種表單，系統不會自動選第一名。請對照原圖自行選擇紀錄類型。"
+      : "目前無法可靠判斷文件用途。請對照原圖自行選擇；若不是田間作業，請不要帶入。";
+    return '<div class="ocr-status warn"><b>需要人工判斷文件用途</b><span>' + esc(message) + '</span></div>';
   }
 
   function qualityHtml(quality) {
@@ -284,7 +297,7 @@
     const actionItems = farm.EQUIPMENT_ACTIONS || ["清潔", "保養", "維修", "校正"];
     const rows = draft.recordGroups && draft.recordGroups.length ? draft.recordGroups : [{ id: "equipment-row-1", date: [], equipment: [], actions: [], operator: [] }];
     box.innerHTML = qualityHtml(draft.quality)
-      + '<div class="ocr-equipment-intro"><b>辨識到設備管理表單</b><span>同一張表可能包含多筆日期。系統先拆成 ' + rows.length + ' 筆待確認草稿；看不清楚的欄位保留空白。</span></div>'
+      + '<div class="ocr-equipment-intro"><b>辨識到設備管理表單</b><span>同一張表可能包含多筆日期。系統先拆成 ' + rows.length + ' 筆本機輔助紀錄草稿；看不清楚的欄位保留空白。是否屬 L3 上傳範圍仍待官方確認。</span></div>'
       + '<div id="ocrEquipmentRows" class="ocr-equipment-rows">'
       + rows.map(function (row, index) {
         const selectedEquipment = (row.equipment || []).filter(function (item) { return item.selected; }).map(function (item) { return item.value; });
@@ -436,7 +449,10 @@
     const box = document.getElementById("ocrDraftBox");
     if (!box) return;
     const text = draft.blocks.map(function (block) { return block.text; }).join("\n");
-    const detectedType = draft.fields.recordType && draft.fields.recordType[0];
+    const routeDecision = draft.routeDecision || {};
+    const detectedType = routeDecision.status === "exact" && routeDecision.type
+      ? (draft.fields.recordType || []).find(function (item) { return item.value === routeDecision.type; })
+      : null;
     if (detectedType && (detectedType.value === "selfInspection" || detectedType.value === "profile")) {
       renderReferenceDocumentDraft(draft, text, detectedType);
       return;
@@ -450,7 +466,7 @@
       box.insertAdjacentHTML("afterbegin", batchNavigatorHtml());
       return;
     }
-    box.innerHTML = batchNavigatorHtml() + qualityHtml(draft.quality)
+    box.innerHTML = batchNavigatorHtml() + qualityHtml(draft.quality) + routeDecisionHtml(draft)
       + '<div class="ocr-review">'
       + '<div class="field"><label>紀錄類型 *</label><select id="ocrRecordType">' + recordTypeOptions(draft.fields.recordType) + '</select></div>'
       + '<div class="field"><label>日期候選 *</label><select id="ocrDateCandidate">' + optionList(draft.fields.date) + '</select><input id="ocrDateManual" type="date" aria-label="手動修正日期"></div>'
@@ -471,7 +487,7 @@
       setValue("ocrDateCandidate", draft.fields.date[0].value);
       setValue("ocrDateManual", draft.fields.date[0].value);
     }
-    if (draft.fields.recordType.length && RECORD_TYPE_LABELS[draft.fields.recordType[0].value]) setValue("ocrRecordType", draft.fields.recordType[0].value);
+    if (detectedType && RECORD_TYPE_LABELS[canonicalRecordType(detectedType.value)]) setValue("ocrRecordType", canonicalRecordType(detectedType.value));
     if (draft.fields.crop.length) setValue("ocrCropCandidate", draft.fields.crop[0].value);
     if (draft.fields.fieldPlot.length) setValue("ocrFieldPlotCandidate", draft.fields.fieldPlot[0].value);
     if (draft.fields.target.length) setValue("ocrTargetCandidate", draft.fields.target[0].value);
@@ -807,7 +823,7 @@
       if (typeof root.toast === "function") root.toast("用藥紀錄請先核對類型、日期、作物與藥劑名稱");
       return;
     }
-    if (!root.PQC_FORM_OCR.canCommit(currentDraft, { recordType: "pesticide", date, crop, material })) {
+    if (!root.PQC_FORM_OCR.canCommit(currentDraft, { recordType: "pesticide", date, crop, material, routeConfirmed: checked("ocrConfirmType") })) {
       if (typeof root.toast === "function") root.toast("照片品質或用藥必要欄位尚未通過");
       return;
     }
@@ -852,7 +868,7 @@
       if (typeof root.toast === "function") root.toast("請先勾選三個已核對項目");
       return;
     }
-    if (!root.PQC_FORM_OCR.canCommit(currentDraft, { recordType: recordType, date: date, crop: crop })) {
+    if (!root.PQC_FORM_OCR.canCommit(currentDraft, { recordType: recordType, date: date, crop: crop, routeConfirmed: checked("ocrConfirmType") })) {
       if (typeof root.toast === "function") root.toast("照片品質或必要欄位尚未通過");
       return;
     }

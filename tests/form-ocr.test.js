@@ -62,10 +62,15 @@ assert.equal(draft.fields.crop[0].value, "番茄");
 assert.equal(draft.fields.material[0].value, "亞滅培");
 assert.equal(draft.fields.dilution[0].value, 1000);
 assert.equal(Object.hasOwn(draft, "image"), false, "照片不可進入草稿資料");
-assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType: "spray" }), true);
+assert.equal(draft.routeDecision.status, "unknown", "沒有足夠表單標記時不得自動選第一名");
+assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType: "cultivation" }), false, "未知文件未人工確認用途前不得帶入");
+assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType: "cultivation", routeConfirmed: true }), true);
 assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄" }), false);
 assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType: "pesticide" }), false, "用藥草稿缺少藥劑不可帶入");
-assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType: "pesticide", material: "亞滅培" }), true);
+assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType: "pesticide", material: "亞滅培", routeConfirmed: true }), true);
+
+const ambiguousTypes = O.detectFormTypes("施肥別 基肥 追肥 採收紀錄 採收日期 採收量");
+assert.equal(O.decideDocumentRoute(ambiguousTypes).status, "ambiguous", "第一、二名同分時必須停止自動路由");
 
 const cloudDraft = O.createDraft({
   source: "google-cloud-vision",
@@ -127,6 +132,9 @@ const inventoryDraft = O.createDraft({
   blocks: [{ text: "表 10. 肥料 入 出 庫 紀錄\n資 材 名稱 : 苦土 石灰 廠商 : 資礦 供 應 商 : 豐公農業資材行 包裝 容量 : 25 公斤\n資 材 名稱 : 硫酸鉀 廠商 : 東成\n115年5月10日 購入量 15包 使用量 5包 剩餘量 10包", confidence: 0.9 }]
 });
 assert.equal(inventoryDraft.fields.recordType[0].value, "purchase", "肥料入出庫表應分類為資材庫存，不可當成施肥紀錄");
+assert.equal(inventoryDraft.route.route, "material-ledger");
+assert.equal(inventoryDraft.route.destination, "material-inventory-review");
+assert.equal(O.canCommit(inventoryDraft, { date: "2026-05-20", crop: "番茄", recordType: "materialPurchase" }), false, "完整庫存表只能走庫存覆核，不可誤帶一般紀錄表單");
 assert.ok(inventoryDraft.materialInventory, "肥料入出庫表必須建立獨立庫存草稿");
 assert.deepEqual(inventoryDraft.materialInventory.materials.map(item => item.value), ["苦土石灰", "硫酸鉀"]);
 assert.ok(inventoryDraft.materialInventory.suppliers.some(item => item.value.includes("豐公農業資材行")));
