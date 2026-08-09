@@ -15,6 +15,18 @@
 
 應用程式程式碼不寫入照片、OCR 文字或 token。仍須在 Cloud Logging 確認不記錄 request body，並設定合理的日誌保存期限。
 
+## 辨識結果與來源追溯
+
+`protocolVersion` 維持 `1`，既有的段落 `id`、`text`、`confidence`、`box` 欄位不變。後端以加欄位方式提供：
+
+- `layout.coordinateSpace = "normalized"`：所有方框皆為 `0..1` 的正規化座標。
+- 每個段落的 `source`：保留原結果中的 page、block、paragraph 索引。
+- 每個段落的 `blockBox`：保留所屬區塊位置。
+- 每個段落的 `words`：包含單字文字、信心值、位置及 `detectedBreak` 換行／空白提示。
+- `wordsTruncated`：若單段或整份文件超過安全上限，明確告知幾何資料未完整回傳。
+
+服務只在目前 HTTPS 回應內傳回上述結果，不把原圖、完整 OCR 全文或 token 寫入應用程式日誌或資料庫。為避免異常文件造成過大回應，最多回傳 500 個段落、每段 200 個單字、整份文件 5,000 個單字位置；舊前端可忽略新增欄位並繼續運作。
+
 ## 本機測試
 
 ```powershell

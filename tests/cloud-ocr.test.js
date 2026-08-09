@@ -38,6 +38,8 @@ assert.match(uiSource, /ocrVerificationCode/, "OCR 必須提供驗證碼入口")
 assert.match(uiSource, /unlockOcr/, "OCR 必須提供解鎖流程");
 assert.match(backendSource, /await image\.read\(MAX_UPLOAD_BYTES \+ 1\)/, "後端必須限制上傳大小");
 assert.match(backendSource, /retention.*not-stored/s, "回應必須聲明原圖不保存");
+assert.match(backendSource, /coordinateSpace.*normalized/s, "後端必須聲明文字座標使用正規化座標系");
+assert.match(backendSource, /wordGeometry.*True/s, "後端必須標示回應含單字層級位置");
 assert.match(securitySource, /verify_id_token/, "後端必須驗證 Firebase ID token");
 assert.match(securitySource, /UserRateLimiter/, "後端必須限制單一帳號的短時間請求量");
 

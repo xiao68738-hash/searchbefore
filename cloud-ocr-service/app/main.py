@@ -91,6 +91,12 @@ async def recognize(
             "cornersConfirmedByUser": True,
             "assessment": "user-confirmed-before-upload",
         },
+        "layout": {
+            "version": 1,
+            "coordinateSpace": "normalized",
+            "indexBase": 0,
+            "wordGeometry": True,
+        },
         "blocks": blocks,
         "processingMs": round((time.monotonic() - started) * 1000),
         "retention": "not-stored",

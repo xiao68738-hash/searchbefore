@@ -387,20 +387,96 @@
     }).filter(Boolean));
   }
 
-  function safeBlocks(blocks) {
-    return Object.freeze((Array.isArray(blocks) ? blocks : []).slice(0, 500).map(function (block, index) {
+  function safeBox(value) {
+    if (!value || typeof value !== "object") return null;
+    return Object.freeze({
+      left: clamp01(value.left),
+      top: clamp01(value.top),
+      right: clamp01(value.right),
+      bottom: clamp01(value.bottom)
+    });
+  }
+
+  function safeIndex(value) {
+    const number = Number(value);
+    return Number.isInteger(number) && number >= 0 && number <= 100000 ? number : 0;
+  }
+
+  function safeDetectedBreak(value) {
+    if (!value || typeof value !== "object") return null;
+    const allowed = ["UNKNOWN", "SPACE", "SURE_SPACE", "EOL_SURE_SPACE", "HYPHEN", "LINE_BREAK"];
+    const type = allowed.indexOf(String(value.type || "")) >= 0 ? String(value.type) : "UNKNOWN";
+    return Object.freeze({ type, isPrefix: value.isPrefix === true });
+  }
+
+  function safeBlockWords(words, blockId, remainingWords) {
+    const source = Array.isArray(words) ? words : [];
+    const limit = Math.max(0, Math.min(200, Number(remainingWords) || 0));
+    return Object.freeze(source.slice(0, limit).map(function (word, index) {
+      const text = normalizeText(word && word.text).slice(0, 128);
+      if (!text) return null;
       return Object.freeze({
-        id: String(block && block.id || "block-" + (index + 1)),
-        text: normalizeText(block && block.text).slice(0, 500),
-        confidence: clamp01(block && block.confidence),
-        box: block && block.box ? Object.freeze({
-          left: clamp01(block.box.left),
-          top: clamp01(block.box.top),
-          right: clamp01(block.box.right),
-          bottom: clamp01(block.box.bottom)
-        }) : null
+        id: String(word && word.id || blockId + "-w" + (index + 1)).slice(0, 160),
+        text,
+        confidence: clamp01(word && word.confidence),
+        box: safeBox(word && word.box),
+        detectedBreak: safeDetectedBreak(word && word.detectedBreak)
       });
-    }).filter(function (block) { return block.text; }));
+    }).filter(Boolean));
+  }
+
+  function safeBlocks(blocks) {
+    let totalWords = 0;
+    const out = [];
+    (Array.isArray(blocks) ? blocks : []).slice(0, 500).forEach(function (block, index) {
+      const id = String(block && block.id || "block-" + (index + 1)).slice(0, 160);
+      const text = normalizeText(block && block.text).slice(0, 500);
+      if (!text) return;
+      const sourceWords = Array.isArray(block && block.words) ? block.words : [];
+      const words = safeBlockWords(sourceWords, id, 5000 - totalWords);
+      totalWords += words.length;
+      const source = block && block.source && typeof block.source === "object" ? Object.freeze({
+        pageIndex: safeIndex(block.source.pageIndex),
+        blockIndex: safeIndex(block.source.blockIndex),
+        paragraphIndex: safeIndex(block.source.paragraphIndex)
+      }) : null;
+      out.push(Object.freeze({
+        id,
+        text,
+        confidence: clamp01(block && block.confidence),
+        box: safeBox(block && block.box),
+        source,
+        blockBox: safeBox(block && block.blockBox),
+        words,
+        wordsTruncated: !!(block && block.wordsTruncated) || words.length < sourceWords.length
+      }));
+    });
+    return Object.freeze(out);
+  }
+
+  function safeLayout(value) {
+    if (!value || typeof value !== "object") return null;
+    return Object.freeze({
+      version: Math.max(1, Math.min(10, Number(value.version) || 1)),
+      coordinateSpace: value.coordinateSpace === "normalized" ? "normalized" : "unknown",
+      indexBase: Number(value.indexBase) === 0 ? 0 : 1,
+      wordGeometry: value.wordGeometry === true
+    });
+  }
+
+  function safeSourceImage(value) {
+    if (!value || typeof value !== "object") return null;
+    const id = String(value.sourceImageId || "");
+    if (!/^[A-Za-z0-9._:-]{1,128}$/.test(id)) return null;
+    return Object.freeze({
+      sourceImageId: id,
+      fileName: String(value.fileName || "辨識來源").slice(0, 240),
+      sourceIndex: safeIndex(value.sourceIndex),
+      status: value.status === "recognized" ? "recognized" : "queued",
+      mimeType: String(value.mimeType || "").slice(0, 100),
+      sizeBytes: Math.max(0, Math.min(Number(value.sizeBytes) || 0, 25 * 1024 * 1024)),
+      lastModified: Math.max(0, Number(value.lastModified) || 0)
+    });
   }
 
   function blockCenter(block) {
@@ -622,7 +698,7 @@
     });
   }
 
-  function createDraft(scanResult, dictionaries) {
+  function createDraft(scanResult, dictionaries, sourceMetadata) {
     const result = scanResult || {};
     const quality = assessQuality(result.quality);
     const blocks = safeBlocks(result.blocks);
@@ -652,6 +728,8 @@
       source: result.source === "google-cloud-vision" ? "google-cloud-vision" : "android-on-device-ocr",
       createdAt: String(result.createdAt || new Date().toISOString()),
       confirmed: false,
+      sourceImage: safeSourceImage(sourceMetadata || result.sourceImage),
+      layout: safeLayout(result.layout),
       quality,
       routeDecision,
       route: Object.freeze({
@@ -679,16 +757,244 @@
     });
   }
 
-  function canCommit(draft, confirmedFields) {
-    if (!draft || draft.confirmed || !draft.quality || !draft.quality.canProcess) return false;
+  const COMMITTABLE_RECORD_TYPES = Object.freeze(["pesticide", "cultivation", "fertilizer", "harvest", "postharvest", "materialPurchase"]);
+
+  function hasConfirmedValue(value) {
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === "number") return Number.isFinite(value);
+    return normalizeText(value) !== "";
+  }
+
+  function confirmedValue(fields, name, aliases) {
+    const source = fields || {};
+    const details = source.details && typeof source.details === "object" ? source.details : {};
+    const names = [name].concat(Array.isArray(aliases) ? aliases : []);
+    for (let index = 0; index < names.length; index += 1) {
+      const key = names[index];
+      if (Object.prototype.hasOwnProperty.call(source, key) && hasConfirmedValue(source[key])) return source[key];
+      if (Object.prototype.hasOwnProperty.call(details, key) && hasConfirmedValue(details[key])) return details[key];
+    }
+    return "";
+  }
+
+  function validationItem(field, label, message, code) {
+    return Object.freeze({
+      field,
+      label,
+      message,
+      code: code || "required"
+    });
+  }
+
+  function addMissing(items, field, label, message, code) {
+    if (items.some(function (item) { return item.field === field && item.code === (code || "required"); })) return;
+    items.push(validationItem(field, label, message || ("請填寫" + label), code));
+  }
+
+  function addWarning(items, code, message, field) {
+    if (items.some(function (item) { return item.code === code && item.field === (field || ""); })) return;
+    items.push(Object.freeze({ code, message, field: field || "" }));
+  }
+
+  function validConfirmedDate(value) {
+    const date = normalizeText(value);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+    const parsed = new Date(date + "T00:00:00Z");
+    return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+  }
+
+  function validNonNegativeNumber(value) {
+    if (!hasConfirmedValue(value)) return false;
+    const n = Number(value);
+    return Number.isFinite(n) && n >= 0;
+  }
+
+  function finalizeValidation(missing, warnings, mappingPending) {
+    const frozenMissing = Object.freeze(missing.slice());
+    const frozenWarnings = Object.freeze(warnings.slice());
+    return Object.freeze({
+      ok: frozenMissing.length === 0,
+      missing: frozenMissing,
+      warnings: frozenWarnings,
+      mappingPending: mappingPending === true
+    });
+  }
+
+  /*
+   * 驗證「使用者已確認、準備寫入正式紀錄」的欄位。
+   * 欄位名稱以 farm-records.js 的 createRecord / details 為準；同時接受目前 OCR
+   * 介面尚在使用的少數扁平別名。L3 尚未確認的欄位不列為本機紀錄必填。
+   */
+  function validateConfirmedFields(confirmedFields) {
     const fields = confirmedFields || {};
-    const allowedTypes = ["pesticide", "cultivation", "fertilizer", "harvest", "postharvest", "materialPurchase"];
-    if (allowedTypes.indexOf(fields.recordType) < 0) return false;
-    if (draft.routeDecision && draft.routeDecision.status === "exact" && draft.route && draft.route.destination !== "farm-form") return false;
-    if (draft.routeDecision && draft.routeDecision.status !== "exact" && fields.routeConfirmed !== true) return false;
-    if (!fields.date || !fields.crop || !fields.recordType) return false;
-    if (fields.recordType === "pesticide" && !fields.material) return false;
-    return true;
+    const missing = [];
+    const warnings = [];
+    const recordType = normalizeText(fields.recordType || fields.type);
+    const mappingStatus = normalizeText(fields.l3MappingStatus);
+    const mappingPending = !!mappingStatus && mappingStatus !== "mapped" && mappingStatus !== "not-applicable";
+
+    if (COMMITTABLE_RECORD_TYPES.indexOf(recordType) < 0) {
+      addMissing(missing, "recordType", "紀錄類型", "請選擇支援的紀錄類型", "unsupported-record-type");
+      return finalizeValidation(missing, warnings, mappingPending);
+    }
+
+    const date = confirmedValue(fields, "date");
+    if (!date) addMissing(missing, "date", "日期");
+    else if (!validConfirmedDate(date)) addMissing(missing, "date", "日期", "日期格式不正確", "invalid-date");
+
+    if (recordType === "pesticide") {
+      if (!confirmedValue(fields, "crop")) addMissing(missing, "crop", "作物");
+      if (!confirmedValue(fields, "material", ["materialName", "agent"])) addMissing(missing, "material", "藥劑名稱");
+      if (!confirmedValue(fields, "target", ["pest"])) {
+        addWarning(warnings, "pesticide-target-not-confirmed", "尚未確認防治對象；正式儲存前仍須對到唯一的官方登記資料。", "target");
+      }
+      if (!confirmedValue(fields, "dilution")) {
+        addWarning(warnings, "pesticide-dilution-not-confirmed", "尚未確認稀釋倍數；不得只依 OCR 文字推定用法。", "dilution");
+      }
+      return finalizeValidation(missing, warnings, mappingPending);
+    }
+
+    /* 現有正式田間紀錄皆以 plotId 連到田區；資材購入只是不要求 crop。 */
+    if (!confirmedValue(fields, "plotId")) addMissing(missing, "plotId", "田區／種植批次");
+
+    if (recordType === "cultivation") {
+      if (!confirmedValue(fields, "activity")) addMissing(missing, "details.activity", "作業內容");
+    } else if (recordType === "fertilizer") {
+      if (!confirmedValue(fields, "materialName", ["material"])) addMissing(missing, "details.materialName", "肥料或資材名稱");
+      const quantity = confirmedValue(fields, "quantity", ["amount"]);
+      if (!hasConfirmedValue(quantity)) addMissing(missing, "details.quantity", "施用量");
+      else if (!validNonNegativeNumber(quantity)) addMissing(missing, "details.quantity", "施用量", "施用量必須是 0 以上的數字", "invalid-number");
+      if (!confirmedValue(fields, "unit")) addMissing(missing, "details.unit", "施用量單位");
+    } else if (recordType === "harvest") {
+      const quantity = confirmedValue(fields, "quantity", ["amount"]);
+      if (!hasConfirmedValue(quantity)) addMissing(missing, "details.quantity", "採收量");
+      else if (!validNonNegativeNumber(quantity)) addMissing(missing, "details.quantity", "採收量", "採收量必須是 0 以上的數字", "invalid-number");
+      if (!confirmedValue(fields, "unit")) addMissing(missing, "details.unit", "採收量單位");
+    } else if (recordType === "postharvest") {
+      if (!confirmedValue(fields, "process")) addMissing(missing, "details.process", "處理方式");
+      const quantity = confirmedValue(fields, "quantity", ["amount"]);
+      if (hasConfirmedValue(quantity) && !validNonNegativeNumber(quantity)) {
+        addMissing(missing, "details.quantity", "處理數量", "處理數量必須是 0 以上的數字", "invalid-number");
+      }
+      if (hasConfirmedValue(quantity) && !confirmedValue(fields, "unit")) {
+        addWarning(warnings, "postharvest-quantity-without-unit", "已填處理數量但未填單位，建議補上以利日後核對。", "details.unit");
+      }
+    } else if (recordType === "materialPurchase") {
+      if (!confirmedValue(fields, "category")) addMissing(missing, "details.category", "資材類別");
+      if (!confirmedValue(fields, "materialName", ["material"])) addMissing(missing, "details.materialName", "資材名稱");
+      if (!confirmedValue(fields, "supplier")) addMissing(missing, "details.supplier", "供應商");
+      const quantity = confirmedValue(fields, "quantity", ["amount"]);
+      if (!hasConfirmedValue(quantity)) addMissing(missing, "details.quantity", "購入數量");
+      else if (!validNonNegativeNumber(quantity)) addMissing(missing, "details.quantity", "購入數量", "購入數量必須是 0 以上的數字", "invalid-number");
+      if (!confirmedValue(fields, "unit")) addMissing(missing, "details.unit", "購入數量單位");
+    }
+
+    return finalizeValidation(missing, warnings, mappingPending);
+  }
+
+  function validateDraft(draft, confirmedFields) {
+    const fields = confirmedFields || {};
+    const fieldValidation = validateConfirmedFields(fields);
+    const missing = fieldValidation.missing.slice();
+    const warnings = fieldValidation.warnings.slice();
+    let mappingPending = fieldValidation.mappingPending;
+
+    if (!draft) {
+      addMissing(missing, "draft", "辨識草稿", "找不到可確認的辨識草稿", "missing-draft");
+      return finalizeValidation(missing, warnings, mappingPending);
+    }
+    if (draft.confirmed) addMissing(missing, "draft", "辨識草稿", "這份辨識草稿已經使用過", "already-confirmed");
+    if (!draft.quality || !draft.quality.canProcess) {
+      addMissing(missing, "quality", "照片品質", "照片品質未通過，請重新拍攝或重新確認原圖", "quality-blocked");
+    }
+    if (draft.quality && Array.isArray(draft.quality.issues)) {
+      draft.quality.issues.filter(function (issue) { return issue.level === "warning"; }).forEach(function (issue) {
+        addWarning(warnings, "quality-" + issue.code, issue.message, "quality");
+      });
+    }
+
+    const decision = draft.routeDecision || {};
+    const route = draft.route || {};
+    const routeType = decision.type === "purchase" ? "materialPurchase" : decision.type;
+    if (decision.status === "exact") {
+      if (route.destination !== "farm-form") {
+        addMissing(missing, "route", "文件用途", "這份文件屬於獨立覆核流程，不能直接帶入一般田間紀錄", "unsupported-route");
+      } else if (routeType && normalizeText(fields.recordType || fields.type) !== routeType) {
+        addMissing(missing, "recordType", "紀錄類型", "使用者確認的紀錄類型與文件分流結果不一致", "route-mismatch");
+      }
+    } else if (fields.routeConfirmed !== true) {
+      addMissing(missing, "routeConfirmed", "文件用途", "文件類型不明確，請先對照原圖確認用途", "route-unconfirmed");
+    } else {
+      addWarning(warnings, "manual-route-confirmation", "文件類型由使用者人工指定，正式儲存前請再次對照原圖。", "routeConfirmed");
+    }
+
+    const mappingStatus = normalizeText(route.l3MappingStatus || decision.l3MappingStatus);
+    if (mappingStatus && mappingStatus !== "mapped" && mappingStatus !== "not-applicable") mappingPending = true;
+    if (mappingPending) {
+      addWarning(warnings, "l3-mapping-pending", "目前只確認本機紀錄欄位；L3 欄位映射尚未確認，不代表已可上傳產銷履歷系統。", "l3MappingStatus");
+    }
+
+    return finalizeValidation(missing, warnings, mappingPending);
+  }
+
+  /*
+   * 「帶入表單」不是正式儲存。這一道只確認照片、用途與可安全預填的最低欄位；
+   * 真正儲存時仍由 validateDraft / farm-records.js 逐類檢查完整欄位。
+   */
+  function validateDraftForReview(draft, confirmedFields) {
+    const fields = confirmedFields || {};
+    const missing = [];
+    const warnings = [];
+    const recordType = normalizeText(fields.recordType || fields.type);
+    let mappingPending = false;
+
+    if (COMMITTABLE_RECORD_TYPES.indexOf(recordType) < 0) {
+      addMissing(missing, "recordType", "紀錄類型", "請先選擇要整理成哪一類紀錄", "unsupported-record-type");
+    }
+    const date = confirmedValue(fields, "date");
+    if (!date) addMissing(missing, "date", "日期");
+    else if (!validConfirmedDate(date)) addMissing(missing, "date", "日期", "日期格式不正確", "invalid-date");
+    if (recordType === "pesticide") {
+      if (!confirmedValue(fields, "crop")) addMissing(missing, "crop", "作物");
+      if (!confirmedValue(fields, "material", ["materialName", "agent"])) addMissing(missing, "material", "藥劑名稱");
+    } else if (recordType && recordType !== "materialPurchase" && !confirmedValue(fields, "crop")) {
+      addWarning(warnings, "crop-not-prefilled", "尚未確認作物；帶入後請從田區／種植批次補選。", "crop");
+    }
+
+    if (!draft) {
+      addMissing(missing, "draft", "辨識草稿", "找不到可整理的辨識草稿", "missing-draft");
+      return finalizeValidation(missing, warnings, mappingPending);
+    }
+    if (draft.confirmed) addMissing(missing, "draft", "辨識草稿", "這份辨識草稿已經使用過", "already-confirmed");
+    if (!draft.quality || !draft.quality.canProcess) {
+      addMissing(missing, "quality", "照片品質", "照片品質未通過，請重新拍攝或重新確認原圖", "quality-blocked");
+    }
+
+    const decision = draft.routeDecision || {};
+    const route = draft.route || {};
+    const routeType = decision.type === "purchase" ? "materialPurchase" : decision.type;
+    if (decision.status === "exact" && route.destination !== "farm-form") {
+      addMissing(missing, "route", "文件用途", "這份文件使用獨立覆核流程，不能帶入一般田間紀錄", "unsupported-route");
+    } else if (decision.status !== "exact" && fields.routeConfirmed !== true) {
+      addMissing(missing, "routeConfirmed", "文件用途", "文件類型不明確，請先對照原圖確認用途", "route-unconfirmed");
+    } else if (routeType && recordType && routeType !== recordType) {
+      if (fields.routeConfirmed !== true) {
+        addMissing(missing, "routeConfirmed", "文件用途", "選擇的紀錄類型與辨識結果不同，請先人工確認", "route-override-unconfirmed");
+      } else {
+        addWarning(warnings, "manual-route-override", "你已改用另一種紀錄類型；帶入後請再次對照原圖。", "recordType");
+      }
+    }
+
+    const mappingStatus = normalizeText(route.l3MappingStatus || decision.l3MappingStatus);
+    if (mappingStatus && mappingStatus !== "mapped" && mappingStatus !== "not-applicable") mappingPending = true;
+    if (mappingPending) {
+      addWarning(warnings, "l3-mapping-pending", "這只會整理成本機待確認表單，不代表已可上傳產銷履歷系統。", "l3MappingStatus");
+    }
+    return finalizeValidation(missing, warnings, mappingPending);
+  }
+
+  function canCommit(draft, confirmedFields) {
+    return validateDraft(draft, confirmedFields).ok;
   }
 
   return Object.freeze({
@@ -711,6 +1017,9 @@
     findSelfInspectionInspectors,
     createSelfInspectionDraft,
     createDraft,
+    validateConfirmedFields,
+    validateDraft,
+    validateDraftForReview,
     canCommit
   });
 });

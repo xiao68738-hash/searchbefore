@@ -7,6 +7,19 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 
 ALLOWED_MIME_TYPES = frozenset({"image/jpeg", "image/png", "image/webp"})
 MAX_PIXELS = 24_000_000
+MAX_PARAGRAPHS = 500
+MAX_WORDS_PER_PARAGRAPH = 200
+MAX_TOTAL_WORDS = 5_000
+MAX_WORD_TEXT_LENGTH = 128
+
+BREAK_TYPE_NAMES = {
+    0: "UNKNOWN",
+    1: "SPACE",
+    2: "SURE_SPACE",
+    3: "EOL_SURE_SPACE",
+    4: "HYPHEN",
+    5: "LINE_BREAK",
+}
 
 
 class InvalidImage(ValueError):
@@ -70,23 +83,97 @@ def _paragraph_text(paragraph: Any) -> str:
     return " ".join(words).strip()
 
 
+def _confidence(value: Any) -> float:
+    return max(0.0, min(float(value or 0.0), 1.0))
+
+
+def _break_type_name(value: Any) -> str:
+    """將 protobuf enum 轉成不依賴 Vision SDK 版本的穩定字串。"""
+    name = getattr(value, "name", None)
+    if name:
+        return str(name)
+    try:
+        return BREAK_TYPE_NAMES.get(int(value), "UNKNOWN")
+    except (TypeError, ValueError):
+        return "UNKNOWN"
+
+
+def _detected_break(symbols: list[Any]) -> dict | None:
+    """DetectedBreak 會附在單字最後一個 symbol，僅回傳版面提示，不回傳 SDK 物件。"""
+    for symbol in reversed(symbols):
+        prop = getattr(symbol, "property", None)
+        detected = getattr(prop, "detected_break", None)
+        if detected is None:
+            continue
+        break_type = getattr(detected, "type_", None)
+        if break_type is None:
+            break_type = getattr(detected, "type", None)
+        return {
+            "type": _break_type_name(break_type),
+            "isPrefix": bool(getattr(detected, "is_prefix", False)),
+        }
+    return None
+
+
+def _normalized_word(word: Any, paragraph_id: str, word_index: int, width: int, height: int) -> dict | None:
+    symbols = list(getattr(word, "symbols", None) or [])
+    text = "".join(str(getattr(symbol, "text", "") or "") for symbol in symbols).strip()
+    if not text:
+        return None
+    return {
+        "id": f"{paragraph_id}-w{word_index + 1}",
+        "text": text[:MAX_WORD_TEXT_LENGTH],
+        "confidence": _confidence(getattr(word, "confidence", 0.0)),
+        "box": _normalized_box(_vertices(getattr(word, "bounding_box", None)), width, height),
+        "detectedBreak": _detected_break(symbols),
+    }
+
+
 def normalize_results(annotation: Any, width: int = 1, height: int = 1) -> list[dict]:
-    """將 Vision 的頁／區塊／段落結構轉成前端共用的 OCR blocks。"""
+    """將 Vision 結構轉成向後相容的段落 blocks，並保留可覆核的單字位置。"""
     blocks: list[dict] = []
-    for page in getattr(annotation, "pages", None) or []:
-        for block in getattr(page, "blocks", None) or []:
-            for paragraph in getattr(block, "paragraphs", None) or []:
+    total_words = 0
+    for page_index, page in enumerate(getattr(annotation, "pages", None) or []):
+        page_width = int(getattr(page, "width", 0) or width)
+        page_height = int(getattr(page, "height", 0) or height)
+        for block_index, block in enumerate(getattr(page, "blocks", None) or []):
+            block_box = _normalized_box(
+                _vertices(getattr(block, "bounding_box", None)),
+                page_width,
+                page_height,
+            )
+            for paragraph_index, paragraph in enumerate(getattr(block, "paragraphs", None) or []):
                 text = _paragraph_text(paragraph)
                 if not text:
                     continue
-                confidence = float(getattr(paragraph, "confidence", 0.0) or 0.0)
+                paragraph_id = f"cloud-{len(blocks) + 1}"
+                normalized_words: list[dict] = []
+                paragraph_words = list(getattr(paragraph, "words", None) or [])
+                available_words = max(0, min(MAX_WORDS_PER_PARAGRAPH, MAX_TOTAL_WORDS - total_words))
+                for word_index, word in enumerate(paragraph_words[:available_words]):
+                    normalized_word = _normalized_word(word, paragraph_id, word_index, page_width, page_height)
+                    if normalized_word is not None:
+                        normalized_words.append(normalized_word)
+                total_words += len(normalized_words)
                 blocks.append({
-                    "id": f"cloud-{len(blocks) + 1}",
+                    "id": paragraph_id,
                     "text": text[:500],
-                    "confidence": max(0.0, min(confidence, 1.0)),
-                    "box": _normalized_box(_vertices(getattr(paragraph, "bounding_box", None)), width, height),
+                    "confidence": _confidence(getattr(paragraph, "confidence", 0.0)),
+                    "box": _normalized_box(
+                        _vertices(getattr(paragraph, "bounding_box", None)),
+                        page_width,
+                        page_height,
+                    ),
+                    "source": {
+                        "pageIndex": page_index,
+                        "blockIndex": block_index,
+                        "paragraphIndex": paragraph_index,
+                    },
+                    "blockBox": block_box,
+                    "words": normalized_words,
+                    "wordsTruncated": len(paragraph_words) > len(normalized_words),
                 })
-                if len(blocks) >= 500:
+                if len(blocks) >= MAX_PARAGRAPHS:
                     return blocks
     return blocks
 

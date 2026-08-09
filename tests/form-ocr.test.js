@@ -64,10 +64,61 @@ assert.equal(draft.fields.dilution[0].value, 1000);
 assert.equal(Object.hasOwn(draft, "image"), false, "照片不可進入草稿資料");
 assert.equal(draft.routeDecision.status, "unknown", "沒有足夠表單標記時不得自動選第一名");
 assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType: "cultivation" }), false, "未知文件未人工確認用途前不得帶入");
-assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType: "cultivation", routeConfirmed: true }), true);
+assert.equal(O.canCommit(draft, {
+  date: "2026-07-30",
+  plotId: "plot-1",
+  crop: "番茄",
+  recordType: "cultivation",
+  routeConfirmed: true,
+  details: { activity: "灌溉" }
+}), true);
 assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄" }), false);
 assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType: "pesticide" }), false, "用藥草稿缺少藥劑不可帶入");
 assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType: "pesticide", material: "亞滅培", routeConfirmed: true }), true);
+
+const missingCultivation = O.validateConfirmedFields({
+  date: "2026-07-30",
+  plotId: "plot-1",
+  recordType: "cultivation",
+  details: {}
+});
+assert.equal(missingCultivation.ok, false);
+assert.ok(missingCultivation.missing.some(item => item.field === "details.activity" && item.message.includes("作業內容")), "缺欄位必須提供可直接顯示的標籤與訊息");
+
+const fertilizerValidation = O.validateConfirmedFields({
+  date: "2026-07-30",
+  plotId: "plot-1",
+  recordType: "fertilizer",
+  details: { materialName: "有機質肥料", quantity: "20", unit: "kg" }
+});
+assert.equal(fertilizerValidation.ok, true);
+
+const harvestValidation = O.validateConfirmedFields({
+  date: "2026-07-30",
+  plotId: "plot-1",
+  recordType: "harvest",
+  quantity: 0,
+  unit: "kg"
+});
+assert.equal(harvestValidation.ok, true, "正式紀錄允許 0，但仍必須明確提供數量與單位");
+
+const postharvestValidation = O.validateConfirmedFields({
+  date: "2026-07-30",
+  plotId: "plot-1",
+  recordType: "postharvest",
+  details: { process: "清洗", quantity: "10" }
+});
+assert.equal(postharvestValidation.ok, true);
+assert.ok(postharvestValidation.warnings.some(item => item.code === "postharvest-quantity-without-unit"));
+
+const purchaseValidation = O.validateConfirmedFields({
+  date: "2026-07-30",
+  plotId: "plot-1",
+  recordType: "materialPurchase",
+  details: { category: "肥料", materialName: "苦土石灰", supplier: "農業資材行", quantity: "15", unit: "包" }
+});
+assert.equal(purchaseValidation.ok, true, "資材購入依正式紀錄要求田區，但不應強制填 crop");
+assert.equal(purchaseValidation.missing.some(item => item.field === "crop"), false);
 
 const ambiguousTypes = O.detectFormTypes("施肥別 基肥 追肥 採收紀錄 採收日期 採收量");
 assert.equal(O.decideDocumentRoute(ambiguousTypes).status, "ambiguous", "第一、二名同分時必須停止自動路由");
@@ -83,6 +134,54 @@ assert.equal(cloudDraft.quality.canProcess, true, "使用者已確認且解析�
 assert.deepEqual(O.findDates("誤讀年份 1114/11/15"), [], "不把四位數 OCR 雜訊誤當民國年份");
 assert.equal(cloudDraft.confirmed, false, "雲端辨識結果不得直接視為已確認");
 
+const geometryDraft = O.createDraft({
+  source: "google-cloud-vision",
+  quality: { width: 1800, height: 2400, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
+  layout: { version: 1, coordinateSpace: "normalized", indexBase: 0, wordGeometry: true },
+  blocks: [{
+    id: "cloud-1",
+    text: "表10 肥料入出庫紀錄",
+    confidence: 0.94,
+    box: { left: 0.1, top: 0.1, right: 0.8, bottom: 0.2 },
+    blockBox: { left: 0.08, top: 0.08, right: 0.85, bottom: 0.25 },
+    source: { pageIndex: 0, blockIndex: 1, paragraphIndex: 2 },
+    words: [{
+      id: "cloud-1-w1",
+      text: "表10",
+      confidence: 0.96,
+      box: { left: 0.1, top: 0.1, right: 0.18, bottom: 0.14 },
+      detectedBreak: { type: "SPACE", isPrefix: false }
+    }]
+  }]
+}, {}, {
+  sourceImageId: "ocr-source-1234abcd",
+  fileName: "肥料入出庫.jpg",
+  sourceIndex: 2,
+  status: "recognized",
+  mimeType: "image/jpeg",
+  sizeBytes: 2480123,
+  lastModified: 1786200000000,
+  imageData: "不得保存"
+});
+assert.equal(geometryDraft.layout.coordinateSpace, "normalized");
+assert.equal(geometryDraft.blocks[0].source.blockIndex, 1);
+assert.equal(geometryDraft.blocks[0].words[0].detectedBreak.type, "SPACE");
+assert.equal(geometryDraft.sourceImage.sourceImageId, "ocr-source-1234abcd");
+assert.equal(Object.hasOwn(geometryDraft.sourceImage, "imageData"), false, "來源追溯不得夾帶照片內容");
+
+const reviewOnlyValidation = O.validateDraftForReview(draft, {
+  date: "2026-07-30",
+  recordType: "fertilizer",
+  routeConfirmed: true
+});
+assert.equal(reviewOnlyValidation.ok, true, "帶入人工整理只需最低安全欄位，不得誤用正式儲存的完整門檻");
+assert.ok(reviewOnlyValidation.warnings.some(item => item.code === "crop-not-prefilled"));
+assert.equal(O.validateDraft(draft, {
+  date: "2026-07-30",
+  recordType: "fertilizer",
+  routeConfirmed: true
+}).ok, false, "正式儲存仍必須通過各類型完整欄位檢查");
+
 const pesticideDraft = O.createDraft({
   quality: { width: 1800, height: 2400, documentCoverage: 0.9, sharpness: 0.9, glareRatio: 0, skewDegrees: 0, cornersDetected: true },
   blocks: [{ text: "表11 病蟲害防治或環境消毒資材施用紀錄\n使用日期 民國115年7月30日\n田區代號 A+B區\n作物 番茄\n防治對象 葉蟎\n資材名稱 亞滅培\n稀釋倍數 4000倍\n安全採收期 6天\n操作人員 王小明", confidence: 0.9 }]
@@ -92,6 +191,17 @@ assert.equal(pesticideDraft.fields.fieldPlot[0].value, "A+B區");
 assert.equal(pesticideDraft.fields.target[0].value, "葉蟎");
 assert.equal(pesticideDraft.fields.safetyInterval[0].value, 6);
 assert.equal(pesticideDraft.fields.operator[0].value, "王小明");
+const pesticideValidation = O.validateDraft(pesticideDraft, {
+  date: "2026-07-30",
+  crop: "番茄",
+  recordType: "pesticide",
+  material: "亞滅培",
+  target: "葉蟎",
+  dilution: "4000"
+});
+assert.equal(pesticideValidation.ok, true);
+assert.equal(pesticideValidation.mappingPending, true, "L3 尚未映射必須明確回報，不能視為已可上傳");
+assert.ok(pesticideValidation.warnings.some(item => item.code === "l3-mapping-pending"));
 
 const equipmentDraft = O.createDraft({
   source: "google-cloud-vision",

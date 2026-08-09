@@ -81,8 +81,31 @@ flowchart LR
     "cornersConfirmedByUser": true,
     "assessment": "user-confirmed-before-upload"
   },
+  "layout": {
+    "version": 1,
+    "coordinateSpace": "normalized",
+    "indexBase": 0,
+    "wordGeometry": true
+  },
   "blocks": [
-    {"id": "cloud-1", "text": "...", "confidence": 0.91, "box": {"left": 0.1, "top": 0.1, "right": 0.9, "bottom": 0.2}}
+    {
+      "id": "cloud-1",
+      "text": "...",
+      "confidence": 0.91,
+      "box": {"left": 0.1, "top": 0.1, "right": 0.9, "bottom": 0.2},
+      "source": {"pageIndex": 0, "blockIndex": 1, "paragraphIndex": 2},
+      "blockBox": {"left": 0.08, "top": 0.08, "right": 0.92, "bottom": 0.24},
+      "words": [
+        {
+          "id": "cloud-1-w1",
+          "text": "...",
+          "confidence": 0.94,
+          "box": {"left": 0.1, "top": 0.1, "right": 0.2, "bottom": 0.14},
+          "detectedBreak": {"type": "SPACE", "isPrefix": false}
+        }
+      ],
+      "wordsTruncated": false
+    }
   ],
   "retention": "not-stored"
 }
@@ -96,6 +119,9 @@ flowchart LR
 - `blocks[].text` 要限制長度，區塊總數要限制。
 - 座標統一為 0～1 的相對值。
 - `confidence` 限制在 0～1。
+- 每段保留頁次、區塊與段落索引；單字層級保留位置與換行提示，供後續同列配對與人工回看。
+- 後端最多回傳 500 段、每段 200 個單字位置、整份 5,000 個單字位置；超出時以 `wordsTruncated` 明示，不讓大型文件無限制占用記憶體。
+- 多圖批次中的每張照片有本機 `sourceImageId`、固定來源順序及處理狀態；草稿不保存 `File`、Object URL、Base64 或原始照片內容。
 - 前端接收後仍只建立 `confirmed: false` 的草稿。
 - Android 訊息必須驗證來源與 `requestId`；網頁不得接收圖片內容。
 
@@ -120,6 +146,13 @@ flowchart LR
 - 程式不寫入圖片、OCR 文字或 token；正式環境要再次檢查 Cloud Logging。
 - 以每 UID 限流、Google Cloud 配額、預算通知與最大執行個體數共同控制濫用及費用。
 - OCR 結果一律是未確認草稿；用藥資料無法唯一對回正式登記時，阻擋帶入。
+
+### 6.1 兩道驗證門檻
+
+- `validateDraftForReview()`：只判斷能否把可辨識欄位帶進既有表單繼續人工整理；不會儲存紀錄。
+- `validateDraft()`／`validateConfirmedFields()`：依紀錄類型檢查正式儲存必填欄位，回傳 `ok`、`missing`、`warnings`、`mappingPending`。
+- 施肥、採收、採後處理、栽培與資材購入不共用同一套必填條件；資材購入不要求作物，但依目前本機資料模型仍需田區／種植批次。
+- `mappingPending` 只表示 L3 尚待正式代碼映射，絕不能被解讀為已可上傳。
 
 ## 7. 發布閘門
 

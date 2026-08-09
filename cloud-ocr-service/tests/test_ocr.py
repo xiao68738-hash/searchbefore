@@ -59,19 +59,55 @@ def test_normalize_results_limits_and_shapes_output():
     def vertex(x, y):
         return SimpleNamespace(x=x, y=y)
 
-    def word(text):
-        return SimpleNamespace(symbols=[SimpleNamespace(text=char) for char in text])
+    detected_break = SimpleNamespace(type_=5, is_prefix=False)
+
+    def word(text, left, right, confidence, with_break=False):
+        symbols = [SimpleNamespace(text=char, property=None) for char in text]
+        if with_break:
+            symbols[-1].property = SimpleNamespace(detected_break=detected_break)
+        return SimpleNamespace(
+            symbols=symbols,
+            confidence=confidence,
+            bounding_box=SimpleNamespace(vertices=[vertex(left, 1), vertex(right, 1), vertex(right, 20), vertex(left, 20)]),
+        )
 
     paragraph = SimpleNamespace(
-        words=[word("文字一"), word("文字二")],
+        words=[word("文字一", 1, 40, 0.95), word("文字二", 45, 90, 0.89, with_break=True)],
         confidence=0.91,
         bounding_box=SimpleNamespace(vertices=[vertex(1, 1), vertex(90, 1), vertex(90, 20), vertex(1, 20)]),
     )
-    annotation = SimpleNamespace(pages=[SimpleNamespace(blocks=[SimpleNamespace(paragraphs=[paragraph])])])
+    parent_block = SimpleNamespace(
+        paragraphs=[paragraph],
+        bounding_box=SimpleNamespace(vertices=[vertex(0, 0), vertex(95, 0), vertex(95, 25), vertex(0, 25)]),
+    )
+    annotation = SimpleNamespace(pages=[SimpleNamespace(width=100, height=100, blocks=[parent_block])])
     blocks = normalize_results(annotation, 100, 100)
     assert blocks[0]["text"] == "文字一 文字二"
     assert blocks[0]["confidence"] == 0.91
     assert blocks[0]["box"]["left"] == 0.01
+    assert blocks[0]["source"] == {"pageIndex": 0, "blockIndex": 0, "paragraphIndex": 0}
+    assert blocks[0]["blockBox"]["right"] == 0.95
+    assert blocks[0]["words"][0]["text"] == "文字一"
+    assert blocks[0]["words"][0]["confidence"] == 0.95
+    assert blocks[0]["words"][0]["box"]["right"] == 0.4
+    assert blocks[0]["words"][1]["detectedBreak"] == {"type": "LINE_BREAK", "isPrefix": False}
+    assert blocks[0]["wordsTruncated"] is False
+
+
+def test_normalize_results_caps_word_geometry_without_dropping_legacy_text():
+    def symbol(char):
+        return SimpleNamespace(text=char, property=None)
+
+    words = [
+        SimpleNamespace(symbols=[symbol("字")], confidence=0.8, bounding_box=SimpleNamespace(vertices=[]))
+        for _ in range(205)
+    ]
+    paragraph = SimpleNamespace(words=words, confidence=0.8, bounding_box=SimpleNamespace(vertices=[]))
+    annotation = SimpleNamespace(pages=[SimpleNamespace(width=100, height=100, blocks=[SimpleNamespace(paragraphs=[paragraph], bounding_box=None)])])
+    block = normalize_results(annotation, 100, 100)[0]
+    assert block["text"].startswith("字 字")
+    assert len(block["words"]) == 200
+    assert block["wordsTruncated"] is True
 
 
 def test_request_id_is_bounded_and_safe():

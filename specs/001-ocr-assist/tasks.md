@@ -23,6 +23,9 @@
 - [x] Review the complete L3 operation recording and publish the timestamped workflow and field map.
 - [x] Add exact／ambiguous／unknown document routing and prevent weak or tied evidence from auto-selecting the first type.
 - [x] Keep complete material ledgers on the inventory-review route and adapt the local farm-record type to `materialPurchase` only after manual choice.
+- [x] Keep stable source-image metadata and per-image queued／processing／recognized／failed state without storing image bytes or Object URLs in drafts.
+- [x] Preserve page／block／paragraph indices, word geometry and detected breaks with bounded response sizes.
+- [x] Add typed validation results (`ok`, `missing`, `warnings`, `mappingPending`) and separate review-prefill checks from final-save checks.
 
 ## Google Cloud setup and operations
 
@@ -46,8 +49,8 @@
 
 - [ ] Add source image ID, page, block IDs and geometry to every candidate and multi-row group.
 - [ ] Introduce a standard draft schema: activity header plus typed `details[]`, rather than one generic material and amount pair.
-- [ ] Add per-record-type validation that returns missing fields and warnings; do not rely on a single boolean `canCommit` rule.
-- [ ] Preserve word／symbol geometry and detected breaks, or produce reviewed table-row／cell candidates in the backend.
+- [x] Add per-record-type validation that returns missing fields and warnings; do not rely on a single boolean `canCommit` rule.
+- [x] Preserve word geometry and detected breaks in the backend; reviewed table-row／cell candidates remain a later parser task.
 - [ ] Add real consented golden fixtures for rotated spreads, table 10 material ledgers and table 18 equipment records; fixtures must be de-identified and must not enter a public repository.
 - [ ] Add multi-image tests for partial failure, retry, removal, duplicate pages and cross-page grouping.
 - [ ] Keep official L3 mappings `unmapped` until approved dictionaries, WSDL and a test environment are available.
