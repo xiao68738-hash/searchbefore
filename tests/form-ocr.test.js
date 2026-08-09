@@ -63,6 +63,17 @@ assert.equal(draft.fields.material[0].value, "亞滅培");
 assert.equal(draft.fields.dilution[0].value, 1000);
 assert.equal(Object.hasOwn(draft, "image"), false, "照片不可進入草稿資料");
 assert.equal(draft.routeDecision.status, "unknown", "沒有足夠表單標記時不得自動選第一名");
+assert.equal(draft.intermediateDraftSchemaVersion, 1);
+assert.equal(draft.activities.length, 1, "一般 OCR 候選應建立一筆標準中介活動");
+assert.equal(draft.activities[0].status, "pending-confirmation");
+assert.equal(draft.activities[0].autoCommitAllowed, false, "OCR 中介草稿永遠不得自動提交");
+assert.equal(draft.activities[0].l3UploadReady, false, "中介草稿不代表已完成 L3 映射");
+const standardDateDetail = draft.activities[0].details.find(item => item.key === "date");
+assert.equal(standardDateDetail.value, null, "候選值必須待人工確認，不得直接成為正式值");
+assert.equal(standardDateDetail.confirmation.state, "pending");
+assert.equal(standardDateDetail.candidates[0].value, "2026-07-30");
+assert.ok(standardDateDetail.candidates[0].evidence[0].blockId, "每個欄位候選必須保留來源證據");
+assert.ok(standardDateDetail.confidence > 0);
 assert.equal(O.canCommit(draft, { date: "2026-07-30", crop: "番茄", recordType: "cultivation" }), false, "未知文件未人工確認用途前不得帶入");
 assert.equal(O.canCommit(draft, {
   date: "2026-07-30",
@@ -138,13 +149,26 @@ const geometryDraft = O.createDraft({
   source: "google-cloud-vision",
   quality: { width: 1800, height: 2400, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
   layout: { version: 1, coordinateSpace: "normalized", indexBase: 0, wordGeometry: true },
+  rowCandidates: [{
+    id: "row-1",
+    source: { pageIndex: 0, regionIndex: 0 },
+    text: "表10 肥料入出庫紀錄 民國115/5/20 購入量 15包",
+    confidence: 0.92,
+    box: { left: 0.08, top: 0.08, right: 0.85, bottom: 0.25 },
+    cellCandidates: [
+      { id: "cell-1", text: "民國115/5/20", confidence: 0.91, box: { left: 0.1, top: 0.1, right: 0.3, bottom: 0.14 }, wordIds: ["cloud-1-w1"] },
+      { id: "cell-2", text: "購入量 15包", confidence: 0.88, box: { left: 0.31, top: 0.1, right: 0.6, bottom: 0.14 }, wordIds: ["cloud-1-w2", "../bad"] },
+      { id: "../unsafe-cell", text: "不得保留", confidence: 1 }
+    ]
+  }],
+  rowCandidatesTruncated: false,
   blocks: [{
     id: "cloud-1",
-    text: "表10 肥料入出庫紀錄",
+    text: "表10 肥料入出庫紀錄 民國115/5/20 購入量 15包",
     confidence: 0.94,
     box: { left: 0.1, top: 0.1, right: 0.8, bottom: 0.2 },
     blockBox: { left: 0.08, top: 0.08, right: 0.85, bottom: 0.25 },
-    source: { pageIndex: 0, blockIndex: 1, paragraphIndex: 2 },
+    source: { pageIndex: 0, blockIndex: 1, paragraphIndex: 2, rowCandidateId: "row-1", cellCandidateIds: ["cell-1", "cell-2", "../bad"] },
     words: [{
       id: "cloud-1-w1",
       text: "表10",
@@ -165,9 +189,40 @@ const geometryDraft = O.createDraft({
 });
 assert.equal(geometryDraft.layout.coordinateSpace, "normalized");
 assert.equal(geometryDraft.blocks[0].source.blockIndex, 1);
+assert.equal(geometryDraft.blocks[0].source.rowCandidateId, "row-1");
+assert.deepEqual(geometryDraft.blocks[0].source.cellCandidateIds, ["cell-1", "cell-2"], "只保留有界且安全的幾何候選識別碼");
+assert.equal(geometryDraft.rowCandidates[0].id, "row-1", "後端幾何列候選應安全保留供人工追溯");
+assert.deepEqual(geometryDraft.rowCandidates[0].cellCandidates.map(item => item.id), ["cell-1", "cell-2"]);
+assert.deepEqual(geometryDraft.rowCandidates[0].cellCandidates[1].wordIds, ["cloud-1-w2"], "列／格候選不得保留不安全的來源識別碼");
+assert.deepEqual(geometryDraft.activities[0].source.rowCandidateIds, ["row-1"], "只有明確附著於欄位證據的列候選才可連到活動");
+assert.deepEqual(geometryDraft.activities[0].source.cellCandidateIds, ["cell-1", "cell-2"]);
 assert.equal(geometryDraft.blocks[0].words[0].detectedBreak.type, "SPACE");
 assert.equal(geometryDraft.sourceImage.sourceImageId, "ocr-source-1234abcd");
 assert.equal(Object.hasOwn(geometryDraft.sourceImage, "imageData"), false, "來源追溯不得夾帶照片內容");
+
+const manySourceRows = Array.from({ length: 251 }, (_, rowIndex) => ({
+  id: "source-row-" + rowIndex,
+  source: { pageIndex: 0, regionIndex: 0 },
+  text: "候選列 " + rowIndex,
+  confidence: 0.8,
+  cellCandidates: Array.from({ length: rowIndex === 0 ? 25 : 1 }, (_, cellIndex) => ({
+    id: "source-row-" + rowIndex + "-cell-" + cellIndex,
+    text: "候選格 " + cellIndex,
+    confidence: 0.8,
+    wordIds: ["word-" + rowIndex + "-" + cellIndex]
+  }))
+}));
+const boundedSourceDraft = O.createDraft({
+  source: "google-cloud-vision",
+  quality: { width: 1800, height: 2400, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
+  blocks: [{ id: "source-limit", text: "栽培作業紀錄 民國115/5/20", confidence: 0.9 }],
+  rowCandidates: manySourceRows
+});
+assert.equal(boundedSourceDraft.rowCandidates.length, 250, "中介草稿只保留有界的來源列候選");
+assert.equal(boundedSourceDraft.rowCandidates[0].cellCandidates.length, 20, "每列來源格候選也必須有界");
+assert.equal(boundedSourceDraft.rowCandidatesTruncated, true);
+assert.equal(boundedSourceDraft.activities[0].autoCommitAllowed, false, "幾何列候選再完整也不可自動提交");
+assert.equal(boundedSourceDraft.activities[0].l3UploadReady, false, "幾何列候選不等於完成 L3 欄位映射");
 
 const reviewOnlyValidation = O.validateDraftForReview(draft, {
   date: "2026-07-30",
@@ -219,6 +274,10 @@ assert.deepEqual(equipmentDraft.recordGroups[0].equipment.filter(item => item.se
 assert.deepEqual(equipmentDraft.recordGroups[0].actions.filter(item => item.selected).map(item => item.value), ["清潔", "保養"]);
 assert.equal(equipmentDraft.recordGroups[0].operator[0].value, "施坤寶");
 assert.equal(equipmentDraft.recordGroups[1].date[0].value, "2026-03-10");
+assert.equal(equipmentDraft.activities.length, 2, "設備表每一列都應轉為獨立中介活動");
+assert.deepEqual(equipmentDraft.activities[0].details.find(item => item.key === "equipment").candidates.map(item => item.value), ["噴霧機", "割草機"]);
+assert.equal(equipmentDraft.activities[0].details.find(item => item.key === "equipment").value, null, "辨識到勾選也仍須人工確認");
+assert.ok(equipmentDraft.activities.every(item => item.confirmation.state === "pending" && item.autoCommitAllowed === false));
 
 const checklistTypes = O.detectFormTypes("農作物生產及出貨作業自我查核表\n查核項目 查核頻率 程度 備註\n確認日期：115.6.1 查核者：王小明");
 assert.equal(checklistTypes[0].value, "selfInspection", "查核表不得誤判成田間作業紀錄");
@@ -251,6 +310,30 @@ assert.ok(inventoryDraft.materialInventory.suppliers.some(item => item.value.inc
 assert.ok(inventoryDraft.materialInventory.manufacturers.some(item => item.value === "東成"), JSON.stringify(inventoryDraft.materialInventory.manufacturers));
 assert.equal(inventoryDraft.materialInventory.l3Mapping, "unconfirmed", "未取得 L3 欄位規格前不得宣稱可直接上傳");
 assert.equal(inventoryDraft.materialInventory.manualReviewRequired, true);
+assert.equal(inventoryDraft.activities.length, 2, "辨識到多個資材時應建立多筆待配對活動，而不是壓成單筆");
+assert.ok(inventoryDraft.activities.every(item => item.associationState === "pending"), "缺少可靠列關係時不得猜測資材與日期的配對");
+assert.ok(inventoryDraft.activities.every(item => item.details.every(detail => detail.value === null && detail.confirmation.state === "pending")));
+assert.ok(inventoryDraft.activities.every(item => item.l3UploadReady === false && item.autoCommitAllowed === false));
+
+const boundedEquipmentDraft = O.createDraft({
+  source: "google-cloud-vision",
+  quality: { width: 1800, height: 2400, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
+  blocks: [{ id: "equipment-title", text: "表18 器具/機械/設備之保養、維修、校正及清潔管理紀錄 作業內容", confidence: 1 }].concat(
+    Array.from({ length: 45 }, (_, index) => ({
+      id: "bounded-row-" + (index + 1),
+      text: "民國115/" + (Math.floor(index / 28) + 1) + "/" + ((index % 28) + 1) + " ☑噴霧機 ☑清潔",
+      confidence: 0.8
+    }))
+  )
+});
+assert.equal(boundedEquipmentDraft.activities.length, 30, "單份文件最多建立 30 筆中介活動，避免異常 OCR 撐大記憶體");
+boundedEquipmentDraft.activities.forEach(activity => {
+  assert.ok(activity.details.length <= 40);
+  activity.details.forEach(detail => {
+    assert.ok(detail.candidates.length <= 12);
+    assert.ok(detail.evidence.length <= 4);
+  });
+});
 
 const pastedEquipmentRows = O.findEquipmentMaintenanceRows([{ id: "paste", text: "民國115/2/23 ☑噴霧機 ☑清潔\n民國115/3/10 ☑割草機 ☑保養", confidence: 1 }]);
 assert.equal(pastedEquipmentRows.length, 2, "同一段 OCR 原文中的多個日期也必須拆成多筆");

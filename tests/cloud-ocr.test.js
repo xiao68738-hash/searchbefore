@@ -8,6 +8,7 @@ const UI = require(path.join(root, "form-ocr-ui.js"));
 const uiSource = fs.readFileSync(path.join(root, "form-ocr-ui.js"), "utf8");
 const configSource = fs.readFileSync(path.join(root, "service-config.js"), "utf8");
 const backendSource = fs.readFileSync(path.join(root, "cloud-ocr-service", "app", "main.py"), "utf8");
+const ocrBackendSource = fs.readFileSync(path.join(root, "cloud-ocr-service", "app", "ocr.py"), "utf8");
 const securitySource = fs.readFileSync(path.join(root, "cloud-ocr-service", "app", "security.py"), "utf8");
 
 const sandbox = { window: {} };
@@ -40,6 +41,10 @@ assert.match(backendSource, /await image\.read\(MAX_UPLOAD_BYTES \+ 1\)/, "後�
 assert.match(backendSource, /retention.*not-stored/s, "回應必須聲明原圖不保存");
 assert.match(backendSource, /coordinateSpace.*normalized/s, "後端必須聲明文字座標使用正規化座標系");
 assert.match(backendSource, /wordGeometry.*True/s, "後端必須標示回應含單字層級位置");
+assert.match(backendSource, /rowCandidates.*row_candidate_result\["rows"\]/s, "後端必須回傳通用列候選");
+assert.match(ocrBackendSource, /def build_row_candidates\(/, "後端必須由單字幾何建立列候選");
+assert.match(ocrBackendSource, /"cellCandidates"/, "列候選必須包含幾何分格候選");
+assert.match(ocrBackendSource, /"semanticInference": False/, "表格候選不得猜測欄位語意");
 assert.match(securitySource, /verify_id_token/, "後端必須驗證 Firebase ID token");
 assert.match(securitySource, /UserRateLimiter/, "後端必須限制單一帳號的短時間請求量");
 

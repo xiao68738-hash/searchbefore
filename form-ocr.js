@@ -10,6 +10,14 @@
   "use strict";
 
   const PROTOCOL_VERSION = 1;
+  const INTERMEDIATE_DRAFT_SCHEMA_VERSION = 1;
+  const MAX_DRAFT_ACTIVITIES = 30;
+  const MAX_ACTIVITY_DETAILS = 40;
+  const MAX_FIELD_CANDIDATES = 12;
+  const MAX_FIELD_EVIDENCE = 4;
+  const MAX_SOURCE_ROW_CANDIDATES = 250;
+  const MAX_SOURCE_CELL_CANDIDATES_PER_ROW = 20;
+  const MAX_SOURCE_WORD_IDS_PER_CELL = 100;
   const ALLOWED_UNITS = Object.freeze(["毫升", "公升", "公克", "公斤", "台斤", "c.c.", "c.c", "cc", "ml", "mL", "L", "g", "kg", "包", "袋"]);
   const EQUIPMENT_ITEMS = Object.freeze(["噴霧機", "割草機", "中耕機", "選別機", "貯藏／溫控設備", "搬運車", "冷藏車"]);
   const EQUIPMENT_ACTIONS = Object.freeze(["清潔", "保養", "維修", "校正"]);
@@ -402,6 +410,59 @@
     return Number.isInteger(number) && number >= 0 && number <= 100000 ? number : 0;
   }
 
+  function safeEvidenceId(value) {
+    const id = String(value || "");
+    return /^[A-Za-z0-9._:-]{1,160}$/.test(id) ? id : null;
+  }
+
+  function safeEvidenceIds(value) {
+    return Object.freeze(Array.from(new Set((Array.isArray(value) ? value : [])
+      .map(safeEvidenceId)
+      .filter(Boolean))).slice(0, 100));
+  }
+
+  function safeRowCandidateSource(value) {
+    if (!value || typeof value !== "object") return null;
+    return Object.freeze({
+      pageIndex: safeIndex(value.pageIndex),
+      regionIndex: safeIndex(value.regionIndex)
+    });
+  }
+
+  function safeCellCandidates(value) {
+    return Object.freeze((Array.isArray(value) ? value : []).slice(0, MAX_SOURCE_CELL_CANDIDATES_PER_ROW).map(function (cell) {
+      if (!cell || typeof cell !== "object") return null;
+      const id = safeEvidenceId(cell.id);
+      if (!id) return null;
+      return Object.freeze({
+        id,
+        text: normalizeText(cell.text).slice(0, 250),
+        confidence: clamp01(cell.confidence),
+        box: safeBox(cell.box),
+        wordIds: Object.freeze(safeEvidenceIds(cell.wordIds).slice(0, MAX_SOURCE_WORD_IDS_PER_CELL))
+      });
+    }).filter(Boolean));
+  }
+
+  function safeRowCandidates(value) {
+    return Object.freeze((Array.isArray(value) ? value : []).slice(0, MAX_SOURCE_ROW_CANDIDATES).map(function (row) {
+      if (!row || typeof row !== "object") return null;
+      const id = safeEvidenceId(row.id);
+      if (!id) return null;
+      const sourceCells = Array.isArray(row.cellCandidates) ? row.cellCandidates : [];
+      const cellCandidates = safeCellCandidates(sourceCells);
+      return Object.freeze({
+        id,
+        source: safeRowCandidateSource(row.source),
+        text: normalizeText(row.text).slice(0, 500),
+        confidence: clamp01(row.confidence),
+        box: safeBox(row.box),
+        cellCandidates,
+        cellsTruncated: row.cellsTruncated === true || cellCandidates.length < sourceCells.length
+      });
+    }).filter(Boolean));
+  }
+
   function safeDetectedBreak(value) {
     if (!value || typeof value !== "object") return null;
     const allowed = ["UNKNOWN", "SPACE", "SURE_SPACE", "EOL_SURE_SPACE", "HYPHEN", "LINE_BREAK"];
@@ -438,7 +499,9 @@
       const source = block && block.source && typeof block.source === "object" ? Object.freeze({
         pageIndex: safeIndex(block.source.pageIndex),
         blockIndex: safeIndex(block.source.blockIndex),
-        paragraphIndex: safeIndex(block.source.paragraphIndex)
+        paragraphIndex: safeIndex(block.source.paragraphIndex),
+        rowCandidateId: safeEvidenceId(block.source.rowCandidateId),
+        cellCandidateIds: safeEvidenceIds(block.source.cellCandidateIds)
       }) : null;
       out.push(Object.freeze({
         id,
@@ -460,7 +523,9 @@
       version: Math.max(1, Math.min(10, Number(value.version) || 1)),
       coordinateSpace: value.coordinateSpace === "normalized" ? "normalized" : "unknown",
       indexBase: Number(value.indexBase) === 0 ? 0 : 1,
-      wordGeometry: value.wordGeometry === true
+      wordGeometry: value.wordGeometry === true,
+      rowCandidateMethod: value.rowCandidateMethod === "geometry-only" ? "geometry-only" : "unknown",
+      semanticInference: false
     });
   }
 
@@ -698,6 +763,239 @@
     });
   }
 
+  function safeCandidateValue(value) {
+    if (value == null) return null;
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    if (typeof value === "boolean") return value;
+    return normalizeText(value).slice(0, 240) || null;
+  }
+
+  function candidateEvidence(candidate, blocks, sourceImage, sourceBlockIds) {
+    const item = candidate || {};
+    const list = Array.isArray(blocks) ? blocks : [];
+    const allowedIds = new Set(Array.isArray(sourceBlockIds) ? sourceBlockIds : []);
+    const sourceText = normalizeText(item.sourceText).slice(0, 500);
+    const valueText = normalizeText(item.value);
+    const terms = [sourceText, valueText].map(compact).filter(function (term) { return term.length >= 2; });
+    const matched = list.filter(function (block) {
+      if (allowedIds.size && !allowedIds.has(block.id)) return false;
+      if (!terms.length) return allowedIds.has(block.id);
+      const body = compact(block.text);
+      return terms.some(function (term) { return body.includes(term) || term.includes(body); });
+    }).slice(0, MAX_FIELD_EVIDENCE).map(function (block) {
+      const blockSource = block.source || {};
+      return Object.freeze({
+        sourceImageId: sourceImage ? sourceImage.sourceImageId : null,
+        blockId: block.id,
+        rowCandidateId: safeEvidenceId(item.rowCandidateId) || blockSource.rowCandidateId || null,
+        cellCandidateIds: safeEvidenceIds(item.cellCandidateIds || blockSource.cellCandidateIds),
+        sourceText: sourceText || block.text.slice(0, 500),
+        box: block.box,
+        confidence: clamp01(item.confidence || block.confidence)
+      });
+    });
+    if (!matched.length && sourceText) {
+      matched.push(Object.freeze({
+        sourceImageId: sourceImage ? sourceImage.sourceImageId : null,
+        blockId: null,
+        rowCandidateId: safeEvidenceId(item.rowCandidateId),
+        cellCandidateIds: safeEvidenceIds(item.cellCandidateIds),
+        sourceText,
+        box: null,
+        confidence: clamp01(item.confidence)
+      }));
+    }
+    return Object.freeze(matched);
+  }
+
+  function standardCandidate(candidate, blocks, sourceImage, sourceBlockIds) {
+    const item = candidate || {};
+    const value = safeCandidateValue(item.value);
+    if (value == null) return null;
+    const out = {
+      value,
+      confidence: clamp01(item.confidence),
+      evidence: candidateEvidence(item, blocks, sourceImage, sourceBlockIds)
+    };
+    const unit = safeCandidateValue(item.unit);
+    if (unit != null) out.unit = unit;
+    const kind = safeCandidateValue(item.kind);
+    if (kind != null) out.kind = kind;
+    const match = safeCandidateValue(item.match);
+    if (match != null) out.match = match;
+    if (item.selected === true) out.markDetected = true;
+    return Object.freeze(out);
+  }
+
+  function standardDetail(key, label, candidates, blocks, sourceImage, sourceBlockIds, requiredForLocalRecord) {
+    const list = (Array.isArray(candidates) ? candidates : []).slice(0, MAX_FIELD_CANDIDATES).map(function (candidate) {
+      return standardCandidate(candidate, blocks, sourceImage, sourceBlockIds);
+    }).filter(Boolean);
+    const evidence = [];
+    const evidenceKeys = new Set();
+    list.forEach(function (candidate) {
+      candidate.evidence.forEach(function (item) {
+        const evidenceKey = [item.sourceImageId || "", item.blockId || "", item.sourceText].join("|");
+        if (evidence.length >= MAX_FIELD_EVIDENCE || evidenceKeys.has(evidenceKey)) return;
+        evidenceKeys.add(evidenceKey);
+        evidence.push(item);
+      });
+    });
+    return Object.freeze({
+      key,
+      label,
+      value: null,
+      candidates: Object.freeze(list),
+      confidence: list.length ? Math.max.apply(null, list.map(function (item) { return item.confidence; })) : null,
+      evidence: Object.freeze(evidence),
+      requiredForLocalRecord: requiredForLocalRecord === true,
+      confirmation: Object.freeze({
+        state: "pending",
+        confirmed: false,
+        confirmedValue: null,
+        confirmedAt: null
+      })
+    });
+  }
+
+  function activityMappingPending(l3MappingStatus) {
+    const status = normalizeText(l3MappingStatus);
+    return !!status && status !== "mapped" && status !== "not-applicable";
+  }
+
+  function standardActivity(input) {
+    const source = input || {};
+    const details = (Array.isArray(source.details) ? source.details : []).slice(0, MAX_ACTIVITY_DETAILS);
+    const blockIds = Array.from(new Set((Array.isArray(source.sourceBlockIds) ? source.sourceBlockIds : [])
+      .map(function (id) { return String(id || "").slice(0, 160); })
+      .filter(Boolean))).slice(0, 100);
+    const rowCandidateIds = [];
+    const cellCandidateIds = [];
+    details.forEach(function (detail) {
+      (Array.isArray(detail && detail.evidence) ? detail.evidence : []).forEach(function (evidence) {
+        const rowId = safeEvidenceId(evidence && evidence.rowCandidateId);
+        if (rowId && rowCandidateIds.indexOf(rowId) < 0 && rowCandidateIds.length < 100) rowCandidateIds.push(rowId);
+        safeEvidenceIds(evidence && evidence.cellCandidateIds).forEach(function (cellId) {
+          if (cellCandidateIds.indexOf(cellId) < 0 && cellCandidateIds.length < 100) cellCandidateIds.push(cellId);
+        });
+      });
+    });
+    const mappingStatus = normalizeText(source.l3MappingStatus) || "not-mapped";
+    return Object.freeze({
+      id: String(source.id || "activity-pending").slice(0, 100),
+      kind: null,
+      kindCandidate: safeCandidateValue(source.kindCandidate),
+      route: normalizeText(source.route) || "unknown",
+      destination: normalizeText(source.destination) || "manual-classification",
+      associationState: source.associationState === "row-evidence" ? "row-evidence" : "pending",
+      status: "pending-confirmation",
+      confidence: details.length ? Math.max.apply(null, details.map(function (detail) { return Number(detail.confidence) || 0; })) : null,
+      source: Object.freeze({
+        sourceImageId: source.sourceImage ? source.sourceImage.sourceImageId : null,
+        blockIds: Object.freeze(blockIds),
+        rowCandidateIds: Object.freeze(rowCandidateIds),
+        cellCandidateIds: Object.freeze(cellCandidateIds)
+      }),
+      details: Object.freeze(details),
+      confirmation: Object.freeze({ state: "pending", confirmed: false, confirmedAt: null }),
+      l3MappingStatus: mappingStatus,
+      mappingPending: activityMappingPending(mappingStatus),
+      l3UploadReady: false,
+      autoCommitAllowed: false
+    });
+  }
+
+  function standardActivities(context) {
+    const ctx = context || {};
+    const routeDecision = ctx.routeDecision || {};
+    const route = ctx.route || {};
+    const blocks = Array.isArray(ctx.blocks) ? ctx.blocks : [];
+    const sourceImage = ctx.sourceImage || null;
+    const activities = [];
+
+    if (Array.isArray(ctx.equipmentRows) && ctx.equipmentRows.length) {
+      ctx.equipmentRows.slice(0, MAX_DRAFT_ACTIVITIES).forEach(function (row, index) {
+        const sourceBlockIds = row.sourceBlockIds || [];
+        const selectedEquipment = (row.equipment || []).filter(function (item) { return item.selected === true; });
+        const selectedActions = (row.actions || []).filter(function (item) { return item.selected === true; });
+        activities.push(standardActivity({
+          id: "activity-equipment-" + (index + 1),
+          kindCandidate: "equipmentMaintenance",
+          route: route.route,
+          destination: route.destination,
+          l3MappingStatus: route.l3MappingStatus,
+          associationState: "row-evidence",
+          sourceImage,
+          sourceBlockIds,
+          details: [
+            standardDetail("date", "日期", row.date, blocks, sourceImage, sourceBlockIds, true),
+            standardDetail("equipment", "器具／機械／設備", selectedEquipment, blocks, sourceImage, sourceBlockIds, true),
+            standardDetail("actions", "作業內容", selectedActions, blocks, sourceImage, sourceBlockIds, true),
+            standardDetail("operator", "記錄人", row.operator, blocks, sourceImage, sourceBlockIds, false)
+          ]
+        }));
+      });
+      return Object.freeze(activities);
+    }
+
+    if (ctx.materialInventory) {
+      const inventory = ctx.materialInventory;
+      const rowCount = Math.max(1, Math.min(MAX_DRAFT_ACTIVITIES, Math.max(
+        inventory.suggestedRowCount || 1,
+        inventory.materials.length,
+        inventory.dates.length
+      )));
+      for (let index = 0; index < rowCount; index += 1) {
+        activities.push(standardActivity({
+          id: "activity-inventory-" + (index + 1),
+          kindCandidate: "materialInventory",
+          route: route.route,
+          destination: route.destination,
+          l3MappingStatus: route.l3MappingStatus,
+          associationState: "pending",
+          sourceImage,
+          sourceBlockIds: blocks.map(function (block) { return block.id; }),
+          details: [
+            standardDetail("materialName", "資材名稱", inventory.materials, blocks, sourceImage, null, true),
+            standardDetail("manufacturer", "廠商", inventory.manufacturers, blocks, sourceImage, null, false),
+            standardDetail("supplier", "供應商", inventory.suppliers, blocks, sourceImage, null, true),
+            standardDetail("packageCapacity", "包裝容量", inventory.packageCapacities, blocks, sourceImage, null, false),
+            standardDetail("date", "日期", inventory.dates, blocks, sourceImage, null, true),
+            standardDetail("amount", "數量候選（購入／使用／剩餘待確認）", inventory.amounts, blocks, sourceImage, null, false)
+          ]
+        }));
+      }
+      return Object.freeze(activities);
+    }
+
+    const fields = ctx.fields || {};
+    const generalBlockIds = blocks.map(function (block) { return block.id; });
+    const routeType = routeDecision.type === "purchase" ? "materialPurchase" : routeDecision.type;
+    activities.push(standardActivity({
+      id: "activity-1",
+      kindCandidate: routeType || null,
+      route: route.route,
+      destination: route.destination,
+      l3MappingStatus: route.l3MappingStatus,
+      associationState: "pending",
+      sourceImage,
+      sourceBlockIds: generalBlockIds,
+      details: [
+        standardDetail("recordType", "紀錄類型", fields.recordType, blocks, sourceImage, null, true),
+        standardDetail("date", "日期", fields.date, blocks, sourceImage, null, true),
+        standardDetail("crop", "作物", fields.crop, blocks, sourceImage, null, false),
+        standardDetail("fieldPlot", "田區代號", fields.fieldPlot, blocks, sourceImage, null, false),
+        standardDetail("target", "防治對象", fields.target, blocks, sourceImage, null, false),
+        standardDetail("material", "藥劑／資材名稱", fields.material, blocks, sourceImage, null, false),
+        standardDetail("dilution", "稀釋倍數", fields.dilution, blocks, sourceImage, null, false),
+        standardDetail("amount", "數量", fields.amount, blocks, sourceImage, null, false),
+        standardDetail("safetyInterval", "安全採收期", fields.safetyInterval, blocks, sourceImage, null, false),
+        standardDetail("operator", "執行人", fields.operator, blocks, sourceImage, null, false)
+      ]
+    }));
+    return Object.freeze(activities);
+  }
+
   function createDraft(scanResult, dictionaries, sourceMetadata) {
     const result = scanResult || {};
     const quality = assessQuality(result.quality);
@@ -710,6 +1008,18 @@
     const isSelfInspection = routeDecision.status === "exact" && routeDecision.type === "selfInspection";
     const isMaterialInventory = routeDecision.status === "exact" && routeDecision.type === "purchase";
     const materialInventory = isMaterialInventory ? createMaterialInventoryDraft(text) : null;
+    const sourceImage = safeSourceImage(sourceMetadata || result.sourceImage);
+    const sourceRowCandidates = Array.isArray(result.rowCandidates) ? result.rowCandidates : [];
+    const rowCandidates = safeRowCandidates(sourceRowCandidates);
+    const rowCandidatesTruncated = result.rowCandidatesTruncated === true
+      || sourceRowCandidates.length > MAX_SOURCE_ROW_CANDIDATES
+      || rowCandidates.length < sourceRowCandidates.length;
+    const route = Object.freeze({
+      route: routeDecision.route,
+      destination: routeDecision.destination,
+      l3MappingStatus: routeDecision.l3MappingStatus,
+      reason: routeDecision.reason
+    });
     let equipmentRows = isEquipmentForm ? findEquipmentMaintenanceRows(blocks) : Object.freeze([]);
     if (isEquipmentForm && !equipmentRows.length) {
       equipmentRows = Object.freeze([Object.freeze({
@@ -722,34 +1032,46 @@
         confidence: 0.35
       })]);
     }
+    const fields = Object.freeze({
+      recordType: recordTypes,
+      date: findDates(text),
+      crop: dictionaryCandidates(text, dict.crops, "crop"),
+      fieldPlot: findPlotCodes(text),
+      target: dictionaryCandidates(text, dict.targets, "target"),
+      material: mergeCandidates(dictionaryCandidates(text, dict.materials, "material"), materialInventory && materialInventory.materials),
+      dilution: findDilutions(text),
+      amount: findAmounts(text),
+      safetyInterval: findSafetyIntervals(text),
+      operator: findLabeledValues(text, ["記錄人", "紀錄人", "操作人員", "執行人", "查核者", "確認者"], "operator")
+    });
+    const activities = standardActivities({
+      routeDecision,
+      route,
+      fields,
+      equipmentRows,
+      materialInventory,
+      blocks,
+      sourceImage
+    });
     return Object.freeze({
       protocolVersion: PROTOCOL_VERSION,
+      intermediateDraftSchemaVersion: INTERMEDIATE_DRAFT_SCHEMA_VERSION,
       requestId: String(result.requestId || "").slice(0, 100),
       source: result.source === "google-cloud-vision" ? "google-cloud-vision" : "android-on-device-ocr",
       createdAt: String(result.createdAt || new Date().toISOString()),
       confirmed: false,
-      sourceImage: safeSourceImage(sourceMetadata || result.sourceImage),
+      confirmationState: "pending",
+      autoCommitAllowed: false,
+      l3UploadReady: false,
+      sourceImage,
       layout: safeLayout(result.layout),
+      rowCandidates,
+      rowCandidatesTruncated,
       quality,
       routeDecision,
-      route: Object.freeze({
-        route: routeDecision.route,
-        destination: routeDecision.destination,
-        l3MappingStatus: routeDecision.l3MappingStatus,
-        reason: routeDecision.reason
-      }),
-      fields: Object.freeze({
-        recordType: recordTypes,
-        date: findDates(text),
-        crop: dictionaryCandidates(text, dict.crops, "crop"),
-        fieldPlot: findPlotCodes(text),
-        target: dictionaryCandidates(text, dict.targets, "target"),
-        material: mergeCandidates(dictionaryCandidates(text, dict.materials, "material"), materialInventory && materialInventory.materials),
-        dilution: findDilutions(text),
-        amount: findAmounts(text),
-        safetyInterval: findSafetyIntervals(text),
-        operator: findLabeledValues(text, ["記錄人", "紀錄人", "操作人員", "執行人", "查核者", "確認者"], "operator")
-      }),
+      route,
+      fields,
+      activities,
       recordGroups: equipmentRows,
       selfInspection: isSelfInspection ? createSelfInspectionDraft(text) : null,
       materialInventory,
