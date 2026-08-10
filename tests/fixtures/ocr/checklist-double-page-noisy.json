@@ -1,0 +1,57 @@
+{
+  "name": "旋轉雙頁自我查核表與背景雜訊",
+  "sourceImage": {
+    "sourceImageId": "fixture-checklist-double-page",
+    "fileName": "匿名查核表雙頁.jpg",
+    "sourceIndex": 0,
+    "status": "recognized",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 2100000
+  },
+  "scanResult": {
+    "source": "google-cloud-vision",
+    "quality": {
+      "width": 2048,
+      "height": 1536,
+      "cornersConfirmedByUser": true,
+      "assessment": "user-confirmed-before-upload"
+    },
+    "blocks": [
+      {
+        "id": "checklist-title",
+        "text": "三、水果類作物生產及出貨作業自我查核表",
+        "confidence": 0.96,
+        "box": { "left": 0.04, "top": 0.03, "right": 0.47, "bottom": 0.08 },
+        "source": { "pageIndex": 0, "regionIndex": 0 }
+      },
+      {
+        "id": "checklist-header",
+        "text": "查核項目 查核頻率 程度 備註 確認日期 查核者",
+        "confidence": 0.94,
+        "box": { "left": 0.04, "top": 0.09, "right": 0.48, "bottom": 0.14 },
+        "source": { "pageIndex": 0, "regionIndex": 0 }
+      },
+      {
+        "id": "checklist-content-left",
+        "text": "3.1 種苗使用管理 3.1.2 是否保留定植紀錄 3.3 灌溉 3.4 肥料 3.4.7 是否保留施肥紀錄 3.4.9 是否填寫肥料入出庫管理紀錄 確認日期：115.2.1 查核者：測試人員",
+        "confidence": 0.83,
+        "box": { "left": 0.04, "top": 0.15, "right": 0.48, "bottom": 0.9 },
+        "source": { "pageIndex": 0, "regionIndex": 0 }
+      },
+      {
+        "id": "checklist-content-right",
+        "text": "3.5 病蟲害綜合管理 5 採收清洗分級預冷 7 包裝標示與出貨人員",
+        "confidence": 0.82,
+        "box": { "left": 0.52, "top": 0.08, "right": 0.96, "bottom": 0.9 },
+        "source": { "pageIndex": 0, "regionIndex": 1 }
+      },
+      {
+        "id": "newspaper-background",
+        "text": "背景報紙：肥料市場採購增加，採收後冷藏與包裝新聞，表10庫存管理專題",
+        "confidence": 0.61,
+        "box": { "left": 0, "top": 0, "right": 1, "bottom": 0.03 },
+        "source": { "pageIndex": 0, "regionIndex": 2 }
+      }
+    ]
+  }
+}
