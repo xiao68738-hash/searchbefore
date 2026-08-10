@@ -1,0 +1,130 @@
+{
+  "name": "表10同頁多個資材小表與空白表格",
+  "sourceImage": {
+    "sourceImageId": "fixture-material-ledger-panels",
+    "fileName": "匿名肥料入出庫多表.jpg",
+    "sourceIndex": 1,
+    "status": "recognized",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 2600000
+  },
+  "scanResult": {
+    "source": "google-cloud-vision",
+    "quality": {
+      "width": 2048,
+      "height": 1536,
+      "cornersConfirmedByUser": true,
+      "assessment": "user-confirmed-before-upload"
+    },
+    "blocks": [
+      {
+        "id": "ledger-title",
+        "text": "表 10. 肥料入出庫紀錄 資材名稱 廠商 供應商 包裝單位 包裝容量 日期 購入量 使用量 剩餘量",
+        "confidence": 0.96,
+        "box": { "left": 0.03, "top": 0.03, "right": 0.97, "bottom": 0.08 },
+        "source": { "pageIndex": 0, "regionIndex": 0 }
+      },
+      {
+        "id": "ledger-background",
+        "text": "背景報紙：年度肥料採購與農產新聞，人物訪談與電影上映消息",
+        "confidence": 0.58,
+        "box": { "left": 0, "top": 0, "right": 1, "bottom": 0.03 },
+        "source": { "pageIndex": 0, "regionIndex": 2 }
+      }
+    ],
+    "rowCandidates": [
+      {
+        "id": "ledger-master-top",
+        "source": { "pageIndex": 0, "regionIndex": 0 },
+        "text": "資材名稱 苦土石灰 廠商 測試廠商 供應商 測試資材行 資材名稱 硫酸鉀 廠商 另一廠商",
+        "confidence": 0.9,
+        "box": { "left": 0.03, "top": 0.1, "right": 0.94, "bottom": 0.16 },
+        "cellCandidates": [
+          { "id": "lm-l-name-label", "text": "資材名稱", "confidence": 0.94, "box": { "left": 0.03, "top": 0.11, "right": 0.1, "bottom": 0.15 } },
+          { "id": "lm-l-name", "text": "苦土石灰", "confidence": 0.86, "box": { "left": 0.11, "top": 0.11, "right": 0.19, "bottom": 0.15 } },
+          { "id": "lm-l-maker-label", "text": "廠商", "confidence": 0.93, "box": { "left": 0.2, "top": 0.11, "right": 0.24, "bottom": 0.15 } },
+          { "id": "lm-l-maker", "text": "測試廠商", "confidence": 0.81, "box": { "left": 0.25, "top": 0.11, "right": 0.31, "bottom": 0.15 } },
+          { "id": "lm-l-supplier-label", "text": "供應商", "confidence": 0.93, "box": { "left": 0.32, "top": 0.11, "right": 0.37, "bottom": 0.15 } },
+          { "id": "lm-l-supplier", "text": "測試資材行", "confidence": 0.8, "box": { "left": 0.38, "top": 0.11, "right": 0.44, "bottom": 0.15 } },
+          { "id": "lm-r-name-label", "text": "資材名稱", "confidence": 0.94, "box": { "left": 0.53, "top": 0.11, "right": 0.6, "bottom": 0.15 } },
+          { "id": "lm-r-name", "text": "硫酸鉀", "confidence": 0.88, "box": { "left": 0.61, "top": 0.11, "right": 0.68, "bottom": 0.15 } },
+          { "id": "lm-r-maker-label", "text": "廠商", "confidence": 0.93, "box": { "left": 0.7, "top": 0.11, "right": 0.74, "bottom": 0.15 } },
+          { "id": "lm-r-maker", "text": "另一廠商", "confidence": 0.82, "box": { "left": 0.75, "top": 0.11, "right": 0.83, "bottom": 0.15 } }
+        ]
+      },
+      {
+        "id": "ledger-header-top",
+        "source": { "pageIndex": 0, "regionIndex": 0 },
+        "text": "日期 購入量 使用量 剩餘量 日期 購入量 使用量 剩餘量",
+        "confidence": 0.95,
+        "box": { "left": 0.04, "top": 0.18, "right": 0.91, "bottom": 0.22 },
+        "cellCandidates": [
+          { "id": "lh-l-date", "text": "日期", "confidence": 0.96, "box": { "left": 0.04, "top": 0.18, "right": 0.08, "bottom": 0.22 } },
+          { "id": "lh-l-purchase", "text": "購入量", "confidence": 0.96, "box": { "left": 0.12, "top": 0.18, "right": 0.17, "bottom": 0.22 } },
+          { "id": "lh-l-used", "text": "使用量", "confidence": 0.96, "box": { "left": 0.22, "top": 0.18, "right": 0.27, "bottom": 0.22 } },
+          { "id": "lh-l-remaining", "text": "剩餘量", "confidence": 0.96, "box": { "left": 0.33, "top": 0.18, "right": 0.39, "bottom": 0.22 } },
+          { "id": "lh-r-date", "text": "日期", "confidence": 0.96, "box": { "left": 0.56, "top": 0.18, "right": 0.6, "bottom": 0.22 } },
+          { "id": "lh-r-purchase", "text": "購入量", "confidence": 0.96, "box": { "left": 0.64, "top": 0.18, "right": 0.69, "bottom": 0.22 } },
+          { "id": "lh-r-used", "text": "使用量", "confidence": 0.96, "box": { "left": 0.74, "top": 0.18, "right": 0.79, "bottom": 0.22 } },
+          { "id": "lh-r-remaining", "text": "剩餘量", "confidence": 0.96, "box": { "left": 0.85, "top": 0.18, "right": 0.91, "bottom": 0.22 } }
+        ]
+      },
+      {
+        "id": "ledger-entry-top-1",
+        "source": { "pageIndex": 0, "regionIndex": 0 },
+        "text": "115/5/10 15包 15包 115/6/1 5包 5包",
+        "confidence": 0.87,
+        "box": { "left": 0.04, "top": 0.24, "right": 0.91, "bottom": 0.28 },
+        "cellCandidates": [
+          { "id": "le1-l-date", "text": "115/5/10", "confidence": 0.88, "box": { "left": 0.04, "top": 0.24, "right": 0.08, "bottom": 0.28 } },
+          { "id": "le1-l-purchase", "text": "15包", "confidence": 0.82, "box": { "left": 0.12, "top": 0.24, "right": 0.17, "bottom": 0.28 } },
+          { "id": "le1-l-remaining", "text": "15包", "confidence": 0.83, "box": { "left": 0.33, "top": 0.24, "right": 0.39, "bottom": 0.28 } },
+          { "id": "le1-r-date", "text": "115/6/1", "confidence": 0.89, "box": { "left": 0.56, "top": 0.24, "right": 0.6, "bottom": 0.28 } },
+          { "id": "le1-r-purchase", "text": "5包", "confidence": 0.82, "box": { "left": 0.64, "top": 0.24, "right": 0.69, "bottom": 0.28 } },
+          { "id": "le1-r-remaining", "text": "5包", "confidence": 0.83, "box": { "left": 0.85, "top": 0.24, "right": 0.91, "bottom": 0.28 } }
+        ]
+      },
+      {
+        "id": "ledger-entry-top-2",
+        "source": { "pageIndex": 0, "regionIndex": 0 },
+        "text": "115/5/20 15包 0 115/6/5 2包 3包",
+        "confidence": 0.86,
+        "box": { "left": 0.04, "top": 0.3, "right": 0.91, "bottom": 0.34 },
+        "cellCandidates": [
+          { "id": "le2-l-date", "text": "115/5/20", "confidence": 0.88, "box": { "left": 0.04, "top": 0.3, "right": 0.08, "bottom": 0.34 } },
+          { "id": "le2-l-used", "text": "15包", "confidence": 0.82, "box": { "left": 0.22, "top": 0.3, "right": 0.27, "bottom": 0.34 } },
+          { "id": "le2-l-remaining", "text": "0", "confidence": 0.86, "box": { "left": 0.33, "top": 0.3, "right": 0.39, "bottom": 0.34 } },
+          { "id": "le2-r-date", "text": "115/6/5", "confidence": 0.88, "box": { "left": 0.56, "top": 0.3, "right": 0.6, "bottom": 0.34 } },
+          { "id": "le2-r-used", "text": "2包", "confidence": 0.82, "box": { "left": 0.74, "top": 0.3, "right": 0.79, "bottom": 0.34 } },
+          { "id": "le2-r-remaining", "text": "3包", "confidence": 0.83, "box": { "left": 0.85, "top": 0.3, "right": 0.91, "bottom": 0.34 } }
+        ]
+      },
+      {
+        "id": "ledger-empty-master",
+        "source": { "pageIndex": 0, "regionIndex": 0 },
+        "text": "資材名稱 廠商 供應商 包裝單位 包裝容量",
+        "confidence": 0.94,
+        "box": { "left": 0.03, "top": 0.5, "right": 0.45, "bottom": 0.56 },
+        "cellCandidates": [
+          { "id": "lem-name", "text": "資材名稱", "confidence": 0.95, "box": { "left": 0.03, "top": 0.51, "right": 0.1, "bottom": 0.55 } },
+          { "id": "lem-maker", "text": "廠商", "confidence": 0.95, "box": { "left": 0.18, "top": 0.51, "right": 0.23, "bottom": 0.55 } },
+          { "id": "lem-supplier", "text": "供應商", "confidence": 0.95, "box": { "left": 0.29, "top": 0.51, "right": 0.35, "bottom": 0.55 } }
+        ]
+      },
+      {
+        "id": "ledger-empty-header",
+        "source": { "pageIndex": 0, "regionIndex": 0 },
+        "text": "日期 購入量 使用量 剩餘量",
+        "confidence": 0.96,
+        "box": { "left": 0.04, "top": 0.58, "right": 0.39, "bottom": 0.62 },
+        "cellCandidates": [
+          { "id": "leh-date", "text": "日期", "confidence": 0.96, "box": { "left": 0.04, "top": 0.58, "right": 0.08, "bottom": 0.62 } },
+          { "id": "leh-purchase", "text": "購入量", "confidence": 0.96, "box": { "left": 0.12, "top": 0.58, "right": 0.17, "bottom": 0.62 } },
+          { "id": "leh-used", "text": "使用量", "confidence": 0.96, "box": { "left": 0.22, "top": 0.58, "right": 0.27, "bottom": 0.62 } },
+          { "id": "leh-remaining", "text": "剩餘量", "confidence": 0.96, "box": { "left": 0.33, "top": 0.58, "right": 0.39, "bottom": 0.62 } }
+        ]
+      }
+    ],
+    "rowCandidatesTruncated": false
+  }
+}
