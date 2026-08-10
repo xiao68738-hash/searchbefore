@@ -26,6 +26,7 @@
   let ocrBatchIndex = 0;
   let ocrBatchRunning = false;
   let ocrActivityListDraft = null;
+  let skippedOcrActivityIds = new Set();
   let ocrVerificationCode = "";
 
   const SOURCE_IMAGE_STATUSES = Object.freeze(["queued", "processing", "recognized", "failed"]);
@@ -36,6 +37,7 @@
     failed: "辨識失敗"
   });
   const ACTIVITY_PRESELECT_CONFIDENCE = 0.75;
+  const MANUAL_SOURCE_ROW_ID = "manual-no-source-row";
 
   const RECORD_TYPE_LABELS = Object.freeze({
     pesticide: "病蟲害防治／用藥",
@@ -421,6 +423,68 @@
     return String(item.value == null ? "" : item.value);
   }
 
+  function sourceRows(draft) {
+    return Array.isArray(draft && draft.rowCandidates) ? draft.rowCandidates.slice(0, MAX_OCR_ROW_CANDIDATES) : [];
+  }
+
+  function sourceRowLabel(row, index) {
+    const source = row && row.source || {};
+    const position = "頁 " + (Math.max(0, Number(source.pageIndex) || 0) + 1)
+      + (source.regionIndex == null ? "" : "・區 " + (Math.max(0, Number(source.regionIndex) || 0) + 1));
+    const text = String(row && row.text || "").replace(/\s+/g, " ").trim();
+    return "來源列 " + (index + 1) + "（" + position + "）" + (text ? "：" + text.slice(0, 72) : "");
+  }
+
+  function sourceRowOptionList(draft) {
+    return '<option value="">請先選擇來源列</option>'
+      + '<option value="' + MANUAL_SOURCE_ROW_ID + '">人工新增／無來源列</option>'
+      + sourceRows(draft).map(function (row, index) {
+        return '<option value="' + esc(String(row.id || "")) + '">' + esc(sourceRowLabel(row, index)) + '</option>';
+      }).join("");
+  }
+
+  function candidateMatchesSourceRow(candidate, row) {
+    if (!candidate || !row) return false;
+    const rowId = String(row.id || "");
+    const evidence = Array.isArray(candidate.evidence) ? candidate.evidence : [];
+    const evidenceRowIds = evidence.map(function (item) {
+      return String(item && item.rowCandidateId || "");
+    }).filter(Boolean);
+    if (evidenceRowIds.length) return Boolean(rowId && evidenceRowIds.includes(rowId));
+    const rowText = matchKey(row.text || "");
+    const valueText = matchKey(candidate.value == null ? "" : candidate.value);
+    return Boolean(rowText && valueText && valueText.length >= 2 && rowText.includes(valueText));
+  }
+
+  function candidatesForSourceRow(items, draft, rowId) {
+    if (!rowId || rowId === MANUAL_SOURCE_ROW_ID) return [];
+    const row = sourceRows(draft).find(function (item) { return String(item.id || "") === String(rowId); });
+    if (!row) return [];
+    return (Array.isArray(items) ? items : []).filter(function (candidate) {
+      return candidateMatchesSourceRow(candidate, row);
+    });
+  }
+
+  function sourceRowReviewHtml(draft) {
+    return '<section class="ocr-source-row-review"><label>這筆資料來自哪一列？<select id="ocrActivitySourceRow" onchange="PQC_FORM_OCR_UI.filterActivityCandidatesBySource(this.value)">'
+      + sourceRowOptionList(draft) + '</select></label><p id="ocrActivitySourceExcerpt">尚未指定來源列，所有辨識候選保持空白。</p>'
+      + '<small>選擇來源列只會縮小候選範圍，不會自動填入；若照片中沒有可用的列，請選「人工新增／無來源列」。</small>'
+      + '<label class="ocr-source-row-confirm"><input id="ocrConfirmActivitySource" type="checkbox"> 我已對照原圖確認來源列與這筆內容</label></section>';
+  }
+
+  function rowReviewSummary(states) {
+    const rows = Array.isArray(states) ? states : [];
+    const confirmed = rows.filter(function (item) { return item && item.confirmed === true && item.skipped !== true; });
+    const skipped = rows.filter(function (item) { return item && item.skipped === true; });
+    const pending = rows.filter(function (item) { return !item || (item.confirmed !== true && item.skipped !== true); });
+    return Object.freeze({
+      ok: confirmed.length > 0 && pending.length === 0,
+      confirmed: Object.freeze(confirmed),
+      skipped: Object.freeze(skipped),
+      pending: Object.freeze(pending)
+    });
+  }
+
   function activityConfidence(activity, fields) {
     const direct = normalizedConfidence(activity && (activity.confidence != null ? activity.confidence : activity.classificationConfidence));
     if (direct != null) return direct;
@@ -561,6 +625,11 @@
     return "singleReview";
   }
 
+  function activityDecisionKey(candidate) {
+    const source = candidate && candidate.source || {};
+    return String(source.sourceImageId || "ocr-source-unknown") + "::" + String(candidate && candidate.activityId || "activity-unknown");
+  }
+
   function renderActivityCandidates(draft, text) {
     const box = document.getElementById("ocrDraftBox");
     if (!box) return;
@@ -573,13 +642,18 @@
       + activities.map(function (candidate, index) {
         const confidence = Math.round(candidate.confidence * 100);
         const sourceArgument = esc(JSON.stringify(candidate.source.sourceImageId));
-        const statusText = candidate.lowConfidence ? "信心不足・不預選欄位" : "等待逐欄核對";
-        return '<article class="ocr-activity-card" data-confidence="' + (candidate.lowConfidence ? "low" : "review") + '">'
+        const skipped = skippedOcrActivityIds.has(activityDecisionKey(candidate));
+        const statusText = skipped ? "已略過" : (candidate.lowConfidence ? "信心不足・不預選欄位" : "等待逐欄核對");
+        return '<article class="ocr-activity-card" data-confidence="' + (skipped ? "skipped" : (candidate.lowConfidence ? "low" : "review")) + '">'
           + '<div class="ocr-activity-card-head"><div><b>第 ' + (index + 1) + ' 筆候選</b><span>' + esc(statusText) + (confidence ? "・約 " + confidence + "%" : "") + '</span></div><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.openOcrImagePreview(' + sourceArgument + ')">查看原圖</button></div>'
           + '<p class="ocr-activity-source">' + esc(activitySourceLabel(candidate.source)) + '</p>'
           + '<div class="ocr-activity-fields">' + activityPreviewFields(candidate) + '</div>'
-          + (candidate.lowConfidence ? '<p class="ocr-activity-warning">這一列不會自動選入任何欄位；進入後請從空白狀態逐欄選擇。</p>' : '')
-          + '<button class="btn ' + (candidate.lowConfidence ? "btn-ghost" : "btn-main") + '" type="button" onclick="PQC_FORM_OCR_UI.reviewOcrActivity(' + index + ')">核對這一筆</button>'
+          + (!skipped && candidate.lowConfidence ? '<p class="ocr-activity-warning">這一列不會自動選入任何欄位；進入後請從空白狀態逐欄選擇。</p>' : '')
+          + '<div class="ocr-activity-card-actions">'
+          + (skipped
+            ? '<button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.restoreOcrActivity(' + index + ')">恢復這一筆</button>'
+            : '<button class="btn ' + (candidate.lowConfidence ? "btn-ghost" : "btn-main") + '" type="button" onclick="PQC_FORM_OCR_UI.reviewOcrActivity(' + index + ')">核對這一筆</button><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.skipOcrActivity(' + index + ')">略過</button>')
+          + '</div>'
           + '</article>';
       }).join("")
       + '</div><details class="ocr-raw-details"><summary>查看這張照片的辨識原文</summary><textarea readonly>' + esc(text) + '</textarea></details>'
@@ -620,6 +694,77 @@
     if (!ocrActivityListDraft) return false;
     const text = (ocrActivityListDraft.blocks || []).map(function (block) { return block.text; }).join("\n");
     renderActivityCandidates(ocrActivityListDraft, text);
+    return true;
+  }
+
+  function skipOcrActivity(index) {
+    if (!ocrActivityListDraft) return false;
+    const candidate = normalizeDraftActivities(ocrActivityListDraft)[Number(index)];
+    if (!candidate) return false;
+    skippedOcrActivityIds.add(activityDecisionKey(candidate));
+    showOcrActivityCandidates();
+    return true;
+  }
+
+  function restoreOcrActivity(index) {
+    if (!ocrActivityListDraft) return false;
+    const candidate = normalizeDraftActivities(ocrActivityListDraft)[Number(index)];
+    if (!candidate) return false;
+    skippedOcrActivityIds.delete(activityDecisionKey(candidate));
+    showOcrActivityCandidates();
+    return true;
+  }
+
+  function setCandidateOptions(id, items, format) {
+    const select = document.getElementById(id);
+    if (!select) return;
+    select.innerHTML = optionList(items, format);
+    select.value = "";
+    select.disabled = !items || !items.length;
+  }
+
+  function filterActivityCandidatesBySource(rowId) {
+    if (!currentDraft) return false;
+    const rows = sourceRows(currentDraft);
+    const row = rows.find(function (item) { return String(item.id || "") === String(rowId || ""); });
+    const manual = rowId === MANUAL_SOURCE_ROW_ID;
+    const excerpt = document.getElementById("ocrActivitySourceExcerpt");
+    if (excerpt) {
+      excerpt.textContent = manual
+        ? "已選擇人工新增；辨識候選維持空白，請自行輸入。"
+        : (row ? "來源列內容：" + String(row.text || "").slice(0, 240) : "尚未指定來源列，所有辨識候選保持空白。");
+    }
+    const fields = currentDraft.fields || {};
+    const filtered = function (key) { return candidatesForSourceRow(fields[key], currentDraft, rowId); };
+    setCandidateOptions("ocrDateCandidate", filtered("date"));
+    setCandidateOptions("ocrCropCandidate", filtered("crop"));
+    setCandidateOptions("ocrFieldPlotCandidate", filtered("fieldPlot"));
+    setCandidateOptions("ocrTargetCandidate", filtered("target"));
+    setCandidateOptions("ocrMaterialCandidate", filtered("material"));
+    setCandidateOptions("ocrDilutionCandidate", filtered("dilution"));
+    setCandidateOptions("ocrAmountCandidate", filtered("amount"), function (item) { return item.unit ? item.value + " " + item.unit : item.value; });
+    setCandidateOptions("ocrSafetyCandidate", filtered("safetyInterval"), function (item) { return item.value == null ? "未訂／不適用" : item.value; });
+    setCandidateOptions("ocrOperatorCandidate", filtered("operator"));
+    setCandidateOptions("ocrActivityCandidate", filtered("activity"));
+    setCandidateOptions("ocrMethodCandidate", filtered("method"));
+    const confirmation = document.getElementById("ocrConfirmActivitySource");
+    if (confirmation) confirmation.checked = false;
+    return Boolean(row || manual);
+  }
+
+  function activitySourceRowConfirmed() {
+    const select = document.getElementById("ocrActivitySourceRow");
+    if (!select) return true;
+    return Boolean(select.value && checked("ocrConfirmActivitySource"));
+  }
+
+  function skipCurrentOcrActivity() {
+    const review = currentDraft && currentDraft.activityReview;
+    if (review && review.activityId) skippedOcrActivityIds.add(activityDecisionKey({ activityId: review.activityId, source: review.source }));
+    if (ocrActivityListDraft) return showOcrActivityCandidates();
+    const box = document.getElementById("ocrDraftBox");
+    if (box) box.innerHTML = batchNavigatorHtml() + '<div class="ocr-status ok"><b>已略過這筆候選</b><span>這筆不會帶入或儲存；您可以切換到下一張照片繼續核對。</span></div>';
+    currentDraft = null;
     return true;
   }
 
@@ -773,17 +918,20 @@
     }).join("");
   }
 
-  function materialInventoryRowHtml(index, draft) {
-    return '<section class="ocr-inventory-row" data-inventory-row><div class="ocr-inventory-row-head"><b>進出庫第 ' + (index + 1) + ' 筆</b><button class="btn btn-ghost" type="button" onclick="this.closest(\'[data-inventory-row]\').remove()">移除</button></div>'
-      + '<label>資材名稱<select class="ocr-inventory-material">' + inventoryOptionList(draft.materials, "") + '</select><input class="ocr-inventory-material-manual" placeholder="或自行輸入"></label>'
-      + '<label>廠商<select class="ocr-inventory-manufacturer">' + inventoryOptionList(draft.manufacturers, "") + '</select><input class="ocr-inventory-manufacturer-manual" placeholder="或自行輸入"></label>'
-      + '<label>供應商<select class="ocr-inventory-supplier">' + inventoryOptionList(draft.suppliers, "") + '</select><input class="ocr-inventory-supplier-manual" placeholder="或自行輸入"></label>'
-      + '<label>包裝容量<select class="ocr-inventory-capacity">' + inventoryOptionList(draft.packageCapacities, "") + '</select><input class="ocr-inventory-capacity-manual" placeholder="例如 25 公斤"></label>'
-      + '<label>日期<select class="ocr-inventory-date-candidate">' + inventoryOptionList(draft.dates, "") + '</select><input class="ocr-inventory-date" type="date" aria-label="自行輸入日期"></label>'
+  function materialInventoryRowHtml(index, draft, rowCandidates) {
+    const sourceDraft = { rowCandidates: Array.isArray(rowCandidates) ? rowCandidates : [] };
+    return '<section class="ocr-inventory-row" data-inventory-row data-review-status="pending"><div class="ocr-inventory-row-head"><b>進出庫第 ' + (index + 1) + ' 筆</b><span data-row-status>等待核對</span><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.toggleMaterialInventoryRowSkipped(this)">略過</button></div>'
+      + '<label class="ocr-inventory-source-row">來源列<select class="ocr-inventory-source" onchange="PQC_FORM_OCR_UI.filterMaterialInventoryRow(this)">' + sourceRowOptionList(sourceDraft) + '</select><small data-source-excerpt>尚未指定來源列，候選保持空白。</small></label>'
+      + '<label>資材名稱<select class="ocr-inventory-material">' + inventoryOptionList([], "") + '</select><input class="ocr-inventory-material-manual" placeholder="或自行輸入"></label>'
+      + '<label>廠商<select class="ocr-inventory-manufacturer">' + inventoryOptionList([], "") + '</select><input class="ocr-inventory-manufacturer-manual" placeholder="或自行輸入"></label>'
+      + '<label>供應商<select class="ocr-inventory-supplier">' + inventoryOptionList([], "") + '</select><input class="ocr-inventory-supplier-manual" placeholder="或自行輸入"></label>'
+      + '<label>包裝容量<select class="ocr-inventory-capacity">' + inventoryOptionList([], "") + '</select><input class="ocr-inventory-capacity-manual" placeholder="例如 25 公斤"></label>'
+      + '<label>日期<select class="ocr-inventory-date-candidate">' + inventoryOptionList([], "") + '</select><input class="ocr-inventory-date" type="date" aria-label="自行輸入日期"></label>'
       + '<label>購入量<input class="ocr-inventory-purchase" inputmode="decimal" placeholder="例如 15"></label>'
       + '<label>使用量<input class="ocr-inventory-used" inputmode="decimal" placeholder="例如 5"></label>'
       + '<label>剩餘量<input class="ocr-inventory-remaining" inputmode="decimal" placeholder="例如 10"></label>'
-      + '<label>單位<input class="ocr-inventory-unit" placeholder="包、公斤、瓶"></label></section>';
+      + '<label>單位<input class="ocr-inventory-unit" placeholder="包、公斤、瓶"></label>'
+      + '<label class="ocr-inventory-row-confirm"><input class="ocr-inventory-confirmed" type="checkbox" onchange="PQC_FORM_OCR_UI.updateMaterialInventoryRowStatus(this)"> 我已對照原圖核對這一筆</label></section>';
   }
 
   function renderMaterialInventoryDraft(draft, text) {
@@ -798,10 +946,9 @@
       + '<div class="ocr-reference-summary"><div><span>資材候選</span><b>' + esc(inventory.materials.map(function (item) { return item.value; }).join("、") || "未辨識到") + '</b></div><div><span>日期候選</span><b>' + esc(inventory.dates.map(function (item) { return item.value; }).join("、") || "未辨識到") + '</b></div></div>'
       + '<div class="ocr-status warn"><b>請逐筆選擇</b><span>目前只能找出候選，還不能確定哪個日期、資材與數量屬於同一列，因此不會自動配對。</span></div>'
       + '<div class="ocr-inventory-toolbar"><b>進出庫明細</b><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.addMaterialInventoryRow()">＋ 新增一列</button></div>'
-      + '<div id="ocrInventoryRows" class="ocr-inventory-rows">' + Array.from({ length: rowCount }, function (_, index) { return materialInventoryRowHtml(index, inventory); }).join("") + '</div>'
+      + '<div id="ocrInventoryRows" class="ocr-inventory-rows">' + Array.from({ length: rowCount }, function (_, index) { return materialInventoryRowHtml(index, inventory, draft.rowCandidates); }).join("") + '</div>'
       + '<button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.openOcrImagePreview(' + sourceArgument + ')">查看原圖核對</button>'
       + '<details class="ocr-raw-details"><summary>查看辨識原文</summary><textarea id="ocrRawText" readonly>' + esc(text) + '</textarea></details>'
-      + '<fieldset class="ocr-confirm wide"><legend>匯出前確認</legend><label><input id="ocrConfirmMaterialInventory" type="checkbox"> 我已對照原圖核對資材名稱與每筆數量</label></fieldset>'
       + '<button class="btn btn-main wide" type="button" onclick="PQC_FORM_OCR_UI.exportMaterialInventoryDraft()">下載資材庫存草稿 CSV</button>'
       + '<p class="disclaimer">辨識結果不會自動儲存或上傳。等取得正式 L3 欄位規格後，再決定哪些欄位可安全串接。</p></section>';
   }
@@ -842,6 +989,7 @@
       ? (draft.fields.recordType || []).find(function (item) { return item.value === routeDecision.type; })
       : null;
     const reviewMode = draftReviewMode(draft);
+    if (!draft.activityReview && reviewMode !== "activityCandidates") ocrActivityListDraft = null;
     if (reviewMode === "reference") {
       renderReferenceDocumentDraft(draft, text, detectedType);
       return;
@@ -859,22 +1007,25 @@
       renderActivityCandidates(draft, text);
       return;
     }
+    const sourceRowReview = sourceRowReviewHtml(draft);
+    const initialFields = sourceRowReview ? {} : draft.fields;
     box.innerHTML = batchNavigatorHtml() + activityReviewBannerHtml(draft) + qualityHtml(draft.quality) + routeDecisionHtml(draft)
+      + sourceRowReview
       + '<div class="ocr-review">'
-      + '<div class="field"><label>紀錄類型 *</label><select id="ocrRecordType">' + recordTypeOptions(draft.fields.recordType) + '</select></div>'
+      + '<div class="field"><label>紀錄類型 *</label><select id="ocrRecordType">' + recordTypeOptions(initialFields.recordType) + '</select></div>'
       + activityDetailReviewHtml(draft)
-      + '<div class="field"><label>日期候選 *</label><select id="ocrDateCandidate">' + optionList(draft.fields.date) + '</select><input id="ocrDateManual" type="date" aria-label="手動修正日期"></div>'
-      + '<div class="field"><label>作物候選 *</label><select id="ocrCropCandidate">' + optionList(draft.fields.crop) + '</select><input id="ocrCropManual" placeholder="或自行輸入作物"></div>'
-      + '<div class="field"><label>田區代號候選</label><select id="ocrFieldPlotCandidate">' + optionList(draft.fields.fieldPlot) + '</select><input id="ocrFieldPlotManual" placeholder="或自行輸入田區代號"></div>'
-      + '<div class="field"><label>防治對象候選</label><select id="ocrTargetCandidate">' + optionList(draft.fields.target) + '</select><input id="ocrTargetManual" placeholder="或自行輸入病蟲害"></div>'
-      + '<div class="field"><label>資材／藥劑候選</label><select id="ocrMaterialCandidate">' + optionList(draft.fields.material) + '</select><input id="ocrMaterialManual" placeholder="或自行輸入名稱"></div>'
-      + '<div class="field"><label>稀釋倍數</label><select id="ocrDilutionCandidate">' + optionList(draft.fields.dilution) + '</select></div>'
-      + '<div class="field"><label>數量候選</label><select id="ocrAmountCandidate">' + optionList(draft.fields.amount, function (item) { return item.unit ? item.value + " " + item.unit : item.value; }) + '</select></div>'
-      + '<div class="field"><label>安全採收期候選</label><select id="ocrSafetyCandidate">' + optionList(draft.fields.safetyInterval, function (item) { return item.value == null ? "未訂／不適用" : item.value; }) + '</select><input id="ocrSafetyManual" type="number" min="0" max="365" inputmode="numeric" placeholder="或自行輸入天數"></div>'
-      + '<div class="field"><label>執行人</label><select id="ocrOperatorCandidate">' + optionList(draft.fields.operator) + '</select><input id="ocrOperator" placeholder="請自行確認填寫"></div>'
+      + '<div class="field"><label>日期候選 *</label><select id="ocrDateCandidate">' + optionList(initialFields.date) + '</select><input id="ocrDateManual" type="date" aria-label="手動修正日期"></div>'
+      + '<div class="field"><label>作物候選 *</label><select id="ocrCropCandidate">' + optionList(initialFields.crop) + '</select><input id="ocrCropManual" placeholder="或自行輸入作物"></div>'
+      + '<div class="field"><label>田區代號候選</label><select id="ocrFieldPlotCandidate">' + optionList(initialFields.fieldPlot) + '</select><input id="ocrFieldPlotManual" placeholder="或自行輸入田區代號"></div>'
+      + '<div class="field"><label>防治對象候選</label><select id="ocrTargetCandidate">' + optionList(initialFields.target) + '</select><input id="ocrTargetManual" placeholder="或自行輸入病蟲害"></div>'
+      + '<div class="field"><label>資材／藥劑候選</label><select id="ocrMaterialCandidate">' + optionList(initialFields.material) + '</select><input id="ocrMaterialManual" placeholder="或自行輸入名稱"></div>'
+      + '<div class="field"><label>稀釋倍數</label><select id="ocrDilutionCandidate">' + optionList(initialFields.dilution) + '</select></div>'
+      + '<div class="field"><label>數量候選</label><select id="ocrAmountCandidate">' + optionList(initialFields.amount, function (item) { return item.unit ? item.value + " " + item.unit : item.value; }) + '</select></div>'
+      + '<div class="field"><label>安全採收期候選</label><select id="ocrSafetyCandidate">' + optionList(initialFields.safetyInterval, function (item) { return item.value == null ? "未訂／不適用" : item.value; }) + '</select><input id="ocrSafetyManual" type="number" min="0" max="365" inputmode="numeric" placeholder="或自行輸入天數"></div>'
+      + '<div class="field"><label>執行人</label><select id="ocrOperatorCandidate">' + optionList(initialFields.operator) + '</select><input id="ocrOperator" placeholder="請自行確認填寫"></div>'
       + '<div class="field wide"><label>辨識原文</label><textarea id="ocrRawText" readonly>' + esc(text) + '</textarea></div>'
       + '<fieldset class="ocr-confirm wide"><legend>帶入前必須確認</legend>' + activityRowConfirmationHtml(draft) + '<label><input id="ocrConfirmType" type="checkbox"> 紀錄類型已核對</label><label><input id="ocrConfirmDate" type="checkbox"> 日期已核對</label><label><input id="ocrConfirmCrop" type="checkbox"> 作物已核對（如有）</label><label><input id="ocrConfirmMaterial" type="checkbox"> 藥劑／資材名稱已核對（如有）</label></fieldset>'
-      + '<button class="btn btn-main wide" type="button" onclick="PQC_FORM_OCR_UI.applyToFarmForm()"' + (draft.quality.canProcess ? "" : " disabled") + '>帶入紀錄表單並繼續確認</button>'
+      + '<div class="ocr-review-actions wide"><button class="btn btn-main" type="button" onclick="PQC_FORM_OCR_UI.applyToFarmForm()"' + (draft.quality.canProcess ? "" : " disabled") + '>帶入紀錄表單並繼續確認</button><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.skipCurrentOcrActivity()">略過這筆</button></div>'
       + '<p class="disclaimer wide">辨識結果只是草稿。系統不會自動儲存；帶入後仍須在原本的作業紀錄表單再次確認並按下儲存。</p>'
       + '</div>';
     const dateCandidate = preselectedCandidate(draft, draft.fields.date);
@@ -889,24 +1040,25 @@
     const operatorCandidate = preselectedCandidate(draft, draft.fields.operator);
     const activityCandidate = preselectedCandidate(draft, draft.fields.activity || []);
     const methodCandidate = preselectedCandidate(draft, draft.fields.method || []);
-    if (dateCandidate) {
+    if (!sourceRowReview && dateCandidate) {
       setValue("ocrDateCandidate", dateCandidate.value);
       setValue("ocrDateManual", dateCandidate.value);
     }
-    if (recordTypeCandidate && RECORD_TYPE_LABELS[canonicalRecordType(recordTypeCandidate.value)]) setValue("ocrRecordType", canonicalRecordType(recordTypeCandidate.value));
-    if (cropCandidate) setValue("ocrCropCandidate", cropCandidate.value);
-    if (fieldPlotCandidate) setValue("ocrFieldPlotCandidate", fieldPlotCandidate.value);
-    if (targetCandidate) setValue("ocrTargetCandidate", targetCandidate.value);
-    if (materialCandidate) setValue("ocrMaterialCandidate", materialCandidate.value);
-    if (dilutionCandidate) setValue("ocrDilutionCandidate", dilutionCandidate.value);
-    if (amountCandidate) setValue("ocrAmountCandidate", amountCandidate.unit ? amountCandidate.value + " " + amountCandidate.unit : amountCandidate.value);
-    if (safetyCandidate && safetyCandidate.value != null) {
+    if (!sourceRowReview && recordTypeCandidate && RECORD_TYPE_LABELS[canonicalRecordType(recordTypeCandidate.value)]) setValue("ocrRecordType", canonicalRecordType(recordTypeCandidate.value));
+    if (!sourceRowReview && cropCandidate) setValue("ocrCropCandidate", cropCandidate.value);
+    if (!sourceRowReview && fieldPlotCandidate) setValue("ocrFieldPlotCandidate", fieldPlotCandidate.value);
+    if (!sourceRowReview && targetCandidate) setValue("ocrTargetCandidate", targetCandidate.value);
+    if (!sourceRowReview && materialCandidate) setValue("ocrMaterialCandidate", materialCandidate.value);
+    if (!sourceRowReview && dilutionCandidate) setValue("ocrDilutionCandidate", dilutionCandidate.value);
+    if (!sourceRowReview && amountCandidate) setValue("ocrAmountCandidate", amountCandidate.unit ? amountCandidate.value + " " + amountCandidate.unit : amountCandidate.value);
+    if (!sourceRowReview && safetyCandidate && safetyCandidate.value != null) {
       setValue("ocrSafetyCandidate", safetyCandidate.value);
       setValue("ocrSafetyManual", safetyCandidate.value);
     }
-    if (operatorCandidate) setValue("ocrOperatorCandidate", operatorCandidate.value);
-    if (activityCandidate) setValue("ocrActivityCandidate", activityCandidate.value);
-    if (methodCandidate) setValue("ocrMethodCandidate", methodCandidate.value);
+    if (!sourceRowReview && operatorCandidate) setValue("ocrOperatorCandidate", operatorCandidate.value);
+    if (!sourceRowReview && activityCandidate) setValue("ocrActivityCandidate", activityCandidate.value);
+    if (!sourceRowReview && methodCandidate) setValue("ocrMethodCandidate", methodCandidate.value);
+    if (sourceRowReview) filterActivityCandidatesBySource("");
   }
 
   function receiveScanResult(payload) {
@@ -1331,6 +1483,10 @@
     const material = selectedOrManual("ocrMaterialCandidate", "ocrMaterialManual");
     const dilution = selectedOrManual("ocrDilutionCandidate", "");
     const safetyInterval = selectedOrManual("ocrSafetyCandidate", "ocrSafetyManual");
+    if (!activitySourceRowConfirmed()) {
+      if (typeof root.toast === "function") root.toast("請先選擇來源列並對照原圖確認；沒有來源列時請選人工新增");
+      return;
+    }
     if (currentDraft && currentDraft.activityReview && !checked("ocrConfirmActivityRow")) {
       if (typeof root.toast === "function") root.toast("請先對照來源照片核對這一筆候選");
       return;
@@ -1380,6 +1536,10 @@
 
   function applyToFarmForm() {
     if (!currentDraft) return;
+    if (!activitySourceRowConfirmed()) {
+      if (typeof root.toast === "function") root.toast("請先選擇來源列並對照原圖確認；沒有來源列時請選人工新增");
+      return;
+    }
     const recordType = selectedOrManual("ocrRecordType", "");
     if (recordType === "pesticide") {
       applyToPesticideRecord();
@@ -1557,17 +1717,84 @@
     const container = document.getElementById("ocrInventoryRows");
     if (!container || !currentDraft || !currentDraft.materialInventory) return false;
     const index = container.querySelectorAll("[data-inventory-row]").length;
-    container.insertAdjacentHTML("beforeend", materialInventoryRowHtml(index, currentDraft.materialInventory));
+    container.insertAdjacentHTML("beforeend", materialInventoryRowHtml(index, currentDraft.materialInventory, currentDraft.rowCandidates));
     return true;
   }
 
+  function setInventoryCandidateOptions(row, selector, items) {
+    const select = row.querySelector(selector);
+    if (!select) return;
+    select.innerHTML = inventoryOptionList(items, "");
+    select.value = "";
+    select.disabled = !items || !items.length;
+  }
+
+  function filterMaterialInventoryRow(select) {
+    const row = select && select.closest ? select.closest("[data-inventory-row]") : null;
+    if (!row || !currentDraft || !currentDraft.materialInventory) return false;
+    const rowId = String(select.value || "");
+    const source = sourceRows(currentDraft).find(function (item) { return String(item.id || "") === rowId; });
+    const manual = rowId === MANUAL_SOURCE_ROW_ID;
+    const inventory = currentDraft.materialInventory;
+    const filtered = function (items) { return candidatesForSourceRow(items, currentDraft, rowId); };
+    setInventoryCandidateOptions(row, ".ocr-inventory-material", filtered(inventory.materials));
+    setInventoryCandidateOptions(row, ".ocr-inventory-manufacturer", filtered(inventory.manufacturers));
+    setInventoryCandidateOptions(row, ".ocr-inventory-supplier", filtered(inventory.suppliers));
+    setInventoryCandidateOptions(row, ".ocr-inventory-capacity", filtered(inventory.packageCapacities));
+    setInventoryCandidateOptions(row, ".ocr-inventory-date-candidate", filtered(inventory.dates));
+    const excerpt = row.querySelector("[data-source-excerpt]");
+    if (excerpt) {
+      excerpt.textContent = manual
+        ? "人工新增：請自行輸入，不使用辨識候選。"
+        : (source ? "來源列內容：" + String(source.text || "").slice(0, 180) : "尚未指定來源列，候選保持空白。");
+    }
+    const confirmation = row.querySelector(".ocr-inventory-confirmed");
+    if (confirmation) confirmation.checked = false;
+    updateMaterialInventoryRowStatus(confirmation || select);
+    return Boolean(source || manual);
+  }
+
+  function updateMaterialInventoryRowStatus(control) {
+    const row = control && control.closest ? control.closest("[data-inventory-row]") : null;
+    if (!row || row.dataset.reviewStatus === "skipped") return false;
+    const confirmation = row.querySelector(".ocr-inventory-confirmed");
+    const sourceSelected = Boolean((row.querySelector(".ocr-inventory-source") || {}).value);
+    const confirmed = Boolean(confirmation && confirmation.checked && sourceSelected);
+    if (confirmation && confirmation.checked && !sourceSelected) confirmation.checked = false;
+    row.dataset.reviewStatus = confirmed ? "confirmed" : "pending";
+    const status = row.querySelector("[data-row-status]");
+    if (status) status.textContent = confirmed ? "已核對" : "等待核對";
+    return confirmed;
+  }
+
+  function toggleMaterialInventoryRowSkipped(button) {
+    const row = button && button.closest ? button.closest("[data-inventory-row]") : null;
+    if (!row) return false;
+    const skipped = row.dataset.reviewStatus === "skipped";
+    row.dataset.reviewStatus = skipped ? "pending" : "skipped";
+    button.textContent = skipped ? "略過" : "恢復";
+    row.querySelectorAll("input,select").forEach(function (control) { control.disabled = !skipped; });
+    const confirmation = row.querySelector(".ocr-inventory-confirmed");
+    if (confirmation && !skipped) confirmation.checked = false;
+    const status = row.querySelector("[data-row-status]");
+    if (status) status.textContent = skipped ? "等待核對" : "已略過";
+    return !skipped;
+  }
+
   function exportMaterialInventoryDraft() {
-    if (!currentDraft || !currentDraft.materialInventory || !checked("ocrConfirmMaterialInventory")) {
-      if (typeof root.toast === "function") root.toast("請先對照原圖核對資材與每筆進出庫數量");
+    if (!currentDraft || !currentDraft.materialInventory) return false;
+    const reviewRows = Array.from(document.querySelectorAll("#ocrInventoryRows [data-inventory-row]"));
+    const review = rowReviewSummary(reviewRows.map(function (row) {
+      const sourceSelected = Boolean((row.querySelector(".ocr-inventory-source") || {}).value);
+      return { confirmed: row.dataset.reviewStatus === "confirmed" && sourceSelected, skipped: row.dataset.reviewStatus === "skipped", row };
+    }));
+    if (!review.ok) {
+      if (typeof root.toast === "function") root.toast(review.pending.length ? "每一筆都必須核對或略過後才能匯出" : "至少需要保留一筆已核對的進出庫資料");
       return false;
     }
     const rows = [["文件類型", "資材名稱", "廠商", "供應商", "包裝容量", "日期", "購入量", "使用量", "剩餘量", "單位", "L3狀態"]];
-    Array.from(document.querySelectorAll("#ocrInventoryRows [data-inventory-row]")).forEach(function (row) {
+    review.confirmed.forEach(function (reviewItem) {
+      const row = reviewItem.row;
       function rowValue(selectClass, inputClass) {
         const manual = row.querySelector(inputClass);
         const selected = row.querySelector(selectClass);
@@ -1588,7 +1815,7 @@
       ]);
     });
     if (rows.length < 2 || rows.slice(1).some(function (row) { return !row[1]; })) {
-      if (typeof root.toast === "function") root.toast("每一筆都需要確認資材名稱");
+      if (typeof root.toast === "function") root.toast("每一筆已核對資料都需要確認資材名稱");
       return false;
     }
     const csv = "\uFEFF" + rows.map(function (row) { return row.map(csvCell).join(","); }).join("\r\n");
@@ -1623,6 +1850,7 @@
     style.textContent += ".ocr-self-sections{display:grid;gap:14px}.ocr-self-section{border:1px solid var(--line);border-radius:15px;background:var(--card);padding:13px;display:grid;gap:12px}.ocr-self-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.ocr-self-section-head>div{display:grid;gap:3px}.ocr-self-section-head b{color:var(--green-deep)}.ocr-self-section-head span{font-size:12px;color:var(--muted)}.ocr-self-meta{display:grid;grid-template-columns:1fr 1fr;gap:9px}.ocr-self-meta label,.ocr-self-item label{display:grid;gap:5px;font-size:12px;font-weight:800;color:var(--muted)}.ocr-self-meta input,.ocr-self-item input,.ocr-self-item select{width:100%}.ocr-self-items{display:grid;gap:8px}.ocr-self-item{border-top:1px solid var(--line);padding-top:10px;display:grid;grid-template-columns:minmax(180px,1.5fr) minmax(100px,.6fr) minmax(150px,1fr);gap:9px;align-items:end}.ocr-self-item-copy{display:grid;gap:3px}.ocr-self-item-copy b{color:var(--orange)}.ocr-self-item-copy span{font-weight:800;color:var(--green-deep)}.ocr-self-item-copy small{font-size:11px;color:var(--muted)}.ocr-raw-details{border:1px solid var(--line);border-radius:13px;padding:11px}.ocr-raw-details summary{cursor:pointer;font-weight:800;color:var(--green-deep)}.ocr-raw-details textarea{width:100%;min-height:150px;margin-top:10px}@media(max-width:720px){.ocr-self-item{grid-template-columns:1fr 1fr}.ocr-self-item-copy{grid-column:1/-1}.ocr-self-meta{grid-template-columns:1fr}}";
     style.textContent += ".ocr-preview-open{border:0;background:transparent;padding:0;display:grid;gap:6px;text-align:left;min-width:0;width:100%;cursor:pointer}.ocr-preview-remove{border:0;border-top:1px solid var(--line);background:transparent;color:var(--muted);font-size:11px;font-weight:800;padding:6px 2px 0;cursor:pointer}.ocr-preview-remove:hover{color:#982d20}.ocr-inventory-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ocr-inventory-meta label,.ocr-inventory-row label{display:grid;gap:5px;font-size:12px;font-weight:800;color:var(--muted)}.ocr-inventory-meta select,.ocr-inventory-meta input,.ocr-inventory-row input{width:100%}.ocr-inventory-meta select+input{margin-top:5px}.ocr-inventory-toolbar,.ocr-inventory-row-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.ocr-inventory-toolbar b,.ocr-inventory-row-head b{color:var(--green-deep)}.ocr-inventory-rows{display:grid;gap:10px}.ocr-inventory-row{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--card);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.ocr-inventory-row-head{grid-column:1/-1}@media(max-width:720px){.ocr-inventory-meta{grid-template-columns:1fr}.ocr-inventory-row{grid-template-columns:1fr 1fr}.ocr-inventory-row-head{grid-column:1/-1}}";
     style.textContent += ".ocr-activity-review,.ocr-activity-list{display:grid;gap:12px}.ocr-activity-card{border:1px solid var(--line);border-radius:15px;padding:13px;background:var(--card);display:grid;gap:10px}.ocr-activity-card[data-confidence=low]{border-color:#d9b45f;background:#fffaf0}.ocr-activity-card-head{display:flex;align-items:start;justify-content:space-between;gap:10px}.ocr-activity-card-head>div{display:grid;gap:3px}.ocr-activity-card-head b{color:var(--green-deep)}.ocr-activity-card-head span,.ocr-activity-source,.ocr-activity-warning{margin:0;font-size:12px;line-height:1.5;color:var(--muted)}.ocr-activity-warning{color:#7b5200;font-weight:800}.ocr-activity-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.ocr-activity-fields>span{border:1px solid var(--line);border-radius:10px;padding:8px;display:grid;gap:3px;min-width:0}.ocr-activity-fields small{font-size:10px;color:var(--muted)}.ocr-activity-fields b{font-size:13px;color:var(--green-deep);overflow-wrap:anywhere}.ocr-activity-empty{font-size:12px;color:var(--muted)}.ocr-activity-current{margin-bottom:12px;border:1px solid var(--orange);border-radius:14px;padding:12px;background:color-mix(in srgb,var(--orange) 7%,var(--card));display:flex;justify-content:space-between;gap:12px}.ocr-activity-current>div{display:grid;gap:4px}.ocr-activity-current b{color:var(--green-deep)}.ocr-activity-current span,.ocr-activity-current small{font-size:12px;color:var(--muted)}.ocr-activity-current>div:last-child{grid-template-columns:auto auto;align-content:start}@media(max-width:620px){.ocr-activity-fields{grid-template-columns:1fr 1fr}.ocr-activity-card-head,.ocr-activity-current{display:grid}.ocr-activity-current>div:last-child{grid-template-columns:1fr 1fr}}";
+    style.textContent += ".ocr-source-row-review{margin:12px 0;border:1px solid var(--orange);border-radius:14px;padding:13px;background:color-mix(in srgb,var(--orange) 6%,var(--card));display:grid;gap:8px}.ocr-source-row-review>label:first-child{display:grid;gap:6px;font-weight:900;color:var(--green-deep)}.ocr-source-row-review select{width:100%}.ocr-source-row-review p,.ocr-source-row-review small{margin:0;color:var(--muted);font-size:12px;line-height:1.55}.ocr-source-row-confirm{display:flex;align-items:flex-start;gap:8px;font-weight:800;color:var(--green-deep)}.ocr-source-row-confirm input{margin-top:3px}.ocr-review-actions,.ocr-activity-card-actions{display:grid;grid-template-columns:1fr auto;gap:9px}.ocr-activity-card[data-confidence=skipped]{opacity:.68;background:var(--paper)}.ocr-inventory-source-row,.ocr-inventory-row-confirm{grid-column:1/-1}.ocr-inventory-source-row small{font-weight:600;line-height:1.5}.ocr-inventory-row-confirm{display:flex!important;align-items:center;grid-template-columns:auto 1fr!important;color:var(--green-deep)!important}.ocr-inventory-row-confirm input{width:auto!important}.ocr-inventory-row[data-review-status=skipped]{opacity:.65;background:var(--paper)}@media(max-width:620px){.ocr-review-actions,.ocr-activity-card-actions{grid-template-columns:1fr}.ocr-inventory-source-row,.ocr-inventory-row-confirm{grid-column:1/-1}}";
     document.head.appendChild(style);
   }
 
@@ -1745,6 +1973,9 @@
     normalizeDraftActivities,
     activityCandidateDraft,
     draftReviewMode,
+    sourceRowOptionList,
+    candidatesForSourceRow,
+    rowReviewSummary,
     preselectedCandidate,
     missingReviewConfirmations,
     materialInventoryRowHtml,
@@ -1761,12 +1992,19 @@
     showOcrBatchDraft,
     reviewOcrActivity,
     showOcrActivityCandidates,
+    skipOcrActivity,
+    restoreOcrActivity,
+    skipCurrentOcrActivity,
+    filterActivityCandidatesBySource,
     parsePastedText,
     applyToPesticideRecord,
     applyToFarmForm,
     applyEquipmentMaintenanceBatch,
     exportSelfInspectionDraft,
     addMaterialInventoryRow,
+    filterMaterialInventoryRow,
+    updateMaterialInventoryRowStatus,
+    toggleMaterialInventoryRowSkipped,
     exportMaterialInventoryDraft,
     removeEquipmentDraftRow,
     init

@@ -18,6 +18,19 @@
   const MAX_SOURCE_ROW_CANDIDATES = 250;
   const MAX_SOURCE_CELL_CANDIDATES_PER_ROW = 20;
   const MAX_SOURCE_WORD_IDS_PER_CELL = 100;
+  const MATERIAL_LEDGER_LIMITS = Object.freeze({
+    headerConfidence: 0.7,
+    dateConfidence: 0.7,
+    amountConfidence: 0.65,
+    minHeaderGapX: 0.035,
+    maxHeaderGapX: 0.18,
+    maxHeaderGapRatio: 2.5,
+    boundaryMargin: 0.008,
+    boundaryRatio: 0.15,
+    maxDetailDistanceY: 0.28,
+    maxPanels: 24,
+    maxEntriesPerPanel: 40
+  });
   const ALLOWED_UNITS = Object.freeze(["毫升", "公升", "公克", "公斤", "台斤", "c.c.", "c.c", "cc", "ml", "mL", "L", "g", "kg", "包", "袋"]);
   const EQUIPMENT_ITEMS = Object.freeze(["噴霧機", "割草機", "中耕機", "選別機", "貯藏／溫控設備", "搬運車", "冷藏車"]);
   const EQUIPMENT_ACTIONS = Object.freeze(["清潔", "保養", "維修", "校正"]);
@@ -271,8 +284,62 @@
     }));
   }
 
-  function decideDocumentRoute(recordTypes) {
+  function strongDocumentType(text) {
+    const body = compact(text);
+    if (!body) return null;
+
+    const isSelfInspection = body.includes("查核項目")
+      && (body.includes("查核頻率") || body.includes("程度"))
+      && (body.includes("查核者") || body.includes("確認日期"));
+    if (isSelfInspection) {
+      return Object.freeze({
+        type: "selfInspection",
+        reason: "辨識到查核項目、查核頻率／程度與查核者／確認日期等固定欄頭"
+      });
+    }
+
+    const ledgerColumns = ["購入量", "使用量", "剩餘量"].filter(function (label) {
+      return body.includes(compact(label));
+    });
+    const isMaterialLedger = body.includes("表10")
+      && body.includes("肥料入出庫")
+      && ledgerColumns.length >= 2;
+    if (isMaterialLedger) {
+      return Object.freeze({
+        type: "purchase",
+        reason: "辨識到表 10 肥料入出庫表名與至少兩個固定數量欄頭"
+      });
+    }
+
+    const isEquipmentLedger = body.includes("表18")
+      && body.includes("器具")
+      && body.includes("機械")
+      && body.includes("設備")
+      && ["清潔", "保養", "維修", "校正"].some(function (label) { return body.includes(label); });
+    if (isEquipmentLedger) {
+      return Object.freeze({
+        type: "equipmentMaintenance",
+        reason: "辨識到表 18 器具／機械／設備表名與管理作業欄"
+      });
+    }
+    return null;
+  }
+
+  function decideDocumentRoute(recordTypes, text) {
     const candidates = Array.isArray(recordTypes) ? recordTypes : [];
+    const strong = strongDocumentType(text);
+    if (strong) {
+      const strongRoute = DOCUMENT_ROUTES[strong.type];
+      return Object.freeze({
+        status: "exact",
+        type: strong.type,
+        route: strongRoute.route,
+        destination: strongRoute.destination,
+        l3MappingStatus: strongRoute.l3MappingStatus,
+        reason: strong.reason,
+        evidenceLevel: "fixed-form-header"
+      });
+    }
     const top = candidates[0];
     const runnerUp = candidates[1];
     if (!top || top.markerCount < 2) {
@@ -293,6 +360,16 @@
         destination: "manual-classification",
         l3MappingStatus: "not-mapped",
         reason: "兩種文件的辨識標記數相同，禁止自動採用第一名"
+      });
+    }
+    if (["selfInspection", "purchase", "equipmentMaintenance"].includes(top.value)) {
+      return Object.freeze({
+        status: "unknown",
+        type: null,
+        route: "unknown",
+        destination: "manual-classification",
+        l3MappingStatus: "not-mapped",
+        reason: "固定表單的表名或必要欄頭不完整，禁止只靠內文關鍵字啟用專用解析"
       });
     }
     const route = DOCUMENT_ROUTES[top.value];
@@ -461,6 +538,246 @@
         cellsTruncated: row.cellsTruncated === true || cellCandidates.length < sourceCells.length
       });
     }).filter(Boolean));
+  }
+
+  function boxCenterX(box) {
+    return box ? (Number(box.left) + Number(box.right)) / 2 : null;
+  }
+
+  function boxCenterY(box) {
+    return box ? (Number(box.top) + Number(box.bottom)) / 2 : null;
+  }
+
+  function ledgerHeaderQuartets(row) {
+    const limits = MATERIAL_LEDGER_LIMITS;
+    const cells = (row && Array.isArray(row.cellCandidates) ? row.cellCandidates : [])
+      .filter(function (cell) { return cell.box && cell.confidence >= limits.headerConfidence; })
+      .slice()
+      .sort(function (a, b) { return boxCenterX(a.box) - boxCenterX(b.box); });
+    const labels = ["日期", "購入量", "使用量", "剩餘量"];
+    const used = new Set();
+    const quartets = [];
+    cells.forEach(function (cell, startIndex) {
+      if (compact(cell.text) !== compact(labels[0]) || used.has(cell.id)) return;
+      const chosen = [cell];
+      let previousIndex = startIndex;
+      for (let labelIndex = 1; labelIndex < labels.length; labelIndex += 1) {
+        let found = null;
+        for (let index = previousIndex + 1; index < cells.length; index += 1) {
+          const candidate = cells[index];
+          const gap = boxCenterX(candidate.box) - boxCenterX(chosen[chosen.length - 1].box);
+          if (gap > limits.maxHeaderGapX) break;
+          if (!used.has(candidate.id) && compact(candidate.text) === compact(labels[labelIndex])) {
+            found = { cell: candidate, index, gap };
+            break;
+          }
+        }
+        if (!found) return;
+        chosen.push(found.cell);
+        previousIndex = found.index;
+      }
+      const centers = chosen.map(function (item) { return boxCenterX(item.box); });
+      const gaps = centers.slice(1).map(function (center, index) { return center - centers[index]; });
+      if (gaps.some(function (gap) { return gap < limits.minHeaderGapX || gap > limits.maxHeaderGapX; })) return;
+      if (Math.max.apply(null, gaps) / Math.min.apply(null, gaps) > limits.maxHeaderGapRatio) return;
+      chosen.forEach(function (item) { used.add(item.id); });
+      quartets.push(Object.freeze({
+        id: row.id + "-ledger-header-" + (quartets.length + 1),
+        rowCandidateId: row.id,
+        cells: Object.freeze(chosen),
+        centers: Object.freeze(centers),
+        source: row.source,
+        box: row.box
+      }));
+    });
+    return Object.freeze(quartets);
+  }
+
+  function ledgerColumnBands(header) {
+    const centers = header.centers;
+    const gaps = [centers[1] - centers[0], centers[2] - centers[1], centers[3] - centers[2]];
+    const boundaries = Object.freeze([
+      Math.max(0, centers[0] - gaps[0] / 2),
+      (centers[0] + centers[1]) / 2,
+      (centers[1] + centers[2]) / 2,
+      (centers[2] + centers[3]) / 2,
+      Math.min(1, centers[3] + gaps[2] / 2)
+    ]);
+    return Object.freeze({
+      boundaries,
+      date: Object.freeze([boundaries[0], boundaries[1]]),
+      purchase: Object.freeze([boundaries[1], boundaries[2]]),
+      used: Object.freeze([boundaries[2], boundaries[3]]),
+      remaining: Object.freeze([boundaries[3], boundaries[4]])
+    });
+  }
+
+  function ledgerCellsInBand(row, band) {
+    return Object.freeze((row.cellCandidates || []).filter(function (cell) {
+      const center = boxCenterX(cell.box);
+      return center != null && center >= band[0] && center <= band[1];
+    }));
+  }
+
+  function ledgerEvidenceCandidate(value, confidence, row, cells, sourceText, unit) {
+    const candidate = {
+      value,
+      confidence: clamp01(confidence),
+      sourceText: normalizeText(sourceText).slice(0, 240),
+      rowCandidateId: row.id,
+      cellCandidateIds: Object.freeze(cells.map(function (cell) { return cell.id; }).filter(Boolean))
+    };
+    if (unit) candidate.unit = unit;
+    return Object.freeze(candidate);
+  }
+
+  function ledgerDateCandidates(row, cells) {
+    const text = cells.map(function (cell) { return cell.text; }).join(" ");
+    const confidence = cells.length ? Math.min.apply(null, cells.map(function (cell) { return cell.confidence; })) : 0;
+    return Object.freeze(findDates(text).map(function (item) {
+      return ledgerEvidenceCandidate(item.value, Math.min(item.confidence, confidence), row, cells, item.sourceText);
+    }));
+  }
+
+  function ledgerAmountCandidates(row, cells) {
+    const text = normalizeText(cells.map(function (cell) { return cell.text; }).join(" "));
+    const units = ALLOWED_UNITS.map(function (unit) {
+      return unit.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }).join("|");
+    const pattern = new RegExp("(?:^|[^\\d])([0-9]+(?:\\.[0-9]+)?)(?:\\s*(" + units + "))?(?=$|[^\\d])", "g");
+    const out = [];
+    let match;
+    while ((match = pattern.exec(text))) {
+      const value = Number(match[1]);
+      if (!Number.isFinite(value)) continue;
+      const confidence = cells.length ? Math.min.apply(null, cells.map(function (cell) { return cell.confidence; })) : 0;
+      out.push(ledgerEvidenceCandidate(value, confidence, row, cells, match[0].trim(), match[2] || null));
+    }
+    return Object.freeze(out.slice(0, MAX_FIELD_CANDIDATES));
+  }
+
+  function ledgerCellsNearBoundary(cells, band, boundaries) {
+    const width = Math.max(0, band[1] - band[0]);
+    const margin = Math.max(MATERIAL_LEDGER_LIMITS.boundaryMargin, width * MATERIAL_LEDGER_LIMITS.boundaryRatio);
+    return cells.some(function (cell) {
+      const center = boxCenterX(cell.box);
+      return boundaries.slice(1, -1).some(function (boundary) { return Math.abs(center - boundary) < margin; });
+    });
+  }
+
+  function pendingLedgerDetail(candidates) {
+    return Object.freeze({
+      value: null,
+      candidates: Object.freeze(Array.isArray(candidates) ? candidates : []),
+      confirmation: Object.freeze({ state: "pending", confirmed: false, confirmedValue: null, confirmedAt: null })
+    });
+  }
+
+  function associateMaterialLedgerRows(rowCandidates, rowCandidatesTruncated, sourceImage) {
+    const rows = Array.isArray(rowCandidates) ? rowCandidates : [];
+    const headers = [];
+    rows.forEach(function (row) {
+      ledgerHeaderQuartets(row).forEach(function (header) { headers.push(header); });
+    });
+    const panels = headers.slice(0, MATERIAL_LEDGER_LIMITS.maxPanels).map(function (header, panelIndex) {
+      const bands = ledgerColumnBands(header);
+      const groupHeaders = headers.filter(function (candidate) {
+        return candidate !== header
+          && candidate.source.pageIndex === header.source.pageIndex
+          && candidate.source.regionIndex === header.source.regionIndex
+          && candidate.box && header.box
+          && candidate.box.top > header.box.top;
+      }).sort(function (a, b) { return a.box.top - b.box.top; });
+      const nextHeader = groupHeaders.find(function (candidate) {
+        const left = Math.max(bands.boundaries[0], ledgerColumnBands(candidate).boundaries[0]);
+        const right = Math.min(bands.boundaries[4], ledgerColumnBands(candidate).boundaries[4]);
+        return right > left;
+      });
+      const panelBottom = Math.min(1, nextHeader ? nextHeader.box.top : header.box.bottom + MATERIAL_LEDGER_LIMITS.maxDetailDistanceY);
+      const panelBox = Object.freeze({ left: bands.boundaries[0], top: header.box.top, right: bands.boundaries[4], bottom: panelBottom });
+      const entries = [];
+      rows.forEach(function (row) {
+        if (entries.length >= MATERIAL_LEDGER_LIMITS.maxEntriesPerPanel || !row.box || row.id === header.rowCandidateId) return;
+        if (row.source.pageIndex !== header.source.pageIndex || row.source.regionIndex !== header.source.regionIndex) return;
+        const centerY = boxCenterY(row.box);
+        if (centerY == null || centerY <= header.box.bottom || centerY >= panelBottom) return;
+        const rowText = compact(row.text);
+        if (["資材名稱", "供應商", "包裝容量", "本表不敷", "購入量", "使用量", "剩餘量"].some(function (label) { return rowText.includes(compact(label)); })) return;
+        const dateCells = ledgerCellsInBand(row, bands.date);
+        const purchaseCells = ledgerCellsInBand(row, bands.purchase);
+        const usedCells = ledgerCellsInBand(row, bands.used);
+        const remainingCells = ledgerCellsInBand(row, bands.remaining);
+        const dateCandidates = ledgerDateCandidates(row, dateCells);
+        const purchaseCandidates = ledgerAmountCandidates(row, purchaseCells);
+        const usedCandidates = ledgerAmountCandidates(row, usedCells);
+        const remainingCandidates = ledgerAmountCandidates(row, remainingCells);
+        if (!dateCandidates.length && !purchaseCandidates.length && !usedCandidates.length && !remainingCandidates.length) return;
+        const reasons = [];
+        if (row.cellsTruncated) reasons.push("row-cells-truncated");
+        if (dateCandidates.length !== 1) reasons.push(dateCandidates.length ? "multiple-dates" : "missing-date");
+        [["purchase", purchaseCandidates], ["used", usedCandidates], ["remaining", remainingCandidates]].forEach(function (entry) {
+          if (entry[1].length > 1) reasons.push("multiple-" + entry[0] + "-amounts");
+        });
+        if (!purchaseCandidates.length && !usedCandidates.length && !remainingCandidates.length) reasons.push("missing-ledger-amount");
+        if (dateCandidates.some(function (item) { return item.confidence < MATERIAL_LEDGER_LIMITS.dateConfidence; })) reasons.push("low-confidence-date");
+        if ([purchaseCandidates, usedCandidates, remainingCandidates].some(function (items) {
+          return items.some(function (item) { return item.confidence < MATERIAL_LEDGER_LIMITS.amountConfidence; });
+        })) reasons.push("low-confidence-amount");
+        if (ledgerCellsNearBoundary(dateCells, bands.date, bands.boundaries)
+          || ledgerCellsNearBoundary(purchaseCells, bands.purchase, bands.boundaries)
+          || ledgerCellsNearBoundary(usedCells, bands.used, bands.boundaries)
+          || ledgerCellsNearBoundary(remainingCells, bands.remaining, bands.boundaries)) reasons.push("near-column-boundary");
+        const uniqueReasons = Object.freeze(Array.from(new Set(reasons)));
+        entries.push(Object.freeze({
+          id: "inventory-panel-" + (panelIndex + 1) + "-entry-" + (entries.length + 1),
+          associationState: uniqueReasons.length ? "pending" : "row-evidence",
+          rowAssociation: uniqueReasons.length ? "pending" : "strong",
+          masterAssociation: "pending",
+          source: Object.freeze({
+            sourceImageId: sourceImage ? sourceImage.sourceImageId : null,
+            pageIndex: row.source.pageIndex,
+            regionIndex: row.source.regionIndex,
+            rowCandidateId: row.id,
+            cellCandidateIds: Object.freeze([].concat(dateCells, purchaseCells, usedCells, remainingCells).map(function (cell) { return cell.id; })),
+            box: row.box
+          }),
+          details: Object.freeze({
+            date: pendingLedgerDetail(dateCandidates),
+            purchaseAmount: pendingLedgerDetail(purchaseCandidates),
+            usedAmount: pendingLedgerDetail(usedCandidates),
+            remainingAmount: pendingLedgerDetail(remainingCandidates)
+          }),
+          checks: Object.freeze({ columnOrder: true, uniquePerColumn: uniqueReasons.every(function (reason) { return !/^multiple-/.test(reason); }), balance: "not-checkable" }),
+          reasons: uniqueReasons,
+          confirmation: Object.freeze({ state: "pending", confirmed: false }),
+          autoCommitAllowed: false,
+          l3UploadReady: false
+        }));
+      });
+      return Object.freeze({
+        id: "inventory-panel-" + (panelIndex + 1),
+        source: Object.freeze({
+          sourceImageId: sourceImage ? sourceImage.sourceImageId : null,
+          pageIndex: header.source.pageIndex,
+          regionIndex: header.source.regionIndex,
+          headerRowCandidateId: header.rowCandidateId,
+          headerCellCandidateIds: Object.freeze(header.cells.map(function (cell) { return cell.id; }))
+        }),
+        panelBox,
+        columnBands: bands,
+        master: Object.freeze({ associationState: "pending", reasons: Object.freeze(["material-master-not-associated"]) }),
+        entries: Object.freeze(entries)
+      });
+    });
+    return Object.freeze({
+      schemaVersion: 2,
+      completeness: rowCandidatesTruncated ? "partial" : "complete",
+      panels: Object.freeze(panels),
+      unassignedCandidates: Object.freeze([]),
+      warnings: Object.freeze(rowCandidatesTruncated ? ["source-row-candidates-truncated"] : []),
+      autoCommitAllowed: false,
+      l3UploadReady: false
+    });
   }
 
   function safeDetectedBreak(value) {
@@ -940,6 +1257,33 @@
 
     if (ctx.materialInventory) {
       const inventory = ctx.materialInventory;
+      const associatedEntries = [];
+      (inventory.panels || []).forEach(function (panel) {
+        (panel.entries || []).forEach(function (entry) {
+          if (associatedEntries.length < MAX_DRAFT_ACTIVITIES) associatedEntries.push(entry);
+        });
+      });
+      if (associatedEntries.length) {
+        associatedEntries.forEach(function (entry, index) {
+          activities.push(standardActivity({
+            id: "activity-inventory-row-" + (index + 1),
+            kindCandidate: "materialInventory",
+            route: route.route,
+            destination: route.destination,
+            l3MappingStatus: route.l3MappingStatus,
+            associationState: entry.associationState,
+            sourceImage,
+            sourceBlockIds: blocks.map(function (block) { return block.id; }),
+            details: [
+              standardDetail("date", "日期", entry.details.date.candidates, blocks, sourceImage, null, true),
+              standardDetail("purchaseAmount", "購入量", entry.details.purchaseAmount.candidates, blocks, sourceImage, null, false),
+              standardDetail("usedAmount", "使用量", entry.details.usedAmount.candidates, blocks, sourceImage, null, false),
+              standardDetail("remainingAmount", "剩餘量", entry.details.remainingAmount.candidates, blocks, sourceImage, null, false)
+            ]
+          }));
+        });
+        return Object.freeze(activities);
+      }
       const rowCount = Math.max(1, Math.min(MAX_DRAFT_ACTIVITIES, Math.max(
         inventory.suggestedRowCount || 1,
         inventory.materials.length,
@@ -1003,17 +1347,19 @@
     const text = blocks.map(function (block) { return block.text; }).join("\n");
     const dict = dictionaries || {};
     const recordTypes = detectFormTypes(text);
-    const routeDecision = decideDocumentRoute(recordTypes);
+    const routeDecision = decideDocumentRoute(recordTypes, text);
     const isEquipmentForm = routeDecision.status === "exact" && routeDecision.type === "equipmentMaintenance";
     const isSelfInspection = routeDecision.status === "exact" && routeDecision.type === "selfInspection";
     const isMaterialInventory = routeDecision.status === "exact" && routeDecision.type === "purchase";
-    const materialInventory = isMaterialInventory ? createMaterialInventoryDraft(text) : null;
+    const materialInventoryTextDraft = isMaterialInventory ? createMaterialInventoryDraft(text) : null;
     const sourceImage = safeSourceImage(sourceMetadata || result.sourceImage);
     const sourceRowCandidates = Array.isArray(result.rowCandidates) ? result.rowCandidates : [];
     const rowCandidates = safeRowCandidates(sourceRowCandidates);
     const rowCandidatesTruncated = result.rowCandidatesTruncated === true
       || sourceRowCandidates.length > MAX_SOURCE_ROW_CANDIDATES
       || rowCandidates.length < sourceRowCandidates.length;
+    const materialInventory = materialInventoryTextDraft ? Object.freeze(Object.assign({}, materialInventoryTextDraft,
+      associateMaterialLedgerRows(rowCandidates, rowCandidatesTruncated, sourceImage))) : null;
     const route = Object.freeze({
       route: routeDecision.route,
       destination: routeDecision.destination,
@@ -1328,11 +1674,13 @@
     findAmounts,
     findSafetyIntervals,
     detectFormTypes,
+    strongDocumentType,
     decideDocumentRoute,
     findPlotCodes,
     findLabeledValues,
     findInventoryLabeledValues,
     createMaterialInventoryDraft,
+    associateMaterialLedgerRows,
     dictionaryCandidates,
     findMarkedOptions,
     findEquipmentMaintenanceRows,

@@ -134,6 +134,24 @@ assert.equal(purchaseValidation.missing.some(item => item.field === "crop"), fal
 const ambiguousTypes = O.detectFormTypes("施肥別 基肥 追肥 採收紀錄 採收日期 採收量");
 assert.equal(O.decideDocumentRoute(ambiguousTypes).status, "ambiguous", "第一、二名同分時必須停止自動路由");
 
+const weakLedgerDraft = O.createDraft({
+  source: "google-cloud-vision",
+  quality: { width: 1600, height: 2200, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
+  blocks: [{ text: "表 10 肥料入出庫紀錄 購入量\n背景報紙：肥料市場成長新聞", confidence: 0.82 }]
+});
+assert.equal(weakLedgerDraft.routeDecision.status, "unknown", "表 10 缺少至少兩個固定數量欄頭時不得啟用庫存解析");
+assert.equal(weakLedgerDraft.materialInventory, null, "弱表頭不得建立資材庫存專用草稿");
+
+const ambiguousParserDraft = O.createDraft({
+  source: "google-cloud-vision",
+  quality: { width: 1600, height: 2200, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
+  blocks: [{ text: "施肥別 基肥 追肥 採收紀錄 採收日期 採收量", confidence: 0.88 }]
+});
+assert.equal(ambiguousParserDraft.routeDecision.status, "ambiguous");
+assert.equal(ambiguousParserDraft.materialInventory, null);
+assert.equal(ambiguousParserDraft.selfInspection, null);
+assert.deepEqual(ambiguousParserDraft.recordGroups, [], "ambiguous 文件不得啟用任何固定表單專用解析器");
+
 const cloudDraft = O.createDraft({
   source: "google-cloud-vision",
   engine: "Google Cloud Vision DOCUMENT_TEXT_DETECTION",
@@ -282,6 +300,15 @@ assert.ok(equipmentDraft.activities.every(item => item.confirmation.state === "p
 const checklistTypes = O.detectFormTypes("農作物生產及出貨作業自我查核表\n查核項目 查核頻率 程度 備註\n確認日期：115.6.1 查核者：王小明");
 assert.equal(checklistTypes[0].value, "selfInspection", "查核表不得誤判成田間作業紀錄");
 
+const noisyChecklistDraft = O.createDraft({
+  source: "google-cloud-vision",
+  quality: { width: 1800, height: 2400, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
+  blocks: [{ text: "查核項目 查核頻率 程度 備註 確認日期 查核者\n3.4.7 肥料施用紀錄完整性\n3.4.9 肥料入出庫管理紀錄\n背景報紙：採收與包裝新聞", confidence: 0.83 }]
+});
+assert.equal(noisyChecklistDraft.routeDecision.type, "selfInspection", "查核題目提及施肥、入出庫或採收時仍必須走備查文件");
+assert.equal(noisyChecklistDraft.route.route, "reference-only");
+assert.equal(noisyChecklistDraft.routeDecision.evidenceLevel, "fixed-form-header");
+
 const checklistDraft = O.createDraft({
   source: "google-cloud-vision",
   quality: { width: 1800, height: 2400, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
@@ -314,6 +341,79 @@ assert.equal(inventoryDraft.activities.length, 2, "辨識到多個資材時應�
 assert.ok(inventoryDraft.activities.every(item => item.associationState === "pending"), "缺少可靠列關係時不得猜測資材與日期的配對");
 assert.ok(inventoryDraft.activities.every(item => item.details.every(detail => detail.value === null && detail.confirmation.state === "pending")));
 assert.ok(inventoryDraft.activities.every(item => item.l3UploadReady === false && item.autoCommitAllowed === false));
+
+const noisyInventoryDraft = O.createDraft({
+  source: "google-cloud-vision",
+  quality: { width: 1800, height: 2400, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
+  blocks: [{ text: "表 10. 肥料入出庫紀錄\n資材名稱 供應商\n日期 購入量 使用量 剩餘量\n背景報紙：採收包裝與病蟲害防治", confidence: 0.82 }]
+});
+assert.equal(noisyInventoryDraft.routeDecision.type, "purchase", "表 10 固定表名與欄頭不得被背景文字改分流");
+assert.equal(noisyInventoryDraft.route.route, "material-ledger");
+
+function ledgerCell(id, text, left, right, confidence = 0.92) {
+  return { id, text, confidence, box: { left, top: 0.2, right, bottom: 0.22 }, wordIds: [id + "-w"] };
+}
+function ledgerRow(id, top, cells, options = {}) {
+  return {
+    id,
+    source: { pageIndex: options.pageIndex || 0, regionIndex: options.regionIndex || 0 },
+    text: cells.map(item => item.text).join(" "),
+    confidence: 0.9,
+    box: { left: Math.min(...cells.map(item => item.box.left)), top, right: Math.max(...cells.map(item => item.box.right)), bottom: top + 0.02 },
+    cellCandidates: cells.map(item => ({ ...item, box: { ...item.box, top, bottom: top + 0.02 } })),
+    cellsTruncated: options.cellsTruncated === true
+  };
+}
+
+const ledgerGeometryDraft = O.createDraft({
+  source: "google-cloud-vision",
+  quality: { width: 1800, height: 2400, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
+  blocks: [{ id: "ledger-title", text: "表 10. 肥料入出庫紀錄\n日期 購入量 使用量 剩餘量", confidence: 0.93 }],
+  layout: { version: 1, coordinateSpace: "normalized", indexBase: 0, wordGeometry: true, rowCandidateMethod: "geometry-only", semanticInference: false },
+  rowCandidates: [
+    ledgerRow("ledger-header", 0.2, [
+      ledgerCell("h-date", "日期", 0.09, 0.13), ledgerCell("h-purchase", "購入量", 0.17, 0.23),
+      ledgerCell("h-used", "使用量", 0.25, 0.31), ledgerCell("h-remaining", "剩餘量", 0.33, 0.39)
+    ]),
+    ledgerRow("ledger-entry-1", 0.25, [
+      ledgerCell("e1-date", "115/5/10", 0.09, 0.14), ledgerCell("e1-purchase", "15包", 0.17, 0.23),
+      ledgerCell("e1-remaining", "15包", 0.33, 0.39)
+    ]),
+    ledgerRow("ledger-entry-2", 0.3, [
+      ledgerCell("e2-date", "115/5/20", 0.09, 0.14), ledgerCell("e2-used", "15包", 0.25, 0.31),
+      ledgerCell("e2-remaining", "0", 0.33, 0.39)
+    ])
+  ]
+});
+assert.equal(ledgerGeometryDraft.materialInventory.schemaVersion, 2);
+assert.equal(ledgerGeometryDraft.materialInventory.panels.length, 1, "固定四欄表頭可建立一個可追溯的小表格候選");
+assert.equal(ledgerGeometryDraft.materialInventory.panels[0].entries.length, 2, "同一小表格的兩列應分開整理");
+assert.ok(ledgerGeometryDraft.materialInventory.panels[0].entries.every(item => item.associationState === "row-evidence"));
+assert.equal(ledgerGeometryDraft.materialInventory.panels[0].entries[0].details.usedAmount.candidates.length, 0, "空白使用量必須維持空白，不得補成零");
+assert.equal(ledgerGeometryDraft.materialInventory.panels[0].entries[1].details.remainingAmount.candidates[0].value, 0, "原圖明確辨識到零時才能保留零候選");
+assert.ok(ledgerGeometryDraft.activities.every(item => item.details.every(detail => detail.value === null)), "同列分組只提供候選，仍不得自動確認欄位值");
+assert.ok(ledgerGeometryDraft.activities.every(item => item.autoCommitAllowed === false && item.l3UploadReady === false));
+
+const truncatedLedgerAssociation = O.associateMaterialLedgerRows([
+  ledgerRow("ledger-header-truncated", 0.2, [
+    ledgerCell("th-date", "日期", 0.09, 0.13), ledgerCell("th-purchase", "購入量", 0.17, 0.23),
+    ledgerCell("th-used", "使用量", 0.25, 0.31), ledgerCell("th-remaining", "剩餘量", 0.33, 0.39)
+  ]),
+  ledgerRow("ledger-entry-truncated", 0.25, [
+    ledgerCell("te-date", "115/5/10", 0.09, 0.14), ledgerCell("te-purchase", "15包", 0.17, 0.23)
+  ], { cellsTruncated: true })
+], true, { sourceImageId: "photo-1" });
+assert.equal(truncatedLedgerAssociation.completeness, "partial");
+assert.equal(truncatedLedgerAssociation.panels[0].entries[0].associationState, "pending", "來源格遭截斷時不得視為可靠同列關聯");
+assert.ok(truncatedLedgerAssociation.panels[0].entries[0].reasons.includes("row-cells-truncated"));
+
+const noisyEquipmentDraft = O.createDraft({
+  source: "google-cloud-vision",
+  quality: { width: 1800, height: 2400, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
+  blocks: [{ text: "表 18 器具／機械／設備之保養、維修、校正及清潔管理紀錄\n日期 作業內容 記錄人\n背景報紙：肥料使用量與採收", confidence: 0.82 }]
+});
+assert.equal(noisyEquipmentDraft.routeDecision.type, "equipmentMaintenance", "表 18 固定表名與管理作業欄不得被背景文字改分流");
+assert.equal(noisyEquipmentDraft.route.route, "supporting-record");
 
 const boundedEquipmentDraft = O.createDraft({
   source: "google-cloud-vision",

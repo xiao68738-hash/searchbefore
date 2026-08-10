@@ -144,16 +144,62 @@ assert.equal(UI.preselectedCandidate({}, [{ value: "低信心候選", confidence
 assert.equal(UI.preselectedCandidate({}, [{ value: "缺信心候選" }]), null, "缺少信心證據的候選不得預選");
 assert.equal(UI.preselectedCandidate({}, [{ value: "高信心候選", confidence: 0.9 }]).value, "高信心候選", "明確高信心候選仍可協助預選，但後續必須人工確認");
 
+const reviewRows = [{
+  id: "row-material-1",
+  source: { pageIndex: 0, regionIndex: 0 },
+  text: "115年5月10日 苦土石灰 購入15包",
+  cellCandidates: []
+}, {
+  id: "row-material-2",
+  source: { pageIndex: 0, regionIndex: 0 },
+  text: "115年5月20日 硫酸鉀 使用15包",
+  cellCandidates: []
+}];
 const inventoryRowHtml = UI.materialInventoryRowHtml(0, {
   materials: [{ value: "苦土石灰" }, { value: "硫酸鉀" }],
   manufacturers: [{ value: "東成" }],
   suppliers: [{ value: "測試供應商" }],
   packageCapacities: [{ value: "25 公斤" }],
   dates: [{ value: "2026-05-10" }, { value: "2026-05-20" }]
-});
+}, reviewRows);
 assert.doesNotMatch(inventoryRowHtml, /\sselected(?:\s|>)/, "缺少同列證據時不得依索引預選資材、供應商或日期");
 assert.doesNotMatch(inventoryRowHtml, /type="date"[^>]*value=/, "缺少同列證據時日期輸入必須保持空白");
 assert.match(inventoryRowHtml, /ocr-inventory-date-candidate/, "日期候選仍應提供給使用者逐筆選擇");
+assert.match(inventoryRowHtml, /人工新增／無來源列/, "每筆都必須能明確選擇沒有來源列的人工新增模式");
+assert.match(inventoryRowHtml, /data-review-status="pending"/, "新列預設必須是尚未核對");
+assert.match(inventoryRowHtml, /ocr-inventory-confirmed/, "每筆都必須各自核對");
+assert.match(inventoryRowHtml, />略過</, "每筆都必須能略過而不是直接消失");
+
+const sourceOptions = UI.sourceRowOptionList({ rowCandidates: reviewRows });
+assert.doesNotMatch(sourceOptions, /\sselected(?:\s|>)/, "來源列不可預先指定");
+assert.match(sourceOptions, /來源列 1/);
+const rowBoundCandidates = [
+  { value: "苦土石灰", evidence: [{ rowCandidateId: "row-material-1" }] },
+  { value: "硫酸鉀", evidence: [{ rowCandidateId: "row-material-2" }] },
+  { value: "購入15包", evidence: [] }
+];
+assert.deepEqual(
+  UI.candidatesForSourceRow(rowBoundCandidates, { rowCandidates: reviewRows }, "row-material-1").map(item => item.value),
+  ["苦土石灰", "購入15包"],
+  "選擇來源列後只能縮小候選範圍，不應加入其他列內容"
+);
+const duplicatedValueWithExactEvidence = [{ value: "購入15包", evidence: [{ rowCandidateId: "row-material-1" }] }];
+assert.deepEqual(
+  UI.candidatesForSourceRow(duplicatedValueWithExactEvidence, {
+    rowCandidates: reviewRows.map(row => ({ ...row, text: row.text + " 購入15包" }))
+  }, "row-material-2"),
+  [],
+  "候選已有來源列證據時，即使另一列出現相同文字也不得跨列顯示"
+);
+assert.deepEqual(UI.candidatesForSourceRow(rowBoundCandidates, { rowCandidates: reviewRows }, ""), [], "未指定來源列時候選必須保持空白");
+assert.deepEqual(UI.candidatesForSourceRow(rowBoundCandidates, { rowCandidates: reviewRows }, "manual-no-source-row"), [], "人工新增模式不得偷偷帶入辨識候選");
+
+const allReviewed = UI.rowReviewSummary([{ confirmed: true }, { skipped: true }]);
+assert.equal(allReviewed.ok, true, "已核對或略過所有列後才可匯出");
+assert.equal(allReviewed.confirmed.length, 1, "匯出只包含已核對且未略過的列");
+assert.equal(allReviewed.skipped.length, 1);
+assert.equal(UI.rowReviewSummary([{ confirmed: true }, {}]).ok, false, "仍有未核對列時必須阻擋匯出");
+assert.equal(UI.rowReviewSummary([{ skipped: true }]).ok, false, "全部略過時不得產生空白匯出檔");
 
 assert.deepEqual(UI.missingReviewConfirmations({ crop: "番茄", material: "硫酸鉀" }, { type: true, date: true, crop: false, material: false }), ["作物", "藥劑／資材名稱"], "帶入已辨識的作物與資材前必須各自確認");
 assert.deepEqual(UI.missingReviewConfirmations({ crop: "", material: "" }, { type: true, date: true }), [], "沒有候選值的選填欄位不應阻擋人工整理");
