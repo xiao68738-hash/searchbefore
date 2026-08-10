@@ -27,6 +27,8 @@
     maxHeaderGapRatio: 2.5,
     boundaryMargin: 0.008,
     boundaryRatio: 0.15,
+    masterConfidence: 0.7,
+    maxMasterDistanceY: 0.18,
     maxDetailDistanceY: 0.28,
     maxPanels: 24,
     maxEntriesPerPanel: 40
@@ -550,6 +552,7 @@
 
   function ledgerHeaderQuartets(row) {
     const limits = MATERIAL_LEDGER_LIMITS;
+    if (!row || !row.source || !row.box) return Object.freeze([]);
     const cells = (row && Array.isArray(row.cellCandidates) ? row.cellCandidates : [])
       .filter(function (cell) { return cell.box && cell.confidence >= limits.headerConfidence; })
       .slice()
@@ -580,6 +583,17 @@
       const gaps = centers.slice(1).map(function (center, index) { return center - centers[index]; });
       if (gaps.some(function (gap) { return gap < limits.minHeaderGapX || gap > limits.maxHeaderGapX; })) return;
       if (Math.max.apply(null, gaps) / Math.min.apply(null, gaps) > limits.maxHeaderGapRatio) return;
+      const localLeft = Math.max(0, centers[0] - gaps[0] / 2);
+      const localRight = Math.min(1, centers[3] + gaps[2] / 2);
+      const localLabels = cells.filter(function (candidate) {
+        const center = boxCenterX(candidate.box);
+        return center >= localLeft && center <= localRight && labels.some(function (label) {
+          return compact(candidate.text) === compact(label);
+        });
+      });
+      if (labels.some(function (label) {
+        return localLabels.filter(function (candidate) { return compact(candidate.text) === compact(label); }).length !== 1;
+      })) return;
       chosen.forEach(function (item) { used.add(item.id); });
       quartets.push(Object.freeze({
         id: row.id + "-ledger-header-" + (quartets.length + 1),
@@ -673,6 +687,109 @@
     });
   }
 
+  function ledgerMasterFieldCandidates(rows, panelBand, labels, stopLabels, kind) {
+    const out = [];
+    const seen = new Set();
+    const stopKeys = (stopLabels || []).map(compact).filter(Boolean);
+    rows.forEach(function (row) {
+      const cells = ledgerCellsInBand(row, panelBand).slice().sort(function (a, b) {
+        return boxCenterX(a.box) - boxCenterX(b.box);
+      });
+      if (!cells.length) return;
+      const scopedText = cells.map(function (cell) { return cell.text; }).join(" ");
+      findInventoryLabeledValues(scopedText, labels, stopLabels, kind).forEach(function (candidate) {
+        const key = compact(candidate.value);
+        if (!key || seen.has(key) || stopKeys.some(function (stopKey) { return key === stopKey || key.indexOf(stopKey) === 0; })) return;
+        seen.add(key);
+        const confidence = Math.min(row.confidence, candidate.confidence,
+          Math.min.apply(null, cells.map(function (cell) { return cell.confidence; })));
+        out.push(ledgerEvidenceCandidate(candidate.value, confidence, row, cells, candidate.sourceText));
+      });
+    });
+    return Object.freeze(out.slice(0, MAX_FIELD_CANDIDATES));
+  }
+
+  function associateMaterialLedgerMaster(rows, header, bands, panelId, sourceImage, masterTop, rowCandidatesTruncated) {
+    const panelBand = Object.freeze([bands.boundaries[0], bands.boundaries[4]]);
+    const masterRows = rows.filter(function (row) {
+      if (!row || !row.source || !row.box || row.id === header.rowCandidateId) return false;
+      if (row.source.pageIndex !== header.source.pageIndex || row.source.regionIndex !== header.source.regionIndex) return false;
+      const centerY = boxCenterY(row.box);
+      const gap = header.box.top - row.box.bottom;
+      if (centerY == null || centerY <= masterTop || centerY >= header.box.top || gap < 0 || gap > MATERIAL_LEDGER_LIMITS.maxMasterDistanceY) return false;
+      return ledgerCellsInBand(row, panelBand).length > 0;
+    });
+    const stopLabels = ["資材名稱", "肥料名稱", "廠商", "製造商", "供應商", "購入處", "包裝單位", "包裝容量", "日期", "購入量", "使用量", "剩餘量"];
+    const details = Object.freeze({
+      materialName: pendingLedgerDetail(ledgerMasterFieldCandidates(masterRows, panelBand, ["資材名稱", "肥料名稱"], stopLabels, "inventoryMaterial")),
+      manufacturer: pendingLedgerDetail(ledgerMasterFieldCandidates(masterRows, panelBand, ["廠商", "製造商"], stopLabels, "manufacturer")),
+      supplier: pendingLedgerDetail(ledgerMasterFieldCandidates(masterRows, panelBand, ["供應商", "購入處"], stopLabels, "supplier")),
+      packageCapacity: pendingLedgerDetail(ledgerMasterFieldCandidates(masterRows, panelBand, ["包裝容量"], stopLabels, "packageCapacity")),
+      packageUnit: pendingLedgerDetail(ledgerMasterFieldCandidates(masterRows, panelBand, ["包裝單位"], stopLabels, "packageUnit"))
+    });
+    const allCandidates = Object.keys(details).reduce(function (items, key) {
+      return items.concat(details[key].candidates);
+    }, []);
+    if (!allCandidates.length) return null;
+    const materialCandidates = details.materialName.candidates;
+    const reasons = [];
+    if (rowCandidatesTruncated) reasons.push("source-row-candidates-truncated");
+    if (masterRows.some(function (row) { return row.cellsTruncated; })) reasons.push("master-row-cells-truncated");
+    if (materialCandidates.length !== 1) reasons.push(materialCandidates.length ? "multiple-material-names" : "missing-material-name");
+    if (materialCandidates.some(function (candidate) { return candidate.confidence < MATERIAL_LEDGER_LIMITS.masterConfidence; })) reasons.push("low-confidence-material-name");
+    const uniqueReasons = Object.freeze(Array.from(new Set(reasons)));
+    const rowCandidateIds = safeEvidenceIds(allCandidates.map(function (candidate) { return candidate.rowCandidateId; }));
+    const cellCandidateIds = safeEvidenceIds(allCandidates.reduce(function (ids, candidate) {
+      return ids.concat(candidate.cellCandidateIds || []);
+    }, []));
+    return Object.freeze({
+      id: panelId + "-master",
+      hasEvidence: true,
+      associationState: uniqueReasons.length ? "pending" : "row-evidence",
+      panelAssociation: uniqueReasons.length ? "pending" : "strong",
+      source: Object.freeze({
+        sourceImageId: sourceImage ? sourceImage.sourceImageId : null,
+        pageIndex: header.source.pageIndex,
+        regionIndex: header.source.regionIndex,
+        rowCandidateIds,
+        cellCandidateIds
+      }),
+      details,
+      reasons: uniqueReasons,
+      confirmation: Object.freeze({ state: "pending", confirmed: false }),
+      autoCommitAllowed: false,
+      l3UploadReady: false
+    });
+  }
+
+  function emptyMaterialLedgerMaster(panelId, header, sourceImage) {
+    const emptyDetail = function () { return pendingLedgerDetail([]); };
+    return Object.freeze({
+      id: panelId + "-master",
+      hasEvidence: false,
+      associationState: "pending",
+      panelAssociation: "pending",
+      source: Object.freeze({
+        sourceImageId: sourceImage ? sourceImage.sourceImageId : null,
+        pageIndex: header.source.pageIndex,
+        regionIndex: header.source.regionIndex,
+        rowCandidateIds: Object.freeze([]),
+        cellCandidateIds: Object.freeze([])
+      }),
+      details: Object.freeze({
+        materialName: emptyDetail(),
+        manufacturer: emptyDetail(),
+        supplier: emptyDetail(),
+        packageCapacity: emptyDetail(),
+        packageUnit: emptyDetail()
+      }),
+      reasons: Object.freeze(["material-master-not-associated"]),
+      confirmation: Object.freeze({ state: "pending", confirmed: false }),
+      autoCommitAllowed: false,
+      l3UploadReady: false
+    });
+  }
+
   function associateMaterialLedgerRows(rowCandidates, rowCandidatesTruncated, sourceImage) {
     const rows = Array.isArray(rowCandidates) ? rowCandidates : [];
     const headers = [];
@@ -680,6 +797,7 @@
       ledgerHeaderQuartets(row).forEach(function (header) { headers.push(header); });
     });
     const panels = headers.slice(0, MATERIAL_LEDGER_LIMITS.maxPanels).map(function (header, panelIndex) {
+      const panelId = "inventory-panel-" + (panelIndex + 1);
       const bands = ledgerColumnBands(header);
       const groupHeaders = headers.filter(function (candidate) {
         return candidate !== header
@@ -693,8 +811,16 @@
         const right = Math.min(bands.boundaries[4], ledgerColumnBands(candidate).boundaries[4]);
         return right > left;
       });
+      const previousHeader = headers.filter(function (candidate) {
+        if (candidate === header || candidate.source.pageIndex !== header.source.pageIndex || candidate.source.regionIndex !== header.source.regionIndex) return false;
+        if (!candidate.box || candidate.box.top >= header.box.top) return false;
+        const candidateBands = ledgerColumnBands(candidate);
+        return Math.min(bands.boundaries[4], candidateBands.boundaries[4]) > Math.max(bands.boundaries[0], candidateBands.boundaries[0]);
+      }).sort(function (a, b) { return b.box.top - a.box.top; })[0];
+      const masterTop = Math.max(0, header.box.top - MATERIAL_LEDGER_LIMITS.maxMasterDistanceY, previousHeader ? previousHeader.box.bottom : 0);
       const panelBottom = Math.min(1, nextHeader ? nextHeader.box.top : header.box.bottom + MATERIAL_LEDGER_LIMITS.maxDetailDistanceY);
       const panelBox = Object.freeze({ left: bands.boundaries[0], top: header.box.top, right: bands.boundaries[4], bottom: panelBottom });
+      const master = associateMaterialLedgerMaster(rows, header, bands, panelId, sourceImage, masterTop, rowCandidatesTruncated);
       const entries = [];
       rows.forEach(function (row) {
         if (entries.length >= MATERIAL_LEDGER_LIMITS.maxEntriesPerPanel || !row.box || row.id === header.rowCandidateId) return;
@@ -713,6 +839,7 @@
         const remainingCandidates = ledgerAmountCandidates(row, remainingCells);
         if (!dateCandidates.length && !purchaseCandidates.length && !usedCandidates.length && !remainingCandidates.length) return;
         const reasons = [];
+        if (rowCandidatesTruncated) reasons.push("source-row-candidates-truncated");
         if (row.cellsTruncated) reasons.push("row-cells-truncated");
         if (dateCandidates.length !== 1) reasons.push(dateCandidates.length ? "multiple-dates" : "missing-date");
         [["purchase", purchaseCandidates], ["used", usedCandidates], ["remaining", remainingCandidates]].forEach(function (entry) {
@@ -729,10 +856,12 @@
           || ledgerCellsNearBoundary(remainingCells, bands.remaining, bands.boundaries)) reasons.push("near-column-boundary");
         const uniqueReasons = Object.freeze(Array.from(new Set(reasons)));
         entries.push(Object.freeze({
-          id: "inventory-panel-" + (panelIndex + 1) + "-entry-" + (entries.length + 1),
+          id: panelId + "-entry-" + (entries.length + 1),
+          panelId,
+          materialMasterId: master && master.associationState === "row-evidence" ? master.id : null,
           associationState: uniqueReasons.length ? "pending" : "row-evidence",
           rowAssociation: uniqueReasons.length ? "pending" : "strong",
-          masterAssociation: "pending",
+          masterAssociation: master && master.associationState === "row-evidence" ? "panel-evidence" : "pending",
           source: Object.freeze({
             sourceImageId: sourceImage ? sourceImage.sourceImageId : null,
             pageIndex: row.source.pageIndex,
@@ -755,7 +884,7 @@
         }));
       });
       return Object.freeze({
-        id: "inventory-panel-" + (panelIndex + 1),
+        id: panelId,
         source: Object.freeze({
           sourceImageId: sourceImage ? sourceImage.sourceImageId : null,
           pageIndex: header.source.pageIndex,
@@ -765,14 +894,22 @@
         }),
         panelBox,
         columnBands: bands,
-        master: Object.freeze({ associationState: "pending", reasons: Object.freeze(["material-master-not-associated"]) }),
+        master: master || emptyMaterialLedgerMaster(panelId, header, sourceImage),
         entries: Object.freeze(entries)
       });
     });
+    const materialMasters = Object.freeze(panels.map(function (panel) { return panel.master; }).filter(function (master) {
+      return master && master.hasEvidence === true;
+    }));
+    const inventoryTransactions = Object.freeze(panels.reduce(function (entries, panel) {
+      return entries.concat(panel.entries || []);
+    }, []));
     return Object.freeze({
       schemaVersion: 2,
       completeness: rowCandidatesTruncated ? "partial" : "complete",
       panels: Object.freeze(panels),
+      materialMasters,
+      inventoryTransactions,
       unassignedCandidates: Object.freeze([]),
       warnings: Object.freeze(rowCandidatesTruncated ? ["source-row-candidates-truncated"] : []),
       autoCommitAllowed: false,
@@ -815,6 +952,7 @@
       totalWords += words.length;
       const source = block && block.source && typeof block.source === "object" ? Object.freeze({
         pageIndex: safeIndex(block.source.pageIndex),
+        regionIndex: safeIndex(block.source.regionIndex),
         blockIndex: safeIndex(block.source.blockIndex),
         paragraphIndex: safeIndex(block.source.paragraphIndex),
         rowCandidateId: safeEvidenceId(block.source.rowCandidateId),
@@ -866,11 +1004,44 @@
     return (block.box.top + block.box.bottom) / 2;
   }
 
+  function equipmentEvidenceZone(block) {
+    const source = block && block.source && typeof block.source === "object" ? block.source : null;
+    const rowCandidateId = source && safeEvidenceId(source.rowCandidateId);
+    const parsedRow = rowCandidateId && rowCandidateId.match(/(?:^|-)p(\d+)-r(\d+)(?:-|$)/i);
+    const sourcePage = source && Number.isInteger(Number(source.pageIndex)) && Number(source.pageIndex) >= 0
+      ? Number(source.pageIndex)
+      : null;
+    const sourceRegion = source && Number.isInteger(Number(source.regionIndex)) && Number(source.regionIndex) >= 0
+      ? Number(source.regionIndex)
+      : null;
+    const pageIndex = sourcePage != null ? sourcePage : (parsedRow ? Number(parsedRow[1]) - 1 : null);
+    const regionIndex = sourceRegion != null ? sourceRegion : (parsedRow ? Number(parsedRow[2]) - 1 : null);
+    return Object.freeze({
+      pageIndex,
+      regionIndex,
+      key: (pageIndex == null ? "unknown-page" : "page-" + pageIndex)
+        + ":" + (regionIndex == null ? "unknown-region" : "region-" + regionIndex)
+    });
+  }
+
+  function sameEquipmentEvidenceZone(left, right) {
+    const a = left && left.zone ? left.zone : equipmentEvidenceZone(left);
+    const b = right && right.zone ? right.zone : equipmentEvidenceZone(right);
+    if (a.pageIndex != null || b.pageIndex != null) {
+      if (a.pageIndex == null || b.pageIndex == null || a.pageIndex !== b.pageIndex) return false;
+    }
+    if (a.regionIndex != null || b.regionIndex != null) {
+      if (a.regionIndex == null || b.regionIndex == null || a.regionIndex !== b.regionIndex) return false;
+    }
+    return true;
+  }
+
   function findEquipmentMaintenanceRows(blocks) {
     const list = Array.isArray(blocks) ? blocks : [];
     const anchors = [];
-    let inheritedYear = "";
+    const inheritedYears = new Map();
     list.forEach(function (block, blockIndex) {
+      const zone = equipmentEvidenceZone(block);
       const fullDates = findDates(block.text);
       const fullRanges = fullDates.map(function (date) {
         return [date.sourceIndex, date.sourceIndex + date.sourceText.length];
@@ -892,10 +1063,11 @@
       const dates = [];
       dateParts.forEach(function (part) {
         if (part.full) {
-          inheritedYear = part.date.value.slice(0, 4);
+          inheritedYears.set(zone.key, part.date.value.slice(0, 4));
           dates.push(part.date);
           return;
         }
+        const inheritedYear = inheritedYears.get(zone.key) || "";
         if (!inheritedYear) return;
         const value = isoDate(inheritedYear, part.month, part.day);
         if (!value) return;
@@ -907,6 +1079,7 @@
           date,
           blockIndex,
           dateIndex,
+          zone,
           center: blockCenter(block),
           segmentText: dates.length > 1
             ? block.text.slice(date.sourceIndex, nextDate ? nextDate.sourceIndex : block.text.length)
@@ -915,16 +1088,25 @@
       });
     });
     anchors.sort(function (a, b) {
+      const aPage = a.zone.pageIndex == null ? Number.POSITIVE_INFINITY : a.zone.pageIndex;
+      const bPage = b.zone.pageIndex == null ? Number.POSITIVE_INFINITY : b.zone.pageIndex;
+      if (aPage !== bPage) return aPage - bPage;
+      const aRegion = a.zone.regionIndex == null ? Number.POSITIVE_INFINITY : a.zone.regionIndex;
+      const bRegion = b.zone.regionIndex == null ? Number.POSITIVE_INFINITY : b.zone.regionIndex;
+      if (aRegion !== bRegion) return aRegion - bRegion;
       const aCenter = a.center == null ? Number.POSITIVE_INFINITY : a.center;
       const bCenter = b.center == null ? Number.POSITIVE_INFINITY : b.center;
       return aCenter - bCenter || a.blockIndex - b.blockIndex || a.dateIndex - b.dateIndex;
     });
     const rows = anchors.slice(0, 30).map(function (anchor, index) {
-      const previous = anchors[index - 1];
-      const next = anchors[index + 1];
+      const previousCandidate = anchors[index - 1];
+      const nextCandidate = anchors[index + 1];
+      const previous = previousCandidate && sameEquipmentEvidenceZone(anchor, previousCandidate) ? previousCandidate : null;
+      const next = nextCandidate && sameEquipmentEvidenceZone(anchor, nextCandidate) ? nextCandidate : null;
       const top = anchor.center == null || !previous || previous.center == null ? -1 : (previous.center + anchor.center) / 2;
       const bottom = anchor.center == null || !next || next.center == null ? 2 : (anchor.center + next.center) / 2;
       const nearby = list.filter(function (block, blockIndex) {
+        if (!sameEquipmentEvidenceZone(anchor, block)) return false;
         const center = blockCenter(block);
         if (center != null && anchor.center != null) return center >= top && center < bottom;
         return blockIndex === anchor.blockIndex;
@@ -1258,6 +1440,9 @@
     if (ctx.materialInventory) {
       const inventory = ctx.materialInventory;
       const associatedEntries = [];
+      const materialMasterById = new Map((inventory.materialMasters || []).map(function (master) {
+        return [master.id, master];
+      }));
       (inventory.panels || []).forEach(function (panel) {
         (panel.entries || []).forEach(function (entry) {
           if (associatedEntries.length < MAX_DRAFT_ACTIVITIES) associatedEntries.push(entry);
@@ -1265,6 +1450,8 @@
       });
       if (associatedEntries.length) {
         associatedEntries.forEach(function (entry, index) {
+          const master = entry.materialMasterId ? materialMasterById.get(entry.materialMasterId) : null;
+          const masterDetails = master && master.details || {};
           activities.push(standardActivity({
             id: "activity-inventory-row-" + (index + 1),
             kindCandidate: "materialInventory",
@@ -1275,6 +1462,11 @@
             sourceImage,
             sourceBlockIds: blocks.map(function (block) { return block.id; }),
             details: [
+              standardDetail("materialName", "資材名稱", masterDetails.materialName && masterDetails.materialName.candidates, blocks, sourceImage, null, true),
+              standardDetail("manufacturer", "廠商", masterDetails.manufacturer && masterDetails.manufacturer.candidates, blocks, sourceImage, null, false),
+              standardDetail("supplier", "供應商", masterDetails.supplier && masterDetails.supplier.candidates, blocks, sourceImage, null, false),
+              standardDetail("packageCapacity", "包裝容量", masterDetails.packageCapacity && masterDetails.packageCapacity.candidates, blocks, sourceImage, null, false),
+              standardDetail("packageUnit", "包裝單位", masterDetails.packageUnit && masterDetails.packageUnit.candidates, blocks, sourceImage, null, false),
               standardDetail("date", "日期", entry.details.date.candidates, blocks, sourceImage, null, true),
               standardDetail("purchaseAmount", "購入量", entry.details.purchaseAmount.candidates, blocks, sourceImage, null, false),
               standardDetail("usedAmount", "使用量", entry.details.usedAmount.candidates, blocks, sourceImage, null, false),

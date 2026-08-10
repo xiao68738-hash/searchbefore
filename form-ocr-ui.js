@@ -427,6 +427,11 @@
     return Array.isArray(draft && draft.rowCandidates) ? draft.rowCandidates.slice(0, MAX_OCR_ROW_CANDIDATES) : [];
   }
 
+  function validRowCandidateId(value) {
+    const id = String(value || "");
+    return /^[A-Za-z0-9._:-]{1,160}$/.test(id) ? id : "";
+  }
+
   function sourceRowLabel(row, index) {
     const source = row && row.source || {};
     const position = "頁 " + (Math.max(0, Number(source.pageIndex) || 0) + 1)
@@ -447,9 +452,9 @@
     if (!candidate || !row) return false;
     const rowId = String(row.id || "");
     const evidence = Array.isArray(candidate.evidence) ? candidate.evidence : [];
-    const evidenceRowIds = evidence.map(function (item) {
+    const evidenceRowIds = [validRowCandidateId(candidate.rowCandidateId)].concat(evidence.map(function (item) {
       return String(item && item.rowCandidateId || "");
-    }).filter(Boolean);
+    })).map(validRowCandidateId).filter(Boolean);
     if (evidenceRowIds.length) return Boolean(rowId && evidenceRowIds.includes(rowId));
     const rowText = matchKey(row.text || "");
     const valueText = matchKey(candidate.value == null ? "" : candidate.value);
@@ -934,19 +939,92 @@
       + '<label class="ocr-inventory-row-confirm"><input class="ocr-inventory-confirmed" type="checkbox" onchange="PQC_FORM_OCR_UI.updateMaterialInventoryRowStatus(this)"> 我已對照原圖核對這一筆</label></section>';
   }
 
+  function materialInventoryPanelSourceRows(rowCandidates, panel) {
+    const rows = Array.isArray(rowCandidates) ? rowCandidates : [];
+    const source = panel && panel.source || {};
+    const masterSource = panel && panel.master && panel.master.source || {};
+    const masterRowIds = (Array.isArray(masterSource.rowCandidateIds) ? masterSource.rowCandidateIds : [])
+      .map(validRowCandidateId).filter(Boolean);
+    if (!masterRowIds.length) return [];
+    return rows.filter(function (row) {
+      if (!row || !row.source) return false;
+      if (Number(row.source.pageIndex) !== Number(source.pageIndex) || Number(row.source.regionIndex) !== Number(source.regionIndex)) return false;
+      return masterRowIds.includes(validRowCandidateId(row.id));
+    });
+  }
+
+  function materialInventoryEntrySourceRows(rowCandidates, entry) {
+    const rowId = validRowCandidateId(entry && entry.source && entry.source.rowCandidateId);
+    if (!rowId) return [];
+    return (Array.isArray(rowCandidates) ? rowCandidates : []).filter(function (row) {
+      return validRowCandidateId(row && row.id) === rowId;
+    });
+  }
+
+  function materialInventoryPanelEntryHtml(panelIndex, entryIndex, entry, rowCandidates) {
+    const sourceDraft = { rowCandidates: materialInventoryEntrySourceRows(rowCandidates, entry) };
+    return '<section class="ocr-inventory-entry" data-inventory-entry data-panel-index="' + panelIndex + '" data-entry-index="' + entryIndex + '" data-review-status="pending"><div class="ocr-inventory-row-head"><b>明細第 ' + (entryIndex + 1) + ' 筆</b><span data-entry-status>等待核對</span><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.toggleMaterialInventoryEntrySkipped(this)">略過</button></div>'
+      + '<label class="ocr-inventory-source-row">明細來源列<select class="ocr-inventory-entry-source" onchange="PQC_FORM_OCR_UI.filterMaterialInventoryEntry(this)">' + sourceRowOptionList(sourceDraft) + '</select><small data-entry-source-excerpt>尚未指定來源列，日期與數量候選保持空白。</small></label>'
+      + '<label>日期<select class="ocr-inventory-entry-date-candidate">' + inventoryOptionList([], "") + '</select><input class="ocr-inventory-entry-date" type="date" aria-label="自行輸入日期"></label>'
+      + '<label>購入量<select class="ocr-inventory-entry-purchase-candidate">' + inventoryOptionList([], "") + '</select><input class="ocr-inventory-entry-purchase" inputmode="decimal" placeholder="或自行輸入"></label>'
+      + '<label>使用量<select class="ocr-inventory-entry-used-candidate">' + inventoryOptionList([], "") + '</select><input class="ocr-inventory-entry-used" inputmode="decimal" placeholder="或自行輸入"></label>'
+      + '<label>剩餘量<select class="ocr-inventory-entry-remaining-candidate">' + inventoryOptionList([], "") + '</select><input class="ocr-inventory-entry-remaining" inputmode="decimal" placeholder="或自行輸入"></label>'
+      + '<label class="ocr-inventory-row-confirm"><input class="ocr-inventory-entry-confirmed" type="checkbox" onchange="PQC_FORM_OCR_UI.updateMaterialInventoryEntryStatus(this)"> 我已對照原圖核對這筆明細</label></section>';
+  }
+
+  function materialInventoryPanelHtml(index, panel, draft, rowCandidates) {
+    const sourceDraft = { rowCandidates: materialInventoryPanelSourceRows(rowCandidates, panel) };
+    const entries = Array.isArray(panel && panel.entries) ? panel.entries : [];
+    const entryCount = Math.max(1, entries.length);
+    return '<section class="ocr-inventory-panel" data-inventory-panel data-panel-index="' + index + '" data-review-status="pending"><div class="ocr-inventory-panel-head"><div><b>小表格 ' + (index + 1) + '</b><span data-panel-status>共用資料等待核對</span></div><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.toggleMaterialInventoryPanelSkipped(this)">略過整個小表格</button></div>'
+      + '<div class="ocr-inventory-panel-master"><b>共用資材資料</b><small>資材名稱、廠商、供應商、包裝容量與單位只需在這裡核對一次。</small>'
+      + '<label class="ocr-inventory-source-row">共用資料來源列<select class="ocr-inventory-panel-source" onchange="PQC_FORM_OCR_UI.filterMaterialInventoryPanel(this)">' + sourceRowOptionList(sourceDraft) + '</select><small data-panel-source-excerpt>尚未指定來源列，所有候選保持空白。</small></label>'
+      + '<div class="ocr-inventory-meta"><label>資材名稱<select class="ocr-inventory-panel-material">' + inventoryOptionList([], "") + '</select><input class="ocr-inventory-panel-material-manual" placeholder="或自行輸入"></label>'
+      + '<label>廠商<select class="ocr-inventory-panel-manufacturer">' + inventoryOptionList([], "") + '</select><input class="ocr-inventory-panel-manufacturer-manual" placeholder="或自行輸入"></label>'
+      + '<label>供應商<select class="ocr-inventory-panel-supplier">' + inventoryOptionList([], "") + '</select><input class="ocr-inventory-panel-supplier-manual" placeholder="或自行輸入"></label>'
+      + '<label>包裝容量<select class="ocr-inventory-panel-capacity">' + inventoryOptionList([], "") + '</select><input class="ocr-inventory-panel-capacity-manual" placeholder="例如 25"></label>'
+      + '<label>包裝單位<input class="ocr-inventory-panel-unit" placeholder="例如 公斤、包、瓶"></label></div>'
+      + '<label class="ocr-inventory-row-confirm"><input class="ocr-inventory-panel-confirmed" type="checkbox" onchange="PQC_FORM_OCR_UI.updateMaterialInventoryPanelStatus(this)"> 我已對照原圖核對共用資材資料</label></div>'
+      + '<div class="ocr-inventory-toolbar"><b>日期與進出庫明細</b><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.addMaterialInventoryEntry(this)">＋ 新增一筆</button></div>'
+      + '<div class="ocr-inventory-panel-entries">' + Array.from({ length: entryCount }, function (_, entryIndex) { return materialInventoryPanelEntryHtml(index, entryIndex, entries[entryIndex], rowCandidates); }).join("") + '</div></section>';
+  }
+
+  function materialInventoryReviewSummary(states) {
+    const panels = rowReviewSummary(states);
+    const confirmedEntries = [];
+    const skippedEntries = [];
+    const invalidPanels = [];
+    panels.confirmed.forEach(function (panelState) {
+      const entries = rowReviewSummary(panelState && panelState.entries);
+      if (!entries.ok) invalidPanels.push(Object.freeze({ panel: panelState, review: entries }));
+      confirmedEntries.push.apply(confirmedEntries, entries.confirmed);
+      skippedEntries.push.apply(skippedEntries, entries.skipped);
+    });
+    return Object.freeze({
+      ok: panels.ok && invalidPanels.length === 0 && confirmedEntries.length > 0,
+      panels,
+      confirmedEntries: Object.freeze(confirmedEntries),
+      skippedEntries: Object.freeze(skippedEntries),
+      invalidPanels: Object.freeze(invalidPanels)
+    });
+  }
+
   function renderMaterialInventoryDraft(draft, text) {
     const box = document.getElementById("ocrDraftBox");
     if (!box) return;
     const currentBatchItem = ocrBatchDrafts[ocrBatchIndex];
     const sourceArgument = esc(JSON.stringify(String(currentBatchItem && currentBatchItem.sourceImageId || "")));
     const inventory = draft.materialInventory;
+    const panels = Array.isArray(inventory.panels) ? inventory.panels : [];
+    const usesPanels = panels.length > 0;
     const rowCount = Math.min(12, Math.max(1, inventory.suggestedRowCount || 1, inventory.materials.length));
     box.innerHTML = batchNavigatorHtml() + qualityHtml(draft.quality)
       + '<section class="ocr-reference-review"><div class="ocr-reference-title"><b>肥料／資材入出庫草稿（測試中）</b><span>這是庫存帳，不會被當成一次施肥或一次購入。系統先整理資材基本資料與多筆進出庫列，請對照原圖修正；目前不直接送入 L3。</span></div>'
       + '<div class="ocr-reference-summary"><div><span>資材候選</span><b>' + esc(inventory.materials.map(function (item) { return item.value; }).join("、") || "未辨識到") + '</b></div><div><span>日期候選</span><b>' + esc(inventory.dates.map(function (item) { return item.value; }).join("、") || "未辨識到") + '</b></div></div>'
-      + '<div class="ocr-status warn"><b>請逐筆選擇</b><span>目前只能找出候選，還不能確定哪個日期、資材與數量屬於同一列，因此不會自動配對。</span></div>'
-      + '<div class="ocr-inventory-toolbar"><b>進出庫明細</b><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.addMaterialInventoryRow()">＋ 新增一列</button></div>'
-      + '<div id="ocrInventoryRows" class="ocr-inventory-rows">' + Array.from({ length: rowCount }, function (_, index) { return materialInventoryRowHtml(index, inventory, draft.rowCandidates); }).join("") + '</div>'
+      + '<div class="ocr-status warn"><b>請分兩層核對</b><span>先確認每個小表格的共用資材資料，再逐筆核對日期與進出庫數量。候選不會自動填入。</span></div>'
+      + (usesPanels
+        ? '<div id="ocrInventoryPanels" class="ocr-inventory-panels">' + panels.map(function (panel, index) { return materialInventoryPanelHtml(index, panel, inventory, draft.rowCandidates); }).join("") + '</div>'
+        : '<div class="ocr-inventory-toolbar"><b>進出庫明細</b><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.addMaterialInventoryRow()">＋ 新增一列</button></div><div id="ocrInventoryRows" class="ocr-inventory-rows">' + Array.from({ length: rowCount }, function (_, index) { return materialInventoryRowHtml(index, inventory, draft.rowCandidates); }).join("") + '</div>')
       + '<button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.openOcrImagePreview(' + sourceArgument + ')">查看原圖核對</button>'
       + '<details class="ocr-raw-details"><summary>查看辨識原文</summary><textarea id="ocrRawText" readonly>' + esc(text) + '</textarea></details>'
       + '<button class="btn btn-main wide" type="button" onclick="PQC_FORM_OCR_UI.exportMaterialInventoryDraft()">下載資材庫存草稿 CSV</button>'
@@ -1729,6 +1807,128 @@
     select.disabled = !items || !items.length;
   }
 
+  function addMaterialInventoryEntry(button) {
+    const panel = button && button.closest ? button.closest("[data-inventory-panel]") : null;
+    const container = panel && panel.querySelector(".ocr-inventory-panel-entries");
+    if (!panel || !container || !currentDraft || !currentDraft.materialInventory) return false;
+    const panelIndex = Number(panel.dataset.panelIndex);
+    const entryIndex = container.querySelectorAll("[data-inventory-entry]").length;
+    container.insertAdjacentHTML("beforeend", materialInventoryPanelEntryHtml(panelIndex, entryIndex, null, currentDraft.rowCandidates));
+    return true;
+  }
+
+  function filterMaterialInventoryPanel(select) {
+    const panel = select && select.closest ? select.closest("[data-inventory-panel]") : null;
+    if (!panel || !currentDraft || !currentDraft.materialInventory) return false;
+    const rowId = String(select.value || "");
+    const source = sourceRows(currentDraft).find(function (item) { return String(item.id || "") === rowId; });
+    const manual = rowId === MANUAL_SOURCE_ROW_ID;
+    const inventory = currentDraft.materialInventory;
+    const filtered = function (items) { return candidatesForSourceRow(items, currentDraft, rowId); };
+    setInventoryCandidateOptions(panel, ".ocr-inventory-panel-material", filtered(inventory.materials));
+    setInventoryCandidateOptions(panel, ".ocr-inventory-panel-manufacturer", filtered(inventory.manufacturers));
+    setInventoryCandidateOptions(panel, ".ocr-inventory-panel-supplier", filtered(inventory.suppliers));
+    setInventoryCandidateOptions(panel, ".ocr-inventory-panel-capacity", filtered(inventory.packageCapacities));
+    const excerpt = panel.querySelector("[data-panel-source-excerpt]");
+    if (excerpt) {
+      excerpt.textContent = manual
+        ? "人工新增：請自行輸入，不使用辨識候選。"
+        : (source ? "來源列內容：" + String(source.text || "").slice(0, 180) : "尚未指定來源列，所有候選保持空白。");
+    }
+    const confirmation = panel.querySelector(".ocr-inventory-panel-confirmed");
+    if (confirmation) confirmation.checked = false;
+    updateMaterialInventoryPanelStatus(confirmation || select);
+    return Boolean(source || manual);
+  }
+
+  function inventoryPanelEntry(panelIndex, entryIndex) {
+    const inventory = currentDraft && currentDraft.materialInventory;
+    const panel = inventory && Array.isArray(inventory.panels) ? inventory.panels[panelIndex] : null;
+    return panel && Array.isArray(panel.entries) ? panel.entries[entryIndex] || null : null;
+  }
+
+  function filterMaterialInventoryEntry(select) {
+    const row = select && select.closest ? select.closest("[data-inventory-entry]") : null;
+    if (!row || !currentDraft || !currentDraft.materialInventory) return false;
+    const rowId = String(select.value || "");
+    const source = sourceRows(currentDraft).find(function (item) { return String(item.id || "") === rowId; });
+    const manual = rowId === MANUAL_SOURCE_ROW_ID;
+    const entry = inventoryPanelEntry(Number(row.dataset.panelIndex), Number(row.dataset.entryIndex));
+    const details = entry && entry.details || {};
+    const candidates = function (name) {
+      const detail = details[name];
+      return candidatesForSourceRow(detail && detail.candidates, currentDraft, rowId);
+    };
+    setInventoryCandidateOptions(row, ".ocr-inventory-entry-date-candidate", candidates("date"));
+    setInventoryCandidateOptions(row, ".ocr-inventory-entry-purchase-candidate", candidates("purchaseAmount"));
+    setInventoryCandidateOptions(row, ".ocr-inventory-entry-used-candidate", candidates("usedAmount"));
+    setInventoryCandidateOptions(row, ".ocr-inventory-entry-remaining-candidate", candidates("remainingAmount"));
+    const excerpt = row.querySelector("[data-entry-source-excerpt]");
+    if (excerpt) {
+      excerpt.textContent = manual
+        ? "人工新增：請自行輸入，不使用辨識候選。"
+        : (source ? "來源列內容：" + String(source.text || "").slice(0, 180) : "尚未指定來源列，日期與數量候選保持空白。");
+    }
+    const confirmation = row.querySelector(".ocr-inventory-entry-confirmed");
+    if (confirmation) confirmation.checked = false;
+    updateMaterialInventoryEntryStatus(confirmation || select);
+    return Boolean(source || manual);
+  }
+
+  function updateMaterialInventoryPanelStatus(control) {
+    const panel = control && control.closest ? control.closest("[data-inventory-panel]") : null;
+    if (!panel || panel.dataset.reviewStatus === "skipped") return false;
+    const confirmation = panel.querySelector(".ocr-inventory-panel-confirmed");
+    const sourceSelected = Boolean((panel.querySelector(".ocr-inventory-panel-source") || {}).value);
+    const confirmed = Boolean(confirmation && confirmation.checked && sourceSelected);
+    if (confirmation && confirmation.checked && !sourceSelected) confirmation.checked = false;
+    panel.dataset.reviewStatus = confirmed ? "confirmed" : "pending";
+    const status = panel.querySelector("[data-panel-status]");
+    if (status) status.textContent = confirmed ? "共用資料已核對" : "共用資料等待核對";
+    return confirmed;
+  }
+
+  function updateMaterialInventoryEntryStatus(control) {
+    const row = control && control.closest ? control.closest("[data-inventory-entry]") : null;
+    if (!row || row.dataset.reviewStatus === "skipped") return false;
+    const confirmation = row.querySelector(".ocr-inventory-entry-confirmed");
+    const sourceSelected = Boolean((row.querySelector(".ocr-inventory-entry-source") || {}).value);
+    const confirmed = Boolean(confirmation && confirmation.checked && sourceSelected);
+    if (confirmation && confirmation.checked && !sourceSelected) confirmation.checked = false;
+    row.dataset.reviewStatus = confirmed ? "confirmed" : "pending";
+    const status = row.querySelector("[data-entry-status]");
+    if (status) status.textContent = confirmed ? "已核對" : "等待核對";
+    return confirmed;
+  }
+
+  function toggleMaterialInventoryEntrySkipped(button) {
+    const row = button && button.closest ? button.closest("[data-inventory-entry]") : null;
+    if (!row) return false;
+    const skipped = row.dataset.reviewStatus === "skipped";
+    row.dataset.reviewStatus = skipped ? "pending" : "skipped";
+    button.textContent = skipped ? "略過" : "恢復";
+    row.querySelectorAll("input,select").forEach(function (control) { control.disabled = !skipped; });
+    const confirmation = row.querySelector(".ocr-inventory-entry-confirmed");
+    if (confirmation && !skipped) confirmation.checked = false;
+    const status = row.querySelector("[data-entry-status]");
+    if (status) status.textContent = skipped ? "等待核對" : "已略過";
+    return !skipped;
+  }
+
+  function toggleMaterialInventoryPanelSkipped(button) {
+    const panel = button && button.closest ? button.closest("[data-inventory-panel]") : null;
+    if (!panel) return false;
+    const skipped = panel.dataset.reviewStatus === "skipped";
+    panel.dataset.reviewStatus = skipped ? "pending" : "skipped";
+    button.textContent = skipped ? "略過整個小表格" : "恢復小表格";
+    panel.querySelectorAll("input,select,.ocr-inventory-toolbar button,.ocr-inventory-entry button").forEach(function (control) { control.disabled = !skipped; });
+    const confirmation = panel.querySelector(".ocr-inventory-panel-confirmed");
+    if (confirmation && !skipped) confirmation.checked = false;
+    const status = panel.querySelector("[data-panel-status]");
+    if (status) status.textContent = skipped ? "共用資料等待核對" : "已略過整個小表格";
+    return !skipped;
+  }
+
   function filterMaterialInventoryRow(select) {
     const row = select && select.closest ? select.closest("[data-inventory-row]") : null;
     if (!row || !currentDraft || !currentDraft.materialInventory) return false;
@@ -1783,37 +1983,83 @@
 
   function exportMaterialInventoryDraft() {
     if (!currentDraft || !currentDraft.materialInventory) return false;
-    const reviewRows = Array.from(document.querySelectorAll("#ocrInventoryRows [data-inventory-row]"));
-    const review = rowReviewSummary(reviewRows.map(function (row) {
-      const sourceSelected = Boolean((row.querySelector(".ocr-inventory-source") || {}).value);
-      return { confirmed: row.dataset.reviewStatus === "confirmed" && sourceSelected, skipped: row.dataset.reviewStatus === "skipped", row };
-    }));
-    if (!review.ok) {
-      if (typeof root.toast === "function") root.toast(review.pending.length ? "每一筆都必須核對或略過後才能匯出" : "至少需要保留一筆已核對的進出庫資料");
-      return false;
-    }
     const rows = [["文件類型", "資材名稱", "廠商", "供應商", "包裝容量", "日期", "購入量", "使用量", "剩餘量", "單位", "L3狀態"]];
-    review.confirmed.forEach(function (reviewItem) {
-      const row = reviewItem.row;
-      function rowValue(selectClass, inputClass) {
-        const manual = row.querySelector(inputClass);
-        const selected = row.querySelector(selectClass);
-        return String(manual && manual.value || selected && selected.value || "").trim();
+    function controlValue(scope, selectClass, inputClass) {
+      const manual = inputClass ? scope.querySelector(inputClass) : null;
+      const selected = selectClass ? scope.querySelector(selectClass) : null;
+      return String(manual && manual.value || selected && selected.value || "").trim();
+    }
+    const reviewPanels = Array.from(document.querySelectorAll("#ocrInventoryPanels [data-inventory-panel]"));
+    if (reviewPanels.length) {
+      const review = materialInventoryReviewSummary(reviewPanels.map(function (panel) {
+        const sourceSelected = Boolean((panel.querySelector(".ocr-inventory-panel-source") || {}).value);
+        const entries = Array.from(panel.querySelectorAll("[data-inventory-entry]")).map(function (entry) {
+          const entrySourceSelected = Boolean((entry.querySelector(".ocr-inventory-entry-source") || {}).value);
+          return { confirmed: entry.dataset.reviewStatus === "confirmed" && entrySourceSelected, skipped: entry.dataset.reviewStatus === "skipped", row: entry, panel };
+        });
+        return { confirmed: panel.dataset.reviewStatus === "confirmed" && sourceSelected, skipped: panel.dataset.reviewStatus === "skipped", panel, entries };
+      }));
+      if (!review.ok) {
+        if (typeof root.toast === "function") root.toast(review.panels.pending.length
+          ? "每個小表格的共用資料都必須核對或略過後才能匯出"
+          : (review.invalidPanels.length ? "每個保留的小表格至少要有一筆已核對明細，其他明細請核對或略過" : "至少需要保留一個已核對的小表格"));
+        return false;
       }
-      rows.push([
-        "肥料／資材入出庫草稿",
-        rowValue(".ocr-inventory-material", ".ocr-inventory-material-manual"),
-        rowValue(".ocr-inventory-manufacturer", ".ocr-inventory-manufacturer-manual"),
-        rowValue(".ocr-inventory-supplier", ".ocr-inventory-supplier-manual"),
-        rowValue(".ocr-inventory-capacity", ".ocr-inventory-capacity-manual"),
-        rowValue(".ocr-inventory-date-candidate", ".ocr-inventory-date"),
-        String((row.querySelector(".ocr-inventory-purchase") || {}).value || ""),
-        String((row.querySelector(".ocr-inventory-used") || {}).value || ""),
-        String((row.querySelector(".ocr-inventory-remaining") || {}).value || ""),
-        String((row.querySelector(".ocr-inventory-unit") || {}).value || ""),
-        "待確認正式欄位規格"
-      ]);
-    });
+      let missingPanelMaterial = false;
+      review.panels.confirmed.forEach(function (panelState) {
+        const panel = panelState.panel;
+        const material = controlValue(panel, ".ocr-inventory-panel-material", ".ocr-inventory-panel-material-manual");
+        const manufacturer = controlValue(panel, ".ocr-inventory-panel-manufacturer", ".ocr-inventory-panel-manufacturer-manual");
+        const supplier = controlValue(panel, ".ocr-inventory-panel-supplier", ".ocr-inventory-panel-supplier-manual");
+        const capacity = controlValue(panel, ".ocr-inventory-panel-capacity", ".ocr-inventory-panel-capacity-manual");
+        const unit = controlValue(panel, null, ".ocr-inventory-panel-unit");
+        if (!material) {
+          missingPanelMaterial = true;
+          return;
+        }
+        panelState.entries.filter(function (entryState) { return entryState.confirmed === true && entryState.skipped !== true; }).forEach(function (entryState) {
+          const entry = entryState.row;
+          rows.push([
+            "肥料／資材入出庫草稿", material, manufacturer, supplier, capacity,
+            controlValue(entry, ".ocr-inventory-entry-date-candidate", ".ocr-inventory-entry-date"),
+            controlValue(entry, ".ocr-inventory-entry-purchase-candidate", ".ocr-inventory-entry-purchase"),
+            controlValue(entry, ".ocr-inventory-entry-used-candidate", ".ocr-inventory-entry-used"),
+            controlValue(entry, ".ocr-inventory-entry-remaining-candidate", ".ocr-inventory-entry-remaining"),
+            unit, "待確認正式欄位規格"
+          ]);
+        });
+      });
+      if (missingPanelMaterial) {
+        if (typeof root.toast === "function") root.toast("每個已核對小表格都需要確認資材名稱");
+        return false;
+      }
+    } else {
+      const reviewRows = Array.from(document.querySelectorAll("#ocrInventoryRows [data-inventory-row]"));
+      const review = rowReviewSummary(reviewRows.map(function (row) {
+        const sourceSelected = Boolean((row.querySelector(".ocr-inventory-source") || {}).value);
+        return { confirmed: row.dataset.reviewStatus === "confirmed" && sourceSelected, skipped: row.dataset.reviewStatus === "skipped", row };
+      }));
+      if (!review.ok) {
+        if (typeof root.toast === "function") root.toast(review.pending.length ? "每一筆都必須核對或略過後才能匯出" : "至少需要保留一筆已核對的進出庫資料");
+        return false;
+      }
+      review.confirmed.forEach(function (reviewItem) {
+        const row = reviewItem.row;
+        rows.push([
+          "肥料／資材入出庫草稿",
+          controlValue(row, ".ocr-inventory-material", ".ocr-inventory-material-manual"),
+          controlValue(row, ".ocr-inventory-manufacturer", ".ocr-inventory-manufacturer-manual"),
+          controlValue(row, ".ocr-inventory-supplier", ".ocr-inventory-supplier-manual"),
+          controlValue(row, ".ocr-inventory-capacity", ".ocr-inventory-capacity-manual"),
+          controlValue(row, ".ocr-inventory-date-candidate", ".ocr-inventory-date"),
+          String((row.querySelector(".ocr-inventory-purchase") || {}).value || ""),
+          String((row.querySelector(".ocr-inventory-used") || {}).value || ""),
+          String((row.querySelector(".ocr-inventory-remaining") || {}).value || ""),
+          String((row.querySelector(".ocr-inventory-unit") || {}).value || ""),
+          "待確認正式欄位規格"
+        ]);
+      });
+    }
     if (rows.length < 2 || rows.slice(1).some(function (row) { return !row[1]; })) {
       if (typeof root.toast === "function") root.toast("每一筆已核對資料都需要確認資材名稱");
       return false;
@@ -1851,6 +2097,7 @@
     style.textContent += ".ocr-preview-open{border:0;background:transparent;padding:0;display:grid;gap:6px;text-align:left;min-width:0;width:100%;cursor:pointer}.ocr-preview-remove{border:0;border-top:1px solid var(--line);background:transparent;color:var(--muted);font-size:11px;font-weight:800;padding:6px 2px 0;cursor:pointer}.ocr-preview-remove:hover{color:#982d20}.ocr-inventory-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px}.ocr-inventory-meta label,.ocr-inventory-row label{display:grid;gap:5px;font-size:12px;font-weight:800;color:var(--muted)}.ocr-inventory-meta select,.ocr-inventory-meta input,.ocr-inventory-row input{width:100%}.ocr-inventory-meta select+input{margin-top:5px}.ocr-inventory-toolbar,.ocr-inventory-row-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.ocr-inventory-toolbar b,.ocr-inventory-row-head b{color:var(--green-deep)}.ocr-inventory-rows{display:grid;gap:10px}.ocr-inventory-row{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--card);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px}.ocr-inventory-row-head{grid-column:1/-1}@media(max-width:720px){.ocr-inventory-meta{grid-template-columns:1fr}.ocr-inventory-row{grid-template-columns:1fr 1fr}.ocr-inventory-row-head{grid-column:1/-1}}";
     style.textContent += ".ocr-activity-review,.ocr-activity-list{display:grid;gap:12px}.ocr-activity-card{border:1px solid var(--line);border-radius:15px;padding:13px;background:var(--card);display:grid;gap:10px}.ocr-activity-card[data-confidence=low]{border-color:#d9b45f;background:#fffaf0}.ocr-activity-card-head{display:flex;align-items:start;justify-content:space-between;gap:10px}.ocr-activity-card-head>div{display:grid;gap:3px}.ocr-activity-card-head b{color:var(--green-deep)}.ocr-activity-card-head span,.ocr-activity-source,.ocr-activity-warning{margin:0;font-size:12px;line-height:1.5;color:var(--muted)}.ocr-activity-warning{color:#7b5200;font-weight:800}.ocr-activity-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.ocr-activity-fields>span{border:1px solid var(--line);border-radius:10px;padding:8px;display:grid;gap:3px;min-width:0}.ocr-activity-fields small{font-size:10px;color:var(--muted)}.ocr-activity-fields b{font-size:13px;color:var(--green-deep);overflow-wrap:anywhere}.ocr-activity-empty{font-size:12px;color:var(--muted)}.ocr-activity-current{margin-bottom:12px;border:1px solid var(--orange);border-radius:14px;padding:12px;background:color-mix(in srgb,var(--orange) 7%,var(--card));display:flex;justify-content:space-between;gap:12px}.ocr-activity-current>div{display:grid;gap:4px}.ocr-activity-current b{color:var(--green-deep)}.ocr-activity-current span,.ocr-activity-current small{font-size:12px;color:var(--muted)}.ocr-activity-current>div:last-child{grid-template-columns:auto auto;align-content:start}@media(max-width:620px){.ocr-activity-fields{grid-template-columns:1fr 1fr}.ocr-activity-card-head,.ocr-activity-current{display:grid}.ocr-activity-current>div:last-child{grid-template-columns:1fr 1fr}}";
     style.textContent += ".ocr-source-row-review{margin:12px 0;border:1px solid var(--orange);border-radius:14px;padding:13px;background:color-mix(in srgb,var(--orange) 6%,var(--card));display:grid;gap:8px}.ocr-source-row-review>label:first-child{display:grid;gap:6px;font-weight:900;color:var(--green-deep)}.ocr-source-row-review select{width:100%}.ocr-source-row-review p,.ocr-source-row-review small{margin:0;color:var(--muted);font-size:12px;line-height:1.55}.ocr-source-row-confirm{display:flex;align-items:flex-start;gap:8px;font-weight:800;color:var(--green-deep)}.ocr-source-row-confirm input{margin-top:3px}.ocr-review-actions,.ocr-activity-card-actions{display:grid;grid-template-columns:1fr auto;gap:9px}.ocr-activity-card[data-confidence=skipped]{opacity:.68;background:var(--paper)}.ocr-inventory-source-row,.ocr-inventory-row-confirm{grid-column:1/-1}.ocr-inventory-source-row small{font-weight:600;line-height:1.5}.ocr-inventory-row-confirm{display:flex!important;align-items:center;grid-template-columns:auto 1fr!important;color:var(--green-deep)!important}.ocr-inventory-row-confirm input{width:auto!important}.ocr-inventory-row[data-review-status=skipped]{opacity:.65;background:var(--paper)}@media(max-width:620px){.ocr-review-actions,.ocr-activity-card-actions{grid-template-columns:1fr}.ocr-inventory-source-row,.ocr-inventory-row-confirm{grid-column:1/-1}}";
+    style.textContent += ".ocr-inventory-panels{display:grid;gap:14px}.ocr-inventory-panel{border:1px solid var(--orange);border-radius:16px;padding:13px;background:color-mix(in srgb,var(--orange) 4%,var(--card));display:grid;gap:12px}.ocr-inventory-panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.ocr-inventory-panel-head>div{display:grid;gap:3px}.ocr-inventory-panel-head b{color:var(--green-deep)}.ocr-inventory-panel-head span{font-size:12px;color:var(--muted)}.ocr-inventory-panel-master{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--card);display:grid;gap:9px}.ocr-inventory-panel-master>b{color:var(--green-deep)}.ocr-inventory-panel-master>small{color:var(--muted);line-height:1.5}.ocr-inventory-panel-master label,.ocr-inventory-entry label{display:grid;gap:5px;font-size:12px;font-weight:800;color:var(--muted)}.ocr-inventory-panel-master select,.ocr-inventory-panel-master input,.ocr-inventory-entry select,.ocr-inventory-entry input{width:100%}.ocr-inventory-panel-entries{display:grid;gap:10px}.ocr-inventory-entry{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--card);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.ocr-inventory-panel[data-review-status=skipped],.ocr-inventory-entry[data-review-status=skipped]{opacity:.65;background:var(--paper)}@media(max-width:720px){.ocr-inventory-panel-head{display:grid}.ocr-inventory-entry{grid-template-columns:1fr 1fr}.ocr-inventory-entry .ocr-inventory-row-head,.ocr-inventory-entry .ocr-inventory-source-row,.ocr-inventory-entry .ocr-inventory-row-confirm{grid-column:1/-1}}";
     document.head.appendChild(style);
   }
 
@@ -1976,9 +2223,14 @@
     sourceRowOptionList,
     candidatesForSourceRow,
     rowReviewSummary,
+    materialInventoryReviewSummary,
     preselectedCandidate,
     missingReviewConfirmations,
     materialInventoryRowHtml,
+    materialInventoryPanelSourceRows,
+    materialInventoryEntrySourceRows,
+    materialInventoryPanelEntryHtml,
+    materialInventoryPanelHtml,
     matchKey,
     registeredPesticideMatches,
     receiveScanResult,
@@ -2002,6 +2254,13 @@
     applyEquipmentMaintenanceBatch,
     exportSelfInspectionDraft,
     addMaterialInventoryRow,
+    addMaterialInventoryEntry,
+    filterMaterialInventoryPanel,
+    filterMaterialInventoryEntry,
+    updateMaterialInventoryPanelStatus,
+    updateMaterialInventoryEntryStatus,
+    toggleMaterialInventoryPanelSkipped,
+    toggleMaterialInventoryEntrySkipped,
     filterMaterialInventoryRow,
     updateMaterialInventoryRowStatus,
     toggleMaterialInventoryRowSkipped,

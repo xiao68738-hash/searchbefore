@@ -394,6 +394,123 @@ assert.equal(ledgerGeometryDraft.materialInventory.panels[0].entries[1].details.
 assert.ok(ledgerGeometryDraft.activities.every(item => item.details.every(detail => detail.value === null)), "同列分組只提供候選，仍不得自動確認欄位值");
 assert.ok(ledgerGeometryDraft.activities.every(item => item.autoCommitAllowed === false && item.l3UploadReady === false));
 
+const ledgerMasterDraft = O.createDraft({
+  source: "google-cloud-vision",
+  quality: { width: 1800, height: 2400, cornersConfirmedByUser: true, assessment: "user-confirmed-before-upload" },
+  blocks: [{ id: "ledger-master-title", text: "表 10. 肥料入出庫紀錄\n資材名稱 苦土石灰 廠商 東成\n日期 購入量 使用量 剩餘量", confidence: 0.93 }],
+  rowCandidates: [
+    ledgerRow("ledger-master-1", 0.12, [
+      ledgerCell("m1-label", "資材名稱", 0.07, 0.14), ledgerCell("m1-value", "苦土石灰", 0.15, 0.22),
+      ledgerCell("m1-maker-label", "廠商", 0.23, 0.28), ledgerCell("m1-maker", "東成", 0.29, 0.34)
+    ]),
+    ledgerRow("ledger-master-header", 0.2, [
+      ledgerCell("mh-date", "日期", 0.09, 0.13), ledgerCell("mh-purchase", "購入量", 0.17, 0.23),
+      ledgerCell("mh-used", "使用量", 0.25, 0.31), ledgerCell("mh-remaining", "剩餘量", 0.33, 0.39)
+    ]),
+    ledgerRow("ledger-master-entry-1", 0.25, [
+      ledgerCell("me1-date", "115/5/10", 0.09, 0.14), ledgerCell("me1-purchase", "15包", 0.17, 0.23),
+      ledgerCell("me1-remaining", "15包", 0.33, 0.39)
+    ]),
+    ledgerRow("ledger-master-entry-2", 0.3, [
+      ledgerCell("me2-date", "115/5/20", 0.09, 0.14), ledgerCell("me2-used", "15包", 0.25, 0.31),
+      ledgerCell("me2-remaining", "0", 0.33, 0.39)
+    ])
+  ]
+});
+assert.equal(ledgerMasterDraft.materialInventory.materialMasters.length, 1, "唯一且同 panel 的資材名稱可建立待確認 master");
+assert.equal(ledgerMasterDraft.materialInventory.materialMasters[0].associationState, "row-evidence");
+assert.equal(ledgerMasterDraft.materialInventory.materialMasters[0].details.materialName.value, null, "master 仍只可提供候選，不得自動確認");
+assert.equal(ledgerMasterDraft.materialInventory.materialMasters[0].details.materialName.candidates[0].value, "苦土石灰");
+assert.equal(ledgerMasterDraft.materialInventory.inventoryTransactions.length, 2);
+assert.ok(ledgerMasterDraft.materialInventory.inventoryTransactions.every(item => item.materialMasterId === "inventory-panel-1-master"));
+assert.ok(ledgerMasterDraft.activities.every(item => item.details.find(detail => detail.key === "materialName").candidates[0].value === "苦土石灰"));
+assert.ok(ledgerMasterDraft.activities.every(item => item.details.every(detail => detail.value === null) && item.autoCommitAllowed === false && item.l3UploadReady === false));
+
+const twoPanelAssociation = O.associateMaterialLedgerRows([
+  ledgerRow("two-panel-master", 0.12, [
+    ledgerCell("lp-label", "資材名稱", 0.02, 0.08), ledgerCell("lp-value", "苦土石灰", 0.09, 0.2),
+    ledgerCell("rp-label", "資材名稱", 0.53, 0.59), ledgerCell("rp-value", "硫酸鉀", 0.6, 0.72)
+  ]),
+  ledgerRow("two-panel-header", 0.2, [
+    ledgerCell("lh-date", "日期", 0.04, 0.08), ledgerCell("lh-purchase", "購入量", 0.1, 0.14),
+    ledgerCell("lh-used", "使用量", 0.16, 0.2), ledgerCell("lh-remaining", "剩餘量", 0.22, 0.26),
+    ledgerCell("rh-date", "日期", 0.55, 0.59), ledgerCell("rh-purchase", "購入量", 0.61, 0.65),
+    ledgerCell("rh-used", "使用量", 0.67, 0.71), ledgerCell("rh-remaining", "剩餘量", 0.73, 0.77)
+  ]),
+  ledgerRow("two-panel-entry", 0.25, [
+    ledgerCell("le-date", "115/5/10", 0.04, 0.08), ledgerCell("le-purchase", "15包", 0.1, 0.14), ledgerCell("le-remaining", "15包", 0.22, 0.26),
+    ledgerCell("re-date", "115/6/10", 0.55, 0.59), ledgerCell("re-used", "2包", 0.67, 0.71), ledgerCell("re-remaining", "8包", 0.73, 0.77)
+  ])
+], false, { sourceImageId: "photo-two-panel" });
+assert.equal(twoPanelAssociation.panels.length, 2, "左右兩個完整四欄表頭應建立兩個 panel");
+assert.deepEqual(twoPanelAssociation.materialMasters.map(master => master.details.materialName.candidates.map(item => item.value)), [["苦土石灰"], ["硫酸鉀"]], "左右 panel 的資材候選不得互串");
+assert.equal(twoPanelAssociation.inventoryTransactions.length, 2);
+assert.notEqual(twoPanelAssociation.inventoryTransactions[0].materialMasterId, twoPanelAssociation.inventoryTransactions[1].materialMasterId);
+
+const twoPageAssociation = O.associateMaterialLedgerRows([
+  ledgerRow("page-0-master", 0.12, [ledgerCell("p0-label", "資材名稱", 0.07, 0.14), ledgerCell("p0-value", "苦土石灰", 0.15, 0.22)], { pageIndex: 0 }),
+  ledgerRow("page-0-header", 0.2, [ledgerCell("p0-date", "日期", 0.09, 0.13), ledgerCell("p0-purchase", "購入量", 0.17, 0.23), ledgerCell("p0-used", "使用量", 0.25, 0.31), ledgerCell("p0-remaining", "剩餘量", 0.33, 0.39)], { pageIndex: 0 }),
+  ledgerRow("page-0-entry", 0.25, [ledgerCell("p0-entry-date", "115/5/10", 0.09, 0.14), ledgerCell("p0-entry-purchase", "1包", 0.17, 0.23)], { pageIndex: 0 }),
+  ledgerRow("page-1-master", 0.12, [ledgerCell("p1-label", "資材名稱", 0.07, 0.14), ledgerCell("p1-value", "硫酸鉀", 0.15, 0.22)], { pageIndex: 1 }),
+  ledgerRow("page-1-header", 0.2, [ledgerCell("p1-date", "日期", 0.09, 0.13), ledgerCell("p1-purchase", "購入量", 0.17, 0.23), ledgerCell("p1-used", "使用量", 0.25, 0.31), ledgerCell("p1-remaining", "剩餘量", 0.33, 0.39)], { pageIndex: 1 }),
+  ledgerRow("page-1-entry", 0.25, [ledgerCell("p1-entry-date", "115/6/10", 0.09, 0.14), ledgerCell("p1-entry-purchase", "2包", 0.17, 0.23)], { pageIndex: 1 })
+], false, { sourceImageId: "photo-two-page" });
+assert.equal(twoPageAssociation.panels.length, 2);
+assert.deepEqual(twoPageAssociation.materialMasters.map(master => [master.source.pageIndex, master.details.materialName.candidates[0].value]), [[0, "苦土石灰"], [1, "硫酸鉀"]], "不同頁面的 master 不得交叉關聯");
+assert.deepEqual(twoPageAssociation.inventoryTransactions.map(item => item.source.pageIndex), [0, 1]);
+
+const ambiguousMasterAssociation = O.associateMaterialLedgerRows([
+  ledgerRow("ambiguous-master", 0.12, [
+    ledgerCell("am-label-1", "資材名稱", 0.07, 0.12), ledgerCell("am-value-1", "苦土石灰", 0.13, 0.2),
+    ledgerCell("am-label-2", "資材名稱", 0.21, 0.26), ledgerCell("am-value-2", "硫酸鉀", 0.27, 0.34)
+  ]),
+  ledgerRow("ambiguous-header", 0.2, [ledgerCell("ah-date", "日期", 0.09, 0.13), ledgerCell("ah-purchase", "購入量", 0.17, 0.23), ledgerCell("ah-used", "使用量", 0.25, 0.31), ledgerCell("ah-remaining", "剩餘量", 0.33, 0.39)]),
+  ledgerRow("ambiguous-entry", 0.25, [ledgerCell("ae-date", "115/5/10", 0.09, 0.14), ledgerCell("ae-purchase", "1包", 0.17, 0.23)])
+], false, { sourceImageId: "photo-ambiguous-master" });
+assert.equal(ambiguousMasterAssociation.materialMasters.length, 1);
+assert.equal(ambiguousMasterAssociation.materialMasters[0].associationState, "pending", "同 panel 有兩個資材名稱時不得猜 master");
+assert.ok(ambiguousMasterAssociation.materialMasters[0].reasons.includes("multiple-material-names"));
+assert.equal(ambiguousMasterAssociation.inventoryTransactions[0].materialMasterId, null);
+
+const noHeaderAssociation = O.associateMaterialLedgerRows([
+  ledgerRow("no-header-master", 0.12, [ledgerCell("nh-label", "資材名稱", 0.07, 0.14), ledgerCell("nh-value", "苦土石灰", 0.15, 0.22)]),
+  ledgerRow("incomplete-header", 0.2, [ledgerCell("ih-date", "日期", 0.09, 0.13), ledgerCell("ih-purchase", "購入量", 0.17, 0.23), ledgerCell("ih-used", "使用量", 0.25, 0.31)])
+], false, { sourceImageId: "photo-no-header" });
+assert.equal(noHeaderAssociation.panels.length, 0, "缺少完整唯一四欄表頭時不得建立 panel");
+assert.equal(noHeaderAssociation.materialMasters.length, 0);
+assert.equal(noHeaderAssociation.inventoryTransactions.length, 0);
+
+const blankPanelAssociation = O.associateMaterialLedgerRows([
+  ledgerRow("blank-master-labels", 0.12, [ledgerCell("bm-name", "資材名稱", 0.07, 0.14), ledgerCell("bm-maker", "廠商", 0.2, 0.25)]),
+  ledgerRow("blank-header", 0.2, [ledgerCell("bh-date", "日期", 0.09, 0.13), ledgerCell("bh-purchase", "購入量", 0.17, 0.23), ledgerCell("bh-used", "使用量", 0.25, 0.31), ledgerCell("bh-remaining", "剩餘量", 0.33, 0.39)])
+], false, { sourceImageId: "photo-blank-panel" });
+assert.equal(blankPanelAssociation.panels.length, 1);
+assert.equal(blankPanelAssociation.panels[0].master.hasEvidence, false, "只有空白欄名的小表只能保留相容的 pending placeholder");
+assert.equal(blankPanelAssociation.panels[0].master.details.materialName.value, null);
+assert.deepEqual(blankPanelAssociation.panels[0].master.details.materialName.candidates, []);
+assert.equal(blankPanelAssociation.materialMasters.length, 0);
+
+const duplicateHeaderAssociation = O.associateMaterialLedgerRows([
+  ledgerRow("duplicate-header", 0.2, [
+    ledgerCell("dh-date", "日期", 0.09, 0.13), ledgerCell("dh-purchase-1", "購入量", 0.16, 0.2),
+    ledgerCell("dh-purchase-2", "購入量", 0.205, 0.235), ledgerCell("dh-used", "使用量", 0.25, 0.31),
+    ledgerCell("dh-remaining", "剩餘量", 0.33, 0.39)
+  ])
+], false, { sourceImageId: "photo-duplicate-header" });
+assert.equal(duplicateHeaderAssociation.panels.length, 0, "同一 panel 的四欄表頭不唯一時不得建立關聯");
+
+const ambiguousRowAssociation = O.associateMaterialLedgerRows([
+  ledgerRow("ambiguous-row-header", 0.2, [ledgerCell("arh-date", "日期", 0.09, 0.13), ledgerCell("arh-purchase", "購入量", 0.17, 0.23), ledgerCell("arh-used", "使用量", 0.25, 0.31), ledgerCell("arh-remaining", "剩餘量", 0.33, 0.39)]),
+  ledgerRow("ambiguous-row-entry", 0.25, [
+    ledgerCell("are-date", "115/5/10", 0.09, 0.14),
+    ledgerCell("are-purchase-1", "1包", 0.17, 0.195), ledgerCell("are-purchase-2", "2包", 0.2, 0.23)
+  ])
+], false, { sourceImageId: "photo-ambiguous-row" });
+assert.equal(ambiguousRowAssociation.inventoryTransactions.length, 1);
+assert.equal(ambiguousRowAssociation.inventoryTransactions[0].associationState, "pending", "同列同欄有多個數量時不得猜值");
+assert.ok(ambiguousRowAssociation.inventoryTransactions[0].reasons.includes("multiple-purchase-amounts"));
+assert.equal(ambiguousRowAssociation.inventoryTransactions[0].details.purchaseAmount.value, null);
+
 const truncatedLedgerAssociation = O.associateMaterialLedgerRows([
   ledgerRow("ledger-header-truncated", 0.2, [
     ledgerCell("th-date", "日期", 0.09, 0.13), ledgerCell("th-purchase", "購入量", 0.17, 0.23),
@@ -406,6 +523,7 @@ const truncatedLedgerAssociation = O.associateMaterialLedgerRows([
 assert.equal(truncatedLedgerAssociation.completeness, "partial");
 assert.equal(truncatedLedgerAssociation.panels[0].entries[0].associationState, "pending", "來源格遭截斷時不得視為可靠同列關聯");
 assert.ok(truncatedLedgerAssociation.panels[0].entries[0].reasons.includes("row-cells-truncated"));
+assert.ok(truncatedLedgerAssociation.panels[0].entries[0].reasons.includes("source-row-candidates-truncated"), "整體列候選遭截斷時也必須維持 pending");
 
 const noisyEquipmentDraft = O.createDraft({
   source: "google-cloud-vision",
@@ -446,5 +564,40 @@ const inheritedYearRows = O.findEquipmentMaintenanceRows([
   { id: "background", text: "新聞預告 8月27日上映", confidence: 1 }
 ]);
 assert.deepEqual(inheritedYearRows.map(row => row.date[0].value), ["2026-02-23", "2026-03-10"], "後續列省略年份時沿用同頁最近年份並保留人工確認");
+
+const isolatedEquipmentRows = O.findEquipmentMaintenanceRows([
+  {
+    id: "page-0-equipment",
+    text: "民國115/2/23 ☑噴霧機 ☑清潔",
+    confidence: 1,
+    box: { left: 0.05, top: 0.2, right: 0.45, bottom: 0.28 },
+    source: { pageIndex: 0, regionIndex: 0 }
+  },
+  {
+    id: "page-1-same-height-background",
+    text: "表19 採收及採後處理 ☑冷藏車 ☑維修",
+    confidence: 1,
+    box: { left: 0.55, top: 0.2, right: 0.95, bottom: 0.28 },
+    source: { pageIndex: 1, regionIndex: 0 }
+  },
+  {
+    id: "page-1-partial-date",
+    text: "3月10日 ☑割草機 ☑保養",
+    confidence: 1,
+    box: { left: 0.55, top: 0.35, right: 0.95, bottom: 0.43 },
+    source: { pageIndex: 1, regionIndex: 0 }
+  },
+  {
+    id: "page-0-other-region",
+    text: "☑選別機 ☑校正",
+    confidence: 1,
+    box: { left: 0.55, top: 0.2, right: 0.95, bottom: 0.28 },
+    source: { pageIndex: 0, regionIndex: 1 }
+  }
+]);
+assert.equal(isolatedEquipmentRows.length, 1, "表18 日期、設備與作業不得跨頁或跨 region 合併");
+assert.deepEqual(isolatedEquipmentRows[0].equipment.filter(item => item.selected).map(item => item.value), ["噴霧機"]);
+assert.deepEqual(isolatedEquipmentRows[0].actions.filter(item => item.selected).map(item => item.value), ["清潔"]);
+assert.equal(isolatedEquipmentRows[0].date[0].value, "2026-02-23");
 
 console.log("表單 OCR 核心：品質閘門、候選解析與人工確認規則通過");

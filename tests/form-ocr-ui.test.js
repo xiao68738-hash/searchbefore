@@ -191,8 +191,77 @@ assert.deepEqual(
   [],
   "候選已有來源列證據時，即使另一列出現相同文字也不得跨列顯示"
 );
+const duplicatedDirectRowEvidence = [{ value: "15", rowCandidateId: "row-material-1" }];
+assert.deepEqual(
+  UI.candidatesForSourceRow(duplicatedDirectRowEvidence, {
+    rowCandidates: reviewRows.map(row => ({ ...row, text: row.text + " 15" }))
+  }, "row-material-2"),
+  [],
+  "候選直接帶有有效 rowCandidateId 時也只能精確匹配，不得因同值文字 fallback 到另一列"
+);
 assert.deepEqual(UI.candidatesForSourceRow(rowBoundCandidates, { rowCandidates: reviewRows }, ""), [], "未指定來源列時候選必須保持空白");
 assert.deepEqual(UI.candidatesForSourceRow(rowBoundCandidates, { rowCandidates: reviewRows }, "manual-no-source-row"), [], "人工新增模式不得偷偷帶入辨識候選");
+
+const panelRows = [{
+  id: "panel-master",
+  source: { pageIndex: 0, regionIndex: 0 },
+  text: "資材名稱 苦土石灰 廠商 東成 供應商 農業資材行 包裝容量 25 公斤",
+  box: { left: 0.05, top: 0.08, right: 0.45, bottom: 0.12 }
+}, {
+  id: "panel-header",
+  source: { pageIndex: 0, regionIndex: 0 },
+  text: "日期 購入量 使用量 剩餘量",
+  box: { left: 0.05, top: 0.18, right: 0.45, bottom: 0.2 }
+}, {
+  id: "panel-entry-1",
+  source: { pageIndex: 0, regionIndex: 0 },
+  text: "115/5/10 15包 15包",
+  box: { left: 0.05, top: 0.22, right: 0.45, bottom: 0.24 }
+}, {
+  id: "other-panel-entry",
+  source: { pageIndex: 0, regionIndex: 1 },
+  text: "115/5/10 15包 15包",
+  box: { left: 0.55, top: 0.22, right: 0.95, bottom: 0.24 }
+}];
+const panelDraft = {
+  id: "inventory-panel-1",
+  source: { pageIndex: 0, regionIndex: 0, headerRowCandidateId: "panel-header" },
+  panelBox: { left: 0.05, top: 0.18, right: 0.45, bottom: 0.4 },
+  master: { source: { rowCandidateIds: ["panel-master"] } },
+  entries: [{
+    source: { rowCandidateId: "panel-entry-1" },
+    details: {
+      date: { candidates: [{ value: "2026-05-10", rowCandidateId: "panel-entry-1" }] },
+      purchaseAmount: { candidates: [{ value: 15, unit: "包", rowCandidateId: "panel-entry-1" }] },
+      usedAmount: { candidates: [] },
+      remainingAmount: { candidates: [{ value: 15, unit: "包", rowCandidateId: "panel-entry-1" }] }
+    }
+  }]
+};
+assert.deepEqual(
+  UI.materialInventoryPanelSourceRows(panelRows, panelDraft).map(row => row.id),
+  ["panel-master"],
+  "小表格共用資料來源只能列出核心明確綁定且同頁同區的列"
+);
+assert.deepEqual(UI.materialInventoryPanelSourceRows(panelRows, { ...panelDraft, master: { source: { rowCandidateIds: [] } } }), [], "共用資料沒有來源列證據時不得靠位置猜測其他列");
+assert.deepEqual(
+  UI.materialInventoryEntrySourceRows(panelRows, panelDraft.entries[0]).map(row => row.id),
+  ["panel-entry-1"],
+  "有精確來源證據的明細只可選該來源列"
+);
+assert.deepEqual(UI.materialInventoryEntrySourceRows(panelRows, {}), [], "沒有來源證據的明細不得列出其他 panel 的來源列");
+const panelHtml = UI.materialInventoryPanelHtml(0, panelDraft, {
+  materials: [{ value: "苦土石灰" }], manufacturers: [{ value: "東成" }], suppliers: [], packageCapacities: []
+}, panelRows);
+assert.doesNotMatch(panelHtml, /\sselected(?:\s|>)/, "panel 共用資料與明細候選一律不得預選");
+assert.match(panelHtml, /data-inventory-panel[^>]*data-review-status="pending"/, "panel 共用資料預設未確認");
+assert.match(panelHtml, /data-inventory-entry[^>]*data-review-status="pending"/, "panel 內每筆明細預設未確認");
+assert.match(panelHtml, /ocr-inventory-panel-confirmed/, "共用資材資料必須單獨核對");
+assert.match(panelHtml, /ocr-inventory-entry-confirmed/, "日期與進出庫明細必須逐筆核對");
+assert.match(panelHtml, /略過整個小表格/, "panel 可整體略過");
+assert.match(panelHtml, /toggleMaterialInventoryEntrySkipped/, "明細可逐筆略過");
+assert.match(panelHtml, /人工新增／無來源列/, "兩層都保留人工新增／無來源列選項");
+assert.doesNotMatch(panelHtml, /Google|Cloud|Vision|雲端供應商/i, "人工核對介面不得暴露辨識供應商");
 
 const allReviewed = UI.rowReviewSummary([{ confirmed: true }, { skipped: true }]);
 assert.equal(allReviewed.ok, true, "已核對或略過所有列後才可匯出");
@@ -200,6 +269,16 @@ assert.equal(allReviewed.confirmed.length, 1, "匯出只包含已核對且未略
 assert.equal(allReviewed.skipped.length, 1);
 assert.equal(UI.rowReviewSummary([{ confirmed: true }, {}]).ok, false, "仍有未核對列時必須阻擋匯出");
 assert.equal(UI.rowReviewSummary([{ skipped: true }]).ok, false, "全部略過時不得產生空白匯出檔");
+
+const twoLevelReviewed = UI.materialInventoryReviewSummary([{
+  confirmed: true,
+  entries: [{ confirmed: true }, { skipped: true }]
+}, { skipped: true, entries: [{ confirmed: false }] }]);
+assert.equal(twoLevelReviewed.ok, true, "已核對的 panel 內每筆明細皆核對或略過時才能匯出");
+assert.equal(twoLevelReviewed.confirmedEntries.length, 1, "匯出摘要只保留已核對明細");
+assert.equal(UI.materialInventoryReviewSummary([{ confirmed: false, entries: [{ confirmed: true }] }]).ok, false, "panel 共用資料未確認時必須阻擋匯出");
+assert.equal(UI.materialInventoryReviewSummary([{ confirmed: true, entries: [{ confirmed: false }] }]).ok, false, "panel 內仍有未確認明細時必須阻擋匯出");
+assert.equal(UI.materialInventoryReviewSummary([{ confirmed: true, entries: [{ skipped: true }] }]).ok, false, "保留的 panel 若沒有已核對明細應要求略過整個 panel");
 
 assert.deepEqual(UI.missingReviewConfirmations({ crop: "番茄", material: "硫酸鉀" }, { type: true, date: true, crop: false, material: false }), ["作物", "藥劑／資材名稱"], "帶入已辨識的作物與資材前必須各自確認");
 assert.deepEqual(UI.missingReviewConfirmations({ crop: "", material: "" }, { type: true, date: true }), [], "沒有候選值的選填欄位不應阻擋人工整理");
