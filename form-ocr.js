@@ -10,6 +10,29 @@
   "use strict";
 
   const PROTOCOL_VERSION = 1;
+  const INTERMEDIATE_DRAFT_SCHEMA_VERSION = 1;
+  const MAX_DRAFT_ACTIVITIES = 30;
+  const MAX_ACTIVITY_DETAILS = 40;
+  const MAX_FIELD_CANDIDATES = 12;
+  const MAX_FIELD_EVIDENCE = 4;
+  const MAX_SOURCE_ROW_CANDIDATES = 250;
+  const MAX_SOURCE_CELL_CANDIDATES_PER_ROW = 20;
+  const MAX_SOURCE_WORD_IDS_PER_CELL = 100;
+  const MATERIAL_LEDGER_LIMITS = Object.freeze({
+    headerConfidence: 0.7,
+    dateConfidence: 0.7,
+    amountConfidence: 0.65,
+    minHeaderGapX: 0.035,
+    maxHeaderGapX: 0.18,
+    maxHeaderGapRatio: 2.5,
+    boundaryMargin: 0.008,
+    boundaryRatio: 0.15,
+    masterConfidence: 0.7,
+    maxMasterDistanceY: 0.18,
+    maxDetailDistanceY: 0.28,
+    maxPanels: 24,
+    maxEntriesPerPanel: 40
+  });
   const ALLOWED_UNITS = Object.freeze(["毫升", "公升", "公克", "公斤", "台斤", "c.c.", "c.c", "cc", "ml", "mL", "L", "g", "kg", "包", "袋"]);
   const EQUIPMENT_ITEMS = Object.freeze(["噴霧機", "割草機", "中耕機", "選別機", "貯藏／溫控設備", "搬運車", "冷藏車"]);
   const EQUIPMENT_ACTIONS = Object.freeze(["清潔", "保養", "維修", "校正"]);
@@ -75,6 +98,18 @@
     equipmentMaintenance: Object.freeze({ label: "器具／機械／設備管理", markers: Object.freeze(["器具/機械/設備之保養、維修、校正及清潔管理紀錄", "器具/機械/設備", "作業內容", "噴霧機", "清潔", "保養", "維修", "校正"]) }),
     selfInspection: Object.freeze({ label: "生產及出貨自我查核表", markers: Object.freeze(["農作物生產及出貨作業自我查核表", "查核項目", "查核頻率", "查核者", "確認日期", "程度", "備註"]) }),
     profile: Object.freeze({ label: "基本資料／田區資料", markers: Object.freeze(["基本資料", "經營農戶姓名", "農地地籍號碼", "栽培總面積"]) })
+  });
+
+  const DOCUMENT_ROUTES = Object.freeze({
+    pesticide: Object.freeze({ route: "production-record", destination: "farm-form", l3MappingStatus: "unmapped" }),
+    fertilizer: Object.freeze({ route: "production-record", destination: "farm-form", l3MappingStatus: "unmapped" }),
+    cultivation: Object.freeze({ route: "production-record", destination: "farm-form", l3MappingStatus: "unmapped" }),
+    harvest: Object.freeze({ route: "production-record", destination: "farm-form", l3MappingStatus: "unmapped" }),
+    postharvest: Object.freeze({ route: "production-record", destination: "farm-form", l3MappingStatus: "unmapped" }),
+    equipmentMaintenance: Object.freeze({ route: "supporting-record", destination: "local-equipment-record", l3MappingStatus: "unconfirmed" }),
+    purchase: Object.freeze({ route: "material-ledger", destination: "material-inventory-review", l3MappingStatus: "unconfirmed" }),
+    selfInspection: Object.freeze({ route: "reference-only", destination: "reference-review", l3MappingStatus: "not-applicable" }),
+    profile: Object.freeze({ route: "master-data", destination: "manual-review-only", l3MappingStatus: "unmapped" })
   });
 
   function clamp01(value) {
@@ -251,6 +286,115 @@
     }));
   }
 
+  function strongDocumentType(text) {
+    const body = compact(text);
+    if (!body) return null;
+
+    const isSelfInspection = body.includes("查核項目")
+      && (body.includes("查核頻率") || body.includes("程度"))
+      && (body.includes("查核者") || body.includes("確認日期"));
+    if (isSelfInspection) {
+      return Object.freeze({
+        type: "selfInspection",
+        reason: "辨識到查核項目、查核頻率／程度與查核者／確認日期等固定欄頭"
+      });
+    }
+
+    const ledgerColumns = ["購入量", "使用量", "剩餘量"].filter(function (label) {
+      return body.includes(compact(label));
+    });
+    const isMaterialLedger = body.includes("表10")
+      && body.includes("肥料入出庫")
+      && ledgerColumns.length >= 2;
+    if (isMaterialLedger) {
+      return Object.freeze({
+        type: "purchase",
+        reason: "辨識到表 10 肥料入出庫表名與至少兩個固定數量欄頭"
+      });
+    }
+
+    const isEquipmentLedger = body.includes("表18")
+      && body.includes("器具")
+      && body.includes("機械")
+      && body.includes("設備")
+      && ["清潔", "保養", "維修", "校正"].some(function (label) { return body.includes(label); });
+    if (isEquipmentLedger) {
+      return Object.freeze({
+        type: "equipmentMaintenance",
+        reason: "辨識到表 18 器具／機械／設備表名與管理作業欄"
+      });
+    }
+    return null;
+  }
+
+  function decideDocumentRoute(recordTypes, text) {
+    const candidates = Array.isArray(recordTypes) ? recordTypes : [];
+    const strong = strongDocumentType(text);
+    if (strong) {
+      const strongRoute = DOCUMENT_ROUTES[strong.type];
+      return Object.freeze({
+        status: "exact",
+        type: strong.type,
+        route: strongRoute.route,
+        destination: strongRoute.destination,
+        l3MappingStatus: strongRoute.l3MappingStatus,
+        reason: strong.reason,
+        evidenceLevel: "fixed-form-header"
+      });
+    }
+    const top = candidates[0];
+    const runnerUp = candidates[1];
+    if (!top || top.markerCount < 2) {
+      return Object.freeze({
+        status: "unknown",
+        type: null,
+        route: "unknown",
+        destination: "manual-classification",
+        l3MappingStatus: "not-mapped",
+        reason: "沒有足夠的同類表單標記，必須由使用者選擇文件用途"
+      });
+    }
+    if (runnerUp && runnerUp.markerCount === top.markerCount) {
+      return Object.freeze({
+        status: "ambiguous",
+        type: null,
+        route: "unknown",
+        destination: "manual-classification",
+        l3MappingStatus: "not-mapped",
+        reason: "兩種文件的辨識標記數相同，禁止自動採用第一名"
+      });
+    }
+    if (["selfInspection", "purchase", "equipmentMaintenance"].includes(top.value)) {
+      return Object.freeze({
+        status: "unknown",
+        type: null,
+        route: "unknown",
+        destination: "manual-classification",
+        l3MappingStatus: "not-mapped",
+        reason: "固定表單的表名或必要欄頭不完整，禁止只靠內文關鍵字啟用專用解析"
+      });
+    }
+    const route = DOCUMENT_ROUTES[top.value];
+    if (!route) {
+      return Object.freeze({
+        status: "unknown",
+        type: null,
+        route: "unknown",
+        destination: "manual-classification",
+        l3MappingStatus: "not-mapped",
+        reason: "沒有可用的文件分流規則"
+      });
+    }
+    return Object.freeze({
+      status: "exact",
+      type: top.value,
+      route: route.route,
+      destination: route.destination,
+      l3MappingStatus: route.l3MappingStatus,
+      reason: "辨識到 " + top.markerCount + " 個同類表單標記"
+    });
+  }
+
   function findPlotCodes(text) {
     const source = normalizeText(text);
     const out = [];
@@ -330,20 +474,529 @@
     }).filter(Boolean));
   }
 
-  function safeBlocks(blocks) {
-    return Object.freeze((Array.isArray(blocks) ? blocks : []).slice(0, 500).map(function (block, index) {
+  function safeBox(value) {
+    if (!value || typeof value !== "object") return null;
+    return Object.freeze({
+      left: clamp01(value.left),
+      top: clamp01(value.top),
+      right: clamp01(value.right),
+      bottom: clamp01(value.bottom)
+    });
+  }
+
+  function safeIndex(value) {
+    const number = Number(value);
+    return Number.isInteger(number) && number >= 0 && number <= 100000 ? number : 0;
+  }
+
+  function safeEvidenceId(value) {
+    const id = String(value || "");
+    return /^[A-Za-z0-9._:-]{1,160}$/.test(id) ? id : null;
+  }
+
+  function safeEvidenceIds(value) {
+    return Object.freeze(Array.from(new Set((Array.isArray(value) ? value : [])
+      .map(safeEvidenceId)
+      .filter(Boolean))).slice(0, 100));
+  }
+
+  function safeRowCandidateSource(value) {
+    if (!value || typeof value !== "object") return null;
+    return Object.freeze({
+      pageIndex: safeIndex(value.pageIndex),
+      regionIndex: safeIndex(value.regionIndex)
+    });
+  }
+
+  function safeCellCandidates(value) {
+    return Object.freeze((Array.isArray(value) ? value : []).slice(0, MAX_SOURCE_CELL_CANDIDATES_PER_ROW).map(function (cell) {
+      if (!cell || typeof cell !== "object") return null;
+      const id = safeEvidenceId(cell.id);
+      if (!id) return null;
       return Object.freeze({
-        id: String(block && block.id || "block-" + (index + 1)),
-        text: normalizeText(block && block.text).slice(0, 500),
-        confidence: clamp01(block && block.confidence),
-        box: block && block.box ? Object.freeze({
-          left: clamp01(block.box.left),
-          top: clamp01(block.box.top),
-          right: clamp01(block.box.right),
-          bottom: clamp01(block.box.bottom)
-        }) : null
+        id,
+        text: normalizeText(cell.text).slice(0, 250),
+        confidence: clamp01(cell.confidence),
+        box: safeBox(cell.box),
+        wordIds: Object.freeze(safeEvidenceIds(cell.wordIds).slice(0, MAX_SOURCE_WORD_IDS_PER_CELL))
       });
-    }).filter(function (block) { return block.text; }));
+    }).filter(Boolean));
+  }
+
+  function safeRowCandidates(value) {
+    return Object.freeze((Array.isArray(value) ? value : []).slice(0, MAX_SOURCE_ROW_CANDIDATES).map(function (row) {
+      if (!row || typeof row !== "object") return null;
+      const id = safeEvidenceId(row.id);
+      if (!id) return null;
+      const sourceCells = Array.isArray(row.cellCandidates) ? row.cellCandidates : [];
+      const cellCandidates = safeCellCandidates(sourceCells);
+      return Object.freeze({
+        id,
+        source: safeRowCandidateSource(row.source),
+        text: normalizeText(row.text).slice(0, 500),
+        confidence: clamp01(row.confidence),
+        box: safeBox(row.box),
+        cellCandidates,
+        cellsTruncated: row.cellsTruncated === true || cellCandidates.length < sourceCells.length
+      });
+    }).filter(Boolean));
+  }
+
+  function boxCenterX(box) {
+    return box ? (Number(box.left) + Number(box.right)) / 2 : null;
+  }
+
+  function boxCenterY(box) {
+    return box ? (Number(box.top) + Number(box.bottom)) / 2 : null;
+  }
+
+  function ledgerHeaderQuartets(row) {
+    const limits = MATERIAL_LEDGER_LIMITS;
+    if (!row || !row.source || !row.box) return Object.freeze([]);
+    const cells = (row && Array.isArray(row.cellCandidates) ? row.cellCandidates : [])
+      .filter(function (cell) { return cell.box && cell.confidence >= limits.headerConfidence; })
+      .slice()
+      .sort(function (a, b) { return boxCenterX(a.box) - boxCenterX(b.box); });
+    const labels = ["日期", "購入量", "使用量", "剩餘量"];
+    const used = new Set();
+    const quartets = [];
+    cells.forEach(function (cell, startIndex) {
+      if (compact(cell.text) !== compact(labels[0]) || used.has(cell.id)) return;
+      const chosen = [cell];
+      let previousIndex = startIndex;
+      for (let labelIndex = 1; labelIndex < labels.length; labelIndex += 1) {
+        let found = null;
+        for (let index = previousIndex + 1; index < cells.length; index += 1) {
+          const candidate = cells[index];
+          const gap = boxCenterX(candidate.box) - boxCenterX(chosen[chosen.length - 1].box);
+          if (gap > limits.maxHeaderGapX) break;
+          if (!used.has(candidate.id) && compact(candidate.text) === compact(labels[labelIndex])) {
+            found = { cell: candidate, index, gap };
+            break;
+          }
+        }
+        if (!found) return;
+        chosen.push(found.cell);
+        previousIndex = found.index;
+      }
+      const centers = chosen.map(function (item) { return boxCenterX(item.box); });
+      const gaps = centers.slice(1).map(function (center, index) { return center - centers[index]; });
+      if (gaps.some(function (gap) { return gap < limits.minHeaderGapX || gap > limits.maxHeaderGapX; })) return;
+      if (Math.max.apply(null, gaps) / Math.min.apply(null, gaps) > limits.maxHeaderGapRatio) return;
+      const localLeft = Math.max(0, centers[0] - gaps[0] / 2);
+      const localRight = Math.min(1, centers[3] + gaps[2] / 2);
+      const localLabels = cells.filter(function (candidate) {
+        const center = boxCenterX(candidate.box);
+        return center >= localLeft && center <= localRight && labels.some(function (label) {
+          return compact(candidate.text) === compact(label);
+        });
+      });
+      if (labels.some(function (label) {
+        return localLabels.filter(function (candidate) { return compact(candidate.text) === compact(label); }).length !== 1;
+      })) return;
+      chosen.forEach(function (item) { used.add(item.id); });
+      quartets.push(Object.freeze({
+        id: row.id + "-ledger-header-" + (quartets.length + 1),
+        rowCandidateId: row.id,
+        cells: Object.freeze(chosen),
+        centers: Object.freeze(centers),
+        source: row.source,
+        box: row.box
+      }));
+    });
+    return Object.freeze(quartets);
+  }
+
+  function ledgerColumnBands(header) {
+    const centers = header.centers;
+    const gaps = [centers[1] - centers[0], centers[2] - centers[1], centers[3] - centers[2]];
+    const boundaries = Object.freeze([
+      Math.max(0, centers[0] - gaps[0] / 2),
+      (centers[0] + centers[1]) / 2,
+      (centers[1] + centers[2]) / 2,
+      (centers[2] + centers[3]) / 2,
+      Math.min(1, centers[3] + gaps[2] / 2)
+    ]);
+    return Object.freeze({
+      boundaries,
+      date: Object.freeze([boundaries[0], boundaries[1]]),
+      purchase: Object.freeze([boundaries[1], boundaries[2]]),
+      used: Object.freeze([boundaries[2], boundaries[3]]),
+      remaining: Object.freeze([boundaries[3], boundaries[4]])
+    });
+  }
+
+  function ledgerCellsInBand(row, band) {
+    return Object.freeze((row.cellCandidates || []).filter(function (cell) {
+      const center = boxCenterX(cell.box);
+      return center != null && center >= band[0] && center <= band[1];
+    }));
+  }
+
+  function ledgerEvidenceCandidate(value, confidence, row, cells, sourceText, unit) {
+    const candidate = {
+      value,
+      confidence: clamp01(confidence),
+      sourceText: normalizeText(sourceText).slice(0, 240),
+      rowCandidateId: row.id,
+      cellCandidateIds: Object.freeze(cells.map(function (cell) { return cell.id; }).filter(Boolean))
+    };
+    if (unit) candidate.unit = unit;
+    return Object.freeze(candidate);
+  }
+
+  function ledgerDateCandidates(row, cells) {
+    const text = cells.map(function (cell) { return cell.text; }).join(" ");
+    const confidence = cells.length ? Math.min.apply(null, cells.map(function (cell) { return cell.confidence; })) : 0;
+    return Object.freeze(findDates(text).map(function (item) {
+      return ledgerEvidenceCandidate(item.value, Math.min(item.confidence, confidence), row, cells, item.sourceText);
+    }));
+  }
+
+  function ledgerAmountCandidates(row, cells) {
+    const text = normalizeText(cells.map(function (cell) { return cell.text; }).join(" "));
+    const units = ALLOWED_UNITS.map(function (unit) {
+      return unit.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }).join("|");
+    const pattern = new RegExp("(?:^|[^\\d])([0-9]+(?:\\.[0-9]+)?)(?:\\s*(" + units + "))?(?=$|[^\\d])", "g");
+    const out = [];
+    let match;
+    while ((match = pattern.exec(text))) {
+      const value = Number(match[1]);
+      if (!Number.isFinite(value)) continue;
+      const confidence = cells.length ? Math.min.apply(null, cells.map(function (cell) { return cell.confidence; })) : 0;
+      out.push(ledgerEvidenceCandidate(value, confidence, row, cells, match[0].trim(), match[2] || null));
+    }
+    return Object.freeze(out.slice(0, MAX_FIELD_CANDIDATES));
+  }
+
+  function ledgerCellsNearBoundary(cells, band, boundaries) {
+    const width = Math.max(0, band[1] - band[0]);
+    const margin = Math.max(MATERIAL_LEDGER_LIMITS.boundaryMargin, width * MATERIAL_LEDGER_LIMITS.boundaryRatio);
+    return cells.some(function (cell) {
+      const center = boxCenterX(cell.box);
+      return boundaries.slice(1, -1).some(function (boundary) { return Math.abs(center - boundary) < margin; });
+    });
+  }
+
+  function pendingLedgerDetail(candidates) {
+    return Object.freeze({
+      value: null,
+      candidates: Object.freeze(Array.isArray(candidates) ? candidates : []),
+      confirmation: Object.freeze({ state: "pending", confirmed: false, confirmedValue: null, confirmedAt: null })
+    });
+  }
+
+  function ledgerMasterFieldCandidates(rows, panelBand, labels, stopLabels, kind) {
+    const out = [];
+    const seen = new Set();
+    const stopKeys = (stopLabels || []).map(compact).filter(Boolean);
+    rows.forEach(function (row) {
+      const cells = ledgerCellsInBand(row, panelBand).slice().sort(function (a, b) {
+        return boxCenterX(a.box) - boxCenterX(b.box);
+      });
+      if (!cells.length) return;
+      const scopedText = cells.map(function (cell) { return cell.text; }).join(" ");
+      findInventoryLabeledValues(scopedText, labels, stopLabels, kind).forEach(function (candidate) {
+        const key = compact(candidate.value);
+        if (!key || seen.has(key) || stopKeys.some(function (stopKey) { return key === stopKey || key.indexOf(stopKey) === 0; })) return;
+        seen.add(key);
+        const confidence = Math.min(row.confidence, candidate.confidence,
+          Math.min.apply(null, cells.map(function (cell) { return cell.confidence; })));
+        out.push(ledgerEvidenceCandidate(candidate.value, confidence, row, cells, candidate.sourceText));
+      });
+    });
+    return Object.freeze(out.slice(0, MAX_FIELD_CANDIDATES));
+  }
+
+  function associateMaterialLedgerMaster(rows, header, bands, panelId, sourceImage, masterTop, rowCandidatesTruncated) {
+    const panelBand = Object.freeze([bands.boundaries[0], bands.boundaries[4]]);
+    const masterRows = rows.filter(function (row) {
+      if (!row || !row.source || !row.box || row.id === header.rowCandidateId) return false;
+      if (row.source.pageIndex !== header.source.pageIndex || row.source.regionIndex !== header.source.regionIndex) return false;
+      const centerY = boxCenterY(row.box);
+      const gap = header.box.top - row.box.bottom;
+      if (centerY == null || centerY <= masterTop || centerY >= header.box.top || gap < 0 || gap > MATERIAL_LEDGER_LIMITS.maxMasterDistanceY) return false;
+      return ledgerCellsInBand(row, panelBand).length > 0;
+    });
+    const stopLabels = ["資材名稱", "肥料名稱", "廠商", "製造商", "供應商", "購入處", "包裝單位", "包裝容量", "日期", "購入量", "使用量", "剩餘量"];
+    const details = Object.freeze({
+      materialName: pendingLedgerDetail(ledgerMasterFieldCandidates(masterRows, panelBand, ["資材名稱", "肥料名稱"], stopLabels, "inventoryMaterial")),
+      manufacturer: pendingLedgerDetail(ledgerMasterFieldCandidates(masterRows, panelBand, ["廠商", "製造商"], stopLabels, "manufacturer")),
+      supplier: pendingLedgerDetail(ledgerMasterFieldCandidates(masterRows, panelBand, ["供應商", "購入處"], stopLabels, "supplier")),
+      packageCapacity: pendingLedgerDetail(ledgerMasterFieldCandidates(masterRows, panelBand, ["包裝容量"], stopLabels, "packageCapacity")),
+      packageUnit: pendingLedgerDetail(ledgerMasterFieldCandidates(masterRows, panelBand, ["包裝單位"], stopLabels, "packageUnit"))
+    });
+    const allCandidates = Object.keys(details).reduce(function (items, key) {
+      return items.concat(details[key].candidates);
+    }, []);
+    if (!allCandidates.length) return null;
+    const materialCandidates = details.materialName.candidates;
+    const reasons = [];
+    if (rowCandidatesTruncated) reasons.push("source-row-candidates-truncated");
+    if (masterRows.some(function (row) { return row.cellsTruncated; })) reasons.push("master-row-cells-truncated");
+    if (materialCandidates.length !== 1) reasons.push(materialCandidates.length ? "multiple-material-names" : "missing-material-name");
+    if (materialCandidates.some(function (candidate) { return candidate.confidence < MATERIAL_LEDGER_LIMITS.masterConfidence; })) reasons.push("low-confidence-material-name");
+    const uniqueReasons = Object.freeze(Array.from(new Set(reasons)));
+    const rowCandidateIds = safeEvidenceIds(allCandidates.map(function (candidate) { return candidate.rowCandidateId; }));
+    const cellCandidateIds = safeEvidenceIds(allCandidates.reduce(function (ids, candidate) {
+      return ids.concat(candidate.cellCandidateIds || []);
+    }, []));
+    return Object.freeze({
+      id: panelId + "-master",
+      hasEvidence: true,
+      associationState: uniqueReasons.length ? "pending" : "row-evidence",
+      panelAssociation: uniqueReasons.length ? "pending" : "strong",
+      source: Object.freeze({
+        sourceImageId: sourceImage ? sourceImage.sourceImageId : null,
+        pageIndex: header.source.pageIndex,
+        regionIndex: header.source.regionIndex,
+        rowCandidateIds,
+        cellCandidateIds
+      }),
+      details,
+      reasons: uniqueReasons,
+      confirmation: Object.freeze({ state: "pending", confirmed: false }),
+      autoCommitAllowed: false,
+      l3UploadReady: false
+    });
+  }
+
+  function emptyMaterialLedgerMaster(panelId, header, sourceImage) {
+    const emptyDetail = function () { return pendingLedgerDetail([]); };
+    return Object.freeze({
+      id: panelId + "-master",
+      hasEvidence: false,
+      associationState: "pending",
+      panelAssociation: "pending",
+      source: Object.freeze({
+        sourceImageId: sourceImage ? sourceImage.sourceImageId : null,
+        pageIndex: header.source.pageIndex,
+        regionIndex: header.source.regionIndex,
+        rowCandidateIds: Object.freeze([]),
+        cellCandidateIds: Object.freeze([])
+      }),
+      details: Object.freeze({
+        materialName: emptyDetail(),
+        manufacturer: emptyDetail(),
+        supplier: emptyDetail(),
+        packageCapacity: emptyDetail(),
+        packageUnit: emptyDetail()
+      }),
+      reasons: Object.freeze(["material-master-not-associated"]),
+      confirmation: Object.freeze({ state: "pending", confirmed: false }),
+      autoCommitAllowed: false,
+      l3UploadReady: false
+    });
+  }
+
+  function associateMaterialLedgerRows(rowCandidates, rowCandidatesTruncated, sourceImage) {
+    const rows = Array.isArray(rowCandidates) ? rowCandidates : [];
+    const headers = [];
+    rows.forEach(function (row) {
+      ledgerHeaderQuartets(row).forEach(function (header) { headers.push(header); });
+    });
+    const panels = headers.slice(0, MATERIAL_LEDGER_LIMITS.maxPanels).map(function (header, panelIndex) {
+      const panelId = "inventory-panel-" + (panelIndex + 1);
+      const bands = ledgerColumnBands(header);
+      const groupHeaders = headers.filter(function (candidate) {
+        return candidate !== header
+          && candidate.source.pageIndex === header.source.pageIndex
+          && candidate.source.regionIndex === header.source.regionIndex
+          && candidate.box && header.box
+          && candidate.box.top > header.box.top;
+      }).sort(function (a, b) { return a.box.top - b.box.top; });
+      const nextHeader = groupHeaders.find(function (candidate) {
+        const left = Math.max(bands.boundaries[0], ledgerColumnBands(candidate).boundaries[0]);
+        const right = Math.min(bands.boundaries[4], ledgerColumnBands(candidate).boundaries[4]);
+        return right > left;
+      });
+      const previousHeader = headers.filter(function (candidate) {
+        if (candidate === header || candidate.source.pageIndex !== header.source.pageIndex || candidate.source.regionIndex !== header.source.regionIndex) return false;
+        if (!candidate.box || candidate.box.top >= header.box.top) return false;
+        const candidateBands = ledgerColumnBands(candidate);
+        return Math.min(bands.boundaries[4], candidateBands.boundaries[4]) > Math.max(bands.boundaries[0], candidateBands.boundaries[0]);
+      }).sort(function (a, b) { return b.box.top - a.box.top; })[0];
+      const masterTop = Math.max(0, header.box.top - MATERIAL_LEDGER_LIMITS.maxMasterDistanceY, previousHeader ? previousHeader.box.bottom : 0);
+      const panelBottom = Math.min(1, nextHeader ? nextHeader.box.top : header.box.bottom + MATERIAL_LEDGER_LIMITS.maxDetailDistanceY);
+      const panelBox = Object.freeze({ left: bands.boundaries[0], top: header.box.top, right: bands.boundaries[4], bottom: panelBottom });
+      const master = associateMaterialLedgerMaster(rows, header, bands, panelId, sourceImage, masterTop, rowCandidatesTruncated);
+      const entries = [];
+      rows.forEach(function (row) {
+        if (entries.length >= MATERIAL_LEDGER_LIMITS.maxEntriesPerPanel || !row.box || row.id === header.rowCandidateId) return;
+        if (row.source.pageIndex !== header.source.pageIndex || row.source.regionIndex !== header.source.regionIndex) return;
+        const centerY = boxCenterY(row.box);
+        if (centerY == null || centerY <= header.box.bottom || centerY >= panelBottom) return;
+        const rowText = compact(row.text);
+        if (["資材名稱", "供應商", "包裝容量", "本表不敷", "購入量", "使用量", "剩餘量"].some(function (label) { return rowText.includes(compact(label)); })) return;
+        const dateCells = ledgerCellsInBand(row, bands.date);
+        const purchaseCells = ledgerCellsInBand(row, bands.purchase);
+        const usedCells = ledgerCellsInBand(row, bands.used);
+        const remainingCells = ledgerCellsInBand(row, bands.remaining);
+        const dateCandidates = ledgerDateCandidates(row, dateCells);
+        const purchaseCandidates = ledgerAmountCandidates(row, purchaseCells);
+        const usedCandidates = ledgerAmountCandidates(row, usedCells);
+        const remainingCandidates = ledgerAmountCandidates(row, remainingCells);
+        if (!dateCandidates.length && !purchaseCandidates.length && !usedCandidates.length && !remainingCandidates.length) return;
+        const reasons = [];
+        if (rowCandidatesTruncated) reasons.push("source-row-candidates-truncated");
+        if (row.cellsTruncated) reasons.push("row-cells-truncated");
+        if (dateCandidates.length !== 1) reasons.push(dateCandidates.length ? "multiple-dates" : "missing-date");
+        [["purchase", purchaseCandidates], ["used", usedCandidates], ["remaining", remainingCandidates]].forEach(function (entry) {
+          if (entry[1].length > 1) reasons.push("multiple-" + entry[0] + "-amounts");
+        });
+        if (!purchaseCandidates.length && !usedCandidates.length && !remainingCandidates.length) reasons.push("missing-ledger-amount");
+        if (dateCandidates.some(function (item) { return item.confidence < MATERIAL_LEDGER_LIMITS.dateConfidence; })) reasons.push("low-confidence-date");
+        if ([purchaseCandidates, usedCandidates, remainingCandidates].some(function (items) {
+          return items.some(function (item) { return item.confidence < MATERIAL_LEDGER_LIMITS.amountConfidence; });
+        })) reasons.push("low-confidence-amount");
+        if (ledgerCellsNearBoundary(dateCells, bands.date, bands.boundaries)
+          || ledgerCellsNearBoundary(purchaseCells, bands.purchase, bands.boundaries)
+          || ledgerCellsNearBoundary(usedCells, bands.used, bands.boundaries)
+          || ledgerCellsNearBoundary(remainingCells, bands.remaining, bands.boundaries)) reasons.push("near-column-boundary");
+        const uniqueReasons = Object.freeze(Array.from(new Set(reasons)));
+        entries.push(Object.freeze({
+          id: panelId + "-entry-" + (entries.length + 1),
+          panelId,
+          materialMasterId: master && master.associationState === "row-evidence" ? master.id : null,
+          associationState: uniqueReasons.length ? "pending" : "row-evidence",
+          rowAssociation: uniqueReasons.length ? "pending" : "strong",
+          masterAssociation: master && master.associationState === "row-evidence" ? "panel-evidence" : "pending",
+          source: Object.freeze({
+            sourceImageId: sourceImage ? sourceImage.sourceImageId : null,
+            pageIndex: row.source.pageIndex,
+            regionIndex: row.source.regionIndex,
+            rowCandidateId: row.id,
+            cellCandidateIds: Object.freeze([].concat(dateCells, purchaseCells, usedCells, remainingCells).map(function (cell) { return cell.id; })),
+            box: row.box
+          }),
+          details: Object.freeze({
+            date: pendingLedgerDetail(dateCandidates),
+            purchaseAmount: pendingLedgerDetail(purchaseCandidates),
+            usedAmount: pendingLedgerDetail(usedCandidates),
+            remainingAmount: pendingLedgerDetail(remainingCandidates)
+          }),
+          checks: Object.freeze({ columnOrder: true, uniquePerColumn: uniqueReasons.every(function (reason) { return !/^multiple-/.test(reason); }), balance: "not-checkable" }),
+          reasons: uniqueReasons,
+          confirmation: Object.freeze({ state: "pending", confirmed: false }),
+          autoCommitAllowed: false,
+          l3UploadReady: false
+        }));
+      });
+      return Object.freeze({
+        id: panelId,
+        source: Object.freeze({
+          sourceImageId: sourceImage ? sourceImage.sourceImageId : null,
+          pageIndex: header.source.pageIndex,
+          regionIndex: header.source.regionIndex,
+          headerRowCandidateId: header.rowCandidateId,
+          headerCellCandidateIds: Object.freeze(header.cells.map(function (cell) { return cell.id; }))
+        }),
+        panelBox,
+        columnBands: bands,
+        master: master || emptyMaterialLedgerMaster(panelId, header, sourceImage),
+        entries: Object.freeze(entries)
+      });
+    });
+    const materialMasters = Object.freeze(panels.map(function (panel) { return panel.master; }).filter(function (master) {
+      return master && master.hasEvidence === true;
+    }));
+    const inventoryTransactions = Object.freeze(panels.reduce(function (entries, panel) {
+      return entries.concat(panel.entries || []);
+    }, []));
+    return Object.freeze({
+      schemaVersion: 2,
+      completeness: rowCandidatesTruncated ? "partial" : "complete",
+      panels: Object.freeze(panels),
+      materialMasters,
+      inventoryTransactions,
+      unassignedCandidates: Object.freeze([]),
+      warnings: Object.freeze(rowCandidatesTruncated ? ["source-row-candidates-truncated"] : []),
+      autoCommitAllowed: false,
+      l3UploadReady: false
+    });
+  }
+
+  function safeDetectedBreak(value) {
+    if (!value || typeof value !== "object") return null;
+    const allowed = ["UNKNOWN", "SPACE", "SURE_SPACE", "EOL_SURE_SPACE", "HYPHEN", "LINE_BREAK"];
+    const type = allowed.indexOf(String(value.type || "")) >= 0 ? String(value.type) : "UNKNOWN";
+    return Object.freeze({ type, isPrefix: value.isPrefix === true });
+  }
+
+  function safeBlockWords(words, blockId, remainingWords) {
+    const source = Array.isArray(words) ? words : [];
+    const limit = Math.max(0, Math.min(200, Number(remainingWords) || 0));
+    return Object.freeze(source.slice(0, limit).map(function (word, index) {
+      const text = normalizeText(word && word.text).slice(0, 128);
+      if (!text) return null;
+      return Object.freeze({
+        id: String(word && word.id || blockId + "-w" + (index + 1)).slice(0, 160),
+        text,
+        confidence: clamp01(word && word.confidence),
+        box: safeBox(word && word.box),
+        detectedBreak: safeDetectedBreak(word && word.detectedBreak)
+      });
+    }).filter(Boolean));
+  }
+
+  function safeBlocks(blocks) {
+    let totalWords = 0;
+    const out = [];
+    (Array.isArray(blocks) ? blocks : []).slice(0, 500).forEach(function (block, index) {
+      const id = String(block && block.id || "block-" + (index + 1)).slice(0, 160);
+      const text = normalizeText(block && block.text).slice(0, 500);
+      if (!text) return;
+      const sourceWords = Array.isArray(block && block.words) ? block.words : [];
+      const words = safeBlockWords(sourceWords, id, 5000 - totalWords);
+      totalWords += words.length;
+      const source = block && block.source && typeof block.source === "object" ? Object.freeze({
+        pageIndex: safeIndex(block.source.pageIndex),
+        regionIndex: safeIndex(block.source.regionIndex),
+        blockIndex: safeIndex(block.source.blockIndex),
+        paragraphIndex: safeIndex(block.source.paragraphIndex),
+        rowCandidateId: safeEvidenceId(block.source.rowCandidateId),
+        cellCandidateIds: safeEvidenceIds(block.source.cellCandidateIds)
+      }) : null;
+      out.push(Object.freeze({
+        id,
+        text,
+        confidence: clamp01(block && block.confidence),
+        box: safeBox(block && block.box),
+        source,
+        blockBox: safeBox(block && block.blockBox),
+        words,
+        wordsTruncated: !!(block && block.wordsTruncated) || words.length < sourceWords.length
+      }));
+    });
+    return Object.freeze(out);
+  }
+
+  function safeLayout(value) {
+    if (!value || typeof value !== "object") return null;
+    return Object.freeze({
+      version: Math.max(1, Math.min(10, Number(value.version) || 1)),
+      coordinateSpace: value.coordinateSpace === "normalized" ? "normalized" : "unknown",
+      indexBase: Number(value.indexBase) === 0 ? 0 : 1,
+      wordGeometry: value.wordGeometry === true,
+      rowCandidateMethod: value.rowCandidateMethod === "geometry-only" ? "geometry-only" : "unknown",
+      semanticInference: false
+    });
+  }
+
+  function safeSourceImage(value) {
+    if (!value || typeof value !== "object") return null;
+    const id = String(value.sourceImageId || "");
+    if (!/^[A-Za-z0-9._:-]{1,128}$/.test(id)) return null;
+    return Object.freeze({
+      sourceImageId: id,
+      fileName: String(value.fileName || "辨識來源").slice(0, 240),
+      sourceIndex: safeIndex(value.sourceIndex),
+      status: value.status === "recognized" ? "recognized" : "queued",
+      mimeType: String(value.mimeType || "").slice(0, 100),
+      sizeBytes: Math.max(0, Math.min(Number(value.sizeBytes) || 0, 25 * 1024 * 1024)),
+      lastModified: Math.max(0, Number(value.lastModified) || 0)
+    });
   }
 
   function blockCenter(block) {
@@ -351,11 +1004,44 @@
     return (block.box.top + block.box.bottom) / 2;
   }
 
+  function equipmentEvidenceZone(block) {
+    const source = block && block.source && typeof block.source === "object" ? block.source : null;
+    const rowCandidateId = source && safeEvidenceId(source.rowCandidateId);
+    const parsedRow = rowCandidateId && rowCandidateId.match(/(?:^|-)p(\d+)-r(\d+)(?:-|$)/i);
+    const sourcePage = source && Number.isInteger(Number(source.pageIndex)) && Number(source.pageIndex) >= 0
+      ? Number(source.pageIndex)
+      : null;
+    const sourceRegion = source && Number.isInteger(Number(source.regionIndex)) && Number(source.regionIndex) >= 0
+      ? Number(source.regionIndex)
+      : null;
+    const pageIndex = sourcePage != null ? sourcePage : (parsedRow ? Number(parsedRow[1]) - 1 : null);
+    const regionIndex = sourceRegion != null ? sourceRegion : (parsedRow ? Number(parsedRow[2]) - 1 : null);
+    return Object.freeze({
+      pageIndex,
+      regionIndex,
+      key: (pageIndex == null ? "unknown-page" : "page-" + pageIndex)
+        + ":" + (regionIndex == null ? "unknown-region" : "region-" + regionIndex)
+    });
+  }
+
+  function sameEquipmentEvidenceZone(left, right) {
+    const a = left && left.zone ? left.zone : equipmentEvidenceZone(left);
+    const b = right && right.zone ? right.zone : equipmentEvidenceZone(right);
+    if (a.pageIndex != null || b.pageIndex != null) {
+      if (a.pageIndex == null || b.pageIndex == null || a.pageIndex !== b.pageIndex) return false;
+    }
+    if (a.regionIndex != null || b.regionIndex != null) {
+      if (a.regionIndex == null || b.regionIndex == null || a.regionIndex !== b.regionIndex) return false;
+    }
+    return true;
+  }
+
   function findEquipmentMaintenanceRows(blocks) {
     const list = Array.isArray(blocks) ? blocks : [];
     const anchors = [];
-    let inheritedYear = "";
+    const inheritedYears = new Map();
     list.forEach(function (block, blockIndex) {
+      const zone = equipmentEvidenceZone(block);
       const fullDates = findDates(block.text);
       const fullRanges = fullDates.map(function (date) {
         return [date.sourceIndex, date.sourceIndex + date.sourceText.length];
@@ -377,10 +1063,11 @@
       const dates = [];
       dateParts.forEach(function (part) {
         if (part.full) {
-          inheritedYear = part.date.value.slice(0, 4);
+          inheritedYears.set(zone.key, part.date.value.slice(0, 4));
           dates.push(part.date);
           return;
         }
+        const inheritedYear = inheritedYears.get(zone.key) || "";
         if (!inheritedYear) return;
         const value = isoDate(inheritedYear, part.month, part.day);
         if (!value) return;
@@ -392,6 +1079,7 @@
           date,
           blockIndex,
           dateIndex,
+          zone,
           center: blockCenter(block),
           segmentText: dates.length > 1
             ? block.text.slice(date.sourceIndex, nextDate ? nextDate.sourceIndex : block.text.length)
@@ -400,16 +1088,25 @@
       });
     });
     anchors.sort(function (a, b) {
+      const aPage = a.zone.pageIndex == null ? Number.POSITIVE_INFINITY : a.zone.pageIndex;
+      const bPage = b.zone.pageIndex == null ? Number.POSITIVE_INFINITY : b.zone.pageIndex;
+      if (aPage !== bPage) return aPage - bPage;
+      const aRegion = a.zone.regionIndex == null ? Number.POSITIVE_INFINITY : a.zone.regionIndex;
+      const bRegion = b.zone.regionIndex == null ? Number.POSITIVE_INFINITY : b.zone.regionIndex;
+      if (aRegion !== bRegion) return aRegion - bRegion;
       const aCenter = a.center == null ? Number.POSITIVE_INFINITY : a.center;
       const bCenter = b.center == null ? Number.POSITIVE_INFINITY : b.center;
       return aCenter - bCenter || a.blockIndex - b.blockIndex || a.dateIndex - b.dateIndex;
     });
     const rows = anchors.slice(0, 30).map(function (anchor, index) {
-      const previous = anchors[index - 1];
-      const next = anchors[index + 1];
+      const previousCandidate = anchors[index - 1];
+      const nextCandidate = anchors[index + 1];
+      const previous = previousCandidate && sameEquipmentEvidenceZone(anchor, previousCandidate) ? previousCandidate : null;
+      const next = nextCandidate && sameEquipmentEvidenceZone(anchor, nextCandidate) ? nextCandidate : null;
       const top = anchor.center == null || !previous || previous.center == null ? -1 : (previous.center + anchor.center) / 2;
       const bottom = anchor.center == null || !next || next.center == null ? 2 : (anchor.center + next.center) / 2;
       const nearby = list.filter(function (block, blockIndex) {
+        if (!sameEquipmentEvidenceZone(anchor, block)) return false;
         const center = blockCenter(block);
         if (center != null && anchor.center != null) return center >= top && center < bottom;
         return blockIndex === anchor.blockIndex;
@@ -565,17 +1262,302 @@
     });
   }
 
-  function createDraft(scanResult, dictionaries) {
+  function safeCandidateValue(value) {
+    if (value == null) return null;
+    if (typeof value === "number") return Number.isFinite(value) ? value : null;
+    if (typeof value === "boolean") return value;
+    return normalizeText(value).slice(0, 240) || null;
+  }
+
+  function candidateEvidence(candidate, blocks, sourceImage, sourceBlockIds) {
+    const item = candidate || {};
+    const list = Array.isArray(blocks) ? blocks : [];
+    const allowedIds = new Set(Array.isArray(sourceBlockIds) ? sourceBlockIds : []);
+    const sourceText = normalizeText(item.sourceText).slice(0, 500);
+    const valueText = normalizeText(item.value);
+    const terms = [sourceText, valueText].map(compact).filter(function (term) { return term.length >= 2; });
+    const matched = list.filter(function (block) {
+      if (allowedIds.size && !allowedIds.has(block.id)) return false;
+      if (!terms.length) return allowedIds.has(block.id);
+      const body = compact(block.text);
+      return terms.some(function (term) { return body.includes(term) || term.includes(body); });
+    }).slice(0, MAX_FIELD_EVIDENCE).map(function (block) {
+      const blockSource = block.source || {};
+      return Object.freeze({
+        sourceImageId: sourceImage ? sourceImage.sourceImageId : null,
+        blockId: block.id,
+        rowCandidateId: safeEvidenceId(item.rowCandidateId) || blockSource.rowCandidateId || null,
+        cellCandidateIds: safeEvidenceIds(item.cellCandidateIds || blockSource.cellCandidateIds),
+        sourceText: sourceText || block.text.slice(0, 500),
+        box: block.box,
+        confidence: clamp01(item.confidence || block.confidence)
+      });
+    });
+    if (!matched.length && sourceText) {
+      matched.push(Object.freeze({
+        sourceImageId: sourceImage ? sourceImage.sourceImageId : null,
+        blockId: null,
+        rowCandidateId: safeEvidenceId(item.rowCandidateId),
+        cellCandidateIds: safeEvidenceIds(item.cellCandidateIds),
+        sourceText,
+        box: null,
+        confidence: clamp01(item.confidence)
+      }));
+    }
+    return Object.freeze(matched);
+  }
+
+  function standardCandidate(candidate, blocks, sourceImage, sourceBlockIds) {
+    const item = candidate || {};
+    const value = safeCandidateValue(item.value);
+    if (value == null) return null;
+    const out = {
+      value,
+      confidence: clamp01(item.confidence),
+      evidence: candidateEvidence(item, blocks, sourceImage, sourceBlockIds)
+    };
+    const unit = safeCandidateValue(item.unit);
+    if (unit != null) out.unit = unit;
+    const kind = safeCandidateValue(item.kind);
+    if (kind != null) out.kind = kind;
+    const match = safeCandidateValue(item.match);
+    if (match != null) out.match = match;
+    if (item.selected === true) out.markDetected = true;
+    return Object.freeze(out);
+  }
+
+  function standardDetail(key, label, candidates, blocks, sourceImage, sourceBlockIds, requiredForLocalRecord) {
+    const list = (Array.isArray(candidates) ? candidates : []).slice(0, MAX_FIELD_CANDIDATES).map(function (candidate) {
+      return standardCandidate(candidate, blocks, sourceImage, sourceBlockIds);
+    }).filter(Boolean);
+    const evidence = [];
+    const evidenceKeys = new Set();
+    list.forEach(function (candidate) {
+      candidate.evidence.forEach(function (item) {
+        const evidenceKey = [item.sourceImageId || "", item.blockId || "", item.sourceText].join("|");
+        if (evidence.length >= MAX_FIELD_EVIDENCE || evidenceKeys.has(evidenceKey)) return;
+        evidenceKeys.add(evidenceKey);
+        evidence.push(item);
+      });
+    });
+    return Object.freeze({
+      key,
+      label,
+      value: null,
+      candidates: Object.freeze(list),
+      confidence: list.length ? Math.max.apply(null, list.map(function (item) { return item.confidence; })) : null,
+      evidence: Object.freeze(evidence),
+      requiredForLocalRecord: requiredForLocalRecord === true,
+      confirmation: Object.freeze({
+        state: "pending",
+        confirmed: false,
+        confirmedValue: null,
+        confirmedAt: null
+      })
+    });
+  }
+
+  function activityMappingPending(l3MappingStatus) {
+    const status = normalizeText(l3MappingStatus);
+    return !!status && status !== "mapped" && status !== "not-applicable";
+  }
+
+  function standardActivity(input) {
+    const source = input || {};
+    const details = (Array.isArray(source.details) ? source.details : []).slice(0, MAX_ACTIVITY_DETAILS);
+    const blockIds = Array.from(new Set((Array.isArray(source.sourceBlockIds) ? source.sourceBlockIds : [])
+      .map(function (id) { return String(id || "").slice(0, 160); })
+      .filter(Boolean))).slice(0, 100);
+    const rowCandidateIds = [];
+    const cellCandidateIds = [];
+    details.forEach(function (detail) {
+      (Array.isArray(detail && detail.evidence) ? detail.evidence : []).forEach(function (evidence) {
+        const rowId = safeEvidenceId(evidence && evidence.rowCandidateId);
+        if (rowId && rowCandidateIds.indexOf(rowId) < 0 && rowCandidateIds.length < 100) rowCandidateIds.push(rowId);
+        safeEvidenceIds(evidence && evidence.cellCandidateIds).forEach(function (cellId) {
+          if (cellCandidateIds.indexOf(cellId) < 0 && cellCandidateIds.length < 100) cellCandidateIds.push(cellId);
+        });
+      });
+    });
+    const mappingStatus = normalizeText(source.l3MappingStatus) || "not-mapped";
+    return Object.freeze({
+      id: String(source.id || "activity-pending").slice(0, 100),
+      kind: null,
+      kindCandidate: safeCandidateValue(source.kindCandidate),
+      route: normalizeText(source.route) || "unknown",
+      destination: normalizeText(source.destination) || "manual-classification",
+      associationState: source.associationState === "row-evidence" ? "row-evidence" : "pending",
+      status: "pending-confirmation",
+      confidence: details.length ? Math.max.apply(null, details.map(function (detail) { return Number(detail.confidence) || 0; })) : null,
+      source: Object.freeze({
+        sourceImageId: source.sourceImage ? source.sourceImage.sourceImageId : null,
+        blockIds: Object.freeze(blockIds),
+        rowCandidateIds: Object.freeze(rowCandidateIds),
+        cellCandidateIds: Object.freeze(cellCandidateIds)
+      }),
+      details: Object.freeze(details),
+      confirmation: Object.freeze({ state: "pending", confirmed: false, confirmedAt: null }),
+      l3MappingStatus: mappingStatus,
+      mappingPending: activityMappingPending(mappingStatus),
+      l3UploadReady: false,
+      autoCommitAllowed: false
+    });
+  }
+
+  function standardActivities(context) {
+    const ctx = context || {};
+    const routeDecision = ctx.routeDecision || {};
+    const route = ctx.route || {};
+    const blocks = Array.isArray(ctx.blocks) ? ctx.blocks : [];
+    const sourceImage = ctx.sourceImage || null;
+    const activities = [];
+
+    if (Array.isArray(ctx.equipmentRows) && ctx.equipmentRows.length) {
+      ctx.equipmentRows.slice(0, MAX_DRAFT_ACTIVITIES).forEach(function (row, index) {
+        const sourceBlockIds = row.sourceBlockIds || [];
+        const selectedEquipment = (row.equipment || []).filter(function (item) { return item.selected === true; });
+        const selectedActions = (row.actions || []).filter(function (item) { return item.selected === true; });
+        activities.push(standardActivity({
+          id: "activity-equipment-" + (index + 1),
+          kindCandidate: "equipmentMaintenance",
+          route: route.route,
+          destination: route.destination,
+          l3MappingStatus: route.l3MappingStatus,
+          associationState: "row-evidence",
+          sourceImage,
+          sourceBlockIds,
+          details: [
+            standardDetail("date", "日期", row.date, blocks, sourceImage, sourceBlockIds, true),
+            standardDetail("equipment", "器具／機械／設備", selectedEquipment, blocks, sourceImage, sourceBlockIds, true),
+            standardDetail("actions", "作業內容", selectedActions, blocks, sourceImage, sourceBlockIds, true),
+            standardDetail("operator", "記錄人", row.operator, blocks, sourceImage, sourceBlockIds, false)
+          ]
+        }));
+      });
+      return Object.freeze(activities);
+    }
+
+    if (ctx.materialInventory) {
+      const inventory = ctx.materialInventory;
+      const associatedEntries = [];
+      const materialMasterById = new Map((inventory.materialMasters || []).map(function (master) {
+        return [master.id, master];
+      }));
+      (inventory.panels || []).forEach(function (panel) {
+        (panel.entries || []).forEach(function (entry) {
+          if (associatedEntries.length < MAX_DRAFT_ACTIVITIES) associatedEntries.push(entry);
+        });
+      });
+      if (associatedEntries.length) {
+        associatedEntries.forEach(function (entry, index) {
+          const master = entry.materialMasterId ? materialMasterById.get(entry.materialMasterId) : null;
+          const masterDetails = master && master.details || {};
+          activities.push(standardActivity({
+            id: "activity-inventory-row-" + (index + 1),
+            kindCandidate: "materialInventory",
+            route: route.route,
+            destination: route.destination,
+            l3MappingStatus: route.l3MappingStatus,
+            associationState: entry.associationState,
+            sourceImage,
+            sourceBlockIds: blocks.map(function (block) { return block.id; }),
+            details: [
+              standardDetail("materialName", "資材名稱", masterDetails.materialName && masterDetails.materialName.candidates, blocks, sourceImage, null, true),
+              standardDetail("manufacturer", "廠商", masterDetails.manufacturer && masterDetails.manufacturer.candidates, blocks, sourceImage, null, false),
+              standardDetail("supplier", "供應商", masterDetails.supplier && masterDetails.supplier.candidates, blocks, sourceImage, null, false),
+              standardDetail("packageCapacity", "包裝容量", masterDetails.packageCapacity && masterDetails.packageCapacity.candidates, blocks, sourceImage, null, false),
+              standardDetail("packageUnit", "包裝單位", masterDetails.packageUnit && masterDetails.packageUnit.candidates, blocks, sourceImage, null, false),
+              standardDetail("date", "日期", entry.details.date.candidates, blocks, sourceImage, null, true),
+              standardDetail("purchaseAmount", "購入量", entry.details.purchaseAmount.candidates, blocks, sourceImage, null, false),
+              standardDetail("usedAmount", "使用量", entry.details.usedAmount.candidates, blocks, sourceImage, null, false),
+              standardDetail("remainingAmount", "剩餘量", entry.details.remainingAmount.candidates, blocks, sourceImage, null, false)
+            ]
+          }));
+        });
+        return Object.freeze(activities);
+      }
+      const rowCount = Math.max(1, Math.min(MAX_DRAFT_ACTIVITIES, Math.max(
+        inventory.suggestedRowCount || 1,
+        inventory.materials.length,
+        inventory.dates.length
+      )));
+      for (let index = 0; index < rowCount; index += 1) {
+        activities.push(standardActivity({
+          id: "activity-inventory-" + (index + 1),
+          kindCandidate: "materialInventory",
+          route: route.route,
+          destination: route.destination,
+          l3MappingStatus: route.l3MappingStatus,
+          associationState: "pending",
+          sourceImage,
+          sourceBlockIds: blocks.map(function (block) { return block.id; }),
+          details: [
+            standardDetail("materialName", "資材名稱", inventory.materials, blocks, sourceImage, null, true),
+            standardDetail("manufacturer", "廠商", inventory.manufacturers, blocks, sourceImage, null, false),
+            standardDetail("supplier", "供應商", inventory.suppliers, blocks, sourceImage, null, true),
+            standardDetail("packageCapacity", "包裝容量", inventory.packageCapacities, blocks, sourceImage, null, false),
+            standardDetail("date", "日期", inventory.dates, blocks, sourceImage, null, true),
+            standardDetail("amount", "數量候選（購入／使用／剩餘待確認）", inventory.amounts, blocks, sourceImage, null, false)
+          ]
+        }));
+      }
+      return Object.freeze(activities);
+    }
+
+    const fields = ctx.fields || {};
+    const generalBlockIds = blocks.map(function (block) { return block.id; });
+    const routeType = routeDecision.type === "purchase" ? "materialPurchase" : routeDecision.type;
+    activities.push(standardActivity({
+      id: "activity-1",
+      kindCandidate: routeType || null,
+      route: route.route,
+      destination: route.destination,
+      l3MappingStatus: route.l3MappingStatus,
+      associationState: "pending",
+      sourceImage,
+      sourceBlockIds: generalBlockIds,
+      details: [
+        standardDetail("recordType", "紀錄類型", fields.recordType, blocks, sourceImage, null, true),
+        standardDetail("date", "日期", fields.date, blocks, sourceImage, null, true),
+        standardDetail("crop", "作物", fields.crop, blocks, sourceImage, null, false),
+        standardDetail("fieldPlot", "田區代號", fields.fieldPlot, blocks, sourceImage, null, false),
+        standardDetail("target", "防治對象", fields.target, blocks, sourceImage, null, false),
+        standardDetail("material", "藥劑／資材名稱", fields.material, blocks, sourceImage, null, false),
+        standardDetail("dilution", "稀釋倍數", fields.dilution, blocks, sourceImage, null, false),
+        standardDetail("amount", "數量", fields.amount, blocks, sourceImage, null, false),
+        standardDetail("safetyInterval", "安全採收期", fields.safetyInterval, blocks, sourceImage, null, false),
+        standardDetail("operator", "執行人", fields.operator, blocks, sourceImage, null, false)
+      ]
+    }));
+    return Object.freeze(activities);
+  }
+
+  function createDraft(scanResult, dictionaries, sourceMetadata) {
     const result = scanResult || {};
     const quality = assessQuality(result.quality);
     const blocks = safeBlocks(result.blocks);
     const text = blocks.map(function (block) { return block.text; }).join("\n");
     const dict = dictionaries || {};
     const recordTypes = detectFormTypes(text);
-    const isEquipmentForm = recordTypes.some(function (item) { return item.value === "equipmentMaintenance" && item.markerCount >= 2; });
-    const isSelfInspection = recordTypes.some(function (item) { return item.value === "selfInspection" && item.markerCount >= 2; });
-    const isMaterialInventory = recordTypes.some(function (item) { return item.value === "purchase" && item.markerCount >= 2; });
-    const materialInventory = isMaterialInventory ? createMaterialInventoryDraft(text) : null;
+    const routeDecision = decideDocumentRoute(recordTypes, text);
+    const isEquipmentForm = routeDecision.status === "exact" && routeDecision.type === "equipmentMaintenance";
+    const isSelfInspection = routeDecision.status === "exact" && routeDecision.type === "selfInspection";
+    const isMaterialInventory = routeDecision.status === "exact" && routeDecision.type === "purchase";
+    const materialInventoryTextDraft = isMaterialInventory ? createMaterialInventoryDraft(text) : null;
+    const sourceImage = safeSourceImage(sourceMetadata || result.sourceImage);
+    const sourceRowCandidates = Array.isArray(result.rowCandidates) ? result.rowCandidates : [];
+    const rowCandidates = safeRowCandidates(sourceRowCandidates);
+    const rowCandidatesTruncated = result.rowCandidatesTruncated === true
+      || sourceRowCandidates.length > MAX_SOURCE_ROW_CANDIDATES
+      || rowCandidates.length < sourceRowCandidates.length;
+    const materialInventory = materialInventoryTextDraft ? Object.freeze(Object.assign({}, materialInventoryTextDraft,
+      associateMaterialLedgerRows(rowCandidates, rowCandidatesTruncated, sourceImage))) : null;
+    const route = Object.freeze({
+      route: routeDecision.route,
+      destination: routeDecision.destination,
+      l3MappingStatus: routeDecision.l3MappingStatus,
+      reason: routeDecision.reason
+    });
     let equipmentRows = isEquipmentForm ? findEquipmentMaintenanceRows(blocks) : Object.freeze([]);
     if (isEquipmentForm && !equipmentRows.length) {
       equipmentRows = Object.freeze([Object.freeze({
@@ -588,25 +1570,46 @@
         confidence: 0.35
       })]);
     }
+    const fields = Object.freeze({
+      recordType: recordTypes,
+      date: findDates(text),
+      crop: dictionaryCandidates(text, dict.crops, "crop"),
+      fieldPlot: findPlotCodes(text),
+      target: dictionaryCandidates(text, dict.targets, "target"),
+      material: mergeCandidates(dictionaryCandidates(text, dict.materials, "material"), materialInventory && materialInventory.materials),
+      dilution: findDilutions(text),
+      amount: findAmounts(text),
+      safetyInterval: findSafetyIntervals(text),
+      operator: findLabeledValues(text, ["記錄人", "紀錄人", "操作人員", "執行人", "查核者", "確認者"], "operator")
+    });
+    const activities = standardActivities({
+      routeDecision,
+      route,
+      fields,
+      equipmentRows,
+      materialInventory,
+      blocks,
+      sourceImage
+    });
     return Object.freeze({
       protocolVersion: PROTOCOL_VERSION,
+      intermediateDraftSchemaVersion: INTERMEDIATE_DRAFT_SCHEMA_VERSION,
       requestId: String(result.requestId || "").slice(0, 100),
       source: result.source === "google-cloud-vision" ? "google-cloud-vision" : "android-on-device-ocr",
       createdAt: String(result.createdAt || new Date().toISOString()),
       confirmed: false,
+      confirmationState: "pending",
+      autoCommitAllowed: false,
+      l3UploadReady: false,
+      sourceImage,
+      layout: safeLayout(result.layout),
+      rowCandidates,
+      rowCandidatesTruncated,
       quality,
-      fields: Object.freeze({
-        recordType: recordTypes,
-        date: findDates(text),
-        crop: dictionaryCandidates(text, dict.crops, "crop"),
-        fieldPlot: findPlotCodes(text),
-        target: dictionaryCandidates(text, dict.targets, "target"),
-        material: mergeCandidates(dictionaryCandidates(text, dict.materials, "material"), materialInventory && materialInventory.materials),
-        dilution: findDilutions(text),
-        amount: findAmounts(text),
-        safetyInterval: findSafetyIntervals(text),
-        operator: findLabeledValues(text, ["記錄人", "紀錄人", "操作人員", "執行人", "查核者", "確認者"], "operator")
-      }),
+      routeDecision,
+      route,
+      fields,
+      activities,
       recordGroups: equipmentRows,
       selfInspection: isSelfInspection ? createSelfInspectionDraft(text) : null,
       materialInventory,
@@ -614,12 +1617,244 @@
     });
   }
 
-  function canCommit(draft, confirmedFields) {
-    if (!draft || draft.confirmed || !draft.quality || !draft.quality.canProcess) return false;
+  const COMMITTABLE_RECORD_TYPES = Object.freeze(["pesticide", "cultivation", "fertilizer", "harvest", "postharvest", "materialPurchase"]);
+
+  function hasConfirmedValue(value) {
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === "number") return Number.isFinite(value);
+    return normalizeText(value) !== "";
+  }
+
+  function confirmedValue(fields, name, aliases) {
+    const source = fields || {};
+    const details = source.details && typeof source.details === "object" ? source.details : {};
+    const names = [name].concat(Array.isArray(aliases) ? aliases : []);
+    for (let index = 0; index < names.length; index += 1) {
+      const key = names[index];
+      if (Object.prototype.hasOwnProperty.call(source, key) && hasConfirmedValue(source[key])) return source[key];
+      if (Object.prototype.hasOwnProperty.call(details, key) && hasConfirmedValue(details[key])) return details[key];
+    }
+    return "";
+  }
+
+  function validationItem(field, label, message, code) {
+    return Object.freeze({
+      field,
+      label,
+      message,
+      code: code || "required"
+    });
+  }
+
+  function addMissing(items, field, label, message, code) {
+    if (items.some(function (item) { return item.field === field && item.code === (code || "required"); })) return;
+    items.push(validationItem(field, label, message || ("請填寫" + label), code));
+  }
+
+  function addWarning(items, code, message, field) {
+    if (items.some(function (item) { return item.code === code && item.field === (field || ""); })) return;
+    items.push(Object.freeze({ code, message, field: field || "" }));
+  }
+
+  function validConfirmedDate(value) {
+    const date = normalizeText(value);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+    const parsed = new Date(date + "T00:00:00Z");
+    return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
+  }
+
+  function validNonNegativeNumber(value) {
+    if (!hasConfirmedValue(value)) return false;
+    const n = Number(value);
+    return Number.isFinite(n) && n >= 0;
+  }
+
+  function finalizeValidation(missing, warnings, mappingPending) {
+    const frozenMissing = Object.freeze(missing.slice());
+    const frozenWarnings = Object.freeze(warnings.slice());
+    return Object.freeze({
+      ok: frozenMissing.length === 0,
+      missing: frozenMissing,
+      warnings: frozenWarnings,
+      mappingPending: mappingPending === true
+    });
+  }
+
+  /*
+   * 驗證「使用者已確認、準備寫入正式紀錄」的欄位。
+   * 欄位名稱以 farm-records.js 的 createRecord / details 為準；同時接受目前 OCR
+   * 介面尚在使用的少數扁平別名。L3 尚未確認的欄位不列為本機紀錄必填。
+   */
+  function validateConfirmedFields(confirmedFields) {
     const fields = confirmedFields || {};
-    if (!fields.date || !fields.crop || !fields.recordType) return false;
-    if (fields.recordType === "pesticide" && !fields.material) return false;
-    return true;
+    const missing = [];
+    const warnings = [];
+    const recordType = normalizeText(fields.recordType || fields.type);
+    const mappingStatus = normalizeText(fields.l3MappingStatus);
+    const mappingPending = !!mappingStatus && mappingStatus !== "mapped" && mappingStatus !== "not-applicable";
+
+    if (COMMITTABLE_RECORD_TYPES.indexOf(recordType) < 0) {
+      addMissing(missing, "recordType", "紀錄類型", "請選擇支援的紀錄類型", "unsupported-record-type");
+      return finalizeValidation(missing, warnings, mappingPending);
+    }
+
+    const date = confirmedValue(fields, "date");
+    if (!date) addMissing(missing, "date", "日期");
+    else if (!validConfirmedDate(date)) addMissing(missing, "date", "日期", "日期格式不正確", "invalid-date");
+
+    if (recordType === "pesticide") {
+      if (!confirmedValue(fields, "crop")) addMissing(missing, "crop", "作物");
+      if (!confirmedValue(fields, "material", ["materialName", "agent"])) addMissing(missing, "material", "藥劑名稱");
+      if (!confirmedValue(fields, "target", ["pest"])) {
+        addWarning(warnings, "pesticide-target-not-confirmed", "尚未確認防治對象；正式儲存前仍須對到唯一的官方登記資料。", "target");
+      }
+      if (!confirmedValue(fields, "dilution")) {
+        addWarning(warnings, "pesticide-dilution-not-confirmed", "尚未確認稀釋倍數；不得只依 OCR 文字推定用法。", "dilution");
+      }
+      return finalizeValidation(missing, warnings, mappingPending);
+    }
+
+    /* 現有正式田間紀錄皆以 plotId 連到田區；資材購入只是不要求 crop。 */
+    if (!confirmedValue(fields, "plotId")) addMissing(missing, "plotId", "田區／種植批次");
+
+    if (recordType === "cultivation") {
+      if (!confirmedValue(fields, "activity")) addMissing(missing, "details.activity", "作業內容");
+    } else if (recordType === "fertilizer") {
+      if (!confirmedValue(fields, "materialName", ["material"])) addMissing(missing, "details.materialName", "肥料或資材名稱");
+      const quantity = confirmedValue(fields, "quantity", ["amount"]);
+      if (!hasConfirmedValue(quantity)) addMissing(missing, "details.quantity", "施用量");
+      else if (!validNonNegativeNumber(quantity)) addMissing(missing, "details.quantity", "施用量", "施用量必須是 0 以上的數字", "invalid-number");
+      if (!confirmedValue(fields, "unit")) addMissing(missing, "details.unit", "施用量單位");
+    } else if (recordType === "harvest") {
+      const quantity = confirmedValue(fields, "quantity", ["amount"]);
+      if (!hasConfirmedValue(quantity)) addMissing(missing, "details.quantity", "採收量");
+      else if (!validNonNegativeNumber(quantity)) addMissing(missing, "details.quantity", "採收量", "採收量必須是 0 以上的數字", "invalid-number");
+      if (!confirmedValue(fields, "unit")) addMissing(missing, "details.unit", "採收量單位");
+    } else if (recordType === "postharvest") {
+      if (!confirmedValue(fields, "process")) addMissing(missing, "details.process", "處理方式");
+      const quantity = confirmedValue(fields, "quantity", ["amount"]);
+      if (hasConfirmedValue(quantity) && !validNonNegativeNumber(quantity)) {
+        addMissing(missing, "details.quantity", "處理數量", "處理數量必須是 0 以上的數字", "invalid-number");
+      }
+      if (hasConfirmedValue(quantity) && !confirmedValue(fields, "unit")) {
+        addWarning(warnings, "postharvest-quantity-without-unit", "已填處理數量但未填單位，建議補上以利日後核對。", "details.unit");
+      }
+    } else if (recordType === "materialPurchase") {
+      if (!confirmedValue(fields, "category")) addMissing(missing, "details.category", "資材類別");
+      if (!confirmedValue(fields, "materialName", ["material"])) addMissing(missing, "details.materialName", "資材名稱");
+      if (!confirmedValue(fields, "supplier")) addMissing(missing, "details.supplier", "供應商");
+      const quantity = confirmedValue(fields, "quantity", ["amount"]);
+      if (!hasConfirmedValue(quantity)) addMissing(missing, "details.quantity", "購入數量");
+      else if (!validNonNegativeNumber(quantity)) addMissing(missing, "details.quantity", "購入數量", "購入數量必須是 0 以上的數字", "invalid-number");
+      if (!confirmedValue(fields, "unit")) addMissing(missing, "details.unit", "購入數量單位");
+    }
+
+    return finalizeValidation(missing, warnings, mappingPending);
+  }
+
+  function validateDraft(draft, confirmedFields) {
+    const fields = confirmedFields || {};
+    const fieldValidation = validateConfirmedFields(fields);
+    const missing = fieldValidation.missing.slice();
+    const warnings = fieldValidation.warnings.slice();
+    let mappingPending = fieldValidation.mappingPending;
+
+    if (!draft) {
+      addMissing(missing, "draft", "辨識草稿", "找不到可確認的辨識草稿", "missing-draft");
+      return finalizeValidation(missing, warnings, mappingPending);
+    }
+    if (draft.confirmed) addMissing(missing, "draft", "辨識草稿", "這份辨識草稿已經使用過", "already-confirmed");
+    if (!draft.quality || !draft.quality.canProcess) {
+      addMissing(missing, "quality", "照片品質", "照片品質未通過，請重新拍攝或重新確認原圖", "quality-blocked");
+    }
+    if (draft.quality && Array.isArray(draft.quality.issues)) {
+      draft.quality.issues.filter(function (issue) { return issue.level === "warning"; }).forEach(function (issue) {
+        addWarning(warnings, "quality-" + issue.code, issue.message, "quality");
+      });
+    }
+
+    const decision = draft.routeDecision || {};
+    const route = draft.route || {};
+    const routeType = decision.type === "purchase" ? "materialPurchase" : decision.type;
+    if (decision.status === "exact") {
+      if (route.destination !== "farm-form") {
+        addMissing(missing, "route", "文件用途", "這份文件屬於獨立覆核流程，不能直接帶入一般田間紀錄", "unsupported-route");
+      } else if (routeType && normalizeText(fields.recordType || fields.type) !== routeType) {
+        addMissing(missing, "recordType", "紀錄類型", "使用者確認的紀錄類型與文件分流結果不一致", "route-mismatch");
+      }
+    } else if (fields.routeConfirmed !== true) {
+      addMissing(missing, "routeConfirmed", "文件用途", "文件類型不明確，請先對照原圖確認用途", "route-unconfirmed");
+    } else {
+      addWarning(warnings, "manual-route-confirmation", "文件類型由使用者人工指定，正式儲存前請再次對照原圖。", "routeConfirmed");
+    }
+
+    const mappingStatus = normalizeText(route.l3MappingStatus || decision.l3MappingStatus);
+    if (mappingStatus && mappingStatus !== "mapped" && mappingStatus !== "not-applicable") mappingPending = true;
+    if (mappingPending) {
+      addWarning(warnings, "l3-mapping-pending", "目前只確認本機紀錄欄位；L3 欄位映射尚未確認，不代表已可上傳產銷履歷系統。", "l3MappingStatus");
+    }
+
+    return finalizeValidation(missing, warnings, mappingPending);
+  }
+
+  /*
+   * 「帶入表單」不是正式儲存。這一道只確認照片、用途與可安全預填的最低欄位；
+   * 真正儲存時仍由 validateDraft / farm-records.js 逐類檢查完整欄位。
+   */
+  function validateDraftForReview(draft, confirmedFields) {
+    const fields = confirmedFields || {};
+    const missing = [];
+    const warnings = [];
+    const recordType = normalizeText(fields.recordType || fields.type);
+    let mappingPending = false;
+
+    if (COMMITTABLE_RECORD_TYPES.indexOf(recordType) < 0) {
+      addMissing(missing, "recordType", "紀錄類型", "請先選擇要整理成哪一類紀錄", "unsupported-record-type");
+    }
+    const date = confirmedValue(fields, "date");
+    if (!date) addMissing(missing, "date", "日期");
+    else if (!validConfirmedDate(date)) addMissing(missing, "date", "日期", "日期格式不正確", "invalid-date");
+    if (recordType === "pesticide") {
+      if (!confirmedValue(fields, "crop")) addMissing(missing, "crop", "作物");
+      if (!confirmedValue(fields, "material", ["materialName", "agent"])) addMissing(missing, "material", "藥劑名稱");
+    } else if (recordType && recordType !== "materialPurchase" && !confirmedValue(fields, "crop")) {
+      addWarning(warnings, "crop-not-prefilled", "尚未確認作物；帶入後請從田區／種植批次補選。", "crop");
+    }
+
+    if (!draft) {
+      addMissing(missing, "draft", "辨識草稿", "找不到可整理的辨識草稿", "missing-draft");
+      return finalizeValidation(missing, warnings, mappingPending);
+    }
+    if (draft.confirmed) addMissing(missing, "draft", "辨識草稿", "這份辨識草稿已經使用過", "already-confirmed");
+    if (!draft.quality || !draft.quality.canProcess) {
+      addMissing(missing, "quality", "照片品質", "照片品質未通過，請重新拍攝或重新確認原圖", "quality-blocked");
+    }
+
+    const decision = draft.routeDecision || {};
+    const route = draft.route || {};
+    const routeType = decision.type === "purchase" ? "materialPurchase" : decision.type;
+    if (decision.status === "exact" && route.destination !== "farm-form") {
+      addMissing(missing, "route", "文件用途", "這份文件使用獨立覆核流程，不能帶入一般田間紀錄", "unsupported-route");
+    } else if (decision.status !== "exact" && fields.routeConfirmed !== true) {
+      addMissing(missing, "routeConfirmed", "文件用途", "文件類型不明確，請先對照原圖確認用途", "route-unconfirmed");
+    } else if (routeType && recordType && routeType !== recordType) {
+      if (fields.routeConfirmed !== true) {
+        addMissing(missing, "routeConfirmed", "文件用途", "選擇的紀錄類型與辨識結果不同，請先人工確認", "route-override-unconfirmed");
+      } else {
+        addWarning(warnings, "manual-route-override", "你已改用另一種紀錄類型；帶入後請再次對照原圖。", "recordType");
+      }
+    }
+
+    const mappingStatus = normalizeText(route.l3MappingStatus || decision.l3MappingStatus);
+    if (mappingStatus && mappingStatus !== "mapped" && mappingStatus !== "not-applicable") mappingPending = true;
+    if (mappingPending) {
+      addWarning(warnings, "l3-mapping-pending", "這只會整理成本機待確認表單，不代表已可上傳產銷履歷系統。", "l3MappingStatus");
+    }
+    return finalizeValidation(missing, warnings, mappingPending);
+  }
+
+  function canCommit(draft, confirmedFields) {
+    return validateDraft(draft, confirmedFields).ok;
   }
 
   return Object.freeze({
@@ -631,16 +1866,22 @@
     findAmounts,
     findSafetyIntervals,
     detectFormTypes,
+    strongDocumentType,
+    decideDocumentRoute,
     findPlotCodes,
     findLabeledValues,
     findInventoryLabeledValues,
     createMaterialInventoryDraft,
+    associateMaterialLedgerRows,
     dictionaryCandidates,
     findMarkedOptions,
     findEquipmentMaintenanceRows,
     findSelfInspectionInspectors,
     createSelfInspectionDraft,
     createDraft,
+    validateConfirmedFields,
+    validateDraft,
+    validateDraftForReview,
     canCommit
   });
 });

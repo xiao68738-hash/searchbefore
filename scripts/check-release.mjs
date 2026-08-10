@@ -45,7 +45,8 @@ vm.runInNewContext(webSupportConfig, webSupportSandbox, { filename: "dist/web-su
 assert.equal(webSupportSandbox.window.PQC_WEB_SUPPORT_CONFIG.googlePlayVoluntarySupport, true, "Google Play 純自願支持必須由獨立遠端開關明確啟用");
 assert.match(webSupportConfig, /https:\/\/p\.ecpay\.com\.tw\//, "按需載入的自願支持設定應保留綠界網址");
 assert.doesNotMatch(html, /<script[^>]+web-support-config\.js/i, "正式頁面不可靜態載入付款設定，才能保留遠端停用能力");
-assert.match(ocrUi, /Google Cloud Vision/, "OCR 前端必須標示目前使用的雲端辨識服務");
+assert.match(ocrUi, /第三方雲端辨識服務/, "OCR 前端必須揭露照片會交由第三方服務處理");
+assert.doesNotMatch(ocrUi, /Google Cloud Vision/, "一般操作介面不可顯示底層供應商品牌");
 const referencedScripts = [...html.matchAll(/<script[^>]+\bsrc=["']\.\/([^"'?#]+)["']/gi)].map(match => match[1]);
 assert.ok(referencedScripts.length >= 7, "index.html 應載入必要的外部程式");
 for (const name of referencedScripts) assert.ok(actual.includes(name), `dist 缺少 index.html 引用的 ${name}`);

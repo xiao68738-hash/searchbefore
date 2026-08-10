@@ -1,8 +1,10 @@
 # Feature Specification: OCR-assisted farm record entry
 
 **Status**: Revised draft  
-**Source of truth date**: 2026-08-04  
+**Source of truth date**: 2026-08-09
 **Scope**: PWA upload, Cloud Run, Google Cloud Vision, Android prototype and shared human-review workflow
+
+**Observed workflow source**: [`docs/產銷履歷系統錄影-操作流程與欄位地圖.md`](../../docs/產銷履歷系統錄影-操作流程與欄位地圖.md)
 
 ## User scenarios
 
@@ -29,6 +31,22 @@ Invalid type, oversized image, excessive pixels, missing authentication, disallo
 
 When one equipment maintenance form contains several dated rows, the system creates separate unconfirmed rows. Each row supports multiple equipment and action selections. The user can correct, add or remove rows before saving them as a batch; shared equipment does not require a field plot.
 
+### US5 — Route a document before extracting records
+
+The user may submit a production record, supporting record, inventory ledger, self-inspection sheet, master-data page or unrelated page. The system first decides the document route. A tied, weak or conflicting classification stays `ambiguous` or `unknown`; it never silently adopts the first candidate.
+
+Acceptance criteria:
+
+- Production records may continue to the existing record form after human review.
+- Equipment sheets remain local supporting records while their L3 scope is unconfirmed.
+- Material ledgers remain inventory drafts or exports, not one fertilizer application.
+- Self-inspection, profile, administrative and unknown pages cannot pass the normal record commit gate.
+- A user may manually choose a type for an ambiguous page, but must explicitly confirm that choice.
+
+### US6 — Preserve the source of every candidate
+
+For a multi-image batch, every candidate row remains linked to its source image, page and OCR block geometry. One failed or skipped image does not erase the others, and values from separate pages are not merged without an explicit reviewed rule.
+
 ## Functional requirements
 
 - FR-001: Use Google Cloud Vision `DOCUMENT_TEXT_DETECTION` only through the SearchBefore backend.
@@ -41,6 +59,11 @@ When one equipment maintenance form contains several dated rows, the system crea
 - FR-008: Do not reject an otherwise readable photo merely because page corners, a second page or background objects are visible.
 - FR-009: Recognize equipment maintenance as a first-class record type and split repeated dated rows without auto-saving.
 - FR-010: Treat inherited years, checkbox detection and uncertain row boundaries as reviewable candidates, never confirmed facts.
+- FR-011: Classify every image as `production-record`, `supporting-record`, `material-ledger`, `reference-only`, `master-data`, `admin-output` or `unknown` before choosing a parser.
+- FR-012: Store a route decision as `exact`, `ambiguous` or `unknown`; weak or tied evidence must abstain from automatic routing.
+- FR-013: Keep SearchBefore field values separate from future official L3 codes. Values without an official source and dictionary version remain `unmapped`.
+- FR-014: Preserve source image, page, OCR block IDs and geometry for each extracted candidate; never use the OCR output itself as test ground truth.
+- FR-015: Do not present validation applications, product review or label-printing pages as supported OCR-to-record workflows.
 
 ## Success criteria
 
@@ -49,6 +72,8 @@ When one equipment maintenance form contains several dated rows, the system crea
 - SC-003: Median total entry time is lower than the current manual workflow.
 - SC-004: No image, full OCR text or token appears in storage or application logs.
 - SC-005: Monthly cost remains within configured budget and quotas.
+- SC-006: No reference, master-data, administrative or unknown document is committed as a farm activity in the safety fixture set.
+- SC-007: OCR-assisted median end-to-end handling time, including review and corrections, is lower than the manual baseline for the selected record types.
 
 ## Edge cases
 
@@ -67,4 +92,7 @@ When one equipment maintenance form contains several dated rows, the system crea
 - **OCR Result Envelope**: protocol version, source, quality and normalized text blocks.
 - **OCR Draft**: unconfirmed field candidates awaiting manual review.
 - **OCR Record Group**: one dated row extracted from a multi-record page, with independently reviewable equipment and action candidates.
+- **Document Route Decision**: exact, ambiguous or unknown classification with route, destination, L3 mapping state and reason.
+- **Source Evidence**: image ID, page, OCR block IDs, geometry, original candidate text and confidence retained for review.
+- **Standard Farm Draft**: one unconfirmed activity header with zero or more typed detail rows; distinct from official L3 codes.
 - **Registered Pesticide Match**: the unique official registration match required before transfer.

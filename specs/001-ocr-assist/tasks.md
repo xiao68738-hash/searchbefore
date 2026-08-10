@@ -19,13 +19,20 @@
 - [x] Preserve common draft protocol and mark source as `google-cloud-vision`.
 - [x] Keep the production endpoint empty, set `formOcr=development`, and require the browser-session verification gate.
 - [x] Update privacy, architecture, deployment and release-gate documentation.
+- [x] Deploy the staging `/v1/ocr` service and configure the development endpoint.
+- [x] Review the complete L3 operation recording and publish the timestamped workflow and field map.
+- [x] Add exact／ambiguous／unknown document routing and prevent weak or tied evidence from auto-selecting the first type.
+- [x] Keep complete material ledgers on the inventory-review route and adapt the local farm-record type to `materialPurchase` only after manual choice.
+- [x] Keep stable source-image metadata and per-image queued／processing／recognized／failed state without storing image bytes or Object URLs in drafts.
+- [x] Preserve page／block／paragraph indices, word geometry and detected breaks with bounded response sizes.
+- [x] Add typed validation results (`ok`, `missing`, `warnings`, `mappingPending`) and separate review-prefill checks from final-save checks.
 
-## Google Cloud setup
+## Google Cloud setup and operations
 
-- [ ] Enable billing, Vision API, Cloud Run, Cloud Build and Artifact Registry.
-- [ ] Create a dedicated Cloud Run service account and attach it through ADC.
+- [x] Deploy staging Cloud Run and record the HTTPS endpoint.
+- [ ] Verify in the Cloud console that billing, Vision API, Cloud Run, Cloud Build and Artifact Registry are enabled for the intended project.
+- [ ] Verify the deployed service uses a dedicated Cloud Run service account through ADC with minimum permissions.
 - [ ] Configure budget alerts, Vision quota and Cloud Run maximum instances.
-- [ ] Deploy `/v1/ocr` and record the HTTPS endpoint.
 - [ ] Verify application logs do not contain images, full OCR text or tokens.
 
 ## Verification
@@ -37,3 +44,13 @@
 - [ ] Update privacy text to match the final Google Cloud retention and logging settings.
 - [ ] Set endpoint and give the verification code only to a named test cohort.
 - [ ] Complete PWA, iOS browser, Android TWA and desktop regression tests.
+
+## P0 after full workflow review
+
+- [ ] Add source image ID, page, block IDs and geometry to every candidate and multi-row group.
+- [ ] Introduce a standard draft schema: activity header plus typed `details[]`, rather than one generic material and amount pair.
+- [x] Add per-record-type validation that returns missing fields and warnings; do not rely on a single boolean `canCommit` rule.
+- [x] Preserve word geometry and detected breaks in the backend; reviewed table-row／cell candidates remain a later parser task.
+- [ ] Add real consented golden fixtures for rotated spreads, table 10 material ledgers and table 18 equipment records; fixtures must be de-identified and must not enter a public repository.
+- [ ] Add multi-image tests for partial failure, retry, removal, duplicate pages and cross-page grouping.
+- [ ] Keep official L3 mappings `unmapped` until approved dictionaries, WSDL and a test environment are available.
