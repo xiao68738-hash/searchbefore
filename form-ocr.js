@@ -217,17 +217,33 @@
   function findDilutions(text) {
     const source = normalizeText(text);
     const out = [];
-    const seen = new Set();
+    const byValue = new Map();
     const pattern = /(\d{1,3}(?:,\d{3})*|\d+)\s*倍/g;
     let match;
     while ((match = pattern.exec(source))) {
       const value = Number(match[1].replace(/,/g, ""));
-      if (value > 0 && value <= 100000 && !seen.has(value)) {
-        seen.add(value);
-        out.push(Object.freeze({ value, sourceText: match[0], confidence: 0.94 }));
+      if (value <= 0 || value > 100000) continue;
+      const contextStart = Math.max(0, match.index - 24);
+      const prefix = source.slice(contextStart, match.index);
+      const clauseStart = Math.max(prefix.lastIndexOf("\n"), prefix.lastIndexOf("｜"), prefix.lastIndexOf("|"), prefix.lastIndexOf("，"), prefix.lastIndexOf("。"), prefix.lastIndexOf("；"), prefix.lastIndexOf(";"));
+      const context = prefix.slice(clauseStart + 1) + match[0];
+      const actual = /(?:實際|本次|此次|施用|使用|調配|配製)(?:[^\n｜|]{0,12})(?:稀釋|倍數)?/i.test(context);
+      const reference = /(?:建議|推薦|標示|標籤|登記|參考)(?:[^\n｜|]{0,12})(?:稀釋|倍數)?/i.test(context);
+      const role = actual ? "actual" : (reference ? "reference" : "unlabeled");
+      const confidence = role === "actual" ? 0.97 : (role === "reference" ? 0.62 : 0.86);
+      const candidate = { value, sourceText: match[0], context: context.trim(), role, confidence };
+      const previousIndex = byValue.get(value);
+      if (previousIndex == null) {
+        byValue.set(value, out.length);
+        out.push(candidate);
+      } else if (confidence > out[previousIndex].confidence) {
+        out[previousIndex] = candidate;
       }
     }
-    return Object.freeze(out);
+    const rank = { actual: 0, unlabeled: 1, reference: 2 };
+    return Object.freeze(out.sort(function (a, b) {
+      return rank[a.role] - rank[b.role];
+    }).map(function (item) { return Object.freeze(item); }));
   }
 
   function findAmounts(text) {
@@ -396,21 +412,55 @@
   }
 
   function findPlotCodes(text) {
+    return Object.freeze(findLocationReferences(text).filter(function (item) {
+      return item.role === "officialField";
+    }).map(function (item) {
+      return Object.freeze({ value: item.value, sourceText: item.sourceText, confidence: item.confidence, role: item.role });
+    }));
+  }
+
+  function findLocationReferences(text) {
     const source = normalizeText(text);
     const out = [];
     const seen = new Set();
     const patterns = [
-      /(?:田區(?:代號)?|區域)\s*[:：]?\s*([A-Za-zＡ-Ｚａ-ｚ0-9０-９+＋、,，\-]{1,12}\s*區?)/g,
-      /(?:^|[\s,，])([A-Za-zＡ-Ｚａ-ｚ](?:\s*[+＋、,，]\s*[A-Za-zＡ-Ｚａ-ｚ])?\s*區)(?=$|[\s,，])/g
+      { role: "officialField", confidence: 0.92, pattern: /(?:驗證田區|正式田區|田區(?:代號)?)\s*[:：]?\s*([A-Za-zＡ-Ｚａ-ｚ0-9０-９+＋、,，\-]{1,16}\s*區?)/g },
+      { role: "workGroup", confidence: 0.9, pattern: /(?:共同作業(?:分)?區|作業分區|工作區|管理分區)\s*[:：]?\s*([A-Za-zＡ-Ｚａ-ｚ0-9０-９+＋、,，\-]{1,16}\s*區?)/g },
+      { role: "landParcel", confidence: 0.9, pattern: /(?:農地地籍號碼|地籍號碼|地號)\s*[:：]?\s*([^\n｜|，,；;]{2,40})/g }
     ];
-    patterns.forEach(function (pattern, patternIndex) {
+    patterns.forEach(function (definition) {
       let match;
-      while ((match = pattern.exec(source))) {
-        const value = normalizeText(match[1]).replace(/\s+/g, "").replace(/＋/g, "+").toUpperCase();
-        const key = compact(value);
+      while ((match = definition.pattern.exec(source))) {
+        const value = definition.role === "landParcel"
+          ? normalizeText(match[1]).trim()
+          : normalizeText(match[1]).replace(/\s+/g, "").replace(/＋/g, "+").toUpperCase();
+        const key = definition.role + ":" + compact(value);
         if (!key || seen.has(key)) continue;
         seen.add(key);
-        out.push(Object.freeze({ value, sourceText: match[0].trim(), confidence: patternIndex === 0 ? 0.9 : 0.76 }));
+        out.push(Object.freeze({ value, sourceText: match[0].trim(), confidence: definition.confidence, role: definition.role }));
+      }
+    });
+    return Object.freeze(out);
+  }
+
+  function findOperationalMeasurements(text) {
+    const source = normalizeText(text);
+    const out = [];
+    const seen = new Set();
+    const definitions = [
+      { role: "harvestQuantity", confidence: 0.95, pattern: /(?:本次採收量|總採收量|採收量)\s*[:：]?\s*(\d+(?:\.\d+)?)\s*(公斤|台斤|公克|kg|g)/gi },
+      { role: "packageWeight", confidence: 0.92, pattern: /(?:每包重量|包裝重量|包裝規格)\s*[:：]?\s*(\d+(?:\.\d+)?)\s*(公斤|台斤|公克|kg|g)/gi },
+      { role: "labelCount", confidence: 0.92, pattern: /(?:標籤張數|貼紙張數|列印張數)\s*[:：]?\s*(\d+)\s*張/gi }
+    ];
+    definitions.forEach(function (definition) {
+      let match;
+      while ((match = definition.pattern.exec(source))) {
+        const value = Number(match[1]);
+        const unit = definition.role === "labelCount" ? "張" : match[2];
+        const key = definition.role + ":" + value + ":" + unit;
+        if (!Number.isFinite(value) || value < 0 || seen.has(key)) continue;
+        seen.add(key);
+        out.push(Object.freeze({ value, unit, sourceText: match[0].trim(), confidence: definition.confidence, role: definition.role }));
       }
     });
     return Object.freeze(out);
@@ -1520,11 +1570,15 @@
         standardDetail("recordType", "紀錄類型", fields.recordType, blocks, sourceImage, null, true),
         standardDetail("date", "日期", fields.date, blocks, sourceImage, null, true),
         standardDetail("crop", "作物", fields.crop, blocks, sourceImage, null, false),
-        standardDetail("fieldPlot", "田區代號", fields.fieldPlot, blocks, sourceImage, null, false),
+        standardDetail("fieldPlot", "正式田區代號", fields.fieldPlot, blocks, sourceImage, null, false),
+        standardDetail("workGroup", "共同作業分區", fields.workGroup, blocks, sourceImage, null, false),
+        standardDetail("landParcel", "地號／地籍", fields.landParcel, blocks, sourceImage, null, false),
         standardDetail("target", "防治對象", fields.target, blocks, sourceImage, null, false),
         standardDetail("material", "藥劑／資材名稱", fields.material, blocks, sourceImage, null, false),
         standardDetail("dilution", "稀釋倍數", fields.dilution, blocks, sourceImage, null, false),
         standardDetail("amount", "數量", fields.amount, blocks, sourceImage, null, false),
+        standardDetail("packageWeight", "包裝規格／重量", fields.packageWeight, blocks, sourceImage, null, false),
+        standardDetail("labelCount", "標籤張數", fields.labelCount, blocks, sourceImage, null, false),
         standardDetail("safetyInterval", "安全採收期", fields.safetyInterval, blocks, sourceImage, null, false),
         standardDetail("operator", "執行人", fields.operator, blocks, sourceImage, null, false)
       ]
@@ -1570,15 +1624,23 @@
         confidence: 0.35
       })]);
     }
+    const locations = findLocationReferences(text);
+    const operationalMeasurements = findOperationalMeasurements(text);
+    const harvestQuantities = operationalMeasurements.filter(function (item) { return item.role === "harvestQuantity"; });
     const fields = Object.freeze({
       recordType: recordTypes,
       date: findDates(text),
       crop: dictionaryCandidates(text, dict.crops, "crop"),
-      fieldPlot: findPlotCodes(text),
+      fieldPlot: locations.filter(function (item) { return item.role === "officialField"; }),
+      workGroup: locations.filter(function (item) { return item.role === "workGroup"; }),
+      landParcel: locations.filter(function (item) { return item.role === "landParcel"; }),
       target: dictionaryCandidates(text, dict.targets, "target"),
       material: mergeCandidates(dictionaryCandidates(text, dict.materials, "material"), materialInventory && materialInventory.materials),
       dilution: findDilutions(text),
-      amount: findAmounts(text),
+      amount: routeDecision.status === "exact" && routeDecision.type === "harvest" ? harvestQuantities : findAmounts(text),
+      harvestQuantity: harvestQuantities,
+      packageWeight: operationalMeasurements.filter(function (item) { return item.role === "packageWeight"; }),
+      labelCount: operationalMeasurements.filter(function (item) { return item.role === "labelCount"; }),
       safetyInterval: findSafetyIntervals(text),
       operator: findLabeledValues(text, ["記錄人", "紀錄人", "操作人員", "執行人", "查核者", "確認者"], "operator")
     });
@@ -1869,6 +1931,8 @@
     strongDocumentType,
     decideDocumentRoute,
     findPlotCodes,
+    findLocationReferences,
+    findOperationalMeasurements,
     findLabeledValues,
     findInventoryLabeledValues,
     createMaterialInventoryDraft,

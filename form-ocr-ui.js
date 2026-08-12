@@ -356,11 +356,42 @@
     return matches.filter(function (match) { return match.score === best; });
   }
 
-  function optionList(items, format) {
+  function dilutionCandidateLabel(item) {
+    if (!item) return "";
+    const suffix = item.role === "actual"
+      ? "（本次實際使用）"
+      : (item.role === "reference" ? "（標示／建議值，須人工確認）" : "（用途未標示）");
+    return String(item.value == null ? "" : item.value) + " 倍" + suffix;
+  }
+
+  function operationalMeasurementNotice(fields) {
+    const source = fields || {};
+    const packageWeights = source.packageWeight || [];
+    const labelCounts = source.labelCount || [];
+    if (!packageWeights.length && !labelCounts.length) return "";
+    const parts = [];
+    if (packageWeights.length) parts.push("包裝規格 " + packageWeights.map(function (item) { return item.value + " " + item.unit; }).join("、"));
+    if (labelCounts.length) parts.push("標籤張數 " + labelCounts.map(function (item) { return item.value + " 張"; }).join("、"));
+    return '<div class="ocr-status warn"><b>採收量以外的資料不會自動帶入</b><span>' + esc(parts.join("；")) + '。包裝規格、採收量與標籤張數不可互相推算，請分開核對。</span></div>';
+  }
+
+  function locationSeparationNotice(fields) {
+    const source = fields || {};
+    const workGroups = source.workGroup || [];
+    const parcels = source.landParcel || [];
+    if (!workGroups.length && !parcels.length) return "";
+    const parts = [];
+    if (workGroups.length) parts.push("共同作業分區：" + workGroups.map(function (item) { return item.value; }).join("、"));
+    if (parcels.length) parts.push("地號／地籍：" + parcels.map(function (item) { return item.value; }).join("、"));
+    return '<div class="ocr-status warn"><b>位置資料必須分開核對</b><span>' + esc(parts.join("；")) + '。共同作業分區不等於正式田區或地號，系統不會自動合併。</span></div>';
+  }
+
+  function optionList(items, format, labelFormat) {
     if (!items || !items.length) return '<option value="">未辨識到，請自行輸入</option>';
     return '<option value="">請選擇辨識結果</option>' + items.map(function (item) {
       const value = format ? format(item) : item.value;
-      return '<option value="' + esc(value) + '">' + esc(value) + '</option>';
+      const label = labelFormat ? labelFormat(item) : value;
+      return '<option value="' + esc(value) + '">' + esc(label) + '</option>';
     }).join("");
   }
 
@@ -532,10 +563,14 @@
         date: activityFieldCandidates(activity, "date", ["operationDate"]),
         crop: activityFieldCandidates(activity, "crop", ["cropName"]),
         fieldPlot: activityFieldCandidates(activity, "fieldPlot", ["plot", "plotCode", "fieldCode"]),
+        workGroup: activityFieldCandidates(activity, "workGroup", ["operationGroup", "managementZone"]),
+        landParcel: activityFieldCandidates(activity, "landParcel", ["parcel", "cadastralNumber"]),
         target: activityFieldCandidates(activity, "target", ["pest", "controlTarget"]),
         material: activityFieldCandidates(activity, "material", ["materialName", "pesticide", "fertilizer"]),
         dilution: activityFieldCandidates(activity, "dilution", ["dilutionRatio"]),
         amount: activityFieldCandidates(activity, "amount", ["quantity"]),
+        packageWeight: activityFieldCandidates(activity, "packageWeight", ["packageSize"]),
+        labelCount: activityFieldCandidates(activity, "labelCount", ["stickerCount"]),
         safetyInterval: activityFieldCandidates(activity, "safetyInterval", ["phi"]),
         operator: activityFieldCandidates(activity, "operator", ["worker"]),
         activity: activityFieldCandidates(activity, "activity", ["operation", "operationName", "actions"]),
@@ -720,10 +755,10 @@
     return true;
   }
 
-  function setCandidateOptions(id, items, format) {
+  function setCandidateOptions(id, items, format, labelFormat) {
     const select = document.getElementById(id);
     if (!select) return;
-    select.innerHTML = optionList(items, format);
+    select.innerHTML = optionList(items, format, labelFormat);
     select.value = "";
     select.disabled = !items || !items.length;
   }
@@ -746,7 +781,7 @@
     setCandidateOptions("ocrFieldPlotCandidate", filtered("fieldPlot"));
     setCandidateOptions("ocrTargetCandidate", filtered("target"));
     setCandidateOptions("ocrMaterialCandidate", filtered("material"));
-    setCandidateOptions("ocrDilutionCandidate", filtered("dilution"));
+    setCandidateOptions("ocrDilutionCandidate", filtered("dilution"), null, dilutionCandidateLabel);
     setCandidateOptions("ocrAmountCandidate", filtered("amount"), function (item) { return item.unit ? item.value + " " + item.unit : item.value; });
     setCandidateOptions("ocrSafetyCandidate", filtered("safetyInterval"), function (item) { return item.value == null ? "未訂／不適用" : item.value; });
     setCandidateOptions("ocrOperatorCandidate", filtered("operator"));
@@ -1088,6 +1123,7 @@
     const sourceRowReview = sourceRowReviewHtml(draft);
     const initialFields = sourceRowReview ? {} : draft.fields;
     box.innerHTML = batchNavigatorHtml() + activityReviewBannerHtml(draft) + qualityHtml(draft.quality) + routeDecisionHtml(draft)
+      + locationSeparationNotice(draft.fields) + operationalMeasurementNotice(draft.fields)
       + sourceRowReview
       + '<div class="ocr-review">'
       + '<div class="field"><label>紀錄類型 *</label><select id="ocrRecordType">' + recordTypeOptions(initialFields.recordType) + '</select></div>'
@@ -1097,7 +1133,7 @@
       + '<div class="field"><label>田區代號候選</label><select id="ocrFieldPlotCandidate">' + optionList(initialFields.fieldPlot) + '</select><input id="ocrFieldPlotManual" placeholder="或自行輸入田區代號"></div>'
       + '<div class="field"><label>防治對象候選</label><select id="ocrTargetCandidate">' + optionList(initialFields.target) + '</select><input id="ocrTargetManual" placeholder="或自行輸入病蟲害"></div>'
       + '<div class="field"><label>資材／藥劑候選</label><select id="ocrMaterialCandidate">' + optionList(initialFields.material) + '</select><input id="ocrMaterialManual" placeholder="或自行輸入名稱"></div>'
-      + '<div class="field"><label>稀釋倍數</label><select id="ocrDilutionCandidate">' + optionList(initialFields.dilution) + '</select></div>'
+      + '<div class="field"><label>稀釋倍數</label><select id="ocrDilutionCandidate">' + optionList(initialFields.dilution, null, dilutionCandidateLabel) + '</select><small>實際使用值與標示／建議值可能不同；請以本次施用紀錄為準。</small></div>'
       + '<div class="field"><label>數量候選</label><select id="ocrAmountCandidate">' + optionList(initialFields.amount, function (item) { return item.unit ? item.value + " " + item.unit : item.value; }) + '</select></div>'
       + '<div class="field"><label>安全採收期候選</label><select id="ocrSafetyCandidate">' + optionList(initialFields.safetyInterval, function (item) { return item.value == null ? "未訂／不適用" : item.value; }) + '</select><input id="ocrSafetyManual" type="number" min="0" max="365" inputmode="numeric" placeholder="或自行輸入天數"></div>'
       + '<div class="field"><label>執行人</label><select id="ocrOperatorCandidate">' + optionList(initialFields.operator) + '</select><input id="ocrOperator" placeholder="請自行確認填寫"></div>'
@@ -2232,6 +2268,9 @@
     materialInventoryPanelEntryHtml,
     materialInventoryPanelHtml,
     matchKey,
+    dilutionCandidateLabel,
+    operationalMeasurementNotice,
+    locationSeparationNotice,
     registeredPesticideMatches,
     receiveScanResult,
     requestNativeScan,

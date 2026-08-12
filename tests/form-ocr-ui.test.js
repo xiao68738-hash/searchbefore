@@ -21,6 +21,11 @@ assert.equal(UI.safePayload({ ...validPayload, rowCandidates: [{ id: "row", cell
 assert.ok(UI.TRUSTED_ORIGINS.includes("https://searchbefore.tw"));
 assert.ok(UI.TRUSTED_ORIGINS.includes("android://tw.searchbefore.app"));
 assert.equal(UI.matchKey(" A＋B 區 "), "a+b區");
+assert.equal(UI.dilutionCandidateLabel({ value: 1000, role: "actual" }), "1000 倍（本次實際使用）");
+assert.equal(UI.dilutionCandidateLabel({ value: 2000, role: "reference" }), "2000 倍（標示／建議值，須人工確認）");
+assert.equal(UI.dilutionCandidateLabel({ value: 800, role: "unlabeled" }), "800 倍（用途未標示）");
+assert.match(UI.locationSeparationNotice({ workGroup: [{ value: "H區" }], landParcel: [{ value: "1234-5" }] }), /共同作業分區不等於正式田區或地號/);
+assert.match(UI.operationalMeasurementNotice({ packageWeight: [{ value: 3, unit: "公斤" }], labelCount: [{ value: 100, unit: "張" }] }), /不可互相推算/);
 
 const sourceFile = { name: "田間紀錄-01.jpg", size: 2480123, lastModified: 1786200000000, type: "image/jpeg" };
 const sameSourceFile = { ...sourceFile };
