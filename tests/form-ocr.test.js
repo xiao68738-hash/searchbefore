@@ -28,11 +28,22 @@ assert.ok(unclear.issues.filter((item) => item.level === "blocking").length >= 5
 assert.deepEqual(O.findDates("施作日期 民國115/7/30").map((item) => item.value), ["2026-07-30"]);
 assert.deepEqual(O.findDates("2026年2月30日").map((item) => item.value), [], "無效日期不得採用");
 assert.deepEqual(O.findDilutions("稀釋 1,000 倍，另有 800倍").map((item) => item.value), [1000, 800]);
+const dilutionRoles = O.findDilutions("標示建議稀釋倍數 2,000倍\n本次實際使用稀釋倍數 1,000倍");
+assert.deepEqual(dilutionRoles.map((item) => [item.value, item.role]), [[1000, "actual"], [2000, "reference"]], "實際使用倍數必須排在標示建議值之前");
+assert.ok(dilutionRoles[0].confidence >= 0.75, "實際使用值可進入預選門檻");
+assert.ok(dilutionRoles[1].confidence < 0.75, "標示或建議值不得自動預選成實際施用紀錄");
+assert.equal(O.findDilutions("建議 1000倍，實際使用 1000倍").length, 1, "相同倍數重複出現時保留語意較強的實際值");
+assert.equal(O.findDilutions("建議 1000倍，實際使用 1000倍")[0].role, "actual");
 assert.deepEqual(O.findAmounts("使用 20 公克，水量25ml").map((item) => [item.value, item.unit]), [[20, "公克"], [25, "ml"]]);
 assert.deepEqual(O.findAmounts("使用量 425 c.c.，另領 2 包").map((item) => [item.value, item.unit]), [[425, "c.c."], [2, "包"]]);
 assert.equal(O.detectFormTypes("表11 病蟲害防治或環境消毒資材施用紀錄 防治對象 稀釋倍數 安全採收期")[0].value, "pesticide");
 assert.deepEqual(O.findSafetyIntervals("安全採收期(天) 12D").map((item) => item.value), [12]);
 assert.deepEqual(O.findPlotCodes("田區代號 A+B區 作物 麻豆文旦").map((item) => item.value), ["A+B區"]);
+const locationRoles = O.findLocationReferences("正式田區 A+B區\n共同作業分區 H+B區\n地號 1234-5");
+assert.deepEqual(locationRoles.map((item) => [item.value, item.role]), [["A+B區", "officialField"], ["H+B區", "workGroup"], ["1234-5", "landParcel"]]);
+assert.deepEqual(O.findPlotCodes("共同作業分區 H+B區").map((item) => item.value), [], "共同作業分區不得誤當正式田區");
+const operationalMeasurements = O.findOperationalMeasurements("採收量 300 公斤\n包裝規格 3 公斤\n標籤張數 100 張");
+assert.deepEqual(operationalMeasurements.map((item) => [item.value, item.unit, item.role]), [[300, "公斤", "harvestQuantity"], [3, "公斤", "packageWeight"], [100, "張", "labelCount"]]);
 assert.equal(O.findLabeledValues("操作人員：王小明", ["操作人員"], "operator")[0].value, "王小明");
 
 const draft = O.createDraft({
@@ -264,6 +275,17 @@ assert.equal(pesticideDraft.fields.fieldPlot[0].value, "A+B區");
 assert.equal(pesticideDraft.fields.target[0].value, "葉蟎");
 assert.equal(pesticideDraft.fields.safetyInterval[0].value, 6);
 assert.equal(pesticideDraft.fields.operator[0].value, "王小明");
+const harvestDraft = O.createDraft({
+  quality: { width: 1800, height: 2400, documentCoverage: 0.9, sharpness: 0.9, glareRatio: 0, skewDegrees: 0, cornersDetected: true },
+  blocks: [{ text: "採收紀錄 採收日期 115/8/7\n正式田區 A區\n共同作業分區 H區\n採收量 300 公斤\n包裝規格 3 公斤\n標籤張數 100 張", confidence: 0.9 }]
+});
+assert.equal(harvestDraft.routeDecision.type, "harvest");
+assert.deepEqual(harvestDraft.fields.amount.map((item) => [item.value, item.unit]), [[300, "公斤"]], "採收紀錄的數量候選不得混入包裝重量或標籤張數");
+assert.deepEqual(harvestDraft.fields.workGroup.map((item) => item.value), ["H區"]);
+assert.deepEqual(harvestDraft.fields.packageWeight.map((item) => item.value), [3]);
+assert.deepEqual(harvestDraft.fields.labelCount.map((item) => item.value), [100]);
+assert.deepEqual(harvestDraft.activities[0].details.find((item) => item.key === "workGroup").candidates.map((item) => item.value), ["H區"], "共同作業分區必須保留在標準多筆草稿");
+assert.deepEqual(harvestDraft.activities[0].details.find((item) => item.key === "packageWeight").candidates.map((item) => item.value), [3], "包裝規格須保留供核對但不可混入採收量");
 const pesticideValidation = O.validateDraft(pesticideDraft, {
   date: "2026-07-30",
   crop: "番茄",
