@@ -228,10 +228,50 @@
   }
 
   /* ── B. 種子/種苗處理 ── */
-  const SEED_RE = /浸種|拌種|種子處理|種苗處理|浸漬|浸苗|種薯|催芽/;
+  const SEED_RE = /種子處理|種苗處理|拌種|浸種|稻種(?:浸|混拌|消毒)|每公斤稻種|公斤種子|種薯|種球/;
   function isSeedTreatment(agent) {
     if (!agent) return false;
-    return SEED_RE.test(String(agent.note || ""));
+    return SEED_RE.test([agent.dose, agent.note].filter(Boolean).join(" "));
+  }
+
+  /* 只有純數字或數字區間才是「倍數」。官方欄位也會放入「稀釋至600公升」、
+     「均勻撒布」、「原液」等施用方式；這些值若一律加上「倍」會改變原意。 */
+  const DILUTION_MULTIPLE_RE = /^\s*\d[\d,]*(?:\.\d+)?(?:\s*[-~～至]\s*\d[\d,]*(?:\.\d+)?)?\s*$/;
+  function isDilutionMultiple(value) {
+    return DILUTION_MULTIPLE_RE.test(String(value == null ? "" : value));
+  }
+  function usagePurpose(agent, raw) {
+    agent = agent || {};
+    raw = String(raw == null ? agent.dilution || "" : raw).trim();
+    const dose = String(agent.dose || "").trim();
+    const note = String(agent.note || "").trim();
+    const text = [raw, dose, note].join(" ");
+    if (isSeedTreatment(agent)) return { kind: "seed_treatment", value: "種子處理" };
+    if (/育苗箱|育苗盤|苗床/.test(text)) return { kind: "nursery_treatment", value: "育苗設施處理" };
+    if (/費洛蒙|誘蟲器|誘蟲盒|誘餌/.test(text)) return { kind: "pheromone", value: "誘引／費洛蒙使用" };
+    if (/燻蒸|薰蒸|密閉蒸/.test(text)) return { kind: "fumigation", value: "燻蒸處理" };
+    if (/樹幹.{0,20}(?:注入|注射)|(?:注入|注射).{0,20}樹幹/.test(text)) return { kind: "trunk_injection", value: "樹幹注入處理" };
+    if (/浸泡|浸漬|浸濕|浸潤/.test(text)) return { kind: "soaking", value: "浸泡／浸漬處理" };
+    if (/塗抹|塗佈|粉衣/.test(text)) return { kind: "coating", value: "塗抹／包覆處理" };
+    if (/原液/.test(raw)) return { kind: "undiluted", value: "原液施用" };
+    if (/公升|公撮|毫升|\bL\b|L\s*\/|水量|加水|稀釋至/i.test(raw)) return { kind: "water_volume", value: "依登記水量施用" };
+    if (/^\s*\d[\d,]*(?:\.\d+)?\s*:\s*\d[\d,]*(?:\.\d+)?\s*$/.test(raw)) return { kind: "mixing_ratio", value: "依登記比例調配" };
+    if (/撒布|撒佈|撒施|混土|溝施|穴施|土壤|土面|畦面|灌根|淋灌|埋入/.test(text)) return { kind: "soil_treatment", value: "土壤／撒施處理" };
+    if (/GR|粒劑/i.test(String(agent.form || ""))) return { kind: "granule", value: "粒劑施用" };
+    if (raw && !/^-+$/.test(raw)) return { kind: "special_method", value: "依登記方式施用" };
+    if (dose && !/^-+$/.test(dose)) return { kind: "registered_dose", value: "依登記用量施用" };
+    if (note && !/^-+$/.test(note)) return { kind: "registered_note", value: "依登記附註施用" };
+    return { kind: "unconfirmed", value: "用途待核對產品標示" };
+  }
+  function usagePresentation(agent) {
+    agent = agent || {};
+    const raw = String(agent.dilution == null ? "" : agent.dilution).trim();
+    if (isDilutionMultiple(raw)) {
+      return { kind: "dilution", label: "稀釋倍數", value: raw + " 倍", detail: "", raw: raw, canCalculateDilution: true, isSpecial: false };
+    }
+    const purpose = usagePurpose(agent, raw);
+    const detail = raw && !/^-+$/.test(raw) ? raw : "";
+    return { kind: purpose.kind, label: "施用用途", value: purpose.value, detail: detail, raw: raw, canCalculateDilution: false, isSpecial: true };
   }
 
   /* ── C. 藥劑本位索引(DATA 是作物本位,這裡建反向索引) ──
@@ -358,6 +398,9 @@
     relatedPests: relatedPests,
     SEED_RE: SEED_RE,
     isSeedTreatment: isSeedTreatment,
+    isDilutionMultiple: isDilutionMultiple,
+    usagePurpose: usagePurpose,
+    usagePresentation: usagePresentation,
     buildAgentIndex: buildAgentIndex,
     agentSuggestions: agentSuggestions,
     agentRegistrations: agentRegistrations
