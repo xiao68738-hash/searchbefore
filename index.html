@@ -1337,9 +1337,10 @@ const DATA={"木瓜":{"白粉病":[{"name":"快得保淨","form":"WP","content":
 /* ═══ 維護區:改這裡就好 ═══════════════════════════════
    APP_VERSION:每次更新資料或功能時往上加
    ANNOUNCE:公告(新的放最上面,date 改了紅點會自動亮) */
-const APP_VERSION="0.3.9.6";
+const APP_VERSION="0.3.9.7";
 const DATA_VERSION="2026-07-21"; // 農藥資料抓取年月
 const ANNOUNCE=[
+ {date:"2026-08-14",version:"0.3.9.7",title:"修正藥劑查詢展開與特殊用法標示",body:"修正部分裝置載入新頁面但仍使用舊版離線模組時，點選作物旁的「＋」無法展開。沒有數字稀釋倍數的登記資料仍只顯示施用用途與原始附註，不再誤加「倍」。"},
  {date:"2026-08-09",version:"0.3.9.6",title:"改善表格多筆候選核對（測試中）",body:"辨識結果現在可先依文字位置拆出同列／同格候選，寬幅雙頁照片會分開處理；一張照片也可顯示多筆待確認作業。這只是位置輔助，系統不會猜測欄位、不會自動勾選低信心結果，也不會自動儲存或上傳。"},
  {date:"2026-08-09",version:"0.3.9.5",title:"改善多張表單的來源核對（測試中）",body:"每張照片會保留自己的處理狀態與來源順序，單張失敗不影響其他結果；辨識草稿也會保留頁次與文字位置，方便後續逐欄核對。所有結果仍須人工確認，不會自動儲存或上傳。"},
  {date:"2026-08-09",version:"0.3.9.4",title:"改善表單辨識的文件分流（測試中）",body:"表單辨識會先判斷照片屬於生產紀錄、設備管理、資材庫存或備查文件；證據不足或類型衝突時，不再自動採用第一個結果，必須由使用者對照原圖確認。設備與庫存資料仍只做本機整理，不會誤標為已可上傳產銷履歷系統。"},
@@ -1850,6 +1851,34 @@ function parseDil(s){
   if(!nums)return null;
   return Math.max(...nums.map(Number)); // 範圍取較高倍數 = 較稀,保守
 }
+/* Service Worker 更新期間可能短暫出現新版頁面搭配舊版 query-aids.js。
+   所有畫面統一走相容層，避免舊模組缺少 usagePresentation 時整區無法展開。 */
+function usagePresentationSafe(agent){
+  if(window.PQC_AIDS&&typeof PQC_AIDS.usagePresentation==="function")return PQC_AIDS.usagePresentation(agent);
+  const a=agent||{};
+  const raw=String(a.dilution==null?"":a.dilution).trim();
+  if(/^\s*\d[\d,]*(?:\.\d+)?(?:\s*[-~～至]\s*\d[\d,]*(?:\.\d+)?)?\s*$/.test(raw)){
+    return {kind:"dilution",label:"稀釋倍數",value:raw+" 倍",detail:"",raw,canCalculateDilution:true,isSpecial:false};
+  }
+  const dose=String(a.dose||"").trim(),note=String(a.note||"").trim(),text=[raw,dose,note].join(" ");
+  let kind="unconfirmed",value="用途待核對產品標示";
+  if(window.PQC_AIDS&&typeof PQC_AIDS.isSeedTreatment==="function"&&PQC_AIDS.isSeedTreatment(a)){kind="seed_treatment";value="種子處理"}
+  else if(/育苗箱|育苗盤|苗床/.test(text)){kind="nursery_treatment";value="育苗設施處理"}
+  else if(/費洛蒙|誘蟲器|誘蟲盒|誘餌/.test(text)){kind="pheromone";value="誘引／費洛蒙使用"}
+  else if(/燻蒸|薰蒸|密閉蒸/.test(text)){kind="fumigation";value="燻蒸處理"}
+  else if(/樹幹.{0,20}(?:注入|注射)|(?:注入|注射).{0,20}樹幹/.test(text)){kind="trunk_injection";value="樹幹注入處理"}
+  else if(/浸泡|浸漬|浸濕|浸潤/.test(text)){kind="soaking";value="浸泡／浸漬處理"}
+  else if(/塗抹|塗佈|粉衣/.test(text)){kind="coating";value="塗抹／包覆處理"}
+  else if(/原液/.test(raw)){kind="undiluted";value="原液施用"}
+  else if(/公升|公撮|毫升|\bL\b|L\s*\/|水量|加水|稀釋至/i.test(raw)){kind="water_volume";value="依登記水量施用"}
+  else if(/^\s*\d[\d,]*(?:\.\d+)?\s*:\s*\d[\d,]*(?:\.\d+)?\s*$/.test(raw)){kind="mixing_ratio";value="依登記比例調配"}
+  else if(/撒布|撒佈|撒施|混土|溝施|穴施|土壤|土面|畦面|灌根|淋灌|埋入/.test(text)){kind="soil_treatment";value="土壤／撒施處理"}
+  else if(/GR|粒劑/i.test(String(a.form||""))){kind="granule";value="粒劑施用"}
+  else if(raw&&!/^-+$/.test(raw)){kind="special_method";value="依登記方式施用"}
+  else if(dose&&!/^-+$/.test(dose)){kind="registered_dose";value="依登記用量施用"}
+  else if(note&&!/^-+$/.test(note)){kind="registered_note";value="依登記附註施用"}
+  return {kind,label:"施用用途",value,detail:raw&&!/^-+$/.test(raw)?raw:"",raw,canCalculateDilution:false,isSpecial:true};
+}
 function pickPest(p){
   selPest=p;agentShow=12;phiMax=0;
   document.getElementById("phiFilter").style.display="flex";
@@ -1939,7 +1968,7 @@ function renderAgents(){
     const rw=a.moa&&recentMoa[a.moa]
       ?`<span class="rot-warn">輪用提醒:${esc(recentMoa[a.moa].date)} 於「${esc(recentMoa[a.moa].crop)}」施用過同作用機制(${esc(recentMoa[a.moa].agent)}),建議改用其他代碼藥劑。</span>`:"";
     const seed=!!(window.PQC_AIDS&&PQC_AIDS.isSeedTreatment(a));
-    const usage=window.PQC_AIDS?PQC_AIDS.usagePresentation(a):{kind:a.dilution?"dilution":"no_dilution",label:"稀釋倍數",value:a.dilution?String(a.dilution)+" 倍":"無登記稀釋倍數",canCalculateDilution:!!a.dilution,isSpecial:!a.dilution};
+    const usage=usagePresentationSafe(a);
     return `
     <div class="agent">
       ${reason?`<div class="form-reason">⚠ ${esc(reason)}</div>`:""}
@@ -1969,8 +1998,8 @@ function renderAgents(){
   /* 依型態分組(未選型態時 split 全數落在 unspecified,順序=原順序,行為不變) */
   const split=cropHasForms?CF.splitIndices(selCrop,selForm,list):{matched:[],unspecified:list.map((_,k)=>k),excluded:[]};
   const mainSeq=selForm?split.matched.concat(split.unspecified):split.unspecified;
-  const standardSeq=mainSeq.filter(k=>!PQC_AIDS.usagePresentation(list[k]).isSpecial);
-  const specialSeq=mainSeq.filter(k=>PQC_AIDS.usagePresentation(list[k]).isSpecial);
+  const standardSeq=mainSeq.filter(k=>!usagePresentationSafe(list[k]).isSpecial);
+  const specialSeq=mainSeq.filter(k=>usagePresentationSafe(list[k]).isSpecial);
   const shownSeq=standardSeq.slice(0,agentShow);
   const cnt=document.getElementById("agentCount");
   if(selForm){
@@ -2041,7 +2070,7 @@ function recordAgent(k){
 function toCalc(k){
   const a=currentAgentList()[k];
   if(!a){toast("找不到藥劑資料");return}
-  if(window.PQC_AIDS&&!PQC_AIDS.usagePresentation(a).canCalculateDilution){toast("這筆是特殊施用方式，沒有可帶入的數字稀釋資料");return}
+  if(!usagePresentationSafe(a).canCalculateDilution){toast("這筆是特殊施用方式，沒有可帶入的數字稀釋資料");return}
   const fk=formKind(a.form);
   const dd=parseDose(a.dose);
   calcAgent={crop:selCrop,pest:selPest,name:a.name,phi:a.phi,moa:a.moa||"",
@@ -3411,7 +3440,7 @@ function renderAgentRegs(keepFilterFocus){
         </button>
         ${open?g.rows.map((r,ri)=>{
           const ep=PQC_SAFETY.effectivePhi(r.a);
-          const usage=PQC_AIDS.usagePresentation(r.a);
+          const usage=usagePresentationSafe(r.a);
           const seed=PQC_AIDS.isSeedTreatment(r.a);
           return `<div class="arow">
           <div class="arow-main">
@@ -3453,7 +3482,7 @@ function agentRowBrands(ci,ri){
 }
 function agentRowToCalc(ci,ri){
   const x=agentRow(ci,ri);if(!x){toast("找不到藥劑資料");return}
-  if(!PQC_AIDS.usagePresentation(x.a).canCalculateDilution){toast("這筆是特殊施用方式，沒有可帶入的數字稀釋資料");return}
+  if(!usagePresentationSafe(x.a).canCalculateDilution){toast("這筆是特殊施用方式，沒有可帶入的數字稀釋資料");return}
   const meta=agentCalcMeta(x.a);
   calcAgent={crop:x.crop,pest:x.pest,name:x.a.name,phi:x.a.phi,moa:x.a.moa||"",
     unit:meta.unit,dosePerHa:meta.dosePerHa,doseRaw:meta.doseRaw,bl:(x.a.bl||[]).slice()};
@@ -3570,7 +3599,7 @@ function dualIntersect(pest){
   return hits;
 }
 function dualSafeDil(h){
-  if(h.rows.some(r=>!PQC_AIDS.usagePresentation(r).canCalculateDilution))return "";
+  if(h.rows.some(r=>!usagePresentationSafe(r).canCalculateDilution))return "";
   const ds=h.rows.map(r=>parseDil(r.dilution)).filter(Boolean);
   return ds.length===h.rows.length?Math.max.apply(null,ds):""; // 全部都是倍數才可帶入
 }
@@ -3599,7 +3628,7 @@ function dualSaveRecipe(i){
   const safeDil=dualSafeDil(h);
   const phis=h.rows.map(r=>r.phi).filter(v=>v!=null);
   const conservativePhi=phis.length?Math.max.apply(null,phis):null;
-  const per=dual.sel.map((c,n)=>`${c} ${PQC_AIDS.usagePresentation(h.rows[n]).value} PHI${h.rows[n].phi??"見標示"}`).join(", ");
+  const per=dual.sel.map((c,n)=>`${c} ${usagePresentationSafe(h.rows[n]).value} PHI${h.rows[n].phi??"見標示"}`).join(", ");
   const note=`${dual.sel.length} 作物共同防治;${per};實際採收期仍請分作物確認。`;
   /* bl 換成 h.shared:只有全部所選作物都登記的商品才可標示 */
   const r=makeRecipeFromAgent({...h.rows[0],phi:conservativePhi,bl:h.shared||[]},dual.sel.join("+"),dual.pest,safeDil,note);
@@ -3623,7 +3652,7 @@ function dualAgents(pest){
       <h3 style="font-size:18px">${esc(h.rows[0].name)}</h3>
       <div class="sub">${esc(h.rows[0].content||"")} ${esc(h.rows[0].form||"")}${h.rows[0].moa?` · <span class="ftag moa-tag">${esc(h.rows[0].moa)}</span>`:""}</div>
       ${dual.sel.map((c,k)=>`<div class="dual-row"><span class="cn">${esc(c)}</span>
-        <span class="dv">${esc(PQC_AIDS.usagePresentation(h.rows[k]).value)}</span>
+        <span class="dv">${esc(usagePresentationSafe(h.rows[k]).value)}</span>
         <span class="dk">採收期 ${h.rows[k].phi!=null?h.rows[k].phi+" 天":"見標示"} · 登記於 ${esc(h.rows[k].src)}</span></div>`).join("")}
       <button class="brand-toggle" onclick="openDualBrands(${i})">共同登記商品 ${h.shared.length} 個</button>
       <div class="dual-acts"><span class="dal">帶入計算</span>
