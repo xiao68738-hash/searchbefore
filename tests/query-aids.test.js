@@ -89,19 +89,55 @@ assert.ok(A.isSeedTreatment({ note: "限拌種使用" }));
 assert.ok(A.isSeedTreatment({ note: "1.將稻種浸種消毒催芽至芽長0.5公釐" }));
 assert.ok(A.isSeedTreatment({ note: "1. 適用於水稻種子處理。" }));
 assert.ok(A.isSeedTreatment({ note: "浸種球30分鐘。" }));
+assert.ok(A.isSeedTreatment({ dose: "0.5G/1公斤種子", note: "" }));
 assert.equal(A.isSeedTreatment({ note: "採收前3天停止施藥。" }), false);
+assert.equal(A.isSeedTreatment({ note: "種子須先催芽後再播種於苗床" }), false, "只描述播種前準備，不等於藥劑用於種子處理");
 assert.equal(A.isSeedTreatment({ note: "" }), false);
 assert.equal(A.isSeedTreatment(null), false);
+
+/* 稀釋欄位不一定是倍數：不可把施用水量、原液或空值顯示成「--倍」。 */
+assert.equal(A.isDilutionMultiple("1,500"), true);
+assert.equal(A.isDilutionMultiple("500-1,000"), true);
+assert.equal(A.isDilutionMultiple("稀釋至600公升"), false);
+assert.equal(A.isDilutionMultiple("--"), false);
+assert.deepEqual(A.usagePresentation({ dilution: "1,500" }), {
+  kind: "dilution", label: "稀釋倍數", value: "1,500 倍", detail: "", raw: "1,500", canCalculateDilution: true, isSpecial: false
+});
+assert.equal(A.usagePresentation({ dilution: "", note: "限拌種使用" }).kind, "seed_treatment");
+assert.equal(A.usagePresentation({ dilution: "", note: "限拌種使用" }).value, "種子處理");
+assert.equal(A.usagePresentation({ dilution: "-", dose: "0.5G/1公斤種子" }).label, "施用用途");
+assert.equal(A.usagePresentation({ dilution: "稀釋至600公升" }).kind, "water_volume");
+assert.equal(A.usagePresentation({ dilution: "稀釋至600公升" }).value, "依登記水量施用");
+assert.equal(A.usagePresentation({ dilution: "稀釋至600公升" }).detail, "稀釋至600公升");
+assert.equal(A.usagePresentation({ dilution: "原液" }).kind, "undiluted");
+assert.equal(A.usagePresentation({ dilution: "--" }).canCalculateDilution, false);
+
+const peaTachigaren = DATA["豌豆"]["立枯病"].find(a => a.name === "脫克松");
+assert.ok(peaTachigaren, "應存在豌豆／立枯病／脫克松登記資料");
+assert.equal(A.usagePresentation(peaTachigaren).value, "種子處理");
+assert.equal(A.usagePresentation(peaTachigaren).canCalculateDilution, false);
 
 /* 全庫:種子處理藥劑應存在且其採收期本就多為空值 */
 {
   let seed = 0, seedWithPhi = 0;
+  let special = 0, invalidMultiple = 0, specialWithMultipleWording = 0;
   for (const crop of Object.keys(DATA)) for (const pest of Object.keys(DATA[crop])) for (const a of DATA[crop][pest]) {
     if (A.isSeedTreatment(a)) { seed++; if (a.phi != null) seedWithPhi++; }
+    const usage = A.usagePresentation(a);
+    if (usage.isSpecial) special++;
+    if (usage.isSpecial && /倍/.test(usage.label + usage.value)) specialWithMultipleWording++;
+    if (usage.canCalculateDilution && !A.isDilutionMultiple(a.dilution)) invalidMultiple++;
   }
   assert.ok(seed >= 30, "全庫應辨識出種子處理藥劑(排查:35 筆)");
   assert.equal(seedWithPhi, 0, "種子處理藥劑的採收期應皆為空值(故顯示為不適用)");
+  assert.ok(special >= 1000, `全庫應辨識所有沒有數字稀釋資料的特殊用法,實際 ${special}`);
+  assert.equal(specialWithMultipleWording, 0, "沒有數字稀釋資料的用途標籤不得出現『倍』字");
+  assert.equal(invalidMultiple, 0, "只有純數字倍數資料可以進入倍數計算");
 }
+
+assert.ok(html.includes("特殊施用方式("), "查詢畫面須將特殊施用方式移到獨立區塊");
+assert.ok(html.includes("不適用稀釋計算"), "特殊用法須停用稀釋計算按鈕");
+assert.ok(!html.includes('${esc(r.a.dilution||"—")} 倍'), "藥劑本位查詢不得替空白或橫線資料加上『倍』");
 
 console.log("✓ 害物從屬只採 strong,排查列出的 weak 誤判全部不成立");
 console.log("✓ 從屬提示限同作物,實案例(斜紋夜蛾↔夜蛾類,交集0)正確");
