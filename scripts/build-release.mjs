@@ -15,6 +15,7 @@ const jsFiles = [
   "account.js",
   "cloud-sync.js",
   "safety.js",
+  "mrl-status.js",
   "farm-records.js",
   "crop-forms.js",
   "query-aids.js",
