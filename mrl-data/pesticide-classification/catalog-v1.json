@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "catalogVersion": "2023-01-fourth-edition-pilot-1",
+  "source": {
+    "title": "農用藥劑分類及作用機制檢索（第四版）",
+    "published": "2023-01",
+    "publisher": "行政院農業委員會動植物防疫檢疫局",
+    "editor": "國立臺灣大學昆蟲學系",
+    "localSourceRequiredForRebuild": true
+  },
+  "policy": {
+    "resistanceRiskMode": "aprd_case_count_by_ingredient",
+    "highRiskLevels": ["high"],
+    "highRiskCaseCountOperator": ">",
+    "highRiskCaseCountThreshold": 500,
+    "unknownMovementIsNonSystemic": false,
+    "notes": [
+      "只有 APRD 單一有效成分案例數高於 500 件才標為高抗藥性風險；剛好 500 件不列入。",
+      "IRAC、FRAC、HRAC 作用機制代碼不得直接推定高抗藥性風險。",
+      "未列為高風險不等於低風險或安全；正式查詢只顯示高風險標記。",
+      "系統性屬有效成分特性；未收錄或未標示一律回傳 unknown，不推論為非系統性。",
+      "本目錄是可測試的後端先行架構，尚未直接改動正式查詢畫面。"
+    ]
+  },
+  "resistanceRiskByMechanism": {
+    "IRAC": {
+      "1A": "high", "1B": "high", "2B": "medium", "3A": "high", "4A": "high",
+      "4C": "low", "5": "medium", "6": "medium", "7B": "low", "7C": "low",
+      "8C": "low", "8F": "low", "9B": "low", "10A": "low", "10B": "low",
+      "11A": "low", "15": "low", "16": "low", "17": "low", "18": "medium",
+      "20B": "low", "21A": "low", "22A": "medium", "22B": "low", "23": "low",
+      "24A": "medium", "25A": "low", "28": "medium", "29": "low", "UN": "low"
+    },
+    "FRAC": {
+      "1": "high", "2": "medium_high", "3": "medium", "4": "high", "5": "medium",
+      "6": "medium_low", "7": "medium_high", "8": "medium", "9": "medium", "10": "high",
+      "11": "high", "11A": "high", "12": "medium_low", "13": "medium", "14": "medium_low", "16.1": "low",
+      "16.2": "medium", "17": "medium_low", "18": "medium", "19": "medium", "20": "low",
+      "21": "medium_high", "22": "medium_low", "23": "medium_low", "24": "medium", "25": "high",
+      "28": "medium", "29": "low", "30": "medium_low", "31": "medium", "32": "medium",
+      "34": "low", "35": "low", "36": "low", "37": "low", "38": "low", "39": "low",
+      "40": "medium_low", "41": "high", "43": "medium", "45": "medium_high", "47": "medium_high", "49": "medium_high", "52": "medium_high",
+      "53": "high"
+    }
+  },
+  "movementProfiles": [
+    {
+      "movement": "systemic",
+      "confidence": "direct_document_marker",
+      "sourcePages": [9, 10, 11, 12, 13, 14],
+      "names": [
+        "大滅松", "必芬松", "托福松", "亞芬松", "亞素靈", "亞培松", "依殺松", "美文松", "飛達松", "硫滅松",
+        "丁基加保扶", "加保扶", "佈嘉信", "免扶克", "免敵克", "治滅蝨", "納乃得", "硫伐隆", "硫敵克", "毆殺滅",
+        "二硫松", "可尼丁", "亞滅培", "益達胺", "達特南", "賽速安", "滅多松", "滅賜松", "達馬松", "福木松",
+        "福瑞松", "福賜米松", "毆殺松", "毆滅松", "繁米松", "雙特松", "派滅淨", "速殺氟", "氟美派", "得福隆",
+        "賽滅淨", "培丹", "賽安勃", "特安勃", "賜派滅", "印楝素"
+      ]
+    },
+    {
+      "movement": "selective_systemic",
+      "confidence": "direct_document_marker",
+      "sourcePages": [9, 10, 13],
+      "names": ["滅加松", "比加普", "芬普尼", "剋安勃"]
+    },
+    {
+      "movement": "local_systemic",
+      "confidence": "direct_document_marker",
+      "sourcePages": [9, 10, 11, 12, 13],
+      "names": ["亞特松", "加保利", "賽果培", "阿巴汀", "密滅汀", "克凡派", "氟大滅", "賜滅芬"]
+    },
+    {
+      "movement": "systemic",
+      "confidence": "direct_document_marker",
+      "sourcePages": [17, 18, 19, 20, 21, 22, 23, 24],
+      "names": [
+        "免賴得", "貝芬替", "腐絕", "多保淨", "滅達樂", "右滅達樂", "本達樂", "右本達樂", "毆殺斯", "布瑞莫",
+        "依瑞莫", "殺紋寧", "歐索林酸", "氟比來", "福多寧", "滅普寧", "嘉保信", "賽氟滅", "福拉比", "亞托敏",
+        "克收欣", "嘉賜黴素", "鏈黴素", "快諾芬", "克氯得", "撲滅寧", "賽普洛", "賽福寧", "比芬諾", "尼瑞莫",
+        "芬瑞莫", "依滅列", "披扶座", "賽福座", "丙基喜樂松", "白粉松", "亞賜圃", "三得芬", "芬普福", "保粒黴素丁",
+        "保粒黴素甲", "三泰芬", "三泰隆", "比多農", "四克利", "平克座", "易胺座", "芬克座", "待克利", "得克利",
+        "普克利", "菲克利", "溴克座", "達克利", "環克座", "邁克尼", "護汰芬", "護矽得", "撲殺熱", "亞汰尼",
+        "百快隆", "三賽唑", "加普胺", "芬諾尼", "富米綜", "福賽得", "亞磷酸", "普拔克", "克枯爛", "多寧",
+        "施得圃"
+      ]
+    },
+    {
+      "movement": "local_systemic",
+      "confidence": "direct_document_marker",
+      "sourcePages": [18, 19, 20, 22, 23, 24],
+      "names": ["氟派瑞", "氟克殺", "白克列", "賽座滅", "扶吉胺", "百克敏", "三氟敏", "普快淨", "派美尼", "滅特座", "達滅芬", "克絕", "氟硫滅", "固殺草"]
+    },
+    {
+      "movement": "non_systemic",
+      "confidence": "reviewed_absence",
+      "sourcePages": [9, 10, 11, 12, 15, 18, 25],
+      "evidence": "第四版表格逐項視覺核對，名稱旁無 S、SS、LS、穿層或上下移行標記",
+      "names": [
+        "大利松", "巴賽松", "加福松", "加護松", "甲基巴拉松", "白克松", "佈飛松", "谷速松", "芬殺松", "馬拉松", "陶斯松",
+        "賽洛寧", "第滅寧", "芬化利", "畢芬寧", "賽滅寧", "百滅寧", "撲滅松",
+        "因滅汀", "賜諾特", "賜諾殺", "礦物油", "二福隆", "百利普芬", "祿芬隆", "汰芬隆", "可芬諾",
+        "四氯異苯腈", "賓克隆", "腈硫醌", "芬殺蟎"
+      ]
+    },
+    {
+      "movement": "systemic",
+      "confidence": "direct_document_marker",
+      "sourcePages": [13, 17],
+      "sourceReference": {
+        "pdf": "農用藥劑分類及作用機制檢索（第四版）",
+        "pdfPages": [13, 17],
+        "printedPages": [23, 31]
+      },
+      "evidence": "第四版名稱旁直接標示 S；氟尼胺另有穿層滲透圖示",
+      "names": ["氟尼胺", "甲基多保淨"]
+    },
+    {
+      "movement": "bidirectional",
+      "confidence": "direct_document_marker",
+      "sourcePages": [20],
+      "sourceReference": {
+        "pdf": "農用藥劑分類及作用機制檢索（第四版）",
+        "pdfPages": [20],
+        "printedPages": [37]
+      },
+      "evidence": "第四版在依普同名稱旁直接標示穿層滲透與上下移行圖示",
+      "names": ["依普同"]
+    },
+    {
+      "movement": "non_systemic",
+      "confidence": "direct_document_classification",
+      "sourcePages": [25],
+      "sourceReference": {
+        "pdf": "農用藥劑分類及作用機制檢索（第四版）",
+        "pdfPages": [25],
+        "printedPages": [46, 47]
+      },
+      "evidence": "第四版將有效成分列於多重作用部位接觸活性（Multi-site contact activity）分類",
+      "names": ["三元硫酸銅", "氫氧化銅", "鹼性氯氧化銅", "鋅錳乃浦", "可濕性硫黃", "快得寧"]
+    }
+  ]
+}
