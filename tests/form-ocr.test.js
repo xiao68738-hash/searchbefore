@@ -1,6 +1,17 @@
 const assert = require("node:assert/strict");
 const O = require("../form-ocr.js");
 
+assert.deepEqual(O.findPartialDates("日期 7/14").map(item => item.value), ["07/14"], "缺年份的月日應保留為人工確認提示");
+assert.deepEqual(O.findPartialDates("日期 115/7/14"), [], "完整民國日期的尾段不得重複當成缺年份日期");
+assert.deepEqual(O.findPartialDates("日期 13/40"), [], "不可能的月日不得成為候選");
+const fuzzyMaterials = O.recognizedMaterialCandidates("資材名稱：蘇力 劑型：水懸劑", ["蘇力菌", "益達胺"]);
+const fuzzyMaterial = fuzzyMaterials.find(item => item.value === "蘇力菌");
+assert.ok(fuzzyMaterial, "標籤後只差一字的資材名稱應列為低信心候選");
+assert.equal(fuzzyMaterial.match, "label-context-edit-distance-1");
+assert.ok(fuzzyMaterial.confidence < 0.75, "近似候選不得達到自動預選門檻");
+assert.ok(fuzzyMaterials.some(item => item.value === "蘇力" && item.match === "label-extracted-unverified"), "無法確認的標籤後原文仍應供人工核對");
+assert.equal(O.recognizedMaterialCandidates("資材名稱：蘇力菌 劑型：水懸劑", ["蘇力菌"])[0].confidence, 0.96, "完全符合字典時維持高信心");
+
 const clear = O.assessQuality({
   width: 1600,
   height: 2200,
@@ -12,6 +23,93 @@ const clear = O.assessQuality({
 });
 assert.equal(clear.canProcess, true);
 assert.equal(clear.issues.length, 0);
+
+const lowContrast = O.assessQuality({
+  width: 1600,
+  height: 2200,
+  documentCoverage: 0.82,
+  sharpness: 0.88,
+  glareRatio: 0.02,
+  contrastScore: 0.12,
+  inkRatio: 0.08,
+  skewDegrees: 2,
+  cornersDetected: true
+});
+assert.equal(lowContrast.canProcess, false);
+assert.ok(lowContrast.issues.some(item => item.code === "too-little-contrast"));
+
+const blankPage = O.assessQuality({
+  width: 1600,
+  height: 2200,
+  documentCoverage: 0.82,
+  sharpness: 0.88,
+  glareRatio: 0.02,
+  contrastScore: 0.8,
+  inkRatio: 0.001,
+  skewDegrees: 2,
+  cornersDetected: true
+});
+assert.equal(blankPage.canProcess, false);
+assert.ok(blankPage.issues.some(item => item.code === "almost-no-ink"));
+
+const conflictingNumericDraft = O.createDraft({
+  requestId: "dual-model-conflict",
+  quality: {
+    width: 1600,
+    height: 2200,
+    documentCoverage: 0.85,
+    sharpness: 0.8,
+    glareRatio: 0.01,
+    contrastScore: 0.8,
+    inkRatio: 0.1,
+    cornersDetected: true,
+    recognitionCompared: true,
+    recognitionDigitAgreement: 0.4,
+    recognitionNumericConflict: true
+  },
+  blocks: [{ id: "primary-date", text: "日期 2026/7/14", confidence: 0.9 }],
+  alternativeBlocks: [{ id: "latin-date", text: "2026/7/19", confidence: 0.9 }]
+}, {});
+assert.equal(conflictingNumericDraft.alternativeBlocks.length, 1);
+assert.equal(conflictingNumericDraft.fields.date.length, 2);
+assert.ok(conflictingNumericDraft.fields.date.every(item => item.confidence < 0.75), "模型衝突時所有數字候選都不得自動預選");
+assert.ok(conflictingNumericDraft.quality.issues.some(item => item.code === "numeric-model-disagreement"));
+
+const agreeingNumericDraft = O.createDraft({
+  requestId: "dual-model-agree",
+  quality: {
+    width: 1600,
+    height: 2200,
+    documentCoverage: 0.85,
+    sharpness: 0.8,
+    glareRatio: 0.01,
+    contrastScore: 0.8,
+    inkRatio: 0.1,
+    cornersDetected: true,
+    recognitionCompared: true,
+    recognitionDigitAgreement: 1,
+    recognitionNumericConflict: false
+  },
+  blocks: [{ id: "primary-date", text: "日期 2026/7/14", confidence: 0.9 }],
+  alternativeBlocks: [{ id: "latin-date", text: "2026/7/14", confidence: 0.9 }]
+}, {});
+assert.equal(agreeingNumericDraft.fields.date.length, 1, "兩模型相同候選應去重");
+assert.equal(agreeingNumericDraft.fields.date[0].value, "2026-07-14");
+
+const contactSheet = O.assessQuality({
+  width: 1680,
+  height: 2370,
+  documentCoverage: 0.9,
+  sharpness: 0.8,
+  glareRatio: 0.02,
+  skewDegrees: 0,
+  cornersDetected: true,
+  contentRegionCount: 3,
+  multipleDocumentsDetected: true
+});
+assert.equal(contactSheet.canProcess, false, "聯絡表不得被當成單張表單辨識");
+assert.ok(contactSheet.issues.some((item) => item.code === "multiple-documents" && item.level === "blocking"));
+assert.equal(contactSheet.metrics.contentRegionCount, 3);
 
 const unclear = O.assessQuality({
   width: 600,

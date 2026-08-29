@@ -3,9 +3,15 @@ const fs = require("node:fs");
 const UI = require("../form-ocr-ui.js");
 
 const uiSource = fs.readFileSync(require.resolve("../form-ocr-ui.js"), "utf8");
+assert.match(UI.partialDateHintHtml([{ value: "07/14" }]), /07\/14/);
+assert.match(UI.partialDateHintHtml([{ value: "07/14" }]), /不會自行推測年份/);
+assert.equal(UI.partialDateHintHtml([]), "");
 assert.equal(uiSource.includes("Google Cloud Vision"), false, "前端不得顯示雲端辨識供應商品牌");
 
 const validPayload = { type: UI.RESULT_TYPE, protocolVersion: 1, requestId: "ocr-test-1", blocks: [{ text: "番茄" }] };
+assert.ok(UI.safePayload({ ...validPayload, alternativeBlocks: [{ text: "7/14", words: [] }] }), "第二辨識模型的安全文字候選應可通過");
+assert.equal(UI.safePayload({ ...validPayload, alternativeBlocks: Array.from({ length: 501 }, () => ({ text: "x" })) }), null, "第二模型同樣必須限制區塊數量");
+assert.equal(UI.safePayload({ ...validPayload, alternativeBlocks: [{ text: "data:image/png;base64,abc" }] }), null, "第二模型不得夾帶影像內容");
 assert.equal(UI.safePayload(validPayload).protocolVersion, 1);
 assert.equal(UI.safePayload({ ...validPayload, protocolVersion: 2 }), null, "未知協定版本不可接收");
 assert.equal(UI.safePayload({ ...validPayload, type: "OTHER_MESSAGE" }), null, "未知訊息類型不可接收");
@@ -26,6 +32,82 @@ assert.equal(UI.dilutionCandidateLabel({ value: 2000, role: "reference" }), "200
 assert.equal(UI.dilutionCandidateLabel({ value: 800, role: "unlabeled" }), "800 倍（用途未標示）");
 assert.match(UI.locationSeparationNotice({ workGroup: [{ value: "H區" }], landParcel: [{ value: "1234-5" }] }), /共同作業分區不等於正式田區或地號/);
 assert.match(UI.operationalMeasurementNotice({ packageWeight: [{ value: 3, unit: "公斤" }], labelCount: [{ value: 100, unit: "張" }] }), /不可互相推算/);
+
+const localCorrection = UI.buildLocalCorrectionRecord({
+  requestId: "must-not-leak-request-id",
+  sourceImage: {
+    sourceImageId: "must-not-leak-source-id",
+    fileName: "private-form-photo.jpg",
+    imageData: "must-not-leak-image"
+  },
+  accountId: "must-not-leak-account",
+  blocks: [{ text: "must-not-leak-raw-block" }],
+  fields: {
+    date: [{ value: "7/14", confidence: 0.91 }],
+    material: [{ value: "教角", confidence: 1.4 }, { value: " 教角 " }],
+    operator: [{ value: "王小明", confidence: 0.9 }],
+    fieldPlot: [{ value: "秘密田區", confidence: 0.9 }]
+  }
+}, {
+  date: "7/14",
+  material: "蘇力菌",
+  operator: "王小明",
+  fieldPlot: "秘密田區"
+}, {
+  generatedAt: "2026-08-26T09:30:00.000Z"
+});
+assert.equal(localCorrection.schemaVersion, 1);
+assert.equal(localCorrection.recordType, "ocr-local-correction");
+assert.equal(localCorrection.generatedAt, "2026-08-26T09:30:00.000Z");
+assert.equal(localCorrection.privacy.storage, "user-download-only");
+assert.equal(localCorrection.privacy.autoUploadAllowed, false);
+assert.equal(localCorrection.privacy.imageIncluded, false);
+assert.deepEqual(localCorrection.fields.map(item => item.key), ["date", "material"], "執行人與田區代號不得進入去識別化校正資料");
+assert.equal(localCorrection.fields[0].exactMatch, true);
+assert.equal(localCorrection.fields[1].exactMatch, false);
+assert.deepEqual(localCorrection.fields[1].candidates, [{ value: "教角", confidence: 1 }], "候選值應去重，信心值限制在 0 到 1");
+const serializedLocalCorrection = JSON.stringify(localCorrection);
+[
+  "must-not-leak-request-id",
+  "must-not-leak-source-id",
+  "private-form-photo.jpg",
+  "must-not-leak-image",
+  "must-not-leak-account",
+  "must-not-leak-raw-block",
+  "王小明",
+  "秘密田區"
+].forEach(value => assert.equal(serializedLocalCorrection.includes(value), false, value + " 不得外洩到校正資料"));
+assert.equal(Object.isFrozen(localCorrection), true);
+assert.equal(Object.isFrozen(localCorrection.fields), true);
+assert.equal(Object.isFrozen(localCorrection.fields[0]), true);
+assert.equal(UI.buildLocalCorrectionRecord({}, {}, { generatedAt: "2026-08-26T09:30:00.000Z" }).fields.length, 0);
+const downloadTrace = { appended: false, clicked: false, removed: false, revoked: "", parts: null, options: null };
+function FakeBlob(parts, options) {
+  downloadTrace.parts = parts;
+  downloadTrace.options = options;
+}
+const fakeLink = {
+  click() { downloadTrace.clicked = true; },
+  remove() { downloadTrace.removed = true; }
+};
+assert.equal(UI.downloadLocalCorrectionRecord(localCorrection, {
+  Blob: FakeBlob,
+  URL: {
+    createObjectURL() { return "blob:local-correction"; },
+    revokeObjectURL(value) { downloadTrace.revoked = value; }
+  },
+  document: {
+    createElement(tag) { assert.equal(tag, "a"); return fakeLink; },
+    body: { appendChild(link) { assert.equal(link, fakeLink); downloadTrace.appended = true; } }
+  }
+}), true);
+assert.equal(fakeLink.download, localCorrection.correctionId + ".json");
+assert.equal(fakeLink.href, "blob:local-correction");
+assert.equal(downloadTrace.appended && downloadTrace.clicked && downloadTrace.removed, true);
+assert.equal(downloadTrace.revoked, "blob:local-correction");
+assert.equal(downloadTrace.options.type, "application/json;charset=utf-8");
+assert.equal(downloadTrace.parts[0], JSON.stringify(localCorrection, null, 2));
+assert.equal(UI.downloadLocalCorrectionRecord({ fields: [] }, {}), false);
 
 const sourceFile = { name: "田間紀錄-01.jpg", size: 2480123, lastModified: 1786200000000, type: "image/jpeg" };
 const sameSourceFile = { ...sourceFile };

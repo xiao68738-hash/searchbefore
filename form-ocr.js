@@ -138,7 +138,16 @@
     const coverage = clamp01(m.documentCoverage);
     const sharpness = clamp01(m.sharpness);
     const glare = clamp01(m.glareRatio);
+    const hasContrastScore = m.contrastScore != null && Number.isFinite(Number(m.contrastScore));
+    const contrastScore = hasContrastScore ? clamp01(m.contrastScore) : null;
+    const hasInkRatio = m.inkRatio != null && Number.isFinite(Number(m.inkRatio));
+    const inkRatio = hasInkRatio ? clamp01(m.inkRatio) : null;
+    const recognitionCompared = m.recognitionCompared === true;
+    const recognitionDigitAgreement = recognitionCompared ? clamp01(m.recognitionDigitAgreement) : null;
+    const recognitionNumericConflict = recognitionCompared && m.recognitionNumericConflict === true;
     const skew = Math.abs(Number(m.skewDegrees) || 0);
+    const contentRegionCount = Math.max(0, Math.floor(Number(m.contentRegionCount) || 0));
+    const multipleDocumentsDetected = m.multipleDocumentsDetected === true || contentRegionCount > 1;
     const cornersConfirmedByUser = m.cornersConfirmedByUser === true;
     const corners = m.cornersDetected === true || cornersConfirmedByUser;
     const manualPhotoCheck = m.assessment === "user-confirmed-before-upload";
@@ -150,6 +159,7 @@
 
     if (!corners) add("missing-corners", "blocking", "沒有完整拍到表單四個角，請重新拍攝。");
     if (shortEdge < 720) add("low-resolution", "blocking", "照片解析度不足，請靠近表單重新拍攝。");
+    if (multipleDocumentsDetected) add("multiple-documents", "blocking", "一張照片內偵測到多份文件，請拆成單頁後分別辨識。");
     if (!manualPhotoCheck) {
       if (coverage < 0.45) add("document-too-small", "blocking", "表單在畫面中太小，請靠近拍攝。");
       else if (coverage < 0.65) add("document-could-be-closer", "warning", "表單可以再靠近一些，辨識會更準確。");
@@ -157,6 +167,11 @@
       else if (sharpness < 0.65) add("slightly-blurry", "warning", "照片稍微模糊，請特別核對辨識內容。");
       if (glare > 0.22) add("too-much-glare", "blocking", "表單反光太嚴重，請調整角度或光線。");
       else if (glare > 0.1) add("some-glare", "warning", "照片有些反光，請核對反光區域的文字。");
+      if (hasContrastScore && contrastScore < 0.18) add("too-little-contrast", "blocking", "紙張與文字對比太低，請增加均勻照明後重新拍攝。");
+      else if (hasContrastScore && contrastScore < 0.3) add("low-contrast", "warning", "文字對比偏低，淡色筆跡可能漏字，請仔細核對。");
+      if (hasInkRatio && inkRatio < 0.006) add("almost-no-ink", "blocking", "畫面中幾乎沒有可辨識文字或格線，請確認拍到正確頁面。");
+      else if (hasInkRatio && inkRatio > 0.58) add("too-much-shadow", "warning", "畫面暗部比例過高，可能有陰影或背景干擾。");
+      if (recognitionNumericConflict) add("numeric-model-disagreement", "warning", "兩個辨識模型對數字內容不一致；日期、倍數與數量不會自動採用，請逐字核對。");
       if (skew > 14) add("too-skewed", "blocking", "拍攝角度過斜，請從表單正上方重新拍攝。");
       else if (skew > 8) add("some-skew", "warning", "表單略為傾斜，請仔細核對辨識內容。");
     }
@@ -171,7 +186,14 @@
         documentCoverage: coverage,
         sharpness,
         glareRatio: glare,
+        contrastScore,
+        inkRatio,
+        recognitionCompared,
+        recognitionDigitAgreement,
+        recognitionNumericConflict,
         skewDegrees: skew,
+        contentRegionCount,
+        multipleDocumentsDetected,
         cornersDetected: corners,
         cornersConfirmedByUser,
         assessment: manualPhotoCheck ? "user-confirmed-before-upload" : "measured"
@@ -443,6 +465,31 @@
     return Object.freeze(out);
   }
 
+  function findPartialDates(text) {
+    const source = normalizeText(text);
+    const out = [];
+    const seen = new Set();
+    const pattern = /(?:^|[^\d/.\-])(\d{1,2})\s*[/.-]\s*(\d{1,2})(?!\s*[/.-]\s*\d)/g;
+    let match;
+    while ((match = pattern.exec(source))) {
+      const month = Number(match[1]);
+      const day = Number(match[2]);
+      if (month < 1 || month > 12 || day < 1 || day > 31) continue;
+      const value = String(month).padStart(2, "0") + "/" + String(day).padStart(2, "0");
+      if (seen.has(value)) continue;
+      seen.add(value);
+      out.push(Object.freeze({
+        value,
+        sourceText: match[0].trim(),
+        sourceIndex: match.index + (match[0].length - match[0].trimStart().length),
+        confidence: 0.68,
+        partial: true,
+        requiresYearConfirmation: true
+      }));
+    }
+    return Object.freeze(out.slice(0, MAX_FIELD_CANDIDATES));
+  }
+
   function findOperationalMeasurements(text) {
     const source = normalizeText(text);
     const out = [];
@@ -500,6 +547,79 @@
       }
     });
     return Object.freeze(out.sort(function (a, b) { return b.value.length - a.value.length; }).slice(0, 12));
+  }
+
+  function boundedEditDistance(left, right, limit) {
+    const a = Array.from(compact(left));
+    const b = Array.from(compact(right));
+    if (Math.abs(a.length - b.length) > limit) return limit + 1;
+    let previous = b.map(function (_, index) { return index + 1; });
+    previous.unshift(0);
+    for (let row = 1; row <= a.length; row += 1) {
+      const current = [row];
+      let rowMinimum = current[0];
+      for (let column = 1; column <= b.length; column += 1) {
+        const cost = a[row - 1] === b[column - 1] ? 0 : 1;
+        const value = Math.min(
+          previous[column] + 1,
+          current[column - 1] + 1,
+          previous[column - 1] + cost
+        );
+        current.push(value);
+        rowMinimum = Math.min(rowMinimum, value);
+      }
+      if (rowMinimum > limit) return limit + 1;
+      previous = current;
+    }
+    return previous[b.length];
+  }
+
+  function approximateDictionaryCandidates(rawCandidates, values, kind) {
+    const ranked = [];
+    const seen = new Set();
+    (rawCandidates || []).forEach(function (rawCandidate) {
+      const rawValue = normalizeText(rawCandidate && rawCandidate.value);
+      const rawKey = compact(rawValue);
+      if (rawKey.length < 2 || rawKey.length > 12) return;
+      (values || []).forEach(function (dictionaryValue) {
+        const value = normalizeText(dictionaryValue);
+        const key = compact(value);
+        if (key.length < 2 || key.length > 12 || Math.abs(key.length - rawKey.length) > 1) return;
+        const distance = boundedEditDistance(rawKey, key, 1);
+        if (distance !== 1) return;
+        const identity = kind + "|" + key;
+        if (seen.has(identity)) return;
+        seen.add(identity);
+        ranked.push(Object.freeze({
+          value,
+          sourceText: rawValue,
+          confidence: Math.max(0.52, Math.min(0.68, 0.76 - (distance / Math.max(key.length, rawKey.length)))),
+          match: "label-context-edit-distance-1",
+          editDistance: distance,
+          kind
+        }));
+      });
+    });
+    return Object.freeze(ranked.sort(function (left, right) {
+      return right.confidence - left.confidence || right.value.length - left.value.length;
+    }).slice(0, 5));
+  }
+
+  function recognizedMaterialCandidates(text, values) {
+    const exact = dictionaryCandidates(text, values, "material");
+    const stopLabels = ["劑型", "廠商", "製造商", "供應商", "包裝單位", "包裝容量", "日期", "購入量", "使用量", "剩餘量"];
+    const raw = findInventoryLabeledValues(text, ["資材名稱", "肥料名稱", "藥劑名稱", "商品名"], stopLabels, "materialRaw");
+    const fuzzy = approximateDictionaryCandidates(raw, values, "material");
+    const unverifiedRaw = raw.map(function (item) {
+      return Object.freeze({
+        value: item.value,
+        sourceText: item.sourceText,
+        confidence: 0.5,
+        match: "label-extracted-unverified",
+        kind: "materialRaw"
+      });
+    });
+    return mergeCandidates(exact, fuzzy, unverifiedRaw);
   }
 
   function optionPattern(value) {
@@ -1241,6 +1361,15 @@
     return Object.freeze(out);
   }
 
+  function modelCandidates(items, model, confidenceCap) {
+    return Object.freeze((Array.isArray(items) ? items : []).map(function (item) {
+      return Object.freeze(Object.assign({}, item, {
+        confidence: Math.min(clamp01(item && item.confidence), confidenceCap),
+        recognitionModel: model
+      }));
+    }));
+  }
+
   function createMaterialInventoryDraft(text) {
     const stopLabels = ["資材名稱", "廠商", "供應商", "包裝單位", "包裝容量", "日期", "購入量", "使用量", "剩餘量"];
     const materials = findInventoryLabeledValues(text, ["資材名稱", "肥料名稱"], stopLabels, "inventoryMaterial");
@@ -1372,6 +1501,8 @@
     if (kind != null) out.kind = kind;
     const match = safeCandidateValue(item.match);
     if (match != null) out.match = match;
+    const recognitionModel = safeCandidateValue(item.recognitionModel);
+    if (recognitionModel != null) out.recognitionModel = recognitionModel;
     if (item.selected === true) out.markDetected = true;
     return Object.freeze(out);
   }
@@ -1590,7 +1721,13 @@
     const result = scanResult || {};
     const quality = assessQuality(result.quality);
     const blocks = safeBlocks(result.blocks);
+    const alternativeBlocks = safeBlocks(result.alternativeBlocks);
     const text = blocks.map(function (block) { return block.text; }).join("\n");
+    const alternativeText = alternativeBlocks.map(function (block) { return block.text; }).join("\n");
+    const numericConflict = quality.metrics.recognitionNumericConflict === true;
+    const digitAgreement = quality.metrics.recognitionDigitAgreement;
+    const primaryNumericCap = numericConflict ? 0.69 : 1;
+    const alternativeNumericCap = numericConflict ? 0.55 : (digitAgreement != null && digitAgreement >= 0.75 ? 0.84 : 0.68);
     const dict = dictionaries || {};
     const recordTypes = detectFormTypes(text);
     const routeDecision = decideDocumentRoute(recordTypes, text);
@@ -1629,28 +1766,47 @@
     const harvestQuantities = operationalMeasurements.filter(function (item) { return item.role === "harvestQuantity"; });
     const fields = Object.freeze({
       recordType: recordTypes,
-      date: findDates(text),
+      date: mergeCandidates(
+        modelCandidates(findDates(text), "primary", primaryNumericCap),
+        modelCandidates(findDates(alternativeText), "alternative-latin", alternativeNumericCap)
+      ),
+      partialDate: mergeCandidates(
+        modelCandidates(findPartialDates(text), "primary", primaryNumericCap),
+        modelCandidates(findPartialDates(alternativeText), "alternative-latin", alternativeNumericCap)
+      ),
       crop: dictionaryCandidates(text, dict.crops, "crop"),
       fieldPlot: locations.filter(function (item) { return item.role === "officialField"; }),
       workGroup: locations.filter(function (item) { return item.role === "workGroup"; }),
       landParcel: locations.filter(function (item) { return item.role === "landParcel"; }),
       target: dictionaryCandidates(text, dict.targets, "target"),
-      material: mergeCandidates(dictionaryCandidates(text, dict.materials, "material"), materialInventory && materialInventory.materials),
-      dilution: findDilutions(text),
-      amount: routeDecision.status === "exact" && routeDecision.type === "harvest" ? harvestQuantities : findAmounts(text),
+      material: mergeCandidates(recognizedMaterialCandidates(text, dict.materials), materialInventory && materialInventory.materials),
+      dilution: mergeCandidates(
+        modelCandidates(findDilutions(text), "primary", primaryNumericCap),
+        modelCandidates(findDilutions(alternativeText), "alternative-latin", alternativeNumericCap)
+      ),
+      amount: routeDecision.status === "exact" && routeDecision.type === "harvest"
+        ? harvestQuantities
+        : mergeCandidates(
+          modelCandidates(findAmounts(text), "primary", primaryNumericCap),
+          modelCandidates(findAmounts(alternativeText), "alternative-latin", alternativeNumericCap)
+        ),
       harvestQuantity: harvestQuantities,
       packageWeight: operationalMeasurements.filter(function (item) { return item.role === "packageWeight"; }),
       labelCount: operationalMeasurements.filter(function (item) { return item.role === "labelCount"; }),
-      safetyInterval: findSafetyIntervals(text),
+      safetyInterval: mergeCandidates(
+        modelCandidates(findSafetyIntervals(text), "primary", primaryNumericCap),
+        modelCandidates(findSafetyIntervals(alternativeText), "alternative-latin", alternativeNumericCap)
+      ),
       operator: findLabeledValues(text, ["記錄人", "紀錄人", "操作人員", "執行人", "查核者", "確認者"], "operator")
     });
+    const evidenceBlocks = Object.freeze(blocks.concat(alternativeBlocks));
     const activities = standardActivities({
       routeDecision,
       route,
       fields,
       equipmentRows,
       materialInventory,
-      blocks,
+      blocks: evidenceBlocks,
       sourceImage
     });
     return Object.freeze({
@@ -1675,7 +1831,8 @@
       recordGroups: equipmentRows,
       selfInspection: isSelfInspection ? createSelfInspectionDraft(text) : null,
       materialInventory,
-      blocks
+      blocks,
+      alternativeBlocks
     });
   }
 
@@ -1924,6 +2081,7 @@
     normalizeText,
     assessQuality,
     findDates,
+    findPartialDates,
     findDilutions,
     findAmounts,
     findSafetyIntervals,
@@ -1938,6 +2096,8 @@
     createMaterialInventoryDraft,
     associateMaterialLedgerRows,
     dictionaryCandidates,
+    approximateDictionaryCandidates,
+    recognizedMaterialCandidates,
     findMarkedOptions,
     findEquipmentMaintenanceRows,
     findSelfInspectionInspectors,
