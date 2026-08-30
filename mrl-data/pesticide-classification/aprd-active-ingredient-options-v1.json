@@ -1,0 +1,1827 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-08-14",
+  "source": "https://pesticideresistance.org/search.php",
+  "options": [
+    {
+      "id": "486",
+      "name": "Fenpyroximate + TPP"
+    },
+    {
+      "id": "1",
+      "name": "abamectin"
+    },
+    {
+      "id": "2",
+      "name": "acephate"
+    },
+    {
+      "id": "387",
+      "name": "acequinocyl"
+    },
+    {
+      "id": "371",
+      "name": "acetamiprid"
+    },
+    {
+      "id": "437",
+      "name": "acetamiprid + DEF"
+    },
+    {
+      "id": "495",
+      "name": "aconitine"
+    },
+    {
+      "id": "5",
+      "name": "acrinathrin"
+    },
+    {
+      "id": "494",
+      "name": "Afidopyropen"
+    },
+    {
+      "id": "6",
+      "name": "alanycarb"
+    },
+    {
+      "id": "7",
+      "name": "aldicarb"
+    },
+    {
+      "id": "8",
+      "name": "aldrin"
+    },
+    {
+      "id": "9",
+      "name": "allethrin"
+    },
+    {
+      "id": "13",
+      "name": "amidithion"
+    },
+    {
+      "id": "14",
+      "name": "aminocarb"
+    },
+    {
+      "id": "15",
+      "name": "amitraz"
+    },
+    {
+      "id": "503",
+      "name": "Aqualuer®20-20"
+    },
+    {
+      "id": "467",
+      "name": "avermectin"
+    },
+    {
+      "id": "16",
+      "name": "azadirachtin"
+    },
+    {
+      "id": "17",
+      "name": "azamethiphos"
+    },
+    {
+      "id": "18",
+      "name": "azinphos-ethyl"
+    },
+    {
+      "id": "19",
+      "name": "azinphos-methyl"
+    },
+    {
+      "id": "352",
+      "name": "azinphos-methyl + PBO"
+    },
+    {
+      "id": "393",
+      "name": "azobenzene"
+    },
+    {
+      "id": "21",
+      "name": "azocyclotin"
+    },
+    {
+      "id": "394",
+      "name": "Bacillus popilliae"
+    },
+    {
+      "id": "23",
+      "name": "Bacillus sphaericus"
+    },
+    {
+      "id": "359",
+      "name": "Bacillus sphaericus 1593"
+    },
+    {
+      "id": "360",
+      "name": "Bacillus sphaericus 2297"
+    },
+    {
+      "id": "397",
+      "name": "Bacillus sphaericus 2362"
+    },
+    {
+      "id": "461",
+      "name": "Bacillus sphaericus C3-41"
+    },
+    {
+      "id": "24",
+      "name": "Bacillus thuringiensis (var. unspecified)"
+    },
+    {
+      "id": "428",
+      "name": "Bacillus thuringiensis Cry11Aa"
+    },
+    {
+      "id": "492",
+      "name": "Bacillus thuringiensis Cry1A.105"
+    },
+    {
+      "id": "460",
+      "name": "Bacillus thuringiensis Cry1Aa"
+    },
+    {
+      "id": "433",
+      "name": "Bacillus thuringiensis Cry1Ab"
+    },
+    {
+      "id": "410",
+      "name": "Bacillus thuringiensis Cry1Ac"
+    },
+    {
+      "id": "480",
+      "name": "Bacillus thuringiensis Cry1Ah"
+    },
+    {
+      "id": "481",
+      "name": "Bacillus thuringiensis Cry1C"
+    },
+    {
+      "id": "380",
+      "name": "Bacillus thuringiensis Cry1Ca"
+    },
+    {
+      "id": "381",
+      "name": "Bacillus thuringiensis Cry1Da"
+    },
+    {
+      "id": "408",
+      "name": "Bacillus thuringiensis Cry1F"
+    },
+    {
+      "id": "479",
+      "name": "Bacillus thuringiensis Cry1Ie"
+    },
+    {
+      "id": "432",
+      "name": "bacillus thuringiensis Cry2Ab"
+    },
+    {
+      "id": "477",
+      "name": "Bacillus thuringiensis Cry2Ab2"
+    },
+    {
+      "id": "478",
+      "name": "Bacillus thuringiensis Cry2Ae"
+    },
+    {
+      "id": "427",
+      "name": "bacillus thuringiensis Cry4Aa"
+    },
+    {
+      "id": "436",
+      "name": "Bacillus thuringiensis Cry4B"
+    },
+    {
+      "id": "468",
+      "name": "Bacillus thuringiensis Cry4Ba"
+    },
+    {
+      "id": "355",
+      "name": "Bacillus thuringiensis CryIAa"
+    },
+    {
+      "id": "345",
+      "name": "Bacillus thuringiensis CryIIB"
+    },
+    {
+      "id": "363",
+      "name": "Bacillus thuringiensis CryIJa"
+    },
+    {
+      "id": "400",
+      "name": "Bacillus thuringiensis crystal CryIC"
+    },
+    {
+      "id": "361",
+      "name": "Bacillus thuringiensis HD73 spore/crystal"
+    },
+    {
+      "id": "399",
+      "name": "Bacillus thuringiensis var.  kurstaki HD-1"
+    },
+    {
+      "id": "25",
+      "name": "Bacillus thuringiensis var.  tenebrionenis"
+    },
+    {
+      "id": "26",
+      "name": "Bacillus thuringiensis var. aizawai"
+    },
+    {
+      "id": "462",
+      "name": "Bacillus thuringiensis var. aizawai ATTC SD-1372"
+    },
+    {
+      "id": "27",
+      "name": "Bacillus thuringiensis var. israelensis"
+    },
+    {
+      "id": "28",
+      "name": "Bacillus thuringiensis var. kurstaki"
+    },
+    {
+      "id": "398",
+      "name": "Bacillus thuringiensis var. kurstaki (Dipel)"
+    },
+    {
+      "id": "401",
+      "name": "Bacillus thuringiensis var. kurstaki (Javelin)"
+    },
+    {
+      "id": "484",
+      "name": "Bacillus thuringiensis Vip3A"
+    },
+    {
+      "id": "29",
+      "name": "bendiocarb"
+    },
+    {
+      "id": "30",
+      "name": "benfuracarb"
+    },
+    {
+      "id": "31",
+      "name": "benoxophos"
+    },
+    {
+      "id": "32",
+      "name": "bensultap"
+    },
+    {
+      "id": "33",
+      "name": "benzoximate"
+    },
+    {
+      "id": "501",
+      "name": "Beta-cyfluthrin"
+    },
+    {
+      "id": "34",
+      "name": "BHC/cyclodienes - Unspecified In Literature"
+    },
+    {
+      "id": "35",
+      "name": "bifenazate"
+    },
+    {
+      "id": "36",
+      "name": "bifenthrin"
+    },
+    {
+      "id": "346",
+      "name": "Bin2"
+    },
+    {
+      "id": "37",
+      "name": "binapacryl"
+    },
+    {
+      "id": "10",
+      "name": "bioallethrin"
+    },
+    {
+      "id": "38",
+      "name": "bioresmethrin"
+    },
+    {
+      "id": "403",
+      "name": "bioresmethrin+PBO"
+    },
+    {
+      "id": "39",
+      "name": "bromophos"
+    },
+    {
+      "id": "40",
+      "name": "bromophos-ethyl"
+    },
+    {
+      "id": "41",
+      "name": "bromopropylate"
+    },
+    {
+      "id": "42",
+      "name": "bufencarb"
+    },
+    {
+      "id": "43",
+      "name": "buprofezin"
+    },
+    {
+      "id": "44",
+      "name": "butacarb"
+    },
+    {
+      "id": "45",
+      "name": "butocarboxim"
+    },
+    {
+      "id": "46",
+      "name": "butoxycarboxim"
+    },
+    {
+      "id": "47",
+      "name": "cadusafos"
+    },
+    {
+      "id": "48",
+      "name": "Carbamates - Unspecified in Literature"
+    },
+    {
+      "id": "49",
+      "name": "carbaryl"
+    },
+    {
+      "id": "50",
+      "name": "carbofuran"
+    },
+    {
+      "id": "51",
+      "name": "carbophenothion"
+    },
+    {
+      "id": "52",
+      "name": "carbophenothion-methyl"
+    },
+    {
+      "id": "53",
+      "name": "carbosulfan"
+    },
+    {
+      "id": "54",
+      "name": "cartap"
+    },
+    {
+      "id": "280",
+      "name": "chinomethionate"
+    },
+    {
+      "id": "424",
+      "name": "chlorantraniliprole"
+    },
+    {
+      "id": "56",
+      "name": "chlorbenside"
+    },
+    {
+      "id": "57",
+      "name": "chlordane"
+    },
+    {
+      "id": "58",
+      "name": "chlordecone"
+    },
+    {
+      "id": "59",
+      "name": "chlordimeform"
+    },
+    {
+      "id": "60",
+      "name": "chlorethoxyfos"
+    },
+    {
+      "id": "61",
+      "name": "chlorfenapyr"
+    },
+    {
+      "id": "62",
+      "name": "chlorfenethol"
+    },
+    {
+      "id": "63",
+      "name": "chlorfenson"
+    },
+    {
+      "id": "64",
+      "name": "chlorfensulfide"
+    },
+    {
+      "id": "65",
+      "name": "chlorfenvinphos"
+    },
+    {
+      "id": "55",
+      "name": "chlorfluazuron"
+    },
+    {
+      "id": "66",
+      "name": "chlormephos"
+    },
+    {
+      "id": "67",
+      "name": "chlorobenzilate"
+    },
+    {
+      "id": "68",
+      "name": "chloromethiuron"
+    },
+    {
+      "id": "69",
+      "name": "chloropicrin"
+    },
+    {
+      "id": "70",
+      "name": "chloropropylate"
+    },
+    {
+      "id": "71",
+      "name": "chlorphoxim"
+    },
+    {
+      "id": "72",
+      "name": "chlorpyrifos"
+    },
+    {
+      "id": "452",
+      "name": "chlorpyrifos + DEF"
+    },
+    {
+      "id": "453",
+      "name": "chlorpyrifos + DEM"
+    },
+    {
+      "id": "454",
+      "name": "chlorpyrifos + PBO"
+    },
+    {
+      "id": "73",
+      "name": "chlorpyrifos-methyl"
+    },
+    {
+      "id": "74",
+      "name": "chlorthiophos"
+    },
+    {
+      "id": "75",
+      "name": "chromafenozide"
+    },
+    {
+      "id": "415",
+      "name": "cis-cypermethrin"
+    },
+    {
+      "id": "76",
+      "name": "cloethocarb"
+    },
+    {
+      "id": "389",
+      "name": "clofentezine"
+    },
+    {
+      "id": "78",
+      "name": "clothianidin"
+    },
+    {
+      "id": "79",
+      "name": "coumaphos"
+    },
+    {
+      "id": "347",
+      "name": "coumaphos oxon"
+    },
+    {
+      "id": "407",
+      "name": "CpGV"
+    },
+    {
+      "id": "80",
+      "name": "crotoxyphos"
+    },
+    {
+      "id": "429",
+      "name": "Cry11Ba"
+    },
+    {
+      "id": "487",
+      "name": "Cry1A.105"
+    },
+    {
+      "id": "500",
+      "name": "Cry1Ac"
+    },
+    {
+      "id": "483",
+      "name": "Cry2A"
+    },
+    {
+      "id": "419",
+      "name": "Cry3Bb1"
+    },
+    {
+      "id": "81",
+      "name": "cryolite"
+    },
+    {
+      "id": "472",
+      "name": "cyamizole"
+    },
+    {
+      "id": "82",
+      "name": "cyanofenphos"
+    },
+    {
+      "id": "83",
+      "name": "cyanophos"
+    },
+    {
+      "id": "470",
+      "name": "cyantraniliprole"
+    },
+    {
+      "id": "497",
+      "name": "cyclaniliprole"
+    },
+    {
+      "id": "84",
+      "name": "cycloprothrin"
+    },
+    {
+      "id": "485",
+      "name": "Cycloxaprid"
+    },
+    {
+      "id": "426",
+      "name": "cyenopyrafen"
+    },
+    {
+      "id": "464",
+      "name": "cyflumetofen"
+    },
+    {
+      "id": "85",
+      "name": "cyfluthrin"
+    },
+    {
+      "id": "376",
+      "name": "cyfluthrin + DEF"
+    },
+    {
+      "id": "86",
+      "name": "cyfluthrin-beta"
+    },
+    {
+      "id": "87",
+      "name": "cyhalothrin"
+    },
+    {
+      "id": "88",
+      "name": "cyhalothrin-gamma"
+    },
+    {
+      "id": "89",
+      "name": "cyhalothrin-lambda"
+    },
+    {
+      "id": "445",
+      "name": "cyhalothrin-lambda + PBO"
+    },
+    {
+      "id": "90",
+      "name": "cyhexatin"
+    },
+    {
+      "id": "91",
+      "name": "cypermethrin"
+    },
+    {
+      "id": "435",
+      "name": "Cypermethrin + PBO"
+    },
+    {
+      "id": "92",
+      "name": "cypermethrin-alpha"
+    },
+    {
+      "id": "93",
+      "name": "cypermethrin-beta"
+    },
+    {
+      "id": "94",
+      "name": "cypermethrin-theta"
+    },
+    {
+      "id": "95",
+      "name": "cypermethrin-zeta"
+    },
+    {
+      "id": "96",
+      "name": "cyphenothrin"
+    },
+    {
+      "id": "97",
+      "name": "cyromazine"
+    },
+    {
+      "id": "98",
+      "name": "DDT"
+    },
+    {
+      "id": "465",
+      "name": "delete"
+    },
+    {
+      "id": "99",
+      "name": "deltamethrin"
+    },
+    {
+      "id": "375",
+      "name": "deltamethrin + DEF"
+    },
+    {
+      "id": "455",
+      "name": "deltamethrin + DEM"
+    },
+    {
+      "id": "402",
+      "name": "deltamethrin + PBO"
+    },
+    {
+      "id": "100",
+      "name": "demephion"
+    },
+    {
+      "id": "101",
+      "name": "demeton"
+    },
+    {
+      "id": "102",
+      "name": "demeton-S-methyl"
+    },
+    {
+      "id": "103",
+      "name": "diafenthiuron"
+    },
+    {
+      "id": "104",
+      "name": "dialifos"
+    },
+    {
+      "id": "105",
+      "name": "diazinon"
+    },
+    {
+      "id": "362",
+      "name": "diazinon + PBO"
+    },
+    {
+      "id": "106",
+      "name": "dichlofenthion"
+    },
+    {
+      "id": "107",
+      "name": "dichlorvos"
+    },
+    {
+      "id": "136",
+      "name": "dichlorvos-diethyl"
+    },
+    {
+      "id": "108",
+      "name": "dicofol"
+    },
+    {
+      "id": "109",
+      "name": "dicrotophos"
+    },
+    {
+      "id": "379",
+      "name": "dicyclanil"
+    },
+    {
+      "id": "110",
+      "name": "dieldrin"
+    },
+    {
+      "id": "111",
+      "name": "dienochlor"
+    },
+    {
+      "id": "112",
+      "name": "diflubenzuron"
+    },
+    {
+      "id": "502",
+      "name": "Dimefluthrin"
+    },
+    {
+      "id": "113",
+      "name": "dimefox"
+    },
+    {
+      "id": "114",
+      "name": "dimethoate"
+    },
+    {
+      "id": "115",
+      "name": "dimethrin"
+    },
+    {
+      "id": "116",
+      "name": "dimethylvinphos"
+    },
+    {
+      "id": "117",
+      "name": "dinocap"
+    },
+    {
+      "id": "118",
+      "name": "dinotefuran"
+    },
+    {
+      "id": "119",
+      "name": "dioxabenzofos"
+    },
+    {
+      "id": "120",
+      "name": "dioxacarb"
+    },
+    {
+      "id": "121",
+      "name": "dioxathion"
+    },
+    {
+      "id": "122",
+      "name": "disulfoton"
+    },
+    {
+      "id": "123",
+      "name": "disulfoton sulfone"
+    },
+    {
+      "id": "124",
+      "name": "DNOC"
+    },
+    {
+      "id": "125",
+      "name": "emamectin benzoate"
+    },
+    {
+      "id": "126",
+      "name": "empenthrin"
+    },
+    {
+      "id": "127",
+      "name": "endosulfan"
+    },
+    {
+      "id": "128",
+      "name": "endothion"
+    },
+    {
+      "id": "129",
+      "name": "endrin"
+    },
+    {
+      "id": "130",
+      "name": "EPN"
+    },
+    {
+      "id": "156",
+      "name": "esfenvalerate"
+    },
+    {
+      "id": "131",
+      "name": "ethiofencarb"
+    },
+    {
+      "id": "132",
+      "name": "ethion"
+    },
+    {
+      "id": "133",
+      "name": "ethiprole"
+    },
+    {
+      "id": "134",
+      "name": "ethoate-methyl"
+    },
+    {
+      "id": "135",
+      "name": "ethoprophos"
+    },
+    {
+      "id": "137",
+      "name": "ethylan"
+    },
+    {
+      "id": "138",
+      "name": "ethylene dibromide"
+    },
+    {
+      "id": "139",
+      "name": "ethylene dichloride"
+    },
+    {
+      "id": "140",
+      "name": "etofenprox"
+    },
+    {
+      "id": "406",
+      "name": "etoxazole"
+    },
+    {
+      "id": "142",
+      "name": "etrimfos"
+    },
+    {
+      "id": "143",
+      "name": "famphur"
+    },
+    {
+      "id": "144",
+      "name": "fenazaquin"
+    },
+    {
+      "id": "145",
+      "name": "fenbutatin oxide"
+    },
+    {
+      "id": "146",
+      "name": "fenitrothion"
+    },
+    {
+      "id": "147",
+      "name": "fenobucarb"
+    },
+    {
+      "id": "148",
+      "name": "fenoxycarb"
+    },
+    {
+      "id": "149",
+      "name": "fenpropathrin"
+    },
+    {
+      "id": "357",
+      "name": "fenpropathrin + acephate"
+    },
+    {
+      "id": "150",
+      "name": "fenpyroximate"
+    },
+    {
+      "id": "151",
+      "name": "fenson"
+    },
+    {
+      "id": "152",
+      "name": "fensulfothion"
+    },
+    {
+      "id": "153",
+      "name": "fenthion"
+    },
+    {
+      "id": "154",
+      "name": "fenthion-ethyl"
+    },
+    {
+      "id": "155",
+      "name": "fenvalerate"
+    },
+    {
+      "id": "157",
+      "name": "fipronil"
+    },
+    {
+      "id": "456",
+      "name": "fipronil + DEF"
+    },
+    {
+      "id": "457",
+      "name": "fipronil + DEM"
+    },
+    {
+      "id": "458",
+      "name": "fipronil + PBO"
+    },
+    {
+      "id": "158",
+      "name": "flonicamid"
+    },
+    {
+      "id": "411",
+      "name": "fluacrypyrim"
+    },
+    {
+      "id": "160",
+      "name": "fluazuron"
+    },
+    {
+      "id": "430",
+      "name": "flubendiamide"
+    },
+    {
+      "id": "161",
+      "name": "flucycloxuron"
+    },
+    {
+      "id": "162",
+      "name": "flucythrinate"
+    },
+    {
+      "id": "163",
+      "name": "flufenoxuron"
+    },
+    {
+      "id": "164",
+      "name": "flumethrin"
+    },
+    {
+      "id": "469",
+      "name": "flupyradifurone"
+    },
+    {
+      "id": "476",
+      "name": "fluvalinate"
+    },
+    {
+      "id": "167",
+      "name": "fonofos"
+    },
+    {
+      "id": "168",
+      "name": "formetanate"
+    },
+    {
+      "id": "169",
+      "name": "formothion"
+    },
+    {
+      "id": "170",
+      "name": "fosthiazate"
+    },
+    {
+      "id": "423",
+      "name": "fufenozide"
+    },
+    {
+      "id": "171",
+      "name": "furathiocarb"
+    },
+    {
+      "id": "172",
+      "name": "genite"
+    },
+    {
+      "id": "173",
+      "name": "halfenprox"
+    },
+    {
+      "id": "174",
+      "name": "halofenazide"
+    },
+    {
+      "id": "175",
+      "name": "HCH (mixed isomers)"
+    },
+    {
+      "id": "178",
+      "name": "heptachlor"
+    },
+    {
+      "id": "179",
+      "name": "heptenophos"
+    },
+    {
+      "id": "180",
+      "name": "hexaflumuron"
+    },
+    {
+      "id": "396",
+      "name": "hexythiazox"
+    },
+    {
+      "id": "405",
+      "name": "hexythiazox + organotin"
+    },
+    {
+      "id": "404",
+      "name": "hydramethylnon"
+    },
+    {
+      "id": "390",
+      "name": "hydrogen cyanide"
+    },
+    {
+      "id": "354",
+      "name": "hydrogen peroxide"
+    },
+    {
+      "id": "184",
+      "name": "hydroprene"
+    },
+    {
+      "id": "185",
+      "name": "imidacloprid"
+    },
+    {
+      "id": "438",
+      "name": "imidacloprid + DEF"
+    },
+    {
+      "id": "442",
+      "name": "imidacloprid + PBO"
+    },
+    {
+      "id": "412",
+      "name": "Imidaclothiz"
+    },
+    {
+      "id": "186",
+      "name": "imiprothrin"
+    },
+    {
+      "id": "187",
+      "name": "indoxacarb"
+    },
+    {
+      "id": "491",
+      "name": "Indoxacarb+TPP"
+    },
+    {
+      "id": "188",
+      "name": "iodofenphos"
+    },
+    {
+      "id": "189",
+      "name": "isazofos"
+    },
+    {
+      "id": "190",
+      "name": "isobenzan"
+    },
+    {
+      "id": "195",
+      "name": "isocarbophos"
+    },
+    {
+      "id": "191",
+      "name": "isodrin"
+    },
+    {
+      "id": "192",
+      "name": "isofenphos"
+    },
+    {
+      "id": "193",
+      "name": "isolan"
+    },
+    {
+      "id": "194",
+      "name": "isoprocarb"
+    },
+    {
+      "id": "196",
+      "name": "isoxathion"
+    },
+    {
+      "id": "197",
+      "name": "ivermectin"
+    },
+    {
+      "id": "284",
+      "name": "kadethrin"
+    },
+    {
+      "id": "198",
+      "name": "kelevan"
+    },
+    {
+      "id": "199",
+      "name": "kinoprene"
+    },
+    {
+      "id": "200",
+      "name": "lead arsenate"
+    },
+    {
+      "id": "201",
+      "name": "leptophos"
+    },
+    {
+      "id": "202",
+      "name": "lime sulfur"
+    },
+    {
+      "id": "395",
+      "name": "lindane"
+    },
+    {
+      "id": "203",
+      "name": "lufenuron"
+    },
+    {
+      "id": "418",
+      "name": "malaoxon"
+    },
+    {
+      "id": "204",
+      "name": "malathion"
+    },
+    {
+      "id": "420",
+      "name": "mCry3A"
+    },
+    {
+      "id": "205",
+      "name": "mecarbam"
+    },
+    {
+      "id": "206",
+      "name": "menazon"
+    },
+    {
+      "id": "207",
+      "name": "mephosfolan"
+    },
+    {
+      "id": "208",
+      "name": "mercaptothion"
+    },
+    {
+      "id": "466",
+      "name": "metaflumizone"
+    },
+    {
+      "id": "209",
+      "name": "methamidophos"
+    },
+    {
+      "id": "210",
+      "name": "methidathion"
+    },
+    {
+      "id": "211",
+      "name": "methiocarb"
+    },
+    {
+      "id": "459",
+      "name": "methiocarb + PBO"
+    },
+    {
+      "id": "212",
+      "name": "methomyl"
+    },
+    {
+      "id": "213",
+      "name": "methoprene"
+    },
+    {
+      "id": "214",
+      "name": "methoxychlor"
+    },
+    {
+      "id": "215",
+      "name": "methoxyfenozide"
+    },
+    {
+      "id": "216",
+      "name": "methyl bromide"
+    },
+    {
+      "id": "217",
+      "name": "metolcarb"
+    },
+    {
+      "id": "218",
+      "name": "mevinphos"
+    },
+    {
+      "id": "219",
+      "name": "milbemectin"
+    },
+    {
+      "id": "220",
+      "name": "mirex"
+    },
+    {
+      "id": "221",
+      "name": "MNFA"
+    },
+    {
+      "id": "222",
+      "name": "mobam"
+    },
+    {
+      "id": "223",
+      "name": "monocrotophos"
+    },
+    {
+      "id": "373",
+      "name": "Monocrotophos + DEF"
+    },
+    {
+      "id": "374",
+      "name": "monocrotophos + PBO"
+    },
+    {
+      "id": "409",
+      "name": "monosultap"
+    },
+    {
+      "id": "446",
+      "name": "monosultap + DEF"
+    },
+    {
+      "id": "447",
+      "name": "monosultap + DEM"
+    },
+    {
+      "id": "448",
+      "name": "monosultap + PBO"
+    },
+    {
+      "id": "224",
+      "name": "morphothion"
+    },
+    {
+      "id": "475",
+      "name": "MVP"
+    },
+    {
+      "id": "356",
+      "name": "MVP II (Cry1AC)"
+    },
+    {
+      "id": "342",
+      "name": "N-Desmethylthiamethoxam"
+    },
+    {
+      "id": "225",
+      "name": "naled"
+    },
+    {
+      "id": "227",
+      "name": "nicotine"
+    },
+    {
+      "id": "228",
+      "name": "nitenpyram"
+    },
+    {
+      "id": "440",
+      "name": "nitenpyram + DEF"
+    },
+    {
+      "id": "229",
+      "name": "nithiazine"
+    },
+    {
+      "id": "230",
+      "name": "nitrilacarb"
+    },
+    {
+      "id": "231",
+      "name": "novaluron"
+    },
+    {
+      "id": "232",
+      "name": "nuclear polyhedrosis virus"
+    },
+    {
+      "id": "233",
+      "name": "omethoate"
+    },
+    {
+      "id": "234",
+      "name": "Organophosphates - Unspecified In Literature"
+    },
+    {
+      "id": "235",
+      "name": "oxamyl"
+    },
+    {
+      "id": "236",
+      "name": "oxinothiophos"
+    },
+    {
+      "id": "237",
+      "name": "oxydemeton-methyl"
+    },
+    {
+      "id": "238",
+      "name": "oxydeprofos"
+    },
+    {
+      "id": "239",
+      "name": "oxydisulfoton"
+    },
+    {
+      "id": "240",
+      "name": "paraoxon"
+    },
+    {
+      "id": "241",
+      "name": "parathion"
+    },
+    {
+      "id": "242",
+      "name": "parathion-methyl"
+    },
+    {
+      "id": "368",
+      "name": "parathion-methyl + cucurbitacins"
+    },
+    {
+      "id": "243",
+      "name": "permethrin"
+    },
+    {
+      "id": "504",
+      "name": "permethrin"
+    },
+    {
+      "id": "443",
+      "name": "permethrin + TPP"
+    },
+    {
+      "id": "507",
+      "name": "permethrin+PBO"
+    },
+    {
+      "id": "505",
+      "name": "permethrin+PBO"
+    },
+    {
+      "id": "244",
+      "name": "phenkapton"
+    },
+    {
+      "id": "245",
+      "name": "phenothrin"
+    },
+    {
+      "id": "247",
+      "name": "phenthoate"
+    },
+    {
+      "id": "248",
+      "name": "phorate"
+    },
+    {
+      "id": "249",
+      "name": "phosalone"
+    },
+    {
+      "id": "253",
+      "name": "phosfolan"
+    },
+    {
+      "id": "250",
+      "name": "phosmet"
+    },
+    {
+      "id": "351",
+      "name": "phosmet + DEF"
+    },
+    {
+      "id": "372",
+      "name": "phosmet + PBO"
+    },
+    {
+      "id": "251",
+      "name": "phosphamidon"
+    },
+    {
+      "id": "388",
+      "name": "phosphine"
+    },
+    {
+      "id": "254",
+      "name": "phoxim"
+    },
+    {
+      "id": "255",
+      "name": "piperonyl butoxide"
+    },
+    {
+      "id": "256",
+      "name": "pirimicarb"
+    },
+    {
+      "id": "257",
+      "name": "pirimiphos-ethyl"
+    },
+    {
+      "id": "258",
+      "name": "pirimiphos-methyl"
+    },
+    {
+      "id": "259",
+      "name": "prallethrin"
+    },
+    {
+      "id": "260",
+      "name": "profenofos"
+    },
+    {
+      "id": "261",
+      "name": "promecarb"
+    },
+    {
+      "id": "262",
+      "name": "propaphos"
+    },
+    {
+      "id": "263",
+      "name": "propargite"
+    },
+    {
+      "id": "264",
+      "name": "propetamphos"
+    },
+    {
+      "id": "265",
+      "name": "propoxur"
+    },
+    {
+      "id": "266",
+      "name": "prothidathion"
+    },
+    {
+      "id": "267",
+      "name": "prothiofos"
+    },
+    {
+      "id": "268",
+      "name": "prothoate"
+    },
+    {
+      "id": "269",
+      "name": "pymetrozine"
+    },
+    {
+      "id": "270",
+      "name": "pyraclofos"
+    },
+    {
+      "id": "271",
+      "name": "pyrazophos"
+    },
+    {
+      "id": "272",
+      "name": "pyrethrins"
+    },
+    {
+      "id": "365",
+      "name": "pyrethrins + PB"
+    },
+    {
+      "id": "273",
+      "name": "Pyrethroids - Unspecified In Literature"
+    },
+    {
+      "id": "366",
+      "name": "pyrethrum + PBO"
+    },
+    {
+      "id": "274",
+      "name": "pyridaben"
+    },
+    {
+      "id": "275",
+      "name": "pyridalyl"
+    },
+    {
+      "id": "276",
+      "name": "pyridaphenthion"
+    },
+    {
+      "id": "277",
+      "name": "pyrimidifen"
+    },
+    {
+      "id": "471",
+      "name": "pyriprol"
+    },
+    {
+      "id": "278",
+      "name": "pyriproxyfen"
+    },
+    {
+      "id": "279",
+      "name": "quinalphos"
+    },
+    {
+      "id": "281",
+      "name": "resmethrin"
+    },
+    {
+      "id": "282",
+      "name": "ronnel"
+    },
+    {
+      "id": "283",
+      "name": "rotenone"
+    },
+    {
+      "id": "11",
+      "name": "S-bioallethrin"
+    },
+    {
+      "id": "285",
+      "name": "schradan"
+    },
+    {
+      "id": "286",
+      "name": "selenium sulfide"
+    },
+    {
+      "id": "287",
+      "name": "silafluofen"
+    },
+    {
+      "id": "288",
+      "name": "sodium arsenite"
+    },
+    {
+      "id": "473",
+      "name": "Spinetoram"
+    },
+    {
+      "id": "289",
+      "name": "spinosad"
+    },
+    {
+      "id": "291",
+      "name": "spirodiclofen"
+    },
+    {
+      "id": "292",
+      "name": "spiromesifen"
+    },
+    {
+      "id": "417",
+      "name": "spirotetramat"
+    },
+    {
+      "id": "294",
+      "name": "sulfluramid"
+    },
+    {
+      "id": "295",
+      "name": "sulfotep"
+    },
+    {
+      "id": "463",
+      "name": "sulfoxaflor"
+    },
+    {
+      "id": "296",
+      "name": "sulfur"
+    },
+    {
+      "id": "297",
+      "name": "sulfuryl fluoride"
+    },
+    {
+      "id": "298",
+      "name": "sulphenone"
+    },
+    {
+      "id": "299",
+      "name": "sulprofos"
+    },
+    {
+      "id": "508",
+      "name": "Sumithrin+prallethrin+ PBO"
+    },
+    {
+      "id": "349",
+      "name": "synergized pyrethrins"
+    },
+    {
+      "id": "301",
+      "name": "tartar emetic"
+    },
+    {
+      "id": "302",
+      "name": "tau-fluvalinate"
+    },
+    {
+      "id": "303",
+      "name": "TDE"
+    },
+    {
+      "id": "304",
+      "name": "tebufenozide"
+    },
+    {
+      "id": "305",
+      "name": "tebufenpyrad"
+    },
+    {
+      "id": "306",
+      "name": "tebupirimfos"
+    },
+    {
+      "id": "307",
+      "name": "teflubenzuron"
+    },
+    {
+      "id": "308",
+      "name": "tefluthrin"
+    },
+    {
+      "id": "309",
+      "name": "temephos"
+    },
+    {
+      "id": "377",
+      "name": "temephos + PBO"
+    },
+    {
+      "id": "499",
+      "name": "tenvermectin B"
+    },
+    {
+      "id": "310",
+      "name": "TEPP"
+    },
+    {
+      "id": "311",
+      "name": "terbufos"
+    },
+    {
+      "id": "489",
+      "name": "tervecmectin A"
+    },
+    {
+      "id": "312",
+      "name": "tetrachlorvinphos Z-isomer"
+    },
+    {
+      "id": "313",
+      "name": "tetradifon"
+    },
+    {
+      "id": "314",
+      "name": "tetramethrin"
+    },
+    {
+      "id": "315",
+      "name": "tetramethrin-[(1R)-isomers]"
+    },
+    {
+      "id": "496",
+      "name": "tetraniliprole"
+    },
+    {
+      "id": "316",
+      "name": "tetrasul"
+    },
+    {
+      "id": "317",
+      "name": "thanite"
+    },
+    {
+      "id": "318",
+      "name": "thiacloprid"
+    },
+    {
+      "id": "441",
+      "name": "thiacloprid + DEF"
+    },
+    {
+      "id": "319",
+      "name": "thiamethoxam"
+    },
+    {
+      "id": "439",
+      "name": "thiamethoxam + DEF"
+    },
+    {
+      "id": "320",
+      "name": "thiocarboxime"
+    },
+    {
+      "id": "321",
+      "name": "thiocyclam"
+    },
+    {
+      "id": "322",
+      "name": "thiodicarb"
+    },
+    {
+      "id": "323",
+      "name": "thiofanox"
+    },
+    {
+      "id": "324",
+      "name": "thiometon"
+    },
+    {
+      "id": "325",
+      "name": "thionazin"
+    },
+    {
+      "id": "326",
+      "name": "thioquinox"
+    },
+    {
+      "id": "327",
+      "name": "tolfenpyrad"
+    },
+    {
+      "id": "328",
+      "name": "toxaphene"
+    },
+    {
+      "id": "329",
+      "name": "tralomethrin"
+    },
+    {
+      "id": "416",
+      "name": "trans-cypermethrin"
+    },
+    {
+      "id": "330",
+      "name": "transfluthrin"
+    },
+    {
+      "id": "331",
+      "name": "triazamate"
+    },
+    {
+      "id": "332",
+      "name": "triazophos"
+    },
+    {
+      "id": "449",
+      "name": "triazophos + DEF"
+    },
+    {
+      "id": "450",
+      "name": "triazophos + DEM"
+    },
+    {
+      "id": "451",
+      "name": "triazophos + PBO"
+    },
+    {
+      "id": "333",
+      "name": "tribufos"
+    },
+    {
+      "id": "334",
+      "name": "trichlorfon"
+    },
+    {
+      "id": "490",
+      "name": "triflumezopyrim"
+    },
+    {
+      "id": "335",
+      "name": "triflumuron"
+    },
+    {
+      "id": "336",
+      "name": "trimethacarb"
+    },
+    {
+      "id": "337",
+      "name": "vamidothion"
+    },
+    {
+      "id": "338",
+      "name": "XMC"
+    },
+    {
+      "id": "339",
+      "name": "xylycarb"
+    },
+    {
+      "id": "340",
+      "name": "zineb"
+    },
+    {
+      "id": "341",
+      "name": "ZXI 8901"
+    }
+  ]
+}
