@@ -15,6 +15,19 @@
   const MAX_OCR_ROW_CELLS = 20;
   const MAX_OCR_ROW_WORDS_TOTAL = 2500;
   const MAX_OCR_ROW_CELLS_TOTAL = 1000;
+  const OCR_CORRECTION_SCHEMA_VERSION = 1;
+  const OCR_CORRECTION_FIELDS = Object.freeze([
+    "recordType",
+    "date",
+    "crop",
+    "target",
+    "material",
+    "dilution",
+    "amount",
+    "safetyInterval",
+    "activity",
+    "method"
+  ]);
   let currentDraft = null;
   let twaPort = null;
   let pendingRequestId = null;
@@ -273,6 +286,15 @@
       wordCount += Array.isArray(words) ? words.length : 0;
       if (wordCount > 5000) return null;
     }
+    const alternativeBlocks = value.alternativeBlocks;
+    if (alternativeBlocks != null && (!Array.isArray(alternativeBlocks) || alternativeBlocks.length > 500)) return null;
+    let alternativeWordCount = 0;
+    for (let index = 0; index < (alternativeBlocks || []).length; index += 1) {
+      const words = alternativeBlocks[index] && alternativeBlocks[index].words;
+      if (words != null && (!Array.isArray(words) || words.length > 200)) return null;
+      alternativeWordCount += Array.isArray(words) ? words.length : 0;
+      if (alternativeWordCount > 5000) return null;
+    }
     const rows = value.rowCandidates;
     if (rows != null && (!Array.isArray(rows) || rows.length > MAX_OCR_ROW_CANDIDATES)) return null;
     let rowWordCount = 0;
@@ -292,6 +314,66 @@
       }
     }
     return value;
+  }
+
+  function normalizedCorrectionText(value) {
+    if (value == null) return "";
+    return String(value).normalize("NFKC").replace(/\s+/g, " ").trim().slice(0, 240);
+  }
+
+  function correctionCandidates(value) {
+    const seen = new Set();
+    return (Array.isArray(value) ? value : []).slice(0, 20).reduce(function (result, item) {
+      const candidateValue = normalizedCorrectionText(item && typeof item === "object" ? item.value : item);
+      if (!candidateValue || seen.has(candidateValue)) return result;
+      seen.add(candidateValue);
+      const candidate = { value: candidateValue };
+      const confidence = Number(item && typeof item === "object" ? item.confidence : NaN);
+      if (Number.isFinite(confidence)) candidate.confidence = Math.max(0, Math.min(1, confidence));
+      result.push(Object.freeze(candidate));
+      return result;
+    }, []);
+  }
+
+  function buildLocalCorrectionRecord(draft, confirmedValues, options) {
+    const source = draft && typeof draft === "object" ? draft : {};
+    const confirmed = confirmedValues && typeof confirmedValues === "object" ? confirmedValues : {};
+    const settings = options && typeof options === "object" ? options : {};
+    const generatedAt = /^\d{4}-\d{2}-\d{2}T/.test(String(settings.generatedAt || ""))
+      ? String(settings.generatedAt)
+      : new Date().toISOString();
+    const fields = OCR_CORRECTION_FIELDS.reduce(function (result, key) {
+      const confirmedValue = normalizedCorrectionText(confirmed[key]);
+      if (!confirmedValue) return result;
+      const candidates = correctionCandidates(source.fields && source.fields[key]);
+      result.push(Object.freeze({
+        key,
+        candidates: Object.freeze(candidates),
+        confirmedValue,
+        exactMatch: candidates.some(function (candidate) {
+          return normalizedCorrectionText(candidate.value) === confirmedValue;
+        })
+      }));
+      return result;
+    }, []);
+    const fingerprint = generatedAt + "|" + fields.map(function (field) {
+      return field.key + "=" + field.confirmedValue;
+    }).join("|");
+    return Object.freeze({
+      schemaVersion: OCR_CORRECTION_SCHEMA_VERSION,
+      recordType: "ocr-local-correction",
+      correctionId: "ocr-correction-" + sourceImageHash(fingerprint),
+      generatedAt,
+      privacy: Object.freeze({
+        storage: "user-download-only",
+        autoUploadAllowed: false,
+        imageIncluded: false,
+        sourceFileMetadataIncluded: false,
+        accountIdentifiersIncluded: false,
+        excludedFields: Object.freeze(["operator", "fieldPlot"])
+      }),
+      fields: Object.freeze(fields)
+    });
   }
 
   function dictionaries() {
@@ -393,6 +475,14 @@
       const label = labelFormat ? labelFormat(item) : value;
       return '<option value="' + esc(value) + '">' + esc(label) + '</option>';
     }).join("");
+  }
+
+  function partialDateHintHtml(items) {
+    const values = Array.from(new Set((Array.isArray(items) ? items : []).map(function (item) {
+      return String(item && item.value || "").trim();
+    }).filter(Boolean))).slice(0, 4);
+    if (!values.length) return "";
+    return '<small class="ocr-partial-date-hint">辨識到缺年份的日期：<b>' + esc(values.join("、")) + '</b>。請查看原圖並在上方補選完整年份；系統不會自行推測年份。</small>';
   }
 
   function recordTypeOptions(items) {
@@ -1128,7 +1218,7 @@
       + '<div class="ocr-review">'
       + '<div class="field"><label>紀錄類型 *</label><select id="ocrRecordType">' + recordTypeOptions(initialFields.recordType) + '</select></div>'
       + activityDetailReviewHtml(draft)
-      + '<div class="field"><label>日期候選 *</label><select id="ocrDateCandidate">' + optionList(initialFields.date) + '</select><input id="ocrDateManual" type="date" aria-label="手動修正日期"></div>'
+      + '<div class="field"><label>日期候選 *</label><select id="ocrDateCandidate">' + optionList(initialFields.date) + '</select><input id="ocrDateManual" type="date" aria-label="手動修正日期">' + partialDateHintHtml(initialFields.partialDate) + '</div>'
       + '<div class="field"><label>作物候選 *</label><select id="ocrCropCandidate">' + optionList(initialFields.crop) + '</select><input id="ocrCropManual" placeholder="或自行輸入作物"></div>'
       + '<div class="field"><label>田區代號候選</label><select id="ocrFieldPlotCandidate">' + optionList(initialFields.fieldPlot) + '</select><input id="ocrFieldPlotManual" placeholder="或自行輸入田區代號"></div>'
       + '<div class="field"><label>防治對象候選</label><select id="ocrTargetCandidate">' + optionList(initialFields.target) + '</select><input id="ocrTargetManual" placeholder="或自行輸入病蟲害"></div>'
@@ -1139,8 +1229,9 @@
       + '<div class="field"><label>執行人</label><select id="ocrOperatorCandidate">' + optionList(initialFields.operator) + '</select><input id="ocrOperator" placeholder="請自行確認填寫"></div>'
       + '<div class="field wide"><label>辨識原文</label><textarea id="ocrRawText" readonly>' + esc(text) + '</textarea></div>'
       + '<fieldset class="ocr-confirm wide"><legend>帶入前必須確認</legend>' + activityRowConfirmationHtml(draft) + '<label><input id="ocrConfirmType" type="checkbox"> 紀錄類型已核對</label><label><input id="ocrConfirmDate" type="checkbox"> 日期已核對</label><label><input id="ocrConfirmCrop" type="checkbox"> 作物已核對（如有）</label><label><input id="ocrConfirmMaterial" type="checkbox"> 藥劑／資材名稱已核對（如有）</label></fieldset>'
-      + '<div class="ocr-review-actions wide"><button class="btn btn-main" type="button" onclick="PQC_FORM_OCR_UI.applyToFarmForm()"' + (draft.quality.canProcess ? "" : " disabled") + '>帶入紀錄表單並繼續確認</button><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.skipCurrentOcrActivity()">略過這筆</button></div>'
+      + '<div class="ocr-review-actions wide"><button class="btn btn-main" type="button" onclick="PQC_FORM_OCR_UI.applyToFarmForm()"' + (draft.quality.canProcess ? "" : " disabled") + '>帶入紀錄表單並繼續確認</button><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.downloadLocalCorrectionRecordFromReview()">匯出本次去識別化校正資料</button><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.skipCurrentOcrActivity()">略過這筆</button></div>'
       + '<p class="disclaimer wide">辨識結果只是草稿。系統不會自動儲存；帶入後仍須在原本的作業紀錄表單再次確認並按下儲存。</p>'
+      + '<p class="disclaimer wide">校正資料只在你按下匯出時下載到本機；不含照片、來源檔名、帳號、執行人或田區代號，也不會自動上傳。欄位文字仍可能包含農務資料，分享前請再次檢查。</p>'
       + '</div>';
     const dateCandidate = preselectedCandidate(draft, draft.fields.date);
     const recordTypeCandidate = preselectedCandidate(draft, detectedType ? [detectedType] : []);
@@ -1553,6 +1644,54 @@
     const manual = document.getElementById(manualId);
     const select = document.getElementById(selectId);
     return String((manual && manual.value) || (select && select.value) || "").trim();
+  }
+
+  function correctionValuesFromReview() {
+    return {
+      recordType: selectedOrManual("ocrRecordType", ""),
+      date: selectedOrManual("ocrDateCandidate", "ocrDateManual"),
+      crop: selectedOrManual("ocrCropCandidate", "ocrCropManual"),
+      target: selectedOrManual("ocrTargetCandidate", "ocrTargetManual"),
+      material: selectedOrManual("ocrMaterialCandidate", "ocrMaterialManual"),
+      dilution: selectedOrManual("ocrDilutionCandidate", ""),
+      amount: selectedOrManual("ocrAmountCandidate", ""),
+      safetyInterval: selectedOrManual("ocrSafetyCandidate", "ocrSafetyManual"),
+      activity: selectedOrManual("ocrActivityCandidate", "ocrActivityManual"),
+      method: selectedOrManual("ocrMethodCandidate", "ocrMethodManual")
+    };
+  }
+
+  function downloadLocalCorrectionRecord(record, environment) {
+    const runtime = environment && typeof environment === "object" ? environment : root;
+    if (!record || !Array.isArray(record.fields) || !record.fields.length || !runtime.document || typeof runtime.Blob !== "function" || !runtime.URL) return false;
+    if (typeof runtime.URL.createObjectURL !== "function" || typeof runtime.URL.revokeObjectURL !== "function") return false;
+    const blob = new runtime.Blob([JSON.stringify(record, null, 2)], { type: "application/json;charset=utf-8" });
+    const url = runtime.URL.createObjectURL(blob);
+    const link = runtime.document.createElement("a");
+    link.href = url;
+    link.download = record.correctionId + ".json";
+    link.hidden = true;
+    runtime.document.body.appendChild(link);
+    link.click();
+    link.remove();
+    runtime.URL.revokeObjectURL(url);
+    return true;
+  }
+
+  function downloadLocalCorrectionRecordFromReview() {
+    if (!currentDraft || !root.document || typeof root.Blob !== "function" || !root.URL) return false;
+    if (!checked("ocrConfirmType") || !checked("ocrConfirmDate") || !checked("ocrConfirmCrop") || !checked("ocrConfirmMaterial")) {
+      if (typeof root.toast === "function") root.toast("請先核對類型、日期、作物與藥劑／資材名稱，再匯出校正資料");
+      return false;
+    }
+    const record = buildLocalCorrectionRecord(currentDraft, correctionValuesFromReview());
+    if (!record.fields.length) {
+      if (typeof root.toast === "function") root.toast("目前沒有可匯出的已確認欄位");
+      return false;
+    }
+    if (!downloadLocalCorrectionRecord(record)) return false;
+    if (typeof root.toast === "function") root.toast("校正資料已下載到本機；系統未自動上傳");
+    return true;
   }
 
   function matchingPlotId(fieldCode, crop) {
@@ -2249,6 +2388,10 @@
     isOcrUnlocked,
     unlockOcr,
     safePayload,
+    OCR_CORRECTION_SCHEMA_VERSION,
+    OCR_CORRECTION_FIELDS,
+    buildLocalCorrectionRecord,
+    downloadLocalCorrectionRecord,
     sourceImageId,
     sourceImageMetadata,
     sanitizeSourceImageMetadata,
@@ -2259,6 +2402,7 @@
     sourceRowOptionList,
     candidatesForSourceRow,
     rowReviewSummary,
+    partialDateHintHtml,
     materialInventoryReviewSummary,
     preselectedCandidate,
     missingReviewConfirmations,
@@ -2288,6 +2432,7 @@
     skipCurrentOcrActivity,
     filterActivityCandidatesBySource,
     parsePastedText,
+    downloadLocalCorrectionRecordFromReview,
     applyToPesticideRecord,
     applyToFarmForm,
     applyEquipmentMaintenanceBatch,
