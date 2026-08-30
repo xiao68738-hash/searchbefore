@@ -740,6 +740,13 @@ nav button.on{color:var(--green)}
   .seed-note{background:var(--mut-bg);border-left:3px solid var(--ink-soft)}
   .special-use-tag{display:inline-block;font-size:11.5px;font-weight:800;border-radius:20px;padding:1px 8px;margin-left:6px;vertical-align:middle;background:var(--orange-bg);color:var(--orange);border:1px solid rgba(217,122,34,.3)}
   .special-use-note{background:var(--orange-bg);border-left:3px solid var(--orange)}
+  .mrl-no-detect-tag{display:inline-block;font-size:11.5px;font-weight:900;border-radius:20px;padding:2px 8px;margin-left:6px;vertical-align:middle;background:#FCE8E6;color:#9B2C20;border:1px solid #E8AAA3}
+  .mrl-no-detect-note{background:#FFF3F1;border:1px solid #F0C1BA;border-left:4px solid #B4402E;border-radius:11px;padding:11px 12px;margin-top:10px;color:#64251E;font-size:12.5px;line-height:1.65}
+  .mrl-no-detect-note b{display:block;color:#8D241A;font-size:13.5px;margin-bottom:3px}
+  .mrl-no-detect-note a{color:#7B241C;font-weight:800;text-decoration:underline}
+  html[data-theme="dark"] .mrl-no-detect-tag{background:#452622;color:#FFC5BD;border-color:#78423A}
+  html[data-theme="dark"] .mrl-no-detect-note{background:#2E201E;color:#F2CBC5;border-color:#75453E;border-left-color:#E17868}
+  html[data-theme="dark"] .mrl-no-detect-note b,html[data-theme="dark"] .mrl-no-detect-note a{color:#FFB7AC}
   /* 收穫型態消歧 */
   .form-ask{font-weight:800;font-size:15px;color:var(--green-deep);margin:14px 2px 7px}
   .fchip{display:inline-block;font-size:11.5px;font-weight:800;border-radius:20px;padding:1px 8px;margin-left:6px;vertical-align:middle;background:var(--ok-bg);color:var(--ok);border:1px solid rgba(59,127,78,.25)}
@@ -1325,6 +1332,7 @@ window.addEventListener("load",function(){
 <script src="./account.js"></script>
 <script src="./cloud-sync.js"></script>
 <script src="./safety.js"></script>
+<script src="./mrl-status.js"></script>
 <script src="./farm-records.js"></script>
 <script src="./crop-forms.js"></script>
 <script src="./pinyin-pro.js"></script>
@@ -1337,9 +1345,10 @@ const DATA={"木瓜":{"白粉病":[{"name":"快得保淨","form":"WP","content":
 /* ═══ 維護區:改這裡就好 ═══════════════════════════════
    APP_VERSION:每次更新資料或功能時往上加
    ANNOUNCE:公告(新的放最上面,date 改了紅點會自動亮) */
-const APP_VERSION="0.3.9.7";
+const APP_VERSION="0.3.9.8";
 const DATA_VERSION="2026-07-21"; // 農藥資料抓取年月
 const ANNOUNCE=[
+ {date:"2026-08-29",version:"0.3.9.8",title:"新增人工複核的登記但不得檢出提醒",body:"只對17筆人工已確認的精確作物與藥劑組合顯示殘留檢驗提醒，並附現行法規版本、人工對照依據與衛福部來源；相似名稱、作物群組或查無資料不會自動判定。"},
  {date:"2026-08-14",version:"0.3.9.7",title:"修正藥劑查詢展開與特殊用法標示",body:"修正部分裝置載入新頁面但仍使用舊版離線模組時，點選作物旁的「＋」無法展開。沒有數字稀釋倍數的登記資料仍只顯示施用用途與原始附註，不再誤加「倍」。"},
  {date:"2026-08-09",version:"0.3.9.6",title:"改善表格多筆候選核對（測試中）",body:"辨識結果現在可先依文字位置拆出同列／同格候選，寬幅雙頁照片會分開處理；一張照片也可顯示多筆待確認作業。這只是位置輔助，系統不會猜測欄位、不會自動勾選低信心結果，也不會自動儲存或上傳。"},
  {date:"2026-08-09",version:"0.3.9.5",title:"改善多張表單的來源核對（測試中）",body:"每張照片會保留自己的處理狀態與來源順序，單張失敗不影響其他結果；辨識草稿也會保留頁次與文字位置，方便後續逐欄核對。所有結果仍須人工確認，不會自動儲存或上傳。"},
@@ -1618,6 +1627,7 @@ function renderHome(){
   html+=`<section class="home-section" id="homeFeatures" aria-labelledby="homeFeatureTitle">
     <div class="home-section-head"><span class="eyebrow" id="homeFeatureTitle">核心功能</span></div>
     <div class="home-feature-grid">
+      <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 4 28 26H4L16 4Z"/><path d="M16 11v7M16 23h.01"/></svg></span><h4>登記但不得檢出提醒</h4><p>對人工確認的精確作物與藥劑組合顯示殘留檢驗提醒；相似名稱、群組或查無資料不會自動判定。</p></article>
       <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="14" cy="14" r="8"/><path d="m20 20 7 7M11 17c0-5 3-8 8-8-1 5-3 8-8 8Z"/></svg></span><h4>雙向合法用藥查詢</h4><p>可依作物與病蟲害找藥，也可由藥劑反查實際登記作物；逐筆顯示倍數與安全採收期。</p></article>
       <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M8 4h16v24H8zM12 9h8M12 15h2M18 15h2M12 21h2M18 21h2"/></svg></span><h4>配藥換算</h4><p>把藥劑倍數帶入水量、桶數或面積，快速算出現場需要的實際用量。</p></article>
       <article class="home-feature"><span class="home-feature-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="17" r="10"/><path d="M16 12v6l4 3M12 3h8"/></svg></span><h4>施藥紀錄與安全採收連動</h4><p>完成施藥後留下紀錄，依同田區全部用藥判斷最晚可採日；資料不足時不誤顯示可採收。</p></article>
@@ -1683,6 +1693,15 @@ function openHomeOnLaunch(){
   go("search",document.getElementById("navSearch"));
 }
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}
+function mrlNoDetectNotice(crop,agent){
+  const api=window.PQC_MRL;
+  const hit=api&&api.lookup?api.lookup(crop,agent):null;
+  if(!hit)return "";
+  return `<div class="mrl-no-detect-note" role="note"><b>殘留檢驗提醒：登記但不得檢出</b>`+
+    `此「${esc(hit.crop)} × ${esc(hit.agent)}」組合已通過人工對照：雖有農藥登記，但現行殘留容許量資料未列該組合。市場抽驗如檢出，可能不符規定。`+
+    `<div style="margin-top:5px">對照依據：${esc(hit.evidence)}。資料版本 ${esc(hit.source.amendedOn)}；`+
+    `<a href="${esc(hit.source.url)}" target="_blank" rel="noopener noreferrer">查看衛福部最新標準</a>。實際使用仍以最新法規、產品標示及主管機關說明為準。</div></div>`;
+}
 
 /* ── 作物搜尋 + 最近使用 ── */
 document.getElementById("cropTotal").textContent=`(共 ${CROPS.length} 種)`;
@@ -1954,6 +1973,7 @@ function renderAgents(){
   /* 卡片渲染:k 一律是 currentAgentList() 的原始索引,分組不得改變它 */
   const card=(k,reason)=>{
     const a=list[k];
+    const noDetect=!!(window.PQC_MRL&&PQC_MRL.lookup&&PQC_MRL.lookup(a.src||selCrop,a.name));
     const bl=a.bl||[];
     const fk=formKind(a.form);
     const ftag=fk?`<span class="ftag ${fk==="液"?"f-liq":"f-pow"}">${fk}</span>`:"";
@@ -1973,7 +1993,7 @@ function renderAgents(){
     <div class="agent">
       ${reason?`<div class="form-reason">⚠ ${esc(reason)}</div>`:""}
       <div class="top">
-        <div><h3>${esc(a.name)}${a.src!==selCrop?`<span class="src-badge">登記於:${esc(a.src)}</span>`:""}${formTags}${seed?`<span class="seed-tag">種子處理・非噴施</span>`:(usage.isSpecial?`<span class="special-use-tag">${esc(usage.value)}</span>`:"")}</h3>
+        <div><h3>${esc(a.name)}${a.src!==selCrop?`<span class="src-badge">登記於:${esc(a.src)}</span>`:""}${formTags}${seed?`<span class="seed-tag">種子處理・非噴施</span>`:(usage.isSpecial?`<span class="special-use-tag">${esc(usage.value)}</span>`:"")}${noDetect?`<span class="mrl-no-detect-tag">登記但不得檢出</span>`:""}</h3>
           <div class="sub">${ftag}${mtag}${esc(a.content||"")} ${esc(a.form||"")}${bl.length===1?` · <span class="prod">${esc(bl[0])}</span>`:""}</div>
           ${bl.length>1?`<button class="brand-toggle" onclick="openAgentBrands(${k})">查看 ${bl.length} 個可用商品</button>`:""}</div>
         ${phiBox(a.phi,a.phiAdjusted,seed,a.phiText)}
@@ -1987,6 +2007,7 @@ function renderAgents(){
       ${rw}
       ${seed?`<div class="note seed-note">此為<b>種子處理</b>用途，不是作物生長期間的一般噴施；請依登記用量與產品標示操作。安全採收期不適用。</div>`:(usage.isSpecial?`<div class="note special-use-note"><b>用途：${esc(usage.value)}</b>。這筆沒有數字稀釋資料，請依登記用量、施用方式及產品標示操作。</div>`:"")}
       ${a.phiAdjusted?`<div class="note safety-note">安全採收期已依備註採較長的 ${a.phi} 天；仍請核對產品標示與栽培方式。</div>`:""}
+      ${mrlNoDetectNotice(a.src||selCrop,a.name)}
       ${a.note?`<div class="note">${esc(a.note)}</div>`:""}
       <div class="acts">
         ${usage.canCalculateDilution?`<button class="btn btn-main" onclick="toCalc(${k})">帶入計算</button>`:`<button class="btn btn-ghost" disabled title="此用法沒有可帶入的數字稀釋資料">不適用稀釋計算</button>`}
@@ -3442,14 +3463,16 @@ function renderAgentRegs(keepFilterFocus){
           const ep=PQC_SAFETY.effectivePhi(r.a);
           const usage=usagePresentationSafe(r.a);
           const seed=PQC_AIDS.isSeedTreatment(r.a);
+          const noDetect=!!(window.PQC_MRL&&PQC_MRL.lookup&&PQC_MRL.lookup(g.crop,r.a.name));
           return `<div class="arow">
           <div class="arow-main">
-            <span class="ap">${esc(r.pest)}</span>
+            <span class="ap">${esc(r.pest)}${noDetect?`<span class="mrl-no-detect-tag">登記但不得檢出</span>`:""}</span>
             <span class="ad">${esc(usage.value)}${usage.detail?` · ${esc(usage.detail)}`:""}</span>
             <span class="ak">採收期 ${ep.phi!=null?ep.phi+" 天"+(ep.adjusted?"(依備註最長)":""):(seed?"不適用":"見標示")} · ${esc(r.a.content||"")} ${esc(r.a.form||"")}${r.a.moa?` · <span class="ftag moa-tag">${esc(r.a.moa)}</span>`:""}</span>
           </div>
           ${usage.isSpecial?`<div class="arow-adj"><b>用途：${esc(usage.value)}</b>。沒有數字稀釋資料，不提供稀釋計算；請依登記用量與產品標示操作。</div>`:""}
           ${ep.adjusted?`<div class="arow-adj">安全採收期已依備註採較長的 ${ep.phi} 天；仍請核對產品標示與栽培方式。</div>`:""}
+          ${mrlNoDetectNotice(g.crop,r.a.name)}
           <div class="arow-src">${(r.a.bl||[]).length?`<button class="brand-toggle" onclick="agentRowBrands(${ci},${ri})">登記商品 ${(r.a.bl||[]).length} 個</button>`:""}</div>
           <div class="arow-acts">
             ${usage.canCalculateDilution?`<button class="btn btn-main" onclick="agentRowToCalc(${ci},${ri})">帶入計算</button>`:`<button class="btn btn-ghost" disabled>不適用稀釋計算</button>`}
