@@ -86,7 +86,7 @@ html[data-theme="dark"] .plot-crop-results,html[data-theme="dark"] .plot-crop-op
 html[data-theme="dark"] .btn-ghost,html[data-theme="dark"] .plot-card,html[data-theme="dark"] .plot-record,
 html[data-theme="dark"] .chain-item,html[data-theme="dark"] .farm-item,html[data-theme="dark"] .pest-rel,
 html[data-theme="dark"] details.form-excluded,html[data-theme="dark"] .farm-grid .field textarea,
-html[data-theme="dark"] .areg,html[data-theme="dark"] .areg-toggle,
+html[data-theme="dark"] .areg,html[data-theme="dark"] .areg-toggle,html[data-theme="dark"] .crop-overview-card,
 html[data-theme="dark"] .qmode button{background:var(--surface)}
 /* 分段控制的選中態:比軌道(--mut-bg)略亮才凸得出來 */
 html[data-theme="dark"] .hseg button.on,html[data-theme="dark"] .calc-mode button.on{background:#313A29}
@@ -217,6 +217,23 @@ h2.step .cnt{letter-spacing:0;color:var(--green);font-weight:900}
 .chip.sel{background:var(--green);border-color:var(--green);color:#fff}
 .chip.sel small{color:rgba(255,255,255,.8)}
 .chip.mut{background:var(--mut-bg);border-color:transparent;box-shadow:none;font-size:14px;min-height:40px;padding:8px 13px;color:var(--green);font-weight:700}
+
+/* 作物本位的已登記用藥總覽：手機上以藥劑為列，避免寬表格難以閱讀。 */
+.crop-overview{margin-top:18px;padding-top:2px}
+.crop-overview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.crop-overview-head .step{margin:0 0 5px}
+.crop-overview-toggle{flex:none;font-family:inherit;border:0;background:var(--mut-bg);color:var(--green);border-radius:10px;padding:8px 11px;font-size:13px;font-weight:900;cursor:pointer}
+.crop-overview-body{margin-top:11px}
+.crop-overview-summary{font-size:12.5px;color:var(--ink-soft);margin:0 2px 9px;line-height:1.55}
+.crop-overview-card{background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);padding:12px 13px;margin-bottom:9px}
+.crop-overview-name{display:flex;align-items:baseline;justify-content:space-between;gap:9px;margin-bottom:8px}
+.crop-overview-name b{font-size:17px;color:var(--green-deep);line-height:1.35}
+.crop-overview-name small{flex:none;font-size:11.5px;color:var(--ink-soft)}
+.crop-overview-pests{display:flex;flex-wrap:wrap;gap:7px}
+.crop-overview-pests button{font-family:inherit;border:1px solid #c7d6c7;background:var(--ok-bg);color:var(--green-deep);border-radius:999px;padding:6px 10px;font-size:13px;font-weight:800;cursor:pointer}
+.crop-overview-pests button:hover,.crop-overview-pests button:focus-visible{border-color:var(--green);outline:none}
+.crop-overview-empty{border:1px dashed var(--line);border-radius:12px;padding:14px;color:var(--ink-soft);font-size:13px;text-align:center}
+.crop-overview-more{width:100%;margin-top:2px}
 
 /* 藥劑卡 */
 .agent{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 16px 14px;margin-bottom:12px}
@@ -576,7 +593,7 @@ nav button.on{color:var(--green)}
 .ob-wrap{max-width:480px;margin:0 auto;padding:40px 24px 28px;min-height:100dvh;display:flex;flex-direction:column}
 /* 主內容置中,把原本卡片與頁尾之間的大片空白收掉 */
 .entry-main{flex:1;display:flex;flex-direction:column;justify-content:center}
-.entry-logo{width:76px;height:76px;border-radius:20px;box-shadow:0 8px 22px rgba(23,51,31,.16);margin-bottom:20px}
+.entry-logo{width:88px;height:88px;object-fit:contain;border-radius:0;box-shadow:none;background:transparent;margin-bottom:18px}
 .ob-wrap h1{font-size:26px;font-weight:900;color:var(--green-deep);letter-spacing:.04em}
 .ob-wrap .tag{font-size:13.5px;color:var(--ink-soft);margin:4px 0 26px}
 .entry-kicker{font-size:17px;font-weight:900;letter-spacing:.04em;color:var(--green-deep)}
@@ -598,7 +615,7 @@ nav button.on{color:var(--green)}
 .ob-f p{font-size:13.5px;color:var(--ink-soft);margin-top:2px}
 .ob-actions{margin-top:auto;padding-top:22px}
 .btn-guest{width:100%;font-family:inherit;font-size:17px;font-weight:900;color:#fff;background:var(--green);border:none;border-radius:13px;padding:15px;cursor:pointer;margin-top:10px}
-@media(max-width:380px){.ob-wrap{padding:30px 18px 22px}.entry-hero h1{font-size:34px}.entry-choice-card{padding:16px}.entry-logo{width:64px;height:64px;margin-bottom:16px}}
+@media(max-width:380px){.ob-wrap{padding:30px 18px 22px}.entry-hero h1{font-size:34px}.entry-choice-card{padding:16px}.entry-logo{width:76px;height:76px;margin-bottom:15px}.crop-overview-head{display:block}.crop-overview-toggle{margin-top:7px}}
 .ob-note{font-size:11.5px;color:#9DA093;text-align:center;margin-top:12px;line-height:1.7}
 
 /* 離線 / 更新提示 */
@@ -919,14 +936,28 @@ nav button.on{color:var(--green)}
         <div class="chips" id="formChips"></div>
         <div class="hint">同一作物不同收穫型態的登記藥劑可能不同。分組只依備註「明確文字」,備註未註明的不會自動歸類;不選擇則全部顯示。</div>
       </div>
+      <div class="crop-overview" id="cropOverviewBlock" style="display:none">
+        <div class="crop-overview-head">
+          <div>
+            <h2 class="step"><b>2</b>已登記用藥總覽 <span class="cnt" id="cropOverviewCount"></span></h2>
+            <div class="hint">依普通名稱整合同一作物的防治對象，方便先看一支藥涵蓋哪些病蟲害；點選病蟲害可查看完整登記用法。</div>
+          </div>
+          <button class="crop-overview-toggle" id="cropOverviewToggle" type="button" aria-expanded="true" onclick="toggleCropOverview()">收合總覽</button>
+        </div>
+        <div class="crop-overview-body" id="cropOverviewBody">
+          <div class="search"><input id="cropOverviewSearch" placeholder="篩選藥劑或病蟲害" autocomplete="off" oninput="overviewShow=10;renderCropOverview(this.value)"></div>
+          <div class="crop-overview-summary" id="cropOverviewSummary"></div>
+          <div id="cropOverviewList"></div>
+        </div>
+      </div>
       <div id="pestBlock" style="display:none">
-        <h2 class="step"><b>2</b>選病蟲害 <span class="cnt" id="pestTotal"></span></h2>
+        <h2 class="step"><b>3</b>選病蟲害 <span class="cnt" id="pestTotal"></span></h2>
         <div class="hint" id="coverLine" style="margin:-4px 2px 9px"></div>
         <div class="search" id="pestSearchWrap" style="display:none"><input id="pestSearch" placeholder="篩選病蟲害名稱" autocomplete="off"></div>
         <div class="chips" id="pestChips"></div>
       </div>
       <div id="agentBlock" style="display:none">
-        <h2 class="step"><b>3</b>登記藥劑 <span class="cnt" id="agentCount"></span></h2>
+        <h2 class="step"><b>4</b>登記藥劑 <span class="cnt" id="agentCount"></span></h2>
         <div class="phi-filter" id="phiFilter" style="display:none">
           <span class="phi-label">採收期篩選</span>
           <button class="sel" onclick="setPhiFilter(this,0)">全部</button>
@@ -1270,7 +1301,7 @@ nav button.on{color:var(--green)}
 <div id="onboard" role="dialog" aria-modal="true" aria-labelledby="entryTitle">
   <div class="ob-wrap">
     <div class="entry-main">
-      <img class="entry-logo" src="./icon-512.png" width="76" height="76" alt="噴前查 SearchBefore" decoding="async">
+      <img class="entry-logo" src="./brand-logo-transparent.png" width="88" height="88" alt="噴前查 SearchBefore" decoding="async">
       <div class="entry-kicker">登入或直接開始使用</div>
       <div class="entry-hero">
         <h1 id="entryTitle">噴前查 SearchBefore</h1>
@@ -1345,9 +1376,10 @@ const DATA={"木瓜":{"白粉病":[{"name":"快得保淨","form":"WP","content":
 /* ═══ 維護區:改這裡就好 ═══════════════════════════════
    APP_VERSION:每次更新資料或功能時往上加
    ANNOUNCE:公告(新的放最上面,date 改了紅點會自動亮) */
-const APP_VERSION="0.3.9.8";
+const APP_VERSION="0.3.9.9";
 const DATA_VERSION="2026-07-21"; // 農藥資料抓取年月
 const ANNOUNCE=[
+ {date:"2026-09-01",version:"0.3.9.9",title:"新增作物已登記用藥總覽",body:"選擇作物後，可先依藥劑普通名稱查看其涵蓋的已登記防治對象，再點選病蟲害核對完整用法、稀釋倍數與安全採收期；總覽只重組現有官方登記資料，不提供系統推薦或額外推論。"},
  {date:"2026-08-29",version:"0.3.9.8",title:"新增人工複核的登記但不得檢出提醒",body:"只對17筆人工已確認的精確作物與藥劑組合顯示殘留檢驗提醒，並附現行法規版本、人工對照依據與衛福部來源；相似名稱、作物群組或查無資料不會自動判定。"},
  {date:"2026-08-14",version:"0.3.9.7",title:"修正藥劑查詢展開與特殊用法標示",body:"修正部分裝置載入新頁面但仍使用舊版離線模組時，點選作物旁的「＋」無法展開。沒有數字稀釋倍數的登記資料仍只顯示施用用途與原始附註，不再誤加「倍」。"},
  {date:"2026-08-09",version:"0.3.9.6",title:"改善表格多筆候選核對（測試中）",body:"辨識結果現在可先依文字位置拆出同列／同格候選，寬幅雙頁照片會分開處理；一張照片也可顯示多筆待確認作業。這只是位置輔助，系統不會猜測欄位、不會自動勾選低信心結果，也不會自動儲存或上傳。"},
@@ -1834,6 +1866,13 @@ function pickCrop(c,form){
   const u=buildUnion(c);
   CUR=u.M;
   const levels=u.levels;
+  document.getElementById("cropOverviewBlock").style.display="block";
+  document.getElementById("cropOverviewBody").hidden=false;
+  document.getElementById("cropOverviewToggle").textContent="收合總覽";
+  document.getElementById("cropOverviewToggle").setAttribute("aria-expanded","true");
+  document.getElementById("cropOverviewSearch").value="";
+  overviewShow=10;
+  renderCropOverview("");
   document.getElementById("pestBlock").style.display="block";
   document.getElementById("agentBlock").style.display="none";
   const pests=Object.keys(CUR);
@@ -1842,7 +1881,7 @@ function pickCrop(c,form){
   document.getElementById("pestSearchWrap").style.display=pests.length>12?"block":"none";
   document.getElementById("pestSearch").value="";
   renderPests("");
-  document.getElementById("pestBlock").scrollIntoView({behavior:"smooth",block:"start"});
+  document.getElementById("cropOverviewBlock").scrollIntoView({behavior:"smooth",block:"start"});
 }
 function renderPests(f){
   const pests=Object.keys(CUR).sort((a,b)=>CUR[b].list.length-CUR[a].list.length)
@@ -1851,6 +1890,58 @@ function renderPests(f){
     `<button class="chip ${selPest===p?'sel':''}" onclick="pickPest('${esc(p)}')">${esc(p)}<small>${CUR[p].list.length} 種</small></button>`).join("");
 }
 document.getElementById("pestSearch").addEventListener("input",e=>renderPests(e.target.value.trim()));
+
+let overviewShow=10;
+function toggleCropOverview(){
+  const body=document.getElementById("cropOverviewBody");
+  const btn=document.getElementById("cropOverviewToggle");
+  body.hidden=!body.hidden;
+  btn.textContent=body.hidden?"展開總覽":"收合總覽";
+  btn.setAttribute("aria-expanded",body.hidden?"false":"true");
+}
+function cropOverviewData(buckets){
+  if(window.PQC_AIDS&&typeof PQC_AIDS.cropAgentOverview==="function")return PQC_AIDS.cropAgentOverview(buckets);
+  /* 更新中的 Service Worker 可能短暫提供舊版 query-aids.js；
+     相容層仍只反向整理目前作物的既有登記列，不新增任何用途。 */
+  const byName=new Map();
+  Object.keys(buckets||{}).forEach(pest=>{
+    const list=(buckets[pest]&&buckets[pest].list)||[];
+    list.forEach(a=>{
+      const name=String(a&&a.name||"").trim();
+      if(!name)return;
+      let rec=byName.get(name);
+      if(!rec){rec={name,pests:new Set(),forms:new Set(),sources:new Set(),rows:[]};byName.set(name,rec)}
+      rec.pests.add(pest);
+      if(a.form)rec.forms.add(String(a.form));
+      if(a.src)rec.sources.add(String(a.src));
+      rec.rows.push({pest,a});
+    });
+  });
+  return Array.from(byName.values()).map(rec=>({
+    name:rec.name,pests:Array.from(rec.pests).sort((a,b)=>a.localeCompare(b,"zh-Hant")),
+    forms:Array.from(rec.forms),sources:Array.from(rec.sources),rows:rec.rows
+  })).sort((a,b)=>b.pests.length-a.pests.length||a.name.localeCompare(b.name,"zh-Hant"));
+}
+function renderCropOverview(raw){
+  const all=cropOverviewData(CUR);
+  const q=String(raw||"").trim();
+  const filtered=q?all.filter(item=>item.name.includes(q)||item.pests.some(p=>p.includes(q))):all;
+  document.getElementById("cropOverviewCount").textContent=`(${all.length} 種)`;
+  document.getElementById("cropOverviewSummary").textContent=q
+    ?`找到 ${filtered.length} 種符合「${q}」的已登記藥劑`
+    :`共 ${all.length} 種普通名稱；優先列出涵蓋較多防治對象的藥劑。`;
+  const shown=filtered.slice(0,overviewShow);
+  const box=document.getElementById("cropOverviewList");
+  if(!shown.length){
+    box.innerHTML='<div class="crop-overview-empty">查無符合的已登記藥劑或病蟲害。</div>';
+    return;
+  }
+  box.innerHTML=shown.map(item=>`<article class="crop-overview-card">
+    <div class="crop-overview-name"><b>${esc(item.name)}</b><small>${item.pests.length} 項防治對象</small></div>
+    <div class="crop-overview-pests">${item.pests.map(p=>`<button type="button" onclick="pickPest('${esc(p)}')" title="查看 ${esc(p)} 的完整登記用藥">${esc(p)}</button>`).join("")}</div>
+  </article>`).join("")
+    +(filtered.length>overviewShow?`<button class="chip mut crop-overview-more" type="button" onclick="overviewShow+=10;renderCropOverview(document.getElementById('cropOverviewSearch').value)">再顯示 ${Math.min(10,filtered.length-overviewShow)} 種</button>`:"");
+}
 
 function phiBox(phi,adjusted,seed,phiText){
   /* 種子/種苗處理於播種前施用,採收期本就不適用——與「資料缺漏」語意不同 */

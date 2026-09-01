@@ -274,6 +274,43 @@
     return { kind: purpose.kind, label: "施用用途", value: purpose.value, detail: detail, raw: raw, canCalculateDilution: false, isSpecial: true };
   }
 
+  /* 將同一作物的登記資料反向整理成「藥劑 → 防治對象」。
+     只重組呼叫端傳入的既有登記列，不推論作物群組、相近藥名或額外用途。 */
+  function cropAgentOverview(pestBuckets) {
+    const grouped = new Map();
+    const pests = Object.keys(pestBuckets || {});
+    for (let pi = 0; pi < pests.length; pi++) {
+      const pest = pests[pi];
+      const bucket = pestBuckets[pest];
+      const list = Array.isArray(bucket) ? bucket : ((bucket && bucket.list) || []);
+      for (let ai = 0; ai < list.length; ai++) {
+        const agent = list[ai];
+        const name = String(agent && agent.name || "").trim();
+        if (!name) continue;
+        let record = grouped.get(name);
+        if (!record) {
+          record = { name: name, pests: new Set(), forms: new Set(), sources: new Set(), rows: [] };
+          grouped.set(name, record);
+        }
+        record.pests.add(pest);
+        if (agent.form) record.forms.add(String(agent.form));
+        if (agent.src) record.sources.add(String(agent.src));
+        record.rows.push({ pest: pest, a: agent });
+      }
+    }
+    return Array.from(grouped.values()).map(function (record) {
+      return {
+        name: record.name,
+        pests: Array.from(record.pests).sort(function (a, b) { return String(a).localeCompare(String(b), "zh-Hant"); }),
+        forms: Array.from(record.forms).sort(function (a, b) { return String(a).localeCompare(String(b), "zh-Hant"); }),
+        sources: Array.from(record.sources).sort(function (a, b) { return String(a).localeCompare(String(b), "zh-Hant"); }),
+        rows: record.rows
+      };
+    }).sort(function (a, b) {
+      return b.pests.length - a.pests.length || String(a.name).localeCompare(String(b.name), "zh-Hant");
+    });
+  }
+
   /* ── C. 藥劑本位索引(DATA 是作物本位,這裡建反向索引) ──
      設計依據見 docs/藥劑本位查詢-設計.md:
      - rows 只存「參照」,a 直接指向 DATA 內既有物件,不複製資料。
@@ -401,6 +438,7 @@
     isDilutionMultiple: isDilutionMultiple,
     usagePurpose: usagePurpose,
     usagePresentation: usagePresentation,
+    cropAgentOverview: cropAgentOverview,
     buildAgentIndex: buildAgentIndex,
     agentSuggestions: agentSuggestions,
     agentRegistrations: agentRegistrations
