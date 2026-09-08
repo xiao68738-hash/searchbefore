@@ -24,7 +24,7 @@ const jsFiles = [
   "export-formats.js",
   "sw.js"
 ];
-const imageFiles = ["brand-lockup.png", "brand-logo-120.png", "icon-180.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
+const imageFiles = ["brand-lockup.png", "brand-logo-120.png", "brand-logo-transparent.png", "icon-180.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 const vendorFiles = ["pinyin-pro.js"];
 
 await rm(outDir, { recursive: true, force: true });
