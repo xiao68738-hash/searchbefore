@@ -8,6 +8,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..");
 const outDir = path.join(root, "dist");
 const expected = [
+  "mrl-status.js", "brand-logo-transparent.png",
   "about.html", "account.js", "brand-lockup.png", "cloud-sync.js", "delete-account.html", "brand-logo-120.png", "crop-forms.js", "export-formats.js", "farm-records.js", "form-ocr-ui.js", "form-ocr.js", "icon-180.png", "icon-192.png", "icon-512.png",
   "icon-maskable-512.png", "index.html", "manifest.webmanifest", "privacy.html",
   "pinyin-pro.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"
@@ -36,6 +37,11 @@ for (const name of ["account.js", "cloud-sync.js", "crop-forms.js", "export-form
 }
 
 const html = await readFile(path.join(outDir, "index.html"), "utf8");
+new vm.Script(await readFile(path.join(outDir, "mrl-status.js"), "utf8"), { filename: "dist/mrl-status.js" });
+const aidsSandbox = {};
+vm.runInNewContext(await readFile(path.join(outDir, "query-aids.js"), "utf8"), aidsSandbox);
+assert.ok(aidsSandbox.PQC_AIDS.pestSearchMatch("鱗翅目", "夜蛾類"), "壓縮後仍須保留分類搜尋");
+assert.equal(aidsSandbox.PQC_AIDS.pestSearchMatch("夜蛾科", "小菜蛾"), null, "壓縮後不得誤納其他科");
 const sharedConfig = await readFile(path.join(outDir, "service-config.js"), "utf8");
 const webSupportConfig = await readFile(path.join(outDir, "web-support-config.js"), "utf8");
 const ocrUi = await readFile(path.join(outDir, "form-ocr-ui.js"), "utf8");

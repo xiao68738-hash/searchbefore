@@ -752,6 +752,10 @@ nav button.on{color:var(--green)}
   .pest-rel b{display:block;font-size:14px;color:var(--green-deep);margin-bottom:3px}
   .pest-rel p{font-size:13px;color:var(--ink-soft);line-height:1.6;margin-bottom:8px}
   .pest-rel .chip{margin:0 6px 0 0}
+  .pest-rel-group{border-top:1px solid var(--line);padding:9px 0}
+  .pest-rel-group summary{cursor:pointer;color:var(--green-deep);font-weight:800;line-height:1.6;padding:4px 0}
+  .pest-rel-group summary:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+  .pest-rel-group p{overflow-wrap:anywhere;margin:8px 0}
   /* 種子處理標示 */
   .seed-tag{display:inline-block;font-size:11.5px;font-weight:800;border-radius:20px;padding:1px 8px;margin-left:6px;vertical-align:middle;background:var(--mut-bg);color:var(--ink-soft);border:1px solid var(--line)}
   .seed-note{background:var(--mut-bg);border-left:3px solid var(--ink-soft)}
@@ -953,7 +957,8 @@ nav button.on{color:var(--green)}
       <div id="pestBlock" style="display:none">
         <h2 class="step"><b>3</b>選病蟲害 <span class="cnt" id="pestTotal"></span></h2>
         <div class="hint" id="coverLine" style="margin:-4px 2px 9px"></div>
-        <div class="search" id="pestSearchWrap" style="display:none"><input id="pestSearch" placeholder="篩選病蟲害名稱" autocomplete="off"></div>
+        <div class="search" id="pestSearchWrap" style="display:none"><input id="pestSearch" placeholder="篩選病蟲害或分類，例：夜蛾科、鱗翅目" autocomplete="off"></div>
+        <div class="hint" id="pestSearchNote" role="status"></div>
         <div class="chips" id="pestChips"></div>
       </div>
       <div id="agentBlock" style="display:none">
@@ -1878,16 +1883,24 @@ function pickCrop(c,form){
   const pests=Object.keys(CUR);
   document.getElementById("pestTotal").textContent=`(${pests.length} 項)`;
   document.getElementById("coverLine").innerHTML=`目前只顯示「<b style="color:var(--green)">${esc(c)}</b>」的直接登記資料；作物群組適用請以官方公告及產品標示確認。`;
-  document.getElementById("pestSearchWrap").style.display=pests.length>12?"block":"none";
+  document.getElementById("pestSearchWrap").style.display=pests.length?"block":"none";
   document.getElementById("pestSearch").value="";
   renderPests("");
   document.getElementById("cropOverviewBlock").scrollIntoView({behavior:"smooth",block:"start"});
 }
+function pestSearchMatchSafe(query,pest){
+  if(window.PQC_AIDS&&typeof PQC_AIDS.pestSearchMatch==="function")return PQC_AIDS.pestSearchMatch(query,pest);
+  /* 新頁面搭配舊快取模組時，安全退回原名稱搜尋，不拋錯或憑空推論。 */
+  return !query||String(pest).includes(query)?{kind:"name",label:""}:null;
+}
 function renderPests(f){
   const pests=Object.keys(CUR).sort((a,b)=>CUR[b].list.length-CUR[a].list.length)
-    .filter(p=>!f||p.includes(f));
+    .filter(p=>pestSearchMatchSafe(f,p));
+  document.getElementById("pestSearchNote").textContent=!f?"":pests.length
+    ?"包含名稱與已核實的分類相關結果；按原登記對象分列，不代表用藥可互用。分類對照尚非完整清單。"
+    :"查無符合的直接登記項目；分類對照尚非完整清單，可改查原病蟲害名稱。";
   document.getElementById("pestChips").innerHTML=pests.map(p=>
-    `<button class="chip ${selPest===p?'sel':''}" onclick="pickPest('${esc(p)}')">${esc(p)}<small>${CUR[p].list.length} 種</small></button>`).join("");
+    `<button class="chip ${selPest===p?'sel':''}" onclick="pickPest(${esc(JSON.stringify(p))})">${esc(p)}<small>${CUR[p].list.length} 筆用法</small>${pestSearchMatchSafe(f,p).label?`<span class="alias">${esc(pestSearchMatchSafe(f,p).label)}</span>`:""}</button>`).join("");
 }
 document.getElementById("pestSearch").addEventListener("input",e=>renderPests(e.target.value.trim()));
 
@@ -1925,10 +1938,10 @@ function cropOverviewData(buckets){
 function renderCropOverview(raw){
   const all=cropOverviewData(CUR);
   const q=String(raw||"").trim();
-  const filtered=q?all.filter(item=>item.name.includes(q)||item.pests.some(p=>p.includes(q))):all;
+  const filtered=q?all.filter(item=>item.name.includes(q)||item.pests.some(p=>pestSearchMatchSafe(q,p))):all;
   document.getElementById("cropOverviewCount").textContent=`(${all.length} 種)`;
   document.getElementById("cropOverviewSummary").textContent=q
-    ?`找到 ${filtered.length} 種符合「${q}」的已登記藥劑`
+    ?`找到 ${filtered.length} 種符合「${q}」的已登記藥劑（含已核實的分類相關結果）；請依下方原登記對象查看用法，勿視為可互用。分類對照尚非完整清單。`
     :`共 ${all.length} 種普通名稱；優先列出涵蓋較多防治對象的藥劑。`;
   const shown=filtered.slice(0,overviewShow);
   const box=document.getElementById("cropOverviewList");
@@ -1938,7 +1951,7 @@ function renderCropOverview(raw){
   }
   box.innerHTML=shown.map(item=>`<article class="crop-overview-card">
     <div class="crop-overview-name"><b>${esc(item.name)}</b><small>${item.pests.length} 項防治對象</small></div>
-    <div class="crop-overview-pests">${item.pests.map(p=>`<button type="button" onclick="pickPest('${esc(p)}')" title="查看 ${esc(p)} 的完整登記用藥">${esc(p)}</button>`).join("")}</div>
+    <div class="crop-overview-pests">${item.pests.map(p=>`<button type="button" onclick="pickPest(${esc(JSON.stringify(p))})" title="查看 ${esc(p)} 的完整登記用藥">${esc(p)}</button>`).join("")}</div>
   </article>`).join("")
     +(filtered.length>overviewShow?`<button class="chip mut crop-overview-more" type="button" onclick="overviewShow+=10;renderCropOverview(document.getElementById('cropOverviewSearch').value)">再顯示 ${Math.min(10,filtered.length-overviewShow)} 種</button>`:"");
 }
@@ -2129,13 +2142,18 @@ function renderAgents(){
 /* 害物從屬提示:群組與具體物種的登記藥劑常完全不重疊,提示但不合併清單 */
 function renderPestRelated(){
   if(!window.PQC_AIDS||!selCrop||!selPest)return "";
-  const rel=PQC_AIDS.relatedPests(selCrop,selPest,DATA).filter(r=>r.agentCount>0);
+  const rel=typeof PQC_AIDS.relatedPestRegistrations==="function"
+    ?PQC_AIDS.relatedPestRegistrations(selCrop,selPest,DATA)
+    :PQC_AIDS.relatedPests(selCrop,selPest,DATA).filter(r=>r.agentCount>0);
   if(!rel.length)return "";
-  const isGroup=!!PQC_AIDS.groupStem(selPest);
-  const chips=rel.map(r=>`<button class="chip" onclick="pickPest('${esc(r.pest)}')">${esc(r.pest)}<small>${r.agentCount} 種</small></button>`).join("");
-  return `<div class="pest-rel"><b>同作物另有相關分類的登記藥劑</b>
-    <p>「${esc(selPest)}」與${isGroup?"底下的具體種類":"所屬的分類"}在登記資料中是分開的條目,藥劑清單可能<b>完全不同</b>。本工具不會自動合併,請自行點選查看並以產品標示為準。</p>
-    ${chips}</div>`;
+  const groups=rel.map(r=>`<details class="pest-rel-group">
+    <summary>原登記：${esc(r.pest)} · ${r.agentCount} 筆用法${r.names?` / ${r.names.length} 種藥劑`:""}</summary>
+    ${r.names?`<p>${r.names.map(esc).join("、")}</p>`:""}
+    <button class="chip" onclick="pickPest(${esc(JSON.stringify(r.pest))})">查看「${esc(r.pest)}」原登記用法</button>
+    </details>`).join("");
+  return `<div class="pest-rel"><b>同作物相關分類用藥總覽（按原登記分組）</b>
+    <p>「${esc(selPest)}」與相關分類在登記資料中是分開的條目，清單可能<b>完全不同</b>。本工具不會自動合併。以下僅供查找，不代表可互用；不套用目前採收期篩選。請進入原登記用法核對倍數、採收期及產品標示。</p>
+    ${groups}<p>分類對照尚非完整清單；下方主清單仍僅列「${esc(selPest)}」原登記。</p></div>`;
 }
 function renderMaterials(){
   const mats=matchMaterials(selPest);

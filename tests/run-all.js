@@ -7,4 +7,7 @@ for (const file of ["safety.test.js", "farm-records.test.js", "tap-workflow.test
   if (result.status !== 0) process.exit(result.status || 1);
 }
 
+const taxonomyResult = spawnSync(process.execPath, [path.join(__dirname, "pest-taxonomy-search.test.js")], { stdio: "inherit" });
+if (taxonomyResult.status !== 0) process.exit(taxonomyResult.status || 1);
+
 console.log("\n全部測試完成");

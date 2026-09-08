@@ -3,13 +3,13 @@
 
    A. 害物從屬提示 —— 群組(如「夜蛾類」)與具體物種(如「斜紋夜蛾」)在資料庫
       是各自獨立條目,藥劑清單常完全不重疊(排查:42 組從屬中 18 組交集為 0)。
-      只做「可發現性」提示,不合併清單。
+      只做搜尋歸納與分組預覽,不合併原登記清單。
 
    B. 種子/種苗處理辨識 —— 這類藥劑於播種前施用,採收期本就不適用;
       現行顯示「見標示」易被誤解為資料缺漏,也可能被誤當噴施用藥。
 
    ── 不可破壞的原則 ──
-   1. 從屬只採「子項名稱完整包含群組字根」(strong);僅末字相同者一律不算
+   1. 從屬採有來源的明確對照與既有完整字根規則;僅末字相同者一律不算
       (排查證實會產生「毒蛾類⊃斜紋夜蛾」「根蟎類⊃二點葉蟎」等誤判)。
    2. 從屬提示不得自動合併藥劑清單(同交接文件安全規則 7)。
    3. 種子處理辨識只依備註明確文字,不推測。
@@ -199,16 +199,56 @@
   }
 
   /* ── A. 害物從屬 ── */
+  /* 搜尋用分類，不是登記適用範圍。新增項目需附一手來源並補負例測試。
+     鱗翅目對照本次先涵蓋夜蛾相關條目，並非完整昆蟲分類表。
+     來源與限制：docs/PEST-TAXONOMY-SEARCH-2026-09-08.md */
+  const PEST_ALIASES = new Map([
+    ["鱗翅目", "鱗翅目害蟲"], ["鱗翅目害蟲", "鱗翅目害蟲"],
+    ["夜蛾科", "夜蛾類"], ["夜蛾", "夜蛾類"], ["夜蛾類", "夜蛾類"],
+    ["斜紋夜盜蛾", "斜紋夜蛾"], ["切根蟲類", "切根蟲"]
+  ]);
+  const PEST_PARENTS = new Map([
+    ["夜蛾類", "鱗翅目害蟲"],
+    ["斜紋夜蛾", "夜蛾類"], ["甜菜夜蛾", "夜蛾類"],
+    ["秋行軍蟲", "夜蛾類"], ["切根蟲", "夜蛾類"]
+  ]);
+  function canonicalPest(value) {
+    const p = normalizeSearchText(value);
+    return PEST_ALIASES.get(p) || p;
+  }
   function groupStem(pest) {
     const p = String(pest || "");
     return /類$/.test(p) ? p.slice(0, -1) : null;
   }
-  /* group 是否為 child 的上位:group 必須是「⋯類」,且 child 完整包含其字根 */
+  /* 只沿明確對照向上走，不用模糊搜尋或「蛾／蟲」單字推論分類。 */
   function isParentOf(group, child) {
+    group = canonicalPest(group); child = canonicalPest(child);
     if (group === child) return false;
+    let parent = PEST_PARENTS.get(child);
+    while (parent) {
+      if (parent === group) return true;
+      parent = PEST_PARENTS.get(parent);
+    }
     const stem = groupStem(group);
     if (!stem) return false;
     return String(child || "").includes(stem);
+  }
+  /* 上位查詢可找到已核實子項；反向不把上位登記當作子項直接命中。
+     不要求作物先有上位登記：候選永遠由該作物現有條目提供。 */
+  function pestSearchMatch(query, pest) {
+    const q = normalizeSearchText(query), p = normalizeSearchText(pest);
+    if (!q) return { kind: "all", label: "" };
+    if (p.includes(q)) return { kind: "name", label: "" };
+    const cq = canonicalPest(q), cp = canonicalPest(p);
+    if (cq === cp) return { kind: "alias", label: "分類名稱對照" };
+    const groups = Array.from(new Set(Array.from(PEST_ALIASES)
+      .filter(function (entry) { return entry[0].includes(q); })
+      .map(function (entry) { return entry[1]; })));
+    // 單字不擴大到整個分類，避免「蛾」等廣泛字詞拉入無關條目。
+    if (isParentOf(cq, cp) || (q.length >= 2 && groups.some(function (g) { return g === cp || isParentOf(g, cp); }))) {
+      return { kind: "taxonomy", label: "分類相關・原登記：" + pest };
+    }
+    return null;
   }
   /* 同一作物內,與 pest 有從屬關係的其他害物。
      回傳 [{pest, relation:"parent"|"child", agentCount}],依藥劑數多寡排序。 */
@@ -219,12 +259,21 @@
     for (const other of Object.keys(bucket)) {
       if (other === pest) continue;
       let relation = null;
-      if (isParentOf(other, pest)) relation = "parent";
+      if (canonicalPest(other) === canonicalPest(pest)) relation = "alias";
+      else if (isParentOf(other, pest)) relation = "parent";
       else if (isParentOf(pest, other)) relation = "child";
       if (!relation) continue;
       out.push({ pest: other, relation: relation, agentCount: (bucket[other] || []).length });
     }
     return out.sort(function (a, b) { return b.agentCount - a.agentCount; });
+  }
+  function relatedPestRegistrations(crop, pest, data) {
+    return relatedPests(crop, pest, data).filter(function (r) { return r.agentCount > 0; })
+      .map(function (r) {
+        const names = Array.from(new Set(data[crop][r.pest].map(function (a) { return a.name; }).filter(Boolean)))
+          .sort(function (a, b) { return a.localeCompare(b, "zh-Hant"); });
+        return { pest: r.pest, relation: r.relation, agentCount: r.agentCount, names: names };
+      });
   }
 
   /* ── B. 種子/種苗處理 ── */
@@ -431,8 +480,11 @@
     candidateMatch: candidateMatch,
     fuzzyCandidates: fuzzyCandidates,
     groupStem: groupStem,
+    canonicalPest: canonicalPest,
     isParentOf: isParentOf,
+    pestSearchMatch: pestSearchMatch,
     relatedPests: relatedPests,
+    relatedPestRegistrations: relatedPestRegistrations,
     SEED_RE: SEED_RE,
     isSeedTreatment: isSeedTreatment,
     isDilutionMultiple: isDilutionMultiple,
