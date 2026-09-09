@@ -110,6 +110,9 @@ const hostilePest = `夜蛾類');globalThis.injected=true;//<"`;
 ctx.CUR = {[hostilePest]:{list:[{name:'<img src=x onerror=alert(1)>'}]}};
 ctx.selCrop = '安全測試'; ctx.selPest = '夜蛾類';
 ctx.DATA = {'安全測試':{'夜蛾類':[],[hostilePest]:ctx.CUR[hostilePest].list}};
+assert.equal(A.isParentOf('夜蛾類', hostilePest), false, '未知字根不能建立分類');
+ctx.CUR['甜菜夜蛾'] = ctx.CUR[hostilePest];
+ctx.DATA['安全測試']['甜菜夜蛾'] = ctx.CUR[hostilePest].list;
 ctx.renderPests('夜蛾');
 const maliciousMarkup = ctx.renderPestRelated();
 assert.doesNotMatch(maliciousMarkup, /<img/);
@@ -117,7 +120,7 @@ assert.match(maliciousMarkup, /&lt;img/);
 for (const markup of [element('pestChips').innerHTML, maliciousMarkup]) {
   for (const handler of clickHandlers(markup)) vm.runInContext(handler, ctx);
   assert.equal(ctx.injected, undefined);
-  assert.equal(ctx.selPest, hostilePest);
+  assert.ok([hostilePest, '甜菜夜蛾'].includes(ctx.selPest));
 }
 ctx.renderCropOverview('夜蛾');
 assert.doesNotMatch(element('cropOverviewList').innerHTML, /<img/);

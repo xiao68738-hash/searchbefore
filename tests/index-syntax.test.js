@@ -30,7 +30,7 @@ assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("co
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
 assert.match(html, /const APP_VERSION="0\.3\.9\.9"/);
-assert.match(sw, /const CACHE_VERSION = "v0\.3\.9\.9-pest-taxonomy-search-2026-09-08"/);
+assert.match(sw, /const CACHE_VERSION = "v0\.3\.9\.9-pest-grouping-search-2026-09-09"/);
 assert.match(html, /function usagePresentationSafe\(agent\)/);
 assert.match(html, /typeof PQC_AIDS\.usagePresentation==="function"/);
 assert.equal((html.match(/PQC_AIDS\.usagePresentation\(/g)||[]).length,1,"只有相容層可以直接呼叫 usagePresentation");
@@ -224,7 +224,7 @@ assert.match(sw, /"\.\/brand-logo-120\.png"/);
 assert.match(sw, /"\.\/brand-logo-transparent\.png"/);
 assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/);
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
-assert.match(sw, /v0\.3\.9\.9-pest-taxonomy-search/);
+assert.match(sw, /v0\.3\.9\.9-pest-grouping-search/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.match(sw, /"\.\/pinyin-pro\.js"/);
 assert.ok(html.indexOf('<script src="./pinyin-pro.js"></script>') < html.indexOf('<script src="./query-aids.js"></script>'), "拼音核心必須在搜尋輔助前載入");
