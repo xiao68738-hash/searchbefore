@@ -13,14 +13,23 @@ const assetLinks = JSON.parse(read(".well-known/assetlinks.json"));
 assert.match(gradle, /applicationId\s+"tw\.searchbefore\.app"/);
 assert.match(gradle, /compileSdk\s+36/);
 assert.match(gradle, /targetSdk\s+36/);
-assert.match(gradle, /versionCode\s+2/);
-assert.match(gradle, /versionName\s+"1\.0\.1\.0"/);
+assert.match(gradle, /versionCode\s+3\b/);
+assert.match(gradle, /versionName\s+"1\.0\.2\.0"/);
+assert.match(gradle, /com\.google\.androidbrowserhelper:androidbrowserhelper:2\.7\.3/);
 assert.match(gradle, /SEARCHBEFORE_KEYSTORE_PATH/);
 assert.doesNotMatch(gradle, /storePassword\s+["'][^"']+["']/);
 assert.doesNotMatch(gradle, /keyPassword\s+["'][^"']+["']/);
 
 assert.match(manifest, /android\.support\.customtabs\.trusted\.DEFAULT_URL/);
 assert.match(manifest, /android:host="searchbefore\.tw"/);
+assert.match(manifest, /android:manageSpaceActivity="com\.google\.androidbrowserhelper\.trusted\.ManageDataLauncherActivity"/);
+assert.match(manifest, /android:usesCleartextTraffic="false"/, "原生外殼不得允許明文 HTTP");
+assert.doesNotMatch(manifest, /POST_NOTIFICATIONS/, "目前未使用原生通知，不應要求通知權限");
+for (const activity of ["ManageDataLauncherActivity", "FocusActivity"]) {
+  const escaped = `com\\.google\\.androidbrowserhelper\\.trusted\\.${activity}`;
+  assert.match(manifest, new RegExp(`<activity\\s+android:name="${escaped}"\\s+android:exported="false"`), `${activity} must be declared without external access`);
+}
+assert.match(manifest, /android\.support\.customtabs\.trusted\.MANAGE_SPACE_URL"\s+android:value="https:\/\/searchbefore\.tw\/"/);
 assert.match(strings, /https:\/\/searchbefore\.tw\/?\?app=google-play/);
 
 const androidTarget = assetLinks.find(
