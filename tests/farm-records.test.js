@@ -155,6 +155,15 @@ assert.throws(() => farm.readBackup({
   data: { fieldPlots: [], activePlotId: "plot-missing" }
 }), /預設田區不存在/);
 
+assert.throws(() => farm.readBackup({
+  product: "searchbefore-backup",
+  formatVersion: 1,
+  data: { fieldPlots: [
+    { id: "plot-1", crop: "番茄" },
+    { id: "plot-1", crop: "胡瓜" }
+  ] }
+}), /重複的編號：fieldPlots/);
+
 const indexSource = require("node:fs").readFileSync(require("node:path").join(__dirname, "..", "index.html"), "utf8");
 assert.doesNotMatch(indexSource, /pickCrop\('\$\{esc\(c\)\}'\)/, "最近作物不可直接插入 inline JavaScript");
 assert.doesNotMatch(indexSource, /setRecipeBrand\(\$\{i\},'\$\{esc\(b\)\}'\)/, "商品名稱不可直接插入 inline JavaScript");

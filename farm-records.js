@@ -336,6 +336,15 @@
     return value.map(function (item, index) { return sanitizer(item, key + "[" + index + "]"); });
   }
 
+  function uniqueIds(items, label) {
+    const seen = new Set();
+    items.forEach(function (item) {
+      if (seen.has(item.id)) throw new Error("備份內容含有重複的編號：" + label);
+      seen.add(item.id);
+    });
+    return seen;
+  }
+
   function syncFields(source, target, label) {
     const updatedAt = safeIso(source.updatedAt, label + ".updatedAt");
     if (updatedAt) target.updatedAt = updatedAt;
@@ -448,13 +457,17 @@
     if (!payload.data || typeof payload.data !== "object" || Array.isArray(payload.data)) throw new Error("備份內容不完整");
     const d = payload.data;
     const fieldPlots = safeArray(d.fieldPlots, "fieldPlots", sanitizeFieldPlot);
-    const plotIds = new Set(fieldPlots.map(function (plot) { return plot.id; }));
+    const records = safeArray(d.records, "records", sanitizePesticideRecord);
+    const farmRecords = safeArray(d.farmRecords, "farmRecords", sanitizeFarmRecord);
+    const plotIds = uniqueIds(fieldPlots, "fieldPlots");
+    uniqueIds(records, "records");
+    uniqueIds(farmRecords, "farmRecords");
     const activePlotId = safeId(d.activePlotId, "activePlotId", false);
     if (activePlotId && !plotIds.has(activePlotId)) throw new Error("備份內容的預設田區不存在");
     return {
       schemaVersion: safeNumber(d.schemaVersion, "schemaVersion", { asNumber: true, min: 1, max: 100 }),
-      records: safeArray(d.records, "records", sanitizePesticideRecord),
-      farmRecords: safeArray(d.farmRecords, "farmRecords", sanitizeFarmRecord),
+      records: records,
+      farmRecords: farmRecords,
       fieldPlots: fieldPlots,
       activePlotId: activePlotId,
       recipes: safeArray(d.recipes, "recipes", sanitizeRecipe),
