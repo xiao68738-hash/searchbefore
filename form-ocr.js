@@ -18,6 +18,8 @@
   const MAX_SOURCE_ROW_CANDIDATES = 250;
   const MAX_SOURCE_CELL_CANDIDATES_PER_ROW = 20;
   const MAX_SOURCE_WORD_IDS_PER_CELL = 100;
+  const MAX_LOCAL_CORRECTION_RECORDS = 20;
+  const MAX_LOCAL_CORRECTION_FIELDS = 12;
   const MATERIAL_LEDGER_LIMITS = Object.freeze({
     headerConfidence: 0.7,
     dateConfidence: 0.7,
@@ -213,8 +215,24 @@
     return String(westernYear).padStart(4, "0") + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0");
   }
 
-  function findDates(text) {
+  // Handwritten OCR engines occasionally confuse digit-like glyphs with
+  // letters (for example `7/l4` or `O/14`).  Limit this normalization to
+  // tokens that already contain a date separator; never rewrite ordinary
+  // text because that could create false numeric candidates.
+  function normalizeDateLikeTokens(text) {
     const source = normalizeText(text);
+    const digitLike = function (value) {
+      return String(value || "").replace(/[Oo〇○]/g, "0").replace(/[Il|]/g, "1");
+    };
+    return source.replace(/([0-9Oo〇○Il|]{1,4})(\s*[/.-]\s*)([0-9Oo〇○Il|]{1,2})(?:(\s*[/.-]\s*)([0-9Oo〇○Il|]{1,2}))?/g,
+      function (_match, first, separator, second, thirdSeparator, third) {
+        return digitLike(first) + separator + digitLike(second)
+          + (third == null ? "" : thirdSeparator + digitLike(third));
+      });
+  }
+
+  function findDates(text) {
+    const source = normalizeDateLikeTokens(text);
     const out = [];
     const seen = new Set();
     const patterns = [
@@ -466,7 +484,7 @@
   }
 
   function findPartialDates(text) {
-    const source = normalizeText(text);
+    const source = normalizeDateLikeTokens(text);
     const out = [];
     const seen = new Set();
     const pattern = /(?:^|[^\d/.\-])(\d{1,2})\s*[/.-]\s*(\d{1,2})(?!\s*[/.-]\s*\d)/g;
@@ -584,17 +602,21 @@
       (values || []).forEach(function (dictionaryValue) {
         const value = normalizeText(dictionaryValue);
         const key = compact(value);
-        if (key.length < 2 || key.length > 12 || Math.abs(key.length - rawKey.length) > 1) return;
-        const distance = boundedEditDistance(rawKey, key, 1);
-        if (distance !== 1) return;
+        if (key.length < 2 || key.length > 12) return;
+        // Handwritten OCR often drops two glyphs in a longer material name,
+        // but allowing that for short names creates unsafe false matches.
+        const maxDistance = Math.min(key.length, rawKey.length) >= 5 ? 2 : 1;
+        if (Math.abs(key.length - rawKey.length) > maxDistance) return;
+        const distance = boundedEditDistance(rawKey, key, maxDistance);
+        if (distance < 1 || distance > maxDistance) return;
         const identity = kind + "|" + key;
         if (seen.has(identity)) return;
         seen.add(identity);
         ranked.push(Object.freeze({
           value,
           sourceText: rawValue,
-          confidence: Math.max(0.52, Math.min(0.68, 0.76 - (distance / Math.max(key.length, rawKey.length)))),
-          match: "label-context-edit-distance-1",
+          confidence: Math.max(0.45, Math.min(0.68, 0.76 - (distance / Math.max(key.length, rawKey.length)))),
+          match: "label-context-edit-distance-" + distance,
           editDistance: distance,
           kind
         }));
@@ -605,11 +627,52 @@
     }).slice(0, 5));
   }
 
-  function recognizedMaterialCandidates(text, values) {
+  function localConfirmedCorrectionCandidates(text, values, records, kind) {
+    const source = normalizeText(text);
+    const body = compact(source);
+    if (!body || !Array.isArray(records)) return Object.freeze([]);
+    const allowed = new Set((values || []).map(function (value) { return compact(value); }).filter(Boolean));
+    const seen = new Set();
+    const out = [];
+    records.slice(0, MAX_LOCAL_CORRECTION_RECORDS).forEach(function (record) {
+      if (!record || record.schemaVersion !== 1 || record.recordType !== "ocr-local-correction") return;
+      if (!record.privacy
+        || record.privacy.autoUploadAllowed !== false
+        || record.privacy.imageIncluded !== false
+        || record.privacy.sourceFileMetadataIncluded !== false
+        || record.privacy.accountIdentifiersIncluded !== false) return;
+      (Array.isArray(record.fields) ? record.fields : []).slice(0, MAX_LOCAL_CORRECTION_FIELDS).forEach(function (field) {
+        if (!field || field.key !== kind) return;
+        const target = normalizeText(field.confirmedValue);
+        const targetKey = compact(target);
+        // A correction may only point to a currently registered dictionary
+        // value; this prevents localStorage tampering from injecting labels.
+        if (!targetKey || !allowed.has(targetKey)) return;
+        (Array.isArray(field.candidates) ? field.candidates : []).slice(0, 12).forEach(function (candidate) {
+          const raw = normalizeText(candidate && candidate.value);
+          const rawKey = compact(raw);
+          if (rawKey.length < 2 || rawKey.length > 24 || !body.includes(rawKey) || seen.has(targetKey)) return;
+          seen.add(targetKey);
+          out.push(Object.freeze({
+            value: target,
+            sourceText: raw,
+            confidence: 0.64,
+            match: "local-confirmed-correction",
+            kind,
+            requiresHumanReview: true
+          }));
+        });
+      });
+    });
+    return Object.freeze(out.slice(0, 5));
+  }
+
+  function recognizedMaterialCandidates(text, values, correctionRecords) {
     const exact = dictionaryCandidates(text, values, "material");
     const stopLabels = ["劑型", "廠商", "製造商", "供應商", "包裝單位", "包裝容量", "日期", "購入量", "使用量", "剩餘量"];
     const raw = findInventoryLabeledValues(text, ["資材名稱", "肥料名稱", "藥劑名稱", "商品名"], stopLabels, "materialRaw");
     const fuzzy = approximateDictionaryCandidates(raw, values, "material");
+    const corrected = localConfirmedCorrectionCandidates(text, values, correctionRecords, "material");
     const unverifiedRaw = raw.map(function (item) {
       return Object.freeze({
         value: item.value,
@@ -619,7 +682,7 @@
         kind: "materialRaw"
       });
     });
-    return mergeCandidates(exact, fuzzy, unverifiedRaw);
+    return mergeCandidates(exact, corrected, fuzzy, unverifiedRaw);
   }
 
   function optionPattern(value) {
@@ -1779,7 +1842,7 @@
       workGroup: locations.filter(function (item) { return item.role === "workGroup"; }),
       landParcel: locations.filter(function (item) { return item.role === "landParcel"; }),
       target: dictionaryCandidates(text, dict.targets, "target"),
-      material: mergeCandidates(recognizedMaterialCandidates(text, dict.materials), materialInventory && materialInventory.materials),
+      material: mergeCandidates(recognizedMaterialCandidates(text, dict.materials, dict.correctionRecords), materialInventory && materialInventory.materials),
       dilution: mergeCandidates(
         modelCandidates(findDilutions(text), "primary", primaryNumericCap),
         modelCandidates(findDilutions(alternativeText), "alternative-latin", alternativeNumericCap)
@@ -2097,6 +2160,7 @@
     associateMaterialLedgerRows,
     dictionaryCandidates,
     approximateDictionaryCandidates,
+    localConfirmedCorrectionCandidates,
     recognizedMaterialCandidates,
     findMarkedOptions,
     findEquipmentMaintenanceRows,

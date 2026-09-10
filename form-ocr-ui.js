@@ -28,6 +28,8 @@
     "activity",
     "method"
   ]);
+  const OCR_CORRECTION_STORAGE_KEY = "pqc-ocr-local-corrections-v1";
+  const MAX_STORED_CORRECTIONS = 20;
   let currentDraft = null;
   let twaPort = null;
   let pendingRequestId = null;
@@ -309,9 +311,13 @@
       rowCellCount += Array.isArray(cells) ? cells.length : 0;
       if (rowWordCount > MAX_OCR_ROW_WORDS_TOTAL || rowCellCount > MAX_OCR_ROW_CELLS_TOTAL) return null;
       for (let cellIndex = 0; cellIndex < (cells || []).length; cellIndex += 1) {
-        const wordIds = cells[cellIndex] && cells[cellIndex].wordIds;
+        const cell = cells[cellIndex] || {};
+        const wordIds = cell.wordIds;
         if (wordIds != null && (!Array.isArray(wordIds) || wordIds.length > MAX_OCR_ROW_WORDS)) return null;
+        if (cell.columnIndex != null && (!Number.isInteger(cell.columnIndex) || cell.columnIndex < 0 || cell.columnIndex > 39)) return null;
+        if (cell.columnSupport != null && (!Number.isInteger(cell.columnSupport) || cell.columnSupport < 1 || cell.columnSupport > MAX_OCR_ROW_CANDIDATES)) return null;
       }
+      if (row.columnCountEstimate != null && (!Number.isInteger(row.columnCountEstimate) || row.columnCountEstimate < 1 || row.columnCountEstimate > 40)) return null;
     }
     return value;
   }
@@ -333,6 +339,71 @@
       result.push(Object.freeze(candidate));
       return result;
     }, []);
+  }
+
+  function isSafeLocalCorrectionRecord(record) {
+    if (!record || record.schemaVersion !== OCR_CORRECTION_SCHEMA_VERSION
+      || record.recordType !== "ocr-local-correction"
+      || !record.privacy || record.privacy.autoUploadAllowed !== false
+      || record.privacy.imageIncluded !== false
+      || record.privacy.sourceFileMetadataIncluded !== false
+      || record.privacy.accountIdentifiersIncluded !== false
+      || !Array.isArray(record.fields) || record.fields.length > 12) return false;
+    try {
+      if (JSON.stringify(record).length > 50000) return false;
+    } catch (_) {
+      return false;
+    }
+    return record.fields.every(function (field) {
+      return field && OCR_CORRECTION_FIELDS.indexOf(field.key) >= 0
+        && normalizedCorrectionText(field.confirmedValue).length <= 240
+        && (!Array.isArray(field.candidates) || field.candidates.length <= 12)
+        && (!Array.isArray(field.candidates) || field.candidates.every(function (candidate) {
+          return normalizedCorrectionText(candidate && candidate.value).length <= 240;
+        }));
+    });
+  }
+
+  function localCorrectionRecords(environment) {
+    const runtime = environment && typeof environment === "object" ? environment : root;
+    const storage = runtime && runtime.localStorage;
+    if (!storage || typeof storage.getItem !== "function") return [];
+    try {
+      const parsed = JSON.parse(storage.getItem(OCR_CORRECTION_STORAGE_KEY) || "[]");
+      if (!Array.isArray(parsed)) return [];
+      return parsed.filter(isSafeLocalCorrectionRecord).slice(0, MAX_STORED_CORRECTIONS);
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function rememberLocalCorrectionRecord(record, environment) {
+    const runtime = environment && typeof environment === "object" ? environment : root;
+    const storage = runtime && runtime.localStorage;
+    if (!storage || typeof storage.setItem !== "function" || !record || !Array.isArray(record.fields)) return false;
+    if (!isSafeLocalCorrectionRecord(record)) return false;
+    try {
+      const records = localCorrectionRecords(runtime).filter(function (item) {
+        return item.correctionId !== record.correctionId;
+      });
+      records.unshift(record);
+      storage.setItem(OCR_CORRECTION_STORAGE_KEY, JSON.stringify(records.slice(0, MAX_STORED_CORRECTIONS)));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function clearLocalCorrectionRecords(environment) {
+    const runtime = environment && typeof environment === "object" ? environment : root;
+    const storage = runtime && runtime.localStorage;
+    if (!storage || typeof storage.removeItem !== "function") return false;
+    try {
+      storage.removeItem(OCR_CORRECTION_STORAGE_KEY);
+      return true;
+    } catch (_) {
+      return false;
+    }
   }
 
   function buildLocalCorrectionRecord(draft, confirmedValues, options) {
@@ -395,7 +466,12 @@
         });
       });
     }
-    return { crops: crops, materials: Array.from(materials).filter(Boolean), targets: Array.from(targets).filter(Boolean) };
+    return {
+      crops: crops,
+      materials: Array.from(materials).filter(Boolean),
+      targets: Array.from(targets).filter(Boolean),
+      correctionRecords: localCorrectionRecords()
+    };
   }
 
   function matchKey(value) {
@@ -1231,7 +1307,7 @@
       + '<fieldset class="ocr-confirm wide"><legend>帶入前必須確認</legend>' + activityRowConfirmationHtml(draft) + '<label><input id="ocrConfirmType" type="checkbox"> 紀錄類型已核對</label><label><input id="ocrConfirmDate" type="checkbox"> 日期已核對</label><label><input id="ocrConfirmCrop" type="checkbox"> 作物已核對（如有）</label><label><input id="ocrConfirmMaterial" type="checkbox"> 藥劑／資材名稱已核對（如有）</label></fieldset>'
       + '<div class="ocr-review-actions wide"><button class="btn btn-main" type="button" onclick="PQC_FORM_OCR_UI.applyToFarmForm()"' + (draft.quality.canProcess ? "" : " disabled") + '>帶入紀錄表單並繼續確認</button><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.downloadLocalCorrectionRecordFromReview()">匯出本次去識別化校正資料</button><button class="btn btn-ghost" type="button" onclick="PQC_FORM_OCR_UI.skipCurrentOcrActivity()">略過這筆</button></div>'
       + '<p class="disclaimer wide">辨識結果只是草稿。系統不會自動儲存；帶入後仍須在原本的作業紀錄表單再次確認並按下儲存。</p>'
-      + '<p class="disclaimer wide">校正資料只在你按下匯出時下載到本機；不含照片、來源檔名、帳號、執行人或田區代號，也不會自動上傳。欄位文字仍可能包含農務資料，分享前請再次檢查。</p>'
+      + '<p class="disclaimer wide">校正資料只在你按下匯出時下載並限量保存在本機候選記憶；不含照片、來源檔名、帳號、執行人或田區代號，也不會自動上傳。欄位文字仍可能包含農務資料，分享前請再次檢查。</p>'
       + '</div>';
     const dateCandidate = preselectedCandidate(draft, draft.fields.date);
     const recordTypeCandidate = preselectedCandidate(draft, detectedType ? [detectedType] : []);
@@ -1690,6 +1766,7 @@
       return false;
     }
     if (!downloadLocalCorrectionRecord(record)) return false;
+    rememberLocalCorrectionRecord(record);
     if (typeof root.toast === "function") root.toast("校正資料已下載到本機；系統未自動上傳");
     return true;
   }
@@ -2390,6 +2467,10 @@
     safePayload,
     OCR_CORRECTION_SCHEMA_VERSION,
     OCR_CORRECTION_FIELDS,
+    OCR_CORRECTION_STORAGE_KEY,
+    localCorrectionRecords,
+    rememberLocalCorrectionRecord,
+    clearLocalCorrectionRecords,
     buildLocalCorrectionRecord,
     downloadLocalCorrectionRecord,
     sourceImageId,

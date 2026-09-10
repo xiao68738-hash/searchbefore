@@ -24,6 +24,9 @@ assert.equal(UI.safePayload({ ...validPayload, blocks: [{ text: "x", words: Arra
 assert.equal(UI.safePayload({ ...validPayload, rowCandidates: Array.from({ length: 251 }, () => ({ id: "row" })) }), null, "不得接受超過安全上限的列候選");
 assert.equal(UI.safePayload({ ...validPayload, rowCandidates: [{ id: "row", words: Array.from({ length: 101 }, () => ({ text: "字" })) }] }), null, "不得接受單列過多單字");
 assert.equal(UI.safePayload({ ...validPayload, rowCandidates: [{ id: "row", cellCandidates: Array.from({ length: 21 }, () => ({ id: "cell" })) }] }), null, "不得接受單列過多儲存格候選");
+assert.ok(UI.safePayload({ ...validPayload, rowCandidates: [{ id: "row", columnCountEstimate: 2, cellCandidates: [{ id: "cell", columnIndex: 0, columnSupport: 2 }] }] }), "欄位共識提示應可通過安全檢核");
+assert.equal(UI.safePayload({ ...validPayload, rowCandidates: [{ id: "row", cellCandidates: [{ id: "cell", columnIndex: 40 }] }] }), null, "欄位索引超過上限不得通過");
+assert.equal(UI.safePayload({ ...validPayload, rowCandidates: [{ id: "row", cellCandidates: [{ id: "cell", columnSupport: 0 }] }] }), null, "無效欄位支援數不得通過");
 assert.ok(UI.TRUSTED_ORIGINS.includes("https://searchbefore.tw"));
 assert.ok(UI.TRUSTED_ORIGINS.includes("android://tw.searchbefore.app"));
 assert.equal(UI.matchKey(" A＋B 區 "), "a+b區");
@@ -108,6 +111,26 @@ assert.equal(downloadTrace.revoked, "blob:local-correction");
 assert.equal(downloadTrace.options.type, "application/json;charset=utf-8");
 assert.equal(downloadTrace.parts[0], JSON.stringify(localCorrection, null, 2));
 assert.equal(UI.downloadLocalCorrectionRecord({ fields: [] }, {}), false);
+
+const correctionStorage = {
+  value: "[]",
+  getItem(key) { assert.equal(key, UI.OCR_CORRECTION_STORAGE_KEY); return this.value; },
+  setItem(key, value) { assert.equal(key, UI.OCR_CORRECTION_STORAGE_KEY); this.value = value; },
+  removeItem(key) { assert.equal(key, UI.OCR_CORRECTION_STORAGE_KEY); this.value = "[]"; }
+};
+assert.deepEqual(UI.localCorrectionRecords({ localStorage: correctionStorage }), []);
+assert.equal(UI.rememberLocalCorrectionRecord(localCorrection, { localStorage: correctionStorage }), true);
+assert.equal(UI.localCorrectionRecords({ localStorage: correctionStorage }).length, 1);
+assert.equal(UI.rememberLocalCorrectionRecord({
+  ...localCorrection,
+  privacy: { autoUploadAllowed: true, imageIncluded: false }
+}, { localStorage: correctionStorage }), false, "不安全的校正記錄不得寫入本機記憶");
+assert.equal(UI.rememberLocalCorrectionRecord({
+  ...localCorrection,
+  fields: [{ key: "accountId", confirmedValue: "not-allowed", candidates: [] }]
+}, { localStorage: correctionStorage }), false, "未列入校正欄位的資料不得寫入本機記憶");
+assert.equal(UI.clearLocalCorrectionRecords({ localStorage: correctionStorage }), true);
+assert.deepEqual(UI.localCorrectionRecords({ localStorage: correctionStorage }), []);
 
 const sourceFile = { name: "田間紀錄-01.jpg", size: 2480123, lastModified: 1786200000000, type: "image/jpeg" };
 const sameSourceFile = { ...sourceFile };

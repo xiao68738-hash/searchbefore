@@ -67,6 +67,55 @@ def connected_components(mask: np.ndarray) -> list[dict[str, Any]]:
     return components
 
 
+def estimate_ruling_line(mask: np.ndarray) -> dict[str, float] | None:
+    """Find one long, shallow ruling line without using any ground truth.
+
+    Filled NAF cells often connect a handwritten date to a printed rule.  A
+    plain connected-component pass then treats the entire row as one glyph.
+    We search a narrow slope band and only accept a line supported by at least
+    45% of the crop width.  This is deliberately conservative: a short or
+    steep handwritten stroke is not removed.
+    """
+    height, width = mask.shape
+    x_values = np.arange(width, dtype=np.float32)
+    best: tuple[int, float, float] | None = None
+    for slope in np.linspace(-0.15, 0.15, 61):
+        for intercept in np.linspace(-height * 0.2, height * 1.2, 180):
+            y_values = np.rint(slope * x_values + intercept).astype(np.int32)
+            valid = (y_values >= 0) & (y_values < height)
+            support = int(mask[y_values[valid], x_values[valid].astype(np.int32)].sum())
+            if best is None or support > best[0]:
+                best = (support, float(slope), float(intercept))
+    if best is None or best[0] < max(12, round(width * 0.45)):
+        return None
+    return {"support": float(best[0]), "slope": best[1], "intercept": best[2]}
+
+
+def remove_ruling_line(mask: np.ndarray) -> tuple[np.ndarray, dict[str, Any]]:
+    estimate = estimate_ruling_line(mask)
+    if estimate is None:
+        return mask.copy(), {"removed": False, "reason": "no-long-shallow-line"}
+    height, width = mask.shape
+    x_values = np.arange(width, dtype=np.float32)
+    y_values = np.rint(estimate["slope"] * x_values + estimate["intercept"]).astype(np.int32)
+    cleaned = mask.copy()
+    removed_pixels = 0
+    # The printed rule is normally 1–2 px wide in the normalized crop.  A
+    # three-pixel band removes the connection while preserving nearby ink.
+    for x, y in zip(range(width), y_values.tolist()):
+        if 0 <= y < height:
+            before = int(cleaned[max(0, y - 1):min(height, y + 2), x].sum())
+            cleaned[max(0, y - 1):min(height, y + 2), x] = False
+            removed_pixels += before
+    return cleaned, {
+        "removed": True,
+        "support": int(estimate["support"]),
+        "slope": round(float(estimate["slope"]), 5),
+        "intercept": round(float(estimate["intercept"]), 3),
+        "removedPixels": removed_pixels,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", required=True, type=Path)
@@ -81,7 +130,9 @@ def main() -> None:
     with Image.open(input_path) as opened:
         gray = ImageOps.grayscale(opened)
     pixels = np.asarray(gray, dtype=np.uint8)
-    components = connected_components(pixels < args.threshold)
+    raw_mask = pixels < args.threshold
+    cleaned_mask, line_removal = remove_ruling_line(raw_mask)
+    components = connected_components(cleaned_mask)
     height, width = pixels.shape
     kept: list[dict[str, Any]] = []
     rejected: list[dict[str, Any]] = []
@@ -96,6 +147,10 @@ def main() -> None:
             reason = "wide-ruling-line"
         elif component["top"] < height * 0.12 and box_width > width * 0.22:
             reason = "top-ruling-line"
+        elif component["top"] > height * 0.72 and box_height < height * 0.1:
+            # A residual end-cap of the printed rule can survive line removal
+            # as a tiny component below the handwritten row.
+            reason = "bottom-ruling-fragment"
         if reason:
             rejected.append({**component, "reason": reason})
         else:
@@ -134,6 +189,7 @@ def main() -> None:
         "sourceImage": input_path.name,
         "threshold": args.threshold,
         "imageSize": [width, height],
+        "lineRemoval": line_removal,
         "kept": [
             {key: value for key, value in component.items() if key != "pixels"}
             for component in ordered_kept

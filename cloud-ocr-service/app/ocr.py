@@ -19,6 +19,7 @@ MAX_WORDS_PER_CANDIDATE_ROW = 100
 MAX_CELLS_PER_CANDIDATE_ROW = 20
 MAX_CANDIDATE_ROW_TEXT_LENGTH = 500
 MAX_CANDIDATE_CELL_TEXT_LENGTH = 250
+MAX_COLUMN_BANDS = 40
 
 BREAK_TYPE_NAMES = {
     0: "UNKNOWN",
@@ -247,6 +248,78 @@ def _split_cell_candidates(words: list[dict]) -> list[list[dict]]:
     return cells
 
 
+def _cell_center(cell: dict) -> float:
+    box = cell.get("box") if isinstance(cell, dict) else None
+    if not _valid_normalized_box(box):
+        return 0.0
+    return (float(box["left"]) + float(box["right"])) / 2
+
+
+def _cell_width(cell: dict) -> float:
+    box = cell.get("box") if isinstance(cell, dict) else None
+    if not _valid_normalized_box(box):
+        return 0.0
+    return max(0.0, float(box["right"]) - float(box["left"]))
+
+
+def _align_cell_columns(rows: list[dict]) -> None:
+    """Add conservative cross-row column hints without changing cell geometry.
+
+    Vision returns words rather than a table grid.  A per-row horizontal gap is
+    useful, but it can assign the same visual column a different index on every
+    row.  This pass clusters candidate-cell centres only within the same page
+    and photo region.  It never creates, deletes, or resizes a cell, and the
+    result remains a geometry hint requiring human review.
+    """
+    grouped: dict[tuple[int, int], list[dict]] = {}
+    for row in rows:
+        source = row.get("source") if isinstance(row, dict) else {}
+        key = (
+            int(source.get("pageIndex", 0) or 0),
+            int(source.get("regionIndex", 0) or 0),
+        )
+        grouped.setdefault(key, []).append(row)
+
+    for group_rows in grouped.values():
+        entries = []
+        for row in group_rows:
+            for cell in row.get("cellCandidates") or []:
+                if _valid_normalized_box(cell.get("box")):
+                    entries.append((
+                        _cell_center(cell),
+                        _cell_width(cell),
+                        row,
+                        cell,
+                    ))
+        if not entries:
+            continue
+        median_width = median([width for _center, width, _row, _cell in entries])
+        # A cap prevents a long text cell from swallowing adjacent columns.
+        tolerance = max(0.025, min(0.12, median_width * 0.8))
+        clusters: list[dict] = []
+        for center, _width, _row, cell in sorted(entries, key=lambda item: item[0]):
+            previous = clusters[-1] if clusters else None
+            if previous is None or center - previous["maxCenter"] > tolerance:
+                clusters.append({"centers": [center], "cells": [cell], "rows": {str(_row.get("id", ""))}, "maxCenter": center})
+            else:
+                previous["centers"].append(center)
+                previous["cells"].append(cell)
+                previous["rows"].add(str(_row.get("id", "")))
+                previous["maxCenter"] = center
+        if len(clusters) > MAX_COLUMN_BANDS:
+            # The page is likely prose rather than a stable table.  Omitting
+            # hints is safer than inventing a column map.
+            continue
+        for column_index, cluster in enumerate(clusters):
+            support = len(cluster["rows"])
+            for cell in cluster["cells"]:
+                cell["columnIndex"] = column_index
+                cell["columnSupport"] = support
+        for row in group_rows:
+            row["columnCountEstimate"] = len(clusters)
+            row["columnAlignment"] = "geometry-consensus-v1"
+
+
 def _assign_page_regions(words: list[dict], image_width: int, image_height: int) -> None:
     """寬幅照片若中央有明顯裝訂溝，分成左右來源區，避免把兩頁同高文字當成同一列。"""
     for word in words:
@@ -378,8 +451,11 @@ def build_row_candidates(blocks: list[dict], image_width: int = 1, image_height:
             "cellsTruncated": len(raw_cells) > len(cell_candidates),
         })
 
+    _align_cell_columns(rows)
+
     return {
         "method": "geometry-only",
+        "columnAlignment": "geometry-consensus-v1",
         "semanticInference": False,
         "rows": rows,
         "truncated": truncated,
