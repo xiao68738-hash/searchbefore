@@ -1,13 +1,14 @@
 // Synthetic research regression; no real photos, transcripts or credentials.
 const assert=require('node:assert');
 const fs=require('node:fs');
+const os=require('node:os');
 const path=require('node:path');
 const cp=require('node:child_process');
-const privateRoot=path.resolve('D:/SearchBefore/private');
+const privateRoot=fs.mkdtempSync(path.join(os.tmpdir(),'searchbefore-edge-filter-private-'));
 const tmp=fs.mkdtempSync(path.join(privateRoot,'edge-filter-test-'));
 const script=path.resolve(__dirname,'../scripts/evaluate-cell-edge-filter.mjs');
 const write=(p,j)=>{fs.mkdirSync(path.dirname(p),{recursive:true});fs.writeFileSync(p,JSON.stringify(j));};
-const run=args=>cp.spawnSync(process.execPath,[script,...args],{encoding:'utf8'});
+const run=args=>cp.spawnSync(process.execPath,[script,...args],{encoding:'utf8',env:{...process.env,SEARCHBEFORE_PRIVATE_ROOT:privateRoot}});
 const square=x=>[[x,0],[x+10,0],[x+10,10],[x,10]];
 let checks=0;
 try{
@@ -32,4 +33,6 @@ try{
   const resolved=fs.realpathSync(tmp),rel=path.relative(privateRoot,resolved);
   if(!rel||rel.startsWith('..')||path.isAbsolute(rel)||!path.basename(resolved).startsWith('edge-filter-test-'))throw Error('Unsafe fixture cleanup');
   fs.rmSync(resolved,{recursive:true,force:false});
+  const rootResolved=fs.realpathSync(privateRoot);
+  if(path.basename(rootResolved).startsWith('searchbefore-edge-filter-private-'))fs.rmSync(rootResolved,{recursive:true,force:false});
 }
