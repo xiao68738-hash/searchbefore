@@ -7,7 +7,9 @@ import {fileURLToPath} from 'node:url';
 const [mode,gtArg,predArg,featureArg,policyArg,reportArg,predOutArg]=process.argv.slice(2);
 if(!['train','evaluate'].includes(mode)||!reportArg)throw Error('train|evaluate GT PRED FEATURES POLICY REPORT [NEW_PRED_OUT]');
 const read=p=>JSON.parse(fs.readFileSync(p,'utf8'));
-const privateRoot=path.resolve('D:/SearchBefore/private');
+// Keep the production default on the local private root, while allowing the
+// synthetic regression test to use an isolated CI temp directory.
+const privateRoot=path.resolve(process.env.SEARCHBEFORE_PRIVATE_ROOT||'D:/SearchBefore/private');
 const safeNew=p=>{const full=path.resolve(p),rel=path.relative(privateRoot,full);if(!rel||rel.startsWith('..')||path.isAbsolute(rel)||fs.existsSync(full))throw Error('Output must be new and private: '+p);return full;};
 safeNew(reportArg);if(mode==='train')safeNew(policyArg);if(predOutArg)safeNew(predOutArg);
 const manifest=read(path.join(gtArg,'manifest.json'));
