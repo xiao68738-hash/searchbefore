@@ -26,12 +26,21 @@ const PRECACHE = [
   "./form-ocr.js",
   "./form-ocr-ui.js",
   "./export-formats.js",
+  "./field-summary.js",
+  "./mrl-status.js",
   "./about.html",
   "./privacy.html",
   "./delete-account.html",
+  "./guides.html",
+  "./guide-label.html",
+  "./guide-dilution.html",
+  "./guide-phi.html",
+  "./guide-ppe.html",
+  "./guide.css",
   "./manifest.webmanifest",
   "./brand-lockup.png",
   "./brand-logo-120.png",
+  "./brand-logo-transparent.png",
   "./brand-logo-transparent.png",
   "./icon-192.png",
   "./icon-512.png",
@@ -70,13 +79,16 @@ self.addEventListener("message", event => {
    沒訊號 → 直接吃快取;有訊號 → 先給快取(秒開),同時抓新版本備著。 */
 async function handleNavigate(request) {
   const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match("./", { ignoreSearch: true });
+  const url = new URL(request.url);
+  const isAppEntry = url.pathname === "/" || url.pathname.endsWith("/index.html");
+  const cacheKey = isAppEntry ? "./" : `.${url.pathname}`;
+  const cached = await cache.match(cacheKey, { ignoreSearch: true });
 
   const fresh = fetch(request)
-    .then(res => { if (res && res.ok) cache.put("./", res.clone()); return res; })
+    .then(res => { if (res && res.ok) cache.put(cacheKey, res.clone()); return res; })
     .catch(() => null);
 
-  if (cached) return cached;                     // 快取優先,不等網路(fresh 在背景跑完)
+  if (cached) return cached;                     // 精確路徑快取優先,不把指南誤回成首頁
   const net = await fresh;
   if (net) return net;
   return new Response(
