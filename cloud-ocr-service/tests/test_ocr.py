@@ -152,6 +152,24 @@ def test_row_candidates_group_by_y_then_split_cells_by_horizontal_gaps():
     }
 
 
+def test_row_candidates_add_conservative_cross_row_column_consensus():
+    blocks = [{
+        "source": {"pageIndex": 0, "blockIndex": 0, "paragraphIndex": 0},
+        "words": [
+            candidate_word("r1c1", "日期", 0.05, 0.10, 0.14, 0.13),
+            candidate_word("r1c2", "購入量", 0.45, 0.10, 0.54, 0.13),
+            candidate_word("r2c1", "7/14", 0.06, 0.20, 0.13, 0.23),
+            candidate_word("r2c2", "15包", 0.44, 0.20, 0.53, 0.23),
+        ],
+    }]
+    result = build_row_candidates(blocks, 1000, 1000)
+    assert result["columnAlignment"] == "geometry-consensus-v1"
+    assert [cell["columnIndex"] for cell in result["rows"][0]["cellCandidates"]] == [0, 1]
+    assert [cell["columnIndex"] for cell in result["rows"][1]["cellCandidates"]] == [0, 1]
+    assert all(cell["columnSupport"] == 2 for row in result["rows"] for cell in row["cellCandidates"])
+    assert all(row["columnCountEstimate"] == 2 for row in result["rows"])
+
+
 def test_wide_two_page_photo_does_not_merge_left_and_right_rows():
     blocks = [
         {

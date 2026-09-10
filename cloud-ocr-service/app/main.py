@@ -98,6 +98,7 @@ async def recognize(
             "indexBase": 0,
             "wordGeometry": True,
             "rowCandidateMethod": row_candidate_result["method"],
+            "columnAlignment": row_candidate_result.get("columnAlignment"),
             "semanticInference": row_candidate_result["semanticInference"],
         },
         "blocks": blocks,
