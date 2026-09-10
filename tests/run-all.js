@@ -12,5 +12,7 @@ for (const file of files) {
 
 const taxonomyResult = spawnSync(process.execPath, [path.join(__dirname, "pest-taxonomy-search.test.js")], { stdio: "inherit" });
 if (taxonomyResult.status !== 0) process.exit(taxonomyResult.status || 1);
+const groupingResult = spawnSync(process.execPath, [path.join(__dirname, "pest-grouping-audit.test.js")], { stdio: "inherit" });
+if (groupingResult.status !== 0) process.exit(groupingResult.status || 1);
 
 console.log("\n全部測試完成");
