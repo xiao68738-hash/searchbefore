@@ -1,6 +1,6 @@
 # 噴前查 OCR 系統規格與架構書
 
-> 文件基準：2026-08-05。OCR 已由裝置內／自架模型改為 Google Cloud Vision；staging Cloud Run 後端已部署，前端入口仍為 `development`，並受測試驗證碼鎖定。
+> 文件基準：2026-08-09。OCR 已由裝置內／自架模型改為雲端文件辨識服務；staging Cloud Run 後端已部署，前端入口仍為 `development`，並受測試驗證碼鎖定。產銷履歷實際操作依據見 [`產銷履歷系統錄影-操作流程與欄位地圖.md`](./產銷履歷系統錄影-操作流程與欄位地圖.md)；表格列欄與多筆候選的安全邊界見 [`OCR表格列欄與多筆草稿規格.md`](./OCR表格列欄與多筆草稿規格.md)。
 
 ## 1. 目標與非目標
 
@@ -30,13 +30,30 @@ flowchart LR
   V --> X[修正方向、移除 EXIF、重新編碼]
   X --> G[Google Cloud Vision]
   G --> N[標準化 OCR blocks]
-  N --> M[辨識表單類型與切分日期列]
-  M --> D[一筆或多筆未確認草稿]
+  N --> T[先判斷文件路由]
+  T -->|明確| M[選擇對應解析器與切分日期列]
+  T -->|衝突或不足| Z[人工選擇用途／不帶入]
+  M --> D[零筆、一筆或多筆未確認草稿]
   D --> H[使用者逐筆逐欄覆核]
-  H --> S[既有紀錄表單]
+  H --> S[噴前查標準欄位]
+  S --> L[未來官方代碼映射；目前 unmapped]
 ```
 
 瀏覽器不得直接呼叫 Vision API。Google Cloud 憑證只能透過 Cloud Run 附加的專用服務帳戶與 Application Default Credentials 取得。
+
+### 3.1 文件路由
+
+| 路由 | 例子 | 目前結果 | 正式 L3 狀態 |
+|---|---|---|---|
+| `production-record` | 用藥、施肥、栽培、採收、採後處理 | 經人工確認後帶入既有表單 | 等官方代碼映射 |
+| `supporting-record` | 設備保養、維修、校正、清潔 | 本機多筆輔助紀錄 | 上傳範圍待確認 |
+| `material-ledger` | 肥料／資材入出庫 | 庫存草稿或匯出 | 不視為單筆作業，範圍待確認 |
+| `reference-only` | 生產及出貨自我查核表 | 原文與候選供備查，可略過 | 不建立日常生產紀錄 |
+| `master-data` | 農戶、地籍、田區基本資料 | 只供逐欄人工整理 | 等主檔 API 與權限規格 |
+| `admin-output` | 驗證、商品審核、標籤列印 | 不建立紀錄 | 不複製官方高權限後台 |
+| `unknown` | 混合頁、背景干擾或證據不足 | 人工選用途或略過 | 不做上傳推定 |
+
+分類只在第一名至少命中兩個同類標記且未與第二名同分時標為 `exact`；其餘為 `ambiguous` 或 `unknown`，禁止自動採用第一候選。
 
 ## 4. API 協定
 
@@ -64,8 +81,31 @@ flowchart LR
     "cornersConfirmedByUser": true,
     "assessment": "user-confirmed-before-upload"
   },
+  "layout": {
+    "version": 1,
+    "coordinateSpace": "normalized",
+    "indexBase": 0,
+    "wordGeometry": true
+  },
   "blocks": [
-    {"id": "cloud-1", "text": "...", "confidence": 0.91, "box": {"left": 0.1, "top": 0.1, "right": 0.9, "bottom": 0.2}}
+    {
+      "id": "cloud-1",
+      "text": "...",
+      "confidence": 0.91,
+      "box": {"left": 0.1, "top": 0.1, "right": 0.9, "bottom": 0.2},
+      "source": {"pageIndex": 0, "blockIndex": 1, "paragraphIndex": 2},
+      "blockBox": {"left": 0.08, "top": 0.08, "right": 0.92, "bottom": 0.24},
+      "words": [
+        {
+          "id": "cloud-1-w1",
+          "text": "...",
+          "confidence": 0.94,
+          "box": {"left": 0.1, "top": 0.1, "right": 0.2, "bottom": 0.14},
+          "detectedBreak": {"type": "SPACE", "isPrefix": false}
+        }
+      ],
+      "wordsTruncated": false
+    }
   ],
   "retention": "not-stored"
 }
@@ -79,6 +119,9 @@ flowchart LR
 - `blocks[].text` 要限制長度，區塊總數要限制。
 - 座標統一為 0～1 的相對值。
 - `confidence` 限制在 0～1。
+- 每段保留頁次、區塊與段落索引；單字層級保留位置與換行提示，供後續同列配對與人工回看。
+- 後端最多回傳 500 段、每段 200 個單字位置、整份 5,000 個單字位置；超出時以 `wordsTruncated` 明示，不讓大型文件無限制占用記憶體。
+- 多圖批次中的每張照片有本機 `sourceImageId`、固定來源順序及處理狀態；草稿不保存 `File`、Object URL、Base64 或原始照片內容。
 - 前端接收後仍只建立 `confirmed: false` 的草稿。
 - Android 訊息必須驗證來源與 `requestId`；網頁不得接收圖片內容。
 
@@ -92,7 +135,7 @@ flowchart LR
 
 ### 5.2 已支援的設備管理紀錄
 
-`表 18 器具／機械／設備之保養、維修、校正及清潔管理紀錄` 已納入紀錄類型。每筆可包含多項設備與多項作業，同一張照片可建立多筆待確認草稿。共用設備不強制綁定田區；需要時仍可由使用者選擇田區。
+`表 18 器具／機械／設備之保養、維修、校正及清潔管理紀錄` 已納入本機輔助紀錄類型。每筆可包含多項設備與多項作業，同一張照片可建立多筆待確認草稿。共用設備不強制綁定田區；需要時仍可由使用者選擇田區。是否屬於 L3 可上傳範圍尚未經官方規格確認，介面不得宣稱可直傳。
 
 ## 6. 安全與隱私
 
@@ -104,6 +147,13 @@ flowchart LR
 - 以每 UID 限流、Google Cloud 配額、預算通知與最大執行個體數共同控制濫用及費用。
 - OCR 結果一律是未確認草稿；用藥資料無法唯一對回正式登記時，阻擋帶入。
 
+### 6.1 兩道驗證門檻
+
+- `validateDraftForReview()`：只判斷能否把可辨識欄位帶進既有表單繼續人工整理；不會儲存紀錄。
+- `validateDraft()`／`validateConfirmedFields()`：依紀錄類型檢查正式儲存必填欄位，回傳 `ok`、`missing`、`warnings`、`mappingPending`。
+- 施肥、採收、採後處理、栽培與資材購入不共用同一套必填條件；資材購入不要求作物，但依目前本機資料模型仍需田區／種植批次。
+- `mappingPending` 只表示 L3 尚待正式代碼映射，絕不能被解讀為已可上傳。
+
 ## 7. 發布閘門
 
 1. `hidden`：不建立入口。
@@ -112,10 +162,14 @@ flowchart LR
 
 ## 8. 尚待完成
 
-- 建立 Google Cloud 專案服務帳戶、Vision 配額、預算通知與 Cloud Run 部署。
+- staging 已部署；仍須在後台驗證專用服務帳戶最小權限、Vision 配額、預算通知、Cloud Run 最大執行個體與日誌遮罩。
 - 使用真實樣本驗證繁體中文、手寫、多列、跨頁、背景干擾、歪斜、反光與模糊情境。
+- 後端已提供有界的列／儲存格幾何候選，前端也已使用 `activities[]`／`details[]` 保留多筆待確認草稿；目前仍只做位置輔助，不推定日期、數量、單位或農務語意。
+- 完成施肥、採收、採後處理與資材購入的專用覆核畫面，並用真實照片驗證同列欄位配對；在此之前不得宣稱可直接帶入正式紀錄。
 - 確認 Cloud Logging、錯誤追蹤與分析資料不含敏感內容。
-- 填入 `/v1/ocr` HTTPS 端點並進行指定測試。
+- 以具名測試者完成 `/v1/ocr` 的驗證碼、登入、逐次同意、CORS、413、422、429、逾時與錯誤情境驗收。
+- 將既有「作業主表＋多筆明細」中介草稿接上各類專用覆核畫面，並補齊逐筆略過、帶入、重試與人工新增漏列狀態。
+- 擴充表格結構資料；目前段落層文字不足以可靠配對購入量、使用量、剩餘量與勾選欄位。
 - 比較人工原流程與 OCR 輔助流程的單筆總時間；若沒有省工，不進入公開階段。
 
 ## 9. 主要檔案

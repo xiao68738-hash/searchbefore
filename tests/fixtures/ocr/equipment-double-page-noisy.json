@@ -1,0 +1,57 @@
+{
+  "name": "表18多列設備紀錄與相鄰頁面雜訊",
+  "sourceImage": {
+    "sourceImageId": "fixture-equipment-double-page",
+    "fileName": "匿名設備管理雙頁.jpg",
+    "sourceIndex": 2,
+    "status": "recognized",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 2300000
+  },
+  "scanResult": {
+    "source": "google-cloud-vision",
+    "quality": {
+      "width": 2048,
+      "height": 1536,
+      "cornersConfirmedByUser": true,
+      "assessment": "user-confirmed-before-upload"
+    },
+    "blocks": [
+      {
+        "id": "equipment-title",
+        "text": "表18 器具／機械／設備之保養、維修、校正及清潔管理紀錄 作業內容",
+        "confidence": 0.97,
+        "box": { "left": 0.04, "top": 0.03, "right": 0.47, "bottom": 0.08 },
+        "source": { "pageIndex": 0, "regionIndex": 0 }
+      },
+      {
+        "id": "equipment-row-1",
+        "text": "民國115/2/23 ☑噴霧機 ☑割草機 ☑清潔 ☑保養 記錄人：測試人員",
+        "confidence": 0.9,
+        "box": { "left": 0.04, "top": 0.16, "right": 0.47, "bottom": 0.25 },
+        "source": { "pageIndex": 0, "regionIndex": 0 }
+      },
+      {
+        "id": "equipment-row-2",
+        "text": "3月10日 ☑中耕機 ☑維修",
+        "confidence": 0.86,
+        "box": { "left": 0.04, "top": 0.3, "right": 0.47, "bottom": 0.39 },
+        "source": { "pageIndex": 0, "regionIndex": 0 }
+      },
+      {
+        "id": "harvest-adjacent-page",
+        "text": "表19 採收及採後處理紀錄 3月10日 ☑冷藏車 ☑維修",
+        "confidence": 0.84,
+        "box": { "left": 0.53, "top": 0.16, "right": 0.96, "bottom": 0.25 },
+        "source": { "pageIndex": 0, "regionIndex": 1 }
+      },
+      {
+        "id": "newspaper-equipment-background",
+        "text": "背景報紙：8月27日上映，設備品牌與保養新聞",
+        "confidence": 0.6,
+        "box": { "left": 0, "top": 0, "right": 1, "bottom": 0.03 },
+        "source": { "pageIndex": 0, "regionIndex": 2 }
+      }
+    ]
+  }
+}

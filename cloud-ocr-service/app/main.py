@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-from .ocr import InvalidImage, decode_image, engine
+from .ocr import InvalidImage, build_row_candidates, decode_image, engine
 from .security import allowed_origins, configured_test_code_hash, ensure_firebase_app, verify_request
 
 
@@ -77,6 +77,7 @@ async def recognize(
         raise HTTPException(status_code=504, detail="辨識逾時，請稍後再試") from exc
     if not blocks:
         raise HTTPException(status_code=422, detail="沒有辨識到文字，請重新拍攝較清楚的照片")
+    row_candidate_result = build_row_candidates(blocks, decoded.width, decoded.height)
     return {
         "type": "PQC_OCR_SCAN_RESULT",
         "protocolVersion": 1,
@@ -91,7 +92,17 @@ async def recognize(
             "cornersConfirmedByUser": True,
             "assessment": "user-confirmed-before-upload",
         },
+        "layout": {
+            "version": 1,
+            "coordinateSpace": "normalized",
+            "indexBase": 0,
+            "wordGeometry": True,
+            "rowCandidateMethod": row_candidate_result["method"],
+            "semanticInference": row_candidate_result["semanticInference"],
+        },
         "blocks": blocks,
+        "rowCandidates": row_candidate_result["rows"],
+        "rowCandidatesTruncated": row_candidate_result["truncated"],
         "processingMs": round((time.monotonic() - started) * 1000),
         "retention": "not-stored",
     }

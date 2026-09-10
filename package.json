@@ -10,6 +10,8 @@
     "firebase:login": "npx --yes firebase-tools@15.24.0 login",
     "security:headers": "node scripts/check-security-headers.mjs",
     "data:check-pesticides": "node scripts/check-pesticide-update.mjs",
+    "data:check-classification": "node scripts/check-pesticide-classification-coverage.mjs",
+    "data:build-resistance-literature": "node scripts/build-resistance-literature-ledger.mjs",
     "deploy:preview": "npm run release:check && npx --yes firebase-tools@15.24.0 hosting:channel:deploy preview",
     "deploy:hosting": "npm run release:check && npx --yes firebase-tools@15.24.0 deploy --only hosting",
     "release:bump": "node scripts/bump-version.mjs",

@@ -10,6 +10,7 @@ android {
         targetSdk 34
         versionCode 1
         versionName "0.1.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildFeatures {
@@ -19,4 +20,8 @@ android {
 
 dependencies {
     implementation project(":ocr-feature")
+    androidTestImplementation "androidx.test.ext:junit:1.1.5"
+    androidTestImplementation "androidx.test:runner:1.5.2"
+    androidTestImplementation "com.google.mlkit:text-recognition:16.0.1"
+    androidTestImplementation "com.google.mlkit:text-recognition-chinese:16.0.1"
 }

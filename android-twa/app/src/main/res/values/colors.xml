@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="theme_green">#2E6B3F</color>
+    <color name="navigation_bar">#FFFFFF</color>
+    <color name="splash_background">#FFFFFF</color>
+</resources>

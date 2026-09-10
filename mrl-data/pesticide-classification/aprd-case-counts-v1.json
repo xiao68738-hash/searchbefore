@@ -1,0 +1,1901 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-08-14",
+  "source": {
+    "title": "Arthropod Pesticide Resistance Database",
+    "publisher": "Michigan State University",
+    "searchUrl": "https://pesticideresistance.org/search.php",
+    "citation": "Mota-Sanchez, D. and J.C. Wise. 2026. The Arthropod Pesticide Resistance Database."
+  },
+  "policy": {
+    "metric": "APRD reported resistance case count by active ingredient",
+    "operator": ">",
+    "threshold": 500,
+    "highDefinition": "caseCount > 500",
+    "boundaryAt500": "not_high"
+  },
+  "summary": {
+    "requestedComponentCount": 143,
+    "matchedOptionCount": 127,
+    "unmatchedComponentCount": 16,
+    "highRiskComponentCount": 7
+  },
+  "records": [
+    {
+      "activeIngredient": "cyhalothrin-lambda",
+      "aprdOptionId": "89",
+      "requestedNames": [
+        "LAMBDA-CYHALOTHRIN"
+      ],
+      "caseCount": 1133,
+      "speciesCount": 59,
+      "isHighResistanceRisk": true,
+      "status": "verified",
+      "chineseNames": [
+        "賽洛寧"
+      ]
+    },
+    {
+      "activeIngredient": "deltamethrin",
+      "aprdOptionId": "99",
+      "requestedNames": [
+        "DELTAMETHRIN"
+      ],
+      "caseCount": 952,
+      "speciesCount": 80,
+      "isHighResistanceRisk": true,
+      "status": "verified",
+      "chineseNames": [
+        "第滅寧"
+      ]
+    },
+    {
+      "activeIngredient": "cypermethrin",
+      "aprdOptionId": "91",
+      "requestedNames": [
+        "CYPERMETHRIN"
+      ],
+      "caseCount": 820,
+      "speciesCount": 50,
+      "isHighResistanceRisk": true,
+      "status": "verified",
+      "chineseNames": [
+        "賽滅寧"
+      ]
+    },
+    {
+      "activeIngredient": "imidacloprid",
+      "aprdOptionId": "185",
+      "requestedNames": [
+        "IMIDACLOPRID"
+      ],
+      "caseCount": 804,
+      "speciesCount": 37,
+      "isHighResistanceRisk": true,
+      "status": "verified",
+      "chineseNames": [
+        "益達胺"
+      ]
+    },
+    {
+      "activeIngredient": "chlorpyrifos",
+      "aprdOptionId": "72",
+      "requestedNames": [
+        "CHLORPYRIFOS"
+      ],
+      "caseCount": 730,
+      "speciesCount": 81,
+      "isHighResistanceRisk": true,
+      "status": "verified",
+      "chineseNames": [
+        "陶斯松"
+      ]
+    },
+    {
+      "activeIngredient": "permethrin",
+      "aprdOptionId": "243",
+      "requestedNames": [
+        "PERMETHRIN"
+      ],
+      "caseCount": 574,
+      "speciesCount": 60,
+      "isHighResistanceRisk": true,
+      "status": "verified",
+      "chineseNames": [
+        "百滅寧"
+      ]
+    },
+    {
+      "activeIngredient": "malathion",
+      "aprdOptionId": "204",
+      "requestedNames": [
+        "MALATHION"
+      ],
+      "caseCount": 558,
+      "speciesCount": 139,
+      "isHighResistanceRisk": true,
+      "status": "verified",
+      "chineseNames": [
+        "馬拉松"
+      ]
+    },
+    {
+      "activeIngredient": "abamectin",
+      "aprdOptionId": "1",
+      "requestedNames": [
+        "ABAMECTIN"
+      ],
+      "caseCount": 372,
+      "speciesCount": 26,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "阿巴汀"
+      ]
+    },
+    {
+      "activeIngredient": "bifenthrin",
+      "aprdOptionId": "36",
+      "requestedNames": [
+        "BIFENTHRIN"
+      ],
+      "caseCount": 368,
+      "speciesCount": 52,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "畢芬寧"
+      ]
+    },
+    {
+      "activeIngredient": "methomyl",
+      "aprdOptionId": "212",
+      "requestedNames": [
+        "METHOMYL"
+      ],
+      "caseCount": 359,
+      "speciesCount": 39,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "納乃得"
+      ]
+    },
+    {
+      "activeIngredient": "spinosad",
+      "aprdOptionId": "289",
+      "requestedNames": [
+        "SPINOSAD"
+      ],
+      "caseCount": 351,
+      "speciesCount": 35,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "賜諾殺"
+      ]
+    },
+    {
+      "activeIngredient": "chlorantraniliprole",
+      "aprdOptionId": "424",
+      "requestedNames": [
+        "CHLORANTRANILIPROLE"
+      ],
+      "caseCount": 325,
+      "speciesCount": 15,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "剋安勃"
+      ]
+    },
+    {
+      "activeIngredient": "indoxacarb",
+      "aprdOptionId": "187",
+      "requestedNames": [
+        "INDOXACARB"
+      ],
+      "caseCount": 298,
+      "speciesCount": 19,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "因得克"
+      ]
+    },
+    {
+      "activeIngredient": "thiamethoxam",
+      "aprdOptionId": "319",
+      "requestedNames": [
+        "THIAMETHOXAM"
+      ],
+      "caseCount": 275,
+      "speciesCount": 21,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "賽速安"
+      ]
+    },
+    {
+      "activeIngredient": "profenofos",
+      "aprdOptionId": "260",
+      "requestedNames": [
+        "PROFENOFOS"
+      ],
+      "caseCount": 261,
+      "speciesCount": 22,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "佈飛松"
+      ]
+    },
+    {
+      "activeIngredient": "acetamiprid",
+      "aprdOptionId": "371",
+      "requestedNames": [
+        "ACETAMIPRID"
+      ],
+      "caseCount": 235,
+      "speciesCount": 25,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "亞滅培"
+      ]
+    },
+    {
+      "activeIngredient": "temephos",
+      "aprdOptionId": "309",
+      "requestedNames": [
+        "TEMEPHOS"
+      ],
+      "caseCount": 223,
+      "speciesCount": 33,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "亞培松"
+      ]
+    },
+    {
+      "activeIngredient": "emamectin benzoate",
+      "aprdOptionId": "125",
+      "requestedNames": [
+        "EMAMECTIN BENZOATE"
+      ],
+      "caseCount": 195,
+      "speciesCount": 18,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "因滅汀"
+      ]
+    },
+    {
+      "activeIngredient": "diazinon",
+      "aprdOptionId": "105",
+      "requestedNames": [
+        "DIAZINON"
+      ],
+      "caseCount": 192,
+      "speciesCount": 60,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "大利松"
+      ]
+    },
+    {
+      "activeIngredient": "fenitrothion",
+      "aprdOptionId": "146",
+      "requestedNames": [
+        "FENITROTHION"
+      ],
+      "caseCount": 185,
+      "speciesCount": 57,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "撲滅松"
+      ]
+    },
+    {
+      "activeIngredient": "fenvalerate",
+      "aprdOptionId": "155",
+      "requestedNames": [
+        "FENVALERATE"
+      ],
+      "caseCount": 179,
+      "speciesCount": 37,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "芬化利"
+      ]
+    },
+    {
+      "activeIngredient": "fipronil",
+      "aprdOptionId": "157",
+      "requestedNames": [
+        "FIPRONIL"
+      ],
+      "caseCount": 176,
+      "speciesCount": 19,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "芬普尼"
+      ]
+    },
+    {
+      "activeIngredient": "phosphine",
+      "aprdOptionId": "388",
+      "requestedNames": [
+        "PHOSPHINE"
+      ],
+      "caseCount": 171,
+      "speciesCount": 12,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "好達勝"
+      ]
+    },
+    {
+      "activeIngredient": "dimethoate",
+      "aprdOptionId": "114",
+      "requestedNames": [
+        "DIMETHOATE"
+      ],
+      "caseCount": 155,
+      "speciesCount": 42,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "大滅松"
+      ]
+    },
+    {
+      "activeIngredient": "carbaryl",
+      "aprdOptionId": "49",
+      "requestedNames": [
+        "CARBARYL"
+      ],
+      "caseCount": 149,
+      "speciesCount": 56,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "加保利"
+      ]
+    },
+    {
+      "activeIngredient": "cypermethrin-alpha",
+      "aprdOptionId": "92",
+      "requestedNames": [
+        "ALPHA-CYPERMETHRIN"
+      ],
+      "caseCount": 146,
+      "speciesCount": 20,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "亞滅寧"
+      ]
+    },
+    {
+      "activeIngredient": "propoxur",
+      "aprdOptionId": "265",
+      "requestedNames": [
+        "PROPOXUR"
+      ],
+      "caseCount": 141,
+      "speciesCount": 31,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "安丹"
+      ]
+    },
+    {
+      "activeIngredient": "cyfluthrin",
+      "aprdOptionId": "85",
+      "requestedNames": [
+        "CYFLUTHRIN"
+      ],
+      "caseCount": 139,
+      "speciesCount": 25,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "賽扶寧"
+      ]
+    },
+    {
+      "activeIngredient": "fenthion",
+      "aprdOptionId": "153",
+      "requestedNames": [
+        "FENTHION"
+      ],
+      "caseCount": 135,
+      "speciesCount": 43,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "芬殺松"
+      ]
+    },
+    {
+      "activeIngredient": "buprofezin",
+      "aprdOptionId": "43",
+      "requestedNames": [
+        "BUPROFEZIN"
+      ],
+      "caseCount": 134,
+      "speciesCount": 6,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "布芬淨"
+      ]
+    },
+    {
+      "activeIngredient": "pyriproxyfen",
+      "aprdOptionId": "278",
+      "requestedNames": [
+        "PYRIPROXYFEN"
+      ],
+      "caseCount": 126,
+      "speciesCount": 5,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "百利普芬"
+      ]
+    },
+    {
+      "activeIngredient": "parathion-methyl",
+      "aprdOptionId": "242",
+      "requestedNames": [
+        "METHYL-PARATHION"
+      ],
+      "caseCount": 116,
+      "speciesCount": 51,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "甲基巴拉松"
+      ]
+    },
+    {
+      "activeIngredient": "amitraz",
+      "aprdOptionId": "15",
+      "requestedNames": [
+        "AMITRAZ"
+      ],
+      "caseCount": 106,
+      "speciesCount": 9,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "三亞蟎"
+      ]
+    },
+    {
+      "activeIngredient": "methoxyfenozide",
+      "aprdOptionId": "215",
+      "requestedNames": [
+        "METHOXYFENOZIDE"
+      ],
+      "caseCount": 98,
+      "speciesCount": 12,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "滅芬諾"
+      ]
+    },
+    {
+      "activeIngredient": "esfenvalerate",
+      "aprdOptionId": "156",
+      "requestedNames": [
+        "ESFENVALERATE"
+      ],
+      "caseCount": 94,
+      "speciesCount": 16,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "益化利"
+      ]
+    },
+    {
+      "activeIngredient": "triazophos",
+      "aprdOptionId": "332",
+      "requestedNames": [
+        "TRIAZOPHOS"
+      ],
+      "caseCount": 94,
+      "speciesCount": 11,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "三落松"
+      ]
+    },
+    {
+      "activeIngredient": "chlorfenapyr",
+      "aprdOptionId": "61",
+      "requestedNames": [
+        "CHLORFENAPYR"
+      ],
+      "caseCount": 87,
+      "speciesCount": 14,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "克凡派"
+      ]
+    },
+    {
+      "activeIngredient": "phoxim",
+      "aprdOptionId": "254",
+      "requestedNames": [
+        "PHOXIM"
+      ],
+      "caseCount": 87,
+      "speciesCount": 20,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "巴賽松"
+      ]
+    },
+    {
+      "activeIngredient": "fenpropathrin",
+      "aprdOptionId": "149",
+      "requestedNames": [
+        "FENPROPATHRIN"
+      ],
+      "caseCount": 78,
+      "speciesCount": 15,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "芬普寧"
+      ]
+    },
+    {
+      "activeIngredient": "trichlorfon",
+      "aprdOptionId": "334",
+      "requestedNames": [
+        "TRICHLORFON"
+      ],
+      "caseCount": 78,
+      "speciesCount": 23,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "三氯松"
+      ]
+    },
+    {
+      "activeIngredient": "etofenprox",
+      "aprdOptionId": "140",
+      "requestedNames": [
+        "ETOFENPROX"
+      ],
+      "caseCount": 76,
+      "speciesCount": 16,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "依芬寧"
+      ]
+    },
+    {
+      "activeIngredient": "thiodicarb",
+      "aprdOptionId": "322",
+      "requestedNames": [
+        "THIODICARB"
+      ],
+      "caseCount": 74,
+      "speciesCount": 10,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "硫敵克"
+      ]
+    },
+    {
+      "activeIngredient": "pirimicarb",
+      "aprdOptionId": "256",
+      "requestedNames": [
+        "PIRIMICARB"
+      ],
+      "caseCount": 69,
+      "speciesCount": 7,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "比加普"
+      ]
+    },
+    {
+      "activeIngredient": "thiacloprid",
+      "aprdOptionId": "318",
+      "requestedNames": [
+        "THIACLOPRID"
+      ],
+      "caseCount": 69,
+      "speciesCount": 7,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "賽果培"
+      ]
+    },
+    {
+      "activeIngredient": "Spinetoram",
+      "aprdOptionId": "473",
+      "requestedNames": [
+        "SPINETORAM"
+      ],
+      "caseCount": 67,
+      "speciesCount": 13,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "賜諾特"
+      ]
+    },
+    {
+      "activeIngredient": "pirimiphos-methyl",
+      "aprdOptionId": "258",
+      "requestedNames": [
+        "PIRMIPHOS-METHYL"
+      ],
+      "caseCount": 64,
+      "speciesCount": 21,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "亞特松"
+      ]
+    },
+    {
+      "activeIngredient": "flubendiamide",
+      "aprdOptionId": "430",
+      "requestedNames": [
+        "FLUBENDIAMIDE"
+      ],
+      "caseCount": 63,
+      "speciesCount": 10,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "氟大滅"
+      ]
+    },
+    {
+      "activeIngredient": "clothianidin",
+      "aprdOptionId": "78",
+      "requestedNames": [
+        "CLOTHIANIDIN"
+      ],
+      "caseCount": 61,
+      "speciesCount": 10,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "可尼丁"
+      ]
+    },
+    {
+      "activeIngredient": "pyridaben",
+      "aprdOptionId": "274",
+      "requestedNames": [
+        "PYRIDABEN"
+      ],
+      "caseCount": 57,
+      "speciesCount": 5,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "畢達本"
+      ]
+    },
+    {
+      "activeIngredient": "bendiocarb",
+      "aprdOptionId": "29",
+      "requestedNames": [
+        "BENDIOCARB"
+      ],
+      "caseCount": 56,
+      "speciesCount": 14,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "免敵克"
+      ]
+    },
+    {
+      "activeIngredient": "acephate",
+      "aprdOptionId": "2",
+      "requestedNames": [
+        "ACEPHATE"
+      ],
+      "caseCount": 55,
+      "speciesCount": 18,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "毆殺松"
+      ]
+    },
+    {
+      "activeIngredient": "methidathion",
+      "aprdOptionId": "210",
+      "requestedNames": [
+        "METHIDATHION"
+      ],
+      "caseCount": 55,
+      "speciesCount": 22,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "滅大松"
+      ]
+    },
+    {
+      "activeIngredient": "dinotefuran",
+      "aprdOptionId": "118",
+      "requestedNames": [
+        "DINOTEFURAN"
+      ],
+      "caseCount": 52,
+      "speciesCount": 8,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "達特南"
+      ]
+    },
+    {
+      "activeIngredient": "acrinathrin",
+      "aprdOptionId": "5",
+      "requestedNames": [
+        "ACRINATHRIN"
+      ],
+      "caseCount": 51,
+      "speciesCount": 3,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "阿納寧"
+      ]
+    },
+    {
+      "activeIngredient": "quinalphos",
+      "aprdOptionId": "279",
+      "requestedNames": [
+        "QUINALPHOS"
+      ],
+      "caseCount": 51,
+      "speciesCount": 9,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "拜裕松"
+      ]
+    },
+    {
+      "activeIngredient": "spirotetramat",
+      "aprdOptionId": "417",
+      "requestedNames": [
+        "SPIROTETRAMAT"
+      ],
+      "caseCount": 51,
+      "speciesCount": 8,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "賜派滅"
+      ]
+    },
+    {
+      "activeIngredient": "carbofuran",
+      "aprdOptionId": "50",
+      "requestedNames": [
+        "CARBOFURAN"
+      ],
+      "caseCount": 49,
+      "speciesCount": 14,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "加保扶"
+      ]
+    },
+    {
+      "activeIngredient": "cyantraniliprole",
+      "aprdOptionId": "470",
+      "requestedNames": [
+        "CYANTRANILIPROLE"
+      ],
+      "caseCount": 49,
+      "speciesCount": 11,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "賽安勃"
+      ]
+    },
+    {
+      "activeIngredient": "metaflumizone",
+      "aprdOptionId": "466",
+      "requestedNames": [
+        "METAFLUMIZONE"
+      ],
+      "caseCount": 46,
+      "speciesCount": 8,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "美氟綜"
+      ]
+    },
+    {
+      "activeIngredient": "isoprocarb",
+      "aprdOptionId": "194",
+      "requestedNames": [
+        "ISOPROCARB"
+      ],
+      "caseCount": 43,
+      "speciesCount": 3,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "滅必蝨"
+      ]
+    },
+    {
+      "activeIngredient": "ethiprole",
+      "aprdOptionId": "133",
+      "requestedNames": [
+        "ETHIPROLE"
+      ],
+      "caseCount": 42,
+      "speciesCount": 2,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "益斯普"
+      ]
+    },
+    {
+      "activeIngredient": "carbosulfan",
+      "aprdOptionId": "53",
+      "requestedNames": [
+        "CARBOSULFAN"
+      ],
+      "caseCount": 41,
+      "speciesCount": 10,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "丁基加保扶"
+      ]
+    },
+    {
+      "activeIngredient": "chlorfluazuron",
+      "aprdOptionId": "55",
+      "requestedNames": [
+        "CHLORFLUAZURON"
+      ],
+      "caseCount": 41,
+      "speciesCount": 3,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "克福隆"
+      ]
+    },
+    {
+      "activeIngredient": "pymetrozine",
+      "aprdOptionId": "269",
+      "requestedNames": [
+        "PYMETROZINE"
+      ],
+      "caseCount": 38,
+      "speciesCount": 4,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "派滅淨"
+      ]
+    },
+    {
+      "activeIngredient": "cypermethrin-zeta",
+      "aprdOptionId": "95",
+      "requestedNames": [
+        "ZETA-CYPERMETHRIN"
+      ],
+      "caseCount": 37,
+      "speciesCount": 6,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "傑他賽滅寧"
+      ]
+    },
+    {
+      "activeIngredient": "sulfoxaflor",
+      "aprdOptionId": "463",
+      "requestedNames": [
+        "SULFOXAFLOR"
+      ],
+      "caseCount": 37,
+      "speciesCount": 8,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "速殺氟"
+      ]
+    },
+    {
+      "activeIngredient": "formetanate",
+      "aprdOptionId": "168",
+      "requestedNames": [
+        "FORMETANATE"
+      ],
+      "caseCount": 36,
+      "speciesCount": 3,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "覆滅蟎"
+      ]
+    },
+    {
+      "activeIngredient": "tebufenozide",
+      "aprdOptionId": "304",
+      "requestedNames": [
+        "TEBUFENOZIDE"
+      ],
+      "caseCount": 36,
+      "speciesCount": 7,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "得芬諾"
+      ]
+    },
+    {
+      "activeIngredient": "lufenuron",
+      "aprdOptionId": "203",
+      "requestedNames": [
+        "LUFENURON"
+      ],
+      "caseCount": 35,
+      "speciesCount": 7,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "祿芬隆"
+      ]
+    },
+    {
+      "activeIngredient": "fenpyroximate",
+      "aprdOptionId": "150",
+      "requestedNames": [
+        "FENPYROXIMATE"
+      ],
+      "caseCount": 32,
+      "speciesCount": 3,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "芬普蟎"
+      ]
+    },
+    {
+      "activeIngredient": "spirodiclofen",
+      "aprdOptionId": "291",
+      "requestedNames": [
+        "SPIRODICLOFEN"
+      ],
+      "caseCount": 31,
+      "speciesCount": 7,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "賜派芬"
+      ]
+    },
+    {
+      "activeIngredient": "flonicamid",
+      "aprdOptionId": "158",
+      "requestedNames": [
+        "FLONICAMID"
+      ],
+      "caseCount": 29,
+      "speciesCount": 4,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "氟尼胺"
+      ]
+    },
+    {
+      "activeIngredient": "tau-fluvalinate",
+      "aprdOptionId": "302",
+      "requestedNames": [
+        "TAU-FLUVALINATE"
+      ],
+      "caseCount": 29,
+      "speciesCount": 17,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "福化利"
+      ]
+    },
+    {
+      "activeIngredient": "thiometon",
+      "aprdOptionId": "324",
+      "requestedNames": [
+        "THIOMETON"
+      ],
+      "caseCount": 29,
+      "speciesCount": 11,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "硫滅松"
+      ]
+    },
+    {
+      "activeIngredient": "phosmet",
+      "aprdOptionId": "250",
+      "requestedNames": [
+        "PHOSMET"
+      ],
+      "caseCount": 27,
+      "speciesCount": 14,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "益滅松"
+      ]
+    },
+    {
+      "activeIngredient": "cyromazine",
+      "aprdOptionId": "97",
+      "requestedNames": [
+        "CYROMAZINE"
+      ],
+      "caseCount": 26,
+      "speciesCount": 5,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "賽滅淨"
+      ]
+    },
+    {
+      "activeIngredient": "ethion",
+      "aprdOptionId": "132",
+      "requestedNames": [
+        "ETHION"
+      ],
+      "caseCount": 25,
+      "speciesCount": 11,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "愛殺松"
+      ]
+    },
+    {
+      "activeIngredient": "oxydemeton-methyl",
+      "aprdOptionId": "237",
+      "requestedNames": [
+        "OXYDEMETON METHYL"
+      ],
+      "caseCount": 25,
+      "speciesCount": 4,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "滅多松"
+      ]
+    },
+    {
+      "activeIngredient": "tetraniliprole",
+      "aprdOptionId": "496",
+      "requestedNames": [
+        "TETRANILIPROLE"
+      ],
+      "caseCount": 23,
+      "speciesCount": 4,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "特安勃"
+      ]
+    },
+    {
+      "activeIngredient": "bifenazate",
+      "aprdOptionId": "35",
+      "requestedNames": [
+        "BIFENAZATE"
+      ],
+      "caseCount": 21,
+      "speciesCount": 1,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "必芬蟎"
+      ]
+    },
+    {
+      "activeIngredient": "diflubenzuron",
+      "aprdOptionId": "112",
+      "requestedNames": [
+        "DIFLUBENZURON"
+      ],
+      "caseCount": 21,
+      "speciesCount": 8,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "二福隆"
+      ]
+    },
+    {
+      "activeIngredient": "phenthoate",
+      "aprdOptionId": "247",
+      "requestedNames": [
+        "PHENTHOATE"
+      ],
+      "caseCount": 21,
+      "speciesCount": 16,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "賽達松"
+      ]
+    },
+    {
+      "activeIngredient": "cyflumetofen",
+      "aprdOptionId": "464",
+      "requestedNames": [
+        "CYFLUMETOFEN"
+      ],
+      "caseCount": 19,
+      "speciesCount": 3,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "賽芬蟎"
+      ]
+    },
+    {
+      "activeIngredient": "milbemectin",
+      "aprdOptionId": "219",
+      "requestedNames": [
+        "MILBEMECTIN"
+      ],
+      "caseCount": 19,
+      "speciesCount": 2,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "密滅汀"
+      ]
+    },
+    {
+      "activeIngredient": "naled",
+      "aprdOptionId": "225",
+      "requestedNames": [
+        "NALED"
+      ],
+      "caseCount": 19,
+      "speciesCount": 11,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "乃力松"
+      ]
+    },
+    {
+      "activeIngredient": "spiromesifen",
+      "aprdOptionId": "292",
+      "requestedNames": [
+        "SPIROMESIFEN"
+      ],
+      "caseCount": 19,
+      "speciesCount": 4,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "賜滅芬"
+      ]
+    },
+    {
+      "activeIngredient": "allethrin",
+      "aprdOptionId": "9",
+      "requestedNames": [
+        "ALLETHRIN"
+      ],
+      "caseCount": 18,
+      "speciesCount": 4,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "亞烈寧"
+      ]
+    },
+    {
+      "activeIngredient": "hexythiazox",
+      "aprdOptionId": "396",
+      "requestedNames": [
+        "HEXYTHIAZOX"
+      ],
+      "caseCount": 18,
+      "speciesCount": 5,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "合賽多"
+      ]
+    },
+    {
+      "activeIngredient": "propargite",
+      "aprdOptionId": "263",
+      "requestedNames": [
+        "PROPARGITE"
+      ],
+      "caseCount": 18,
+      "speciesCount": 7,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "毆蟎多"
+      ]
+    },
+    {
+      "activeIngredient": "cartap",
+      "aprdOptionId": "54",
+      "requestedNames": [
+        "CARTAP"
+      ],
+      "caseCount": 17,
+      "speciesCount": 4,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "培丹"
+      ]
+    },
+    {
+      "activeIngredient": "oxamyl",
+      "aprdOptionId": "235",
+      "requestedNames": [
+        "OXAMYL"
+      ],
+      "caseCount": 17,
+      "speciesCount": 7,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "毆殺滅"
+      ]
+    },
+    {
+      "activeIngredient": "diafenthiuron",
+      "aprdOptionId": "103",
+      "requestedNames": [
+        "DIAFENTHIURON"
+      ],
+      "caseCount": 16,
+      "speciesCount": 2,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "汰芬隆"
+      ]
+    },
+    {
+      "activeIngredient": "phosalone",
+      "aprdOptionId": "249",
+      "requestedNames": [
+        "PHOSALONE"
+      ],
+      "caseCount": 15,
+      "speciesCount": 11,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "裕必松"
+      ]
+    },
+    {
+      "activeIngredient": "flucythrinate",
+      "aprdOptionId": "162",
+      "requestedNames": [
+        "FLUCYTHRINATE"
+      ],
+      "caseCount": 14,
+      "speciesCount": 6,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "護賽寧"
+      ]
+    },
+    {
+      "activeIngredient": "fenbutatin oxide",
+      "aprdOptionId": "145",
+      "requestedNames": [
+        "FENBUTATIN-OXIDE"
+      ],
+      "caseCount": 13,
+      "speciesCount": 3,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "芬佈賜"
+      ]
+    },
+    {
+      "activeIngredient": "methiocarb",
+      "aprdOptionId": "211",
+      "requestedNames": [
+        "METHIOCARB"
+      ],
+      "caseCount": 13,
+      "speciesCount": 1,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "滅賜克"
+      ]
+    },
+    {
+      "activeIngredient": "tebufenpyrad",
+      "aprdOptionId": "305",
+      "requestedNames": [
+        "TEBUFENPYRAD"
+      ],
+      "caseCount": 13,
+      "speciesCount": 3,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "得芬瑞"
+      ]
+    },
+    {
+      "activeIngredient": "clofentezine",
+      "aprdOptionId": "389",
+      "requestedNames": [
+        "CLOFENTEZINE"
+      ],
+      "caseCount": 10,
+      "speciesCount": 2,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "克芬蟎"
+      ]
+    },
+    {
+      "activeIngredient": "flufenoxuron",
+      "aprdOptionId": "163",
+      "requestedNames": [
+        "FLUFENOXURON"
+      ],
+      "caseCount": 10,
+      "speciesCount": 2,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "氟芬隆"
+      ]
+    },
+    {
+      "activeIngredient": "vamidothion",
+      "aprdOptionId": "337",
+      "requestedNames": [
+        "VAMIDOTHION"
+      ],
+      "caseCount": 10,
+      "speciesCount": 8,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "繁米松"
+      ]
+    },
+    {
+      "activeIngredient": "cyhalothrin-gamma",
+      "aprdOptionId": "88",
+      "requestedNames": [
+        "GAMMA-CYHALOTHRIN"
+      ],
+      "caseCount": 9,
+      "speciesCount": 1,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "伽瑪賽洛寧"
+      ]
+    },
+    {
+      "activeIngredient": "fenobucarb",
+      "aprdOptionId": "147",
+      "requestedNames": [
+        "FENOBUCARB"
+      ],
+      "caseCount": 9,
+      "speciesCount": 3,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "丁基滅必蝨"
+      ]
+    },
+    {
+      "activeIngredient": "fenazaquin",
+      "aprdOptionId": "144",
+      "requestedNames": [
+        "FENAZAQUIN"
+      ],
+      "caseCount": 7,
+      "speciesCount": 2,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "芬殺蟎"
+      ]
+    },
+    {
+      "activeIngredient": "acequinocyl",
+      "aprdOptionId": "387",
+      "requestedNames": [
+        "ACEQUINOCYL"
+      ],
+      "caseCount": 6,
+      "speciesCount": 2,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "亞醌蟎"
+      ]
+    },
+    {
+      "activeIngredient": "cyenopyrafen",
+      "aprdOptionId": "426",
+      "requestedNames": [
+        "CYENOPYRAFEN"
+      ],
+      "caseCount": 6,
+      "speciesCount": 1,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "賽派芬"
+      ]
+    },
+    {
+      "activeIngredient": "novaluron",
+      "aprdOptionId": "231",
+      "requestedNames": [
+        "NOVALURON"
+      ],
+      "caseCount": 6,
+      "speciesCount": 3,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "諾伐隆"
+      ]
+    },
+    {
+      "activeIngredient": "etoxazole",
+      "aprdOptionId": "406",
+      "requestedNames": [
+        "ETOXAZOLE"
+      ],
+      "caseCount": 5,
+      "speciesCount": 2,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "依殺蟎"
+      ]
+    },
+    {
+      "activeIngredient": "metolcarb",
+      "aprdOptionId": "217",
+      "requestedNames": [
+        "METOLCARB"
+      ],
+      "caseCount": 5,
+      "speciesCount": 3,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "治滅蝨"
+      ]
+    },
+    {
+      "activeIngredient": "phorate",
+      "aprdOptionId": "248",
+      "requestedNames": [
+        "PHORATE"
+      ],
+      "caseCount": 5,
+      "speciesCount": 5,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "福瑞松"
+      ]
+    },
+    {
+      "activeIngredient": "isoxathion",
+      "aprdOptionId": "196",
+      "requestedNames": [
+        "ISOXATHION"
+      ],
+      "caseCount": 4,
+      "speciesCount": 4,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "加福松"
+      ]
+    },
+    {
+      "activeIngredient": "rotenone",
+      "aprdOptionId": "283",
+      "requestedNames": [
+        "ROTENONE"
+      ],
+      "caseCount": 4,
+      "speciesCount": 2,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "魚藤精"
+      ]
+    },
+    {
+      "activeIngredient": "benfuracarb",
+      "aprdOptionId": "30",
+      "requestedNames": [
+        "BENFURACARB"
+      ],
+      "caseCount": 3,
+      "speciesCount": 1,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "免扶克"
+      ]
+    },
+    {
+      "activeIngredient": "bromopropylate",
+      "aprdOptionId": "41",
+      "requestedNames": [
+        "BROMOPROPYLATE"
+      ],
+      "caseCount": 3,
+      "speciesCount": 2,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "新殺蟎"
+      ]
+    },
+    {
+      "activeIngredient": "fosthiazate",
+      "aprdOptionId": "170",
+      "requestedNames": [
+        "FOSTHIAZATE"
+      ],
+      "caseCount": 3,
+      "speciesCount": 1,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "福賽絕"
+      ]
+    },
+    {
+      "activeIngredient": "triflumezopyrim",
+      "aprdOptionId": "490",
+      "requestedNames": [
+        "TRIFLUMEZOPYRIM"
+      ],
+      "caseCount": 3,
+      "speciesCount": 2,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "氟美派"
+      ]
+    },
+    {
+      "activeIngredient": "terbufos",
+      "aprdOptionId": "311",
+      "requestedNames": [
+        "TERBUFOS"
+      ],
+      "caseCount": 2,
+      "speciesCount": 2,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "托福松"
+      ]
+    },
+    {
+      "activeIngredient": "azadirachtin",
+      "aprdOptionId": "16",
+      "requestedNames": [
+        "AZADIRACHTIN"
+      ],
+      "caseCount": 1,
+      "speciesCount": 1,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "印楝素"
+      ]
+    },
+    {
+      "activeIngredient": "chromafenozide",
+      "aprdOptionId": "75",
+      "requestedNames": [
+        "CHROMAFENOZIDE"
+      ],
+      "caseCount": 1,
+      "speciesCount": 1,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "可芬諾"
+      ]
+    },
+    {
+      "activeIngredient": "fenoxycarb",
+      "aprdOptionId": "148",
+      "requestedNames": [
+        "FENOXYCARB"
+      ],
+      "caseCount": 1,
+      "speciesCount": 1,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "芬諾克"
+      ]
+    },
+    {
+      "activeIngredient": "isofenphos",
+      "aprdOptionId": "192",
+      "requestedNames": [
+        "ISOFENPHOS"
+      ],
+      "caseCount": 1,
+      "speciesCount": 1,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "亞芬松"
+      ]
+    },
+    {
+      "activeIngredient": "Afidopyropen",
+      "aprdOptionId": "494",
+      "requestedNames": [
+        "AFIDOPYROPEN"
+      ],
+      "caseCount": 0,
+      "speciesCount": 0,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "阿扶平"
+      ]
+    },
+    {
+      "activeIngredient": "Beta-cyfluthrin",
+      "aprdOptionId": "501",
+      "requestedNames": [
+        "BETA-CYFLUTHRIN"
+      ],
+      "caseCount": 0,
+      "speciesCount": 0,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "貝他-賽扶寧"
+      ]
+    },
+    {
+      "activeIngredient": "ethoprophos",
+      "aprdOptionId": "135",
+      "requestedNames": [
+        "ETHOPROPHOS"
+      ],
+      "caseCount": 0,
+      "speciesCount": 0,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "普伏松"
+      ]
+    },
+    {
+      "activeIngredient": "pyraclofos",
+      "aprdOptionId": "270",
+      "requestedNames": [
+        "PYRACLOFOS"
+      ],
+      "caseCount": 0,
+      "speciesCount": 0,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "白克松"
+      ]
+    },
+    {
+      "activeIngredient": "pyrimidifen",
+      "aprdOptionId": "277",
+      "requestedNames": [
+        "PYRIMIDIFEN"
+      ],
+      "caseCount": 0,
+      "speciesCount": 0,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "畢汰芬"
+      ]
+    },
+    {
+      "activeIngredient": "tolfenpyrad",
+      "aprdOptionId": "327",
+      "requestedNames": [
+        "TOLFENPYRAD"
+      ],
+      "caseCount": 0,
+      "speciesCount": 0,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "脫芬瑞"
+      ]
+    },
+    {
+      "activeIngredient": "XMC",
+      "aprdOptionId": "338",
+      "requestedNames": [
+        "XMC"
+      ],
+      "caseCount": 0,
+      "speciesCount": 0,
+      "isHighResistanceRisk": false,
+      "status": "verified",
+      "chineseNames": [
+        "滅克蝨"
+      ]
+    }
+  ],
+  "unmatched": [
+    {
+      "requestedName": "SPIROPIDION",
+      "chineseNames": [
+        "賜派地"
+      ]
+    },
+    {
+      "requestedName": "FENAMIPHOS",
+      "chineseNames": [
+        "芬滅松"
+      ]
+    },
+    {
+      "requestedName": "Bacillus thuringiensis subsp. aizawai strain ABTS-1857",
+      "chineseNames": [
+        "鮎澤蘇力菌ABTS-1857"
+      ]
+    },
+    {
+      "requestedName": "Bacillus thuringiensis subsp. aizawai strain NB-200",
+      "chineseNames": [
+        "鮎澤蘇力菌NB-200"
+      ]
+    },
+    {
+      "requestedName": "Bacillus thuringiensis subsp. kurstaki strain SA-12",
+      "chineseNames": [
+        "庫斯蘇力菌SA-12"
+      ]
+    },
+    {
+      "requestedName": "Bacillus thuringiensis subsp. kurstaki strain ABTS-351",
+      "chineseNames": [
+        "庫斯蘇力菌ABTS-351"
+      ]
+    },
+    {
+      "requestedName": "Bacillus thuringiensis subsp. kurstaki strain SA-11",
+      "chineseNames": [
+        "庫斯蘇力菌SA-11"
+      ]
+    },
+    {
+      "requestedName": "Bacillus thuringiensis subsp. kurstaki strain EG-2371",
+      "chineseNames": [
+        "庫斯蘇力菌EG-2371"
+      ]
+    },
+    {
+      "requestedName": "Bacillus thuringiensis subsp. kurstaki strain E-911",
+      "chineseNames": [
+        "庫斯蘇力菌E-911"
+      ]
+    },
+    {
+      "requestedName": "ISOCYCLOSERAM",
+      "chineseNames": [
+        "亞克瑞"
+      ]
+    },
+    {
+      "requestedName": "FENOTHIOCARB",
+      "chineseNames": [
+        "芬硫克"
+      ]
+    },
+    {
+      "requestedName": "Bacillus thuringiensis subsp. aizawai strain GC-91",
+      "chineseNames": [
+        "鮎澤蘇力菌GC-91"
+      ]
+    },
+    {
+      "requestedName": "Bacillus thuringiensis subsp. aizawai strain Ab12",
+      "chineseNames": [
+        "鮎澤蘇力菌Ab12"
+      ]
+    },
+    {
+      "requestedName": "MAGNESIUM PHOSPHIDE",
+      "chineseNames": [
+        "磷化鎂"
+      ]
+    },
+    {
+      "requestedName": "Bacillus thuringiensis subsp. kurstaki strain EG-7841",
+      "chineseNames": [
+        "庫斯蘇力菌EG-7841"
+      ]
+    },
+    {
+      "requestedName": "S-METHOPRENE",
+      "chineseNames": [
+        "美賜平"
+      ]
+    }
+  ]
+}

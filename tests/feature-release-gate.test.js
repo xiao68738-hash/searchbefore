@@ -46,8 +46,8 @@ assert.match(uiSource, /renderMaterialInventoryDraft/, "肥料入出庫表必須
 assert.match(uiSource, /exportMaterialInventoryDraft/, "資材庫存草稿必須可由人工核對後匯出");
 assert.match(html, /一次儲存設備管理紀錄/, "田間紀錄介面必須支援一次建立多筆設備管理紀錄");
 assert.match(uiSource, /第三方雲端辨識服務/, "OCR 單次同意必須揭露照片會交由第三方處理");
-assert.match(uiSource, /資料處理服務說明[\s\S]*Google Cloud Vision/, "展開的資料處理說明必須揭露實際處理服務商");
-assert.doesNotMatch(uiSource, /const ocrHeading = "Google Cloud Vision/, "主操作標題不應以供應商品牌取代產品功能名稱");
+assert.match(uiSource, /資料處理服務說明[\s\S]*第三方雲端辨識服務/, "展開的資料處理說明必須清楚揭露照片會交由外部服務處理");
+assert.doesNotMatch(uiSource, /Google Cloud Vision/, "一般操作介面不顯示底層供應商品牌");
 assert.match(uiSource, /cloudOcrConsent/, "照片送出前必須取得單次同意");
 assert.match(uiSource, /ocrVerificationGate/, "OCR 必須先通過驗證碼閘門");
 assert.match(uiSource, /sessionStorage/, "OCR 解鎖狀態只能保留在目前瀏覽器工作階段");

@@ -8,8 +8,8 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..");
 const outDir = path.join(root, "dist");
 const expected = [
-  "about.html", "account.js", "ads.txt", "brand-lockup.png", "cloud-sync.js", "delete-account.html", "brand-logo-120.png", "crop-forms.js", "export-formats.js", "farm-records.js", "form-ocr-ui.js", "form-ocr.js", "guide.css", "guide-dilution.html", "guide-label.html", "guide-phi.html", "guide-ppe.html", "guides.html", "icon-180.png", "icon-192.png", "icon-512.png",
-  "icon-maskable-512.png", "index.html", "manifest.webmanifest", "privacy.html", "robots.txt", "sitemap.xml",
+  "about.html", "account.js", "ads.txt", "brand-lockup.png", "cloud-sync.js", "delete-account.html", "brand-logo-120.png", "brand-logo-transparent.png", "crop-forms.js", "export-formats.js", "farm-records.js", "form-ocr-ui.js", "form-ocr.js", "guide.css", "guide-dilution.html", "guide-label.html", "guide-phi.html", "guide-ppe.html", "guides.html", "icon-180.png", "icon-192.png", "icon-512.png",
+  "icon-maskable-512.png", "index.html", "manifest.webmanifest", "mrl-status.js", "privacy.html", "robots.txt", "sitemap.xml",
   "field-summary.js",
   "pinyin-pro.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"
 ].sort();
@@ -34,11 +34,22 @@ assert.match(combined, /噴前查 SearchBefore/);
 assert.match(combined, /ca-pub-1085605483379036/);
 assert.match(combined, /https:\/\/searchbefore\.tw\/guides\.html/);
 
-for (const name of ["account.js", "cloud-sync.js", "crop-forms.js", "export-formats.js", "farm-records.js", "field-summary.js", "form-ocr-ui.js", "form-ocr.js", "pinyin-pro.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"]) {
+for (const name of ["account.js", "cloud-sync.js", "crop-forms.js", "export-formats.js", "farm-records.js", "field-summary.js", "form-ocr-ui.js", "form-ocr.js", "mrl-status.js", "pinyin-pro.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"]) {
   new vm.Script(await readFile(path.join(outDir, name), "utf8"), { filename: `dist/${name}` });
 }
 
 const html = await readFile(path.join(outDir, "index.html"), "utf8");
+new vm.Script(await readFile(path.join(outDir, "mrl-status.js"), "utf8"), { filename: "dist/mrl-status.js" });
+const aidsSandbox = {};
+vm.runInNewContext(await readFile(path.join(outDir, "query-aids.js"), "utf8"), aidsSandbox);
+assert.ok(aidsSandbox.PQC_AIDS.pestSearchMatch("鱗翅目", "夜蛾類"), "壓縮後仍須保留分類搜尋");
+assert.equal(aidsSandbox.PQC_AIDS.pestSearchMatch("夜蛾科", "小菜蛾"), null, "壓縮後不得誤納其他科");
+for (const [q,p] of [["夜蛾類","大螟"],["螟蛾類","玉米螟"],["蚜蟲類","棉蚜"],["飛蝨類","褐飛蝨"],["紫螟","大螟"]]) {
+  assert.ok(aidsSandbox.PQC_AIDS.pestSearchMatch(q,p), "壓縮後不得漏接：" + q + " / " + p);
+}
+for (const [q,p] of [["螟蛾類","大螟"],["螟蛾類","甜菜白帶野螟蛾"],["葉蜂類","松綠葉蜂"],["夜蛾科","小造橋蟲"]]) {
+  assert.equal(aidsSandbox.PQC_AIDS.pestSearchMatch(q,p), null, "壓縮後不得恢復字根誤納：" + q + " / " + p);
+}
 const sharedConfig = await readFile(path.join(outDir, "service-config.js"), "utf8");
 const webSupportConfig = await readFile(path.join(outDir, "web-support-config.js"), "utf8");
 const ocrUi = await readFile(path.join(outDir, "form-ocr-ui.js"), "utf8");
@@ -48,7 +59,8 @@ vm.runInNewContext(webSupportConfig, webSupportSandbox, { filename: "dist/web-su
 assert.equal(webSupportSandbox.window.PQC_WEB_SUPPORT_CONFIG.googlePlayVoluntarySupport, true, "Google Play 純自願支持必須由獨立遠端開關明確啟用");
 assert.match(webSupportConfig, /https:\/\/p\.ecpay\.com\.tw\//, "按需載入的自願支持設定應保留綠界網址");
 assert.doesNotMatch(html, /<script[^>]+web-support-config\.js/i, "正式頁面不可靜態載入付款設定，才能保留遠端停用能力");
-assert.match(ocrUi, /Google Cloud Vision/, "OCR 前端必須標示目前使用的雲端辨識服務");
+assert.match(ocrUi, /第三方雲端辨識服務/, "OCR 前端必須揭露照片會交由第三方服務處理");
+assert.doesNotMatch(ocrUi, /Google Cloud Vision/, "一般操作介面不可顯示底層供應商品牌");
 const referencedScripts = [...html.matchAll(/<script[^>]+\bsrc=["']\.\/([^"'?#]+)["']/gi)].map(match => match[1]);
 assert.ok(referencedScripts.length >= 7, "index.html 應載入必要的外部程式");
 for (const name of referencedScripts) assert.ok(actual.includes(name), `dist 缺少 index.html 引用的 ${name}`);
