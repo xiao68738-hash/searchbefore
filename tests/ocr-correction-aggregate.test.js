@@ -1,4 +1,6 @@
 const assert = require("node:assert/strict");
+const os = require("node:os");
+const path = require("node:path");
 
 (async function () {
   const aggregateModule = await import("../scripts/aggregate-private-ocr-corrections.mjs");
@@ -22,8 +24,15 @@ const assert = require("node:assert/strict");
   assert.equal(aggregateModule.validateCorrectionRecord(valid).ok, true);
   assert.equal(aggregateModule.validateCorrectionRecord({ ...valid, sourceImageId: "source-private" }).ok, false);
   assert.equal(aggregateModule.validateCorrectionRecord({ ...valid, fields: [{ key: "operator", candidates: [], confirmedValue: "王小明" }] }).ok, false);
-  assert.equal(aggregateModule.pathIsInsidePrivate("D:\\SearchBefore\\private\\ocr-corrections", "D:\\SearchBefore\\private"), true);
-  assert.equal(aggregateModule.pathIsInsidePrivate("D:\\SearchBefore\\repo", "D:\\SearchBefore\\private"), false);
+  // Use the host platform's path semantics so this regression also runs on Linux CI.
+  const privateRoot = path.join(os.tmpdir(), "searchbefore-private-root");
+  assert.equal(aggregateModule.pathIsInsidePrivate(path.join(privateRoot, "ocr-corrections"), privateRoot), true);
+  assert.equal(aggregateModule.pathIsInsidePrivate(path.join(os.tmpdir(), "searchbefore-public"), privateRoot), false);
+  // Keep the Windows-specific cases covered when running on Windows.
+  if (process.platform === "win32") {
+    assert.equal(aggregateModule.pathIsInsidePrivate("D:\\SearchBefore\\private\\ocr-corrections", "D:\\SearchBefore\\private"), true);
+    assert.equal(aggregateModule.pathIsInsidePrivate("D:\\SearchBefore\\repo", "D:\\SearchBefore\\private"), false);
+  }
   const aggregate = aggregateModule.aggregateCorrectionRecords([valid, valid, { ...valid, correctionId: "bad" }], "2026-08-26T10:00:00.000Z");
   assert.equal(aggregate.summary.accepted, 1);
   assert.equal(aggregate.summary.rejected, 2);
