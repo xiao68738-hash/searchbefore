@@ -2631,11 +2631,18 @@ function ensureRecordPlotCompatibility(){
 }
 function recordMatchesPlot(r,p){
   if(!r||!p)return false;
-  if(r.plotId)return r.plotId===p.id&&plotMatchesRecordCrop(p,r.crop);
-  return !!plotMatchesRecordCrop(p,r.crop||"");
+  return !!r.plotId&&r.plotId===p.id&&plotMatchesRecordCrop(p,r.crop);
 }
 function recordsForPlot(p){
   return records.filter(function(r){return recordMatchesPlot(r,p)});
+}
+function unassignedRecordsForPlot(p){
+  return records.filter(function(r){return r&&!r.plotId&&plotMatchesRecordCrop(p,r.crop||"")});
+}
+function unassignedPlotNotice(p){
+  const count=unassignedRecordsForPlot(p).length;
+  if(!count)return "";
+  return '<div class="safety-banner" role="note">另有 '+count+' 筆同作物用藥尚未指定田區，保留於用藥歷史，不列入本田區的用藥筆數、輪用摘要、時間軸或田區匯出。請先核對紀錄歸屬；本田區沒有紀錄不代表已確認可採收。</div>';
 }
 function resistanceRisk(list){
   const recent=[...list].sort(function(a,b){return a.date<b.date?1:-1}).filter(function(r){return r.moa});
@@ -2830,6 +2837,7 @@ function renderPlotDetail(){
   const rows=timeline.length?timeline.map(timelineRecordHtml).join(""):'<div class="empty" style="padding:22px 12px"><b>尚未有作業紀錄</b>從查詢結果建立用藥紀錄，或在紀錄頁新增其他作業後，會依日期合併顯示。</div>';
   el.innerHTML='<h3>'+esc(plotDisplayName(p))+'</h3>'
     +'<div class="hint" style="margin:2px 0 10px">'+esc(plotMetaLabel(p))+'</div>'
+    +unassignedPlotNotice(p)
     +'<div class="risk-card">'+riskGaugeSvg(risk)+'<div><h4>抗藥性風險 '+esc(risk.label)+'</h4><p>'+risk.text+'</p></div></div>'
     +'<h3 style="margin-top:14px;font-size:16px">作業鏈概況</h3><div class="record-chain">'+chain+'</div>'
     +'<div class="hint">共 '+coverage.total+' 筆；這裡只表示已留存的紀錄，不代表已符合產銷履歷或有機驗證要求。</div>'
@@ -2884,6 +2892,7 @@ function renderPlotRecordBox(){
     const cropState=plotCropLinkState(p);
     return '<div class="plot-card '+(activePlotId===p.id?'on':'')+'" onclick="openPlotDetail(\''+p.id+'\')">'
       +'<div class="plot-title"><div><b>'+esc(plotDisplayName(p))+'</b><span class="plot-crop-badge'+(cropState.custom?' custom':'')+'">'+cropState.label+'</span><small>'+esc(plotPlantLabel(p))+' · '+list.length+' 筆用藥 · '+farmList.length+' 筆作業 · '+active+' 筆停採中</small></div><span class="plot-tag">查看</span></div>'
+      +unassignedPlotNotice(p)
       +'<div class="plot-actions"><button class="btn btn-main" onclick="event.stopPropagation();openPlotDetail(\''+p.id+'\')">查看紀錄</button><button class="btn btn-ghost" onclick="event.stopPropagation();setActivePlot(\''+p.id+'\')">設預設</button><button class="btn btn-ghost" onclick="event.stopPropagation();delFieldPlot(\''+p.id+'\')">刪除</button></div>'
       +'</div>';
   }).join(""):'<div class="empty" style="padding:24px 12px"><b>尚未建立種植批次</b>建立後,點開批次可查看用藥紀錄與抗藥性風險。</div>';

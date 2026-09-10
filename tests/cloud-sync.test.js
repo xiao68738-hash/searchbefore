@@ -95,6 +95,22 @@ assert.equal(S.sameContent({id:"a",n:1,updatedAt:"x"}, {id:"a",n:1,updatedAt:"y"
   "只有 updatedAt 不同,應視為內容未變,否則每次存檔都會被當成修改");
 assert.equal(S.sameContent({id:"a",n:1}, {id:"a",n:2}), false);
 
+/* Nested farm details and arrays must participate in change detection. */
+{
+  const prev = {id:'nested', details:{quantity:'1', equipment:['A','B']}, updatedAt:'2026-09-01T00:00:00.000Z'};
+  const edit = {...prev, details:{quantity:'2', equipment:['A','B']}};
+  assert.equal(S.sameContent(prev,edit), false, '修改農務內層用量必須視為變更');
+  assert.equal(S.sameContent(prev,{...prev,details:{equipment:['A','B'],quantity:'1'}}),true,'物件鍵順序不影響內容');
+  assert.equal(S.sameContent(prev,{...prev,details:{equipment:['B','A'],quantity:'1'}}),false,'陣列順序必須保留');
+  assert.equal(S.sameContent({id:'a',details:{updatedAt:'a'}},{id:'a',details:{updatedAt:'b'}}),false,'僅忽略最外層 updatedAt');
+  assert.equal(S.sameContent({id:'a',details:null},{id:'a',details:{}}),false);
+  const now='2026-09-08T06:00:00.000Z';
+  const stamped=S.stampCollection('farmRecords',[edit],[prev],now);
+  assert.equal(stamped.items[0].updatedAt,now,'內層編輯須產生新同步時戳');
+  assert.equal(S.mergeCollection(stamped.items,[prev]).toPush.length,1,'內層編輯須進入上傳清單');
+  assert.equal(prev.details.quantity,'1','不可改動原始資料');
+}
+
 /* ── stampCollection:新增蓋時戳、未變動保留原時戳、消失產生刪除標記 ── */
 {
   const now = "2026-07-21T12:00:00.000Z";
