@@ -1,10 +1,17 @@
 const { spawnSync } = require("node:child_process");
-
 const path = require("node:path");
+const fs = require("node:fs");
 
-for (const file of ["safety.test.js", "farm-records.test.js", "tap-workflow.test.js", "tap-workflow-ui.test.js", "tap-activity-mapping.test.js", "tap-activity-mapping-ui.test.js", "account.test.js", "payment-boundary.test.js", "cloud-sync.test.js", "data-rules.test.js", "export-formats.test.js", "crop-forms.test.js", "query-aids.test.js", "form-ocr.test.js", "form-ocr-golden.test.js", "form-ocr-ui.test.js", "ocr-correction-aggregate.test.js", "feature-release-gate.test.js", "cloud-ocr.test.js", "android-ocr-source.test.js", "date-component-ocr-source.test.js", "agent-search.test.js", "mrl-data.test.js", "mrl-review-gate.test.js", "index-syntax.test.js"]) {
+// Discover root test files so newly added release checks cannot be silently omitted.
+const files = fs.readdirSync(__dirname).filter((file) => file.endsWith(".test.js")).sort();
+for (const file of files) {
   const result = spawnSync(process.execPath, [path.join(__dirname, file)], { stdio: "inherit" });
   if (result.status !== 0) process.exit(result.status || 1);
 }
+
+const taxonomyResult = spawnSync(process.execPath, [path.join(__dirname, "pest-taxonomy-search.test.js")], { stdio: "inherit" });
+if (taxonomyResult.status !== 0) process.exit(taxonomyResult.status || 1);
+const groupingResult = spawnSync(process.execPath, [path.join(__dirname, "pest-grouping-audit.test.js")], { stdio: "inherit" });
+if (groupingResult.status !== 0) process.exit(groupingResult.status || 1);
 
 console.log("\n全部測試完成");

@@ -22,6 +22,12 @@
 
   let db=null,fsApi=null,sdkPromise=null;
   let user=null,status="idle",lastError="",timer=null,running=false,pending=false;
+  // Invalidate in-flight work on account/consent changes, including A -> B -> A.
+  let sessionRevision=0;
+  function invalidateSession(){
+    sessionRevision++;
+    status="idle";lastError="";
+  }
 
   /* ── 與宿主頁面的介面 ── */
   let host={
@@ -90,7 +96,16 @@
     const strip=function(o){
       const c={};
       Object.keys(o).forEach(function(k){if(k!=="updatedAt")c[k]=o[k]});
-      return JSON.stringify(c,Object.keys(c).sort());
+      // A replacer array filters keys at EVERY depth, losing farm details.
+      // Canonicalize each object instead; retain array order and nested keys.
+      return JSON.stringify(c,function(k,v){
+        if(v&&typeof v==="object"&&!Array.isArray(v)){
+          const sorted=Object.create(null);
+          Object.keys(v).sort().forEach(function(key){sorted[key]=v[key]});
+          return sorted;
+        }
+        return v;
+      });
     };
     return strip(a)===strip(b);
   }
@@ -148,6 +163,7 @@
       );
       if(!accepted)return false;
     }
+    if(isEnabled()!==!!on)invalidateSession();
     host.set(K_ENABLED,!!on);
     notify();
     if(on)schedule(0);
@@ -159,10 +175,19 @@
     return !!(user&&o&&o!==user.uid);
   }
   function adoptCurrentAccount(){
-    if(!user)return;
+    if(!user)return false;
+    const changing=ownerConflict();
+    if(changing&&typeof window.confirm==="function"&&!window.confirm(
+      "要把這台裝置的田區、施藥與農務紀錄併入目前 Google 帳號嗎？\n\n原帳號的雲端紀錄不會刪除。請確認這些資料確實可以提供給目前帳號。"
+    ))return false;
+    invalidateSession();
+    // The previous account's cursor/deletions must never apply to the new account.
+    if(changing){host.set(K_LAST,"");host.set(K_TOMB,[]);}
     host.set(K_OWNER,user.uid);
     lastError="";
+    notify();
     schedule(0);
+    return true;
   }
   function lastSyncedAt(){return host.get(K_LAST)||""}
 
@@ -192,7 +217,7 @@
       sdkPromise=Promise.all([
         import("https://www.gstatic.com/firebasejs/"+FIREBASE_VERSION+"/firebase-app.js"),
         import("https://www.gstatic.com/firebasejs/"+FIREBASE_VERSION+"/firebase-firestore.js")
-      ]);
+      ]).catch(function(error){sdkPromise=null;throw error});
     }
     return sdkPromise;
   }
@@ -216,12 +241,17 @@
     if(running){pending=true;return}
     if(!user||!isEnabled()||ownerConflict())return;
     if(!navigator.onLine)return;
-    const database=await ensureDb().catch(function(){return null});
-    if(!database)return;
-
+    const uid=user.uid,revision=sessionRevision,startedAt=nowIso();
+    const current=function(){
+      return revision===sessionRevision&&user&&user.uid===uid&&isEnabled()&&!ownerConflict();
+    };
+    // Acquire before SDK loading so simultaneous initial requests cannot overlap.
     running=true;status="syncing";lastError="";notify();
     try{
-      if(!ownerUid())host.set(K_OWNER,user.uid);
+      const database=await ensureDb();
+      if(!current())return;
+      if(!database)throw new Error("sync-unavailable");
+      if(!ownerUid())host.set(K_OWNER,uid);
       const tombs=arr(host.get(K_TOMB));
       /* 增量同步:只抓上次成功同步之後變動過的文件。
          全量讀取的話,200 筆紀錄每次同步就是 200 次讀取,
@@ -231,10 +261,12 @@
       const since=String(host.get(K_LAST)||"");
 
       for(const col of COLLECTIONS){
-        const ref=fsApi.collection(database,"users",user.uid,col);
+        if(!current())return;
+        const ref=fsApi.collection(database,"users",uid,col);
         const snap=await fsApi.getDocs(
           since?fsApi.query(ref,fsApi.where("updatedAt",">",since)):ref
         );
+        if(!current())return;
         const remote=[];
         snap.forEach(function(d){remote.push(Object.assign({id:d.id},d.data()))});
 
@@ -251,19 +283,24 @@
           return !since||String(i.updatedAt||"")>since;
         });
         for(const item of toPush){
+          if(!current())return;
           const body=Object.assign({},item);
           delete body.id;
-          await fsApi.setDoc(fsApi.doc(database,"users",user.uid,col,String(item.id)),body,{merge:false});
+          await fsApi.setDoc(fsApi.doc(database,"users",uid,col,String(item.id)),body,{merge:false});
+          if(!current())return;
         }
       }
-      host.set(K_LAST,nowIso());
+      // Edits made while awaiting uploads must stay newer than this checkpoint.
+      host.set(K_LAST,startedAt);
       status="ok";
       host.reload();
     }catch(error){
-      status="error";
-      lastError=(error&&error.code==="permission-denied")
-        ?"雲端權限不足，請確認 Firestore 安全規則已部署"
-        :"同步失敗，恢復連線後會自動重試";
+      if(current()){
+        status="error";
+        lastError=(error&&error.code==="permission-denied")
+          ?"雲端權限不足，請確認 Firestore 安全規則已部署"
+          :"同步失敗，恢復連線後會自動重試";
+      }
     }finally{
       running=false;notify();
       if(pending){pending=false;schedule();}
@@ -275,6 +312,7 @@
     if(options&&options.host)host=Object.assign({},host,options.host);
     if(window.PQC_ACCOUNT&&typeof PQC_ACCOUNT.onUser==="function"){
       PQC_ACCOUNT.onUser(function(u){
+        invalidateSession();
         user=u||null;
         notify();
         if(user)schedule(0);

@@ -117,6 +117,23 @@ assert.ok(peaTachigaren, "應存在豌豆／立枯病／脫克松登記資料");
 assert.equal(A.usagePresentation(peaTachigaren).value, "種子處理");
 assert.equal(A.usagePresentation(peaTachigaren).canCalculateDilution, false);
 
+/* 作物用藥總覽只反向整理既有登記資料，不得自行增加防治對象。 */
+{
+  const first = { name: "亞托敏", form: "水懸劑", src: "蔥" };
+  const second = { name: "亞托敏", form: "水分散性粒劑", src: "蔥" };
+  const other = { name: "測試藥劑", form: "乳劑", src: "蔥" };
+  const overview = A.cropAgentOverview({
+    "紫斑病": { list: [first, other] },
+    "露菌病": { list: [second] },
+    "疫病": { list: [first] }
+  });
+  assert.equal(overview[0].name, "亞托敏", "涵蓋較多防治對象的藥劑應優先顯示");
+  assert.deepEqual(overview[0].pests, ["疫病", "紫斑病", "露菌病"].sort((a, b) => a.localeCompare(b, "zh-Hant")));
+  assert.equal(overview[0].rows.length, 3, "同一藥劑的不同登記列不得遺漏");
+  assert.equal(overview[0].rows[0].a, first, "總覽必須保留原始登記物件參照");
+  assert.deepEqual(A.cropAgentOverview(null), []);
+}
+
 /* 全庫:種子處理藥劑應存在且其採收期本就多為空值 */
 {
   let seed = 0, seedWithPhi = 0;
@@ -138,6 +155,11 @@ assert.equal(A.usagePresentation(peaTachigaren).canCalculateDilution, false);
 assert.ok(html.includes("特殊施用方式("), "查詢畫面須將特殊施用方式移到獨立區塊");
 assert.ok(html.includes("不適用稀釋計算"), "特殊用法須停用稀釋計算按鈕");
 assert.ok(!html.includes('${esc(r.a.dilution||"—")} 倍'), "藥劑本位查詢不得替空白或橫線資料加上『倍』");
+assert.ok(html.includes("已登記用藥總覽"), "選擇作物後須提供已登記用藥總覽");
+assert.ok(html.includes('id="cropOverviewSearch"'), "總覽須能依藥劑或病蟲害篩選");
+assert.ok(html.includes("cropOverviewData(CUR)"), "總覽須由目前作物的登記資料產生");
+assert.ok(html.includes('src="./brand-logo-transparent.png"'), "登入頁須改用透明 Logo 素材");
+assert.ok(html.includes("box-shadow:none;background:transparent"), "登入 Logo 不得帶卡片背景或陰影");
 
 console.log("✓ 害物從屬只採 strong,排查列出的 weak 誤判全部不成立");
 console.log("✓ 從屬提示限同作物,實案例(斜紋夜蛾↔夜蛾類,交集0)正確");

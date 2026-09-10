@@ -1,0 +1,3976 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-14",
+  "policy": {
+    "field": "isHighResistanceRisk",
+    "type": "boolean",
+    "metric": "APRD reported resistance case count by active ingredient",
+    "operator": ">",
+    "threshold": 500,
+    "boundaryAt500": false,
+    "trueLabel": "高抗藥性風險",
+    "falseLabel": "未列為高抗藥性風險",
+    "displayRule": "正式查詢只顯示 true；false 不顯示低風險或安全標籤"
+  },
+  "source": {
+    "title": "Arthropod Pesticide Resistance Database",
+    "publisher": "Michigan State University",
+    "searchUrl": "https://pesticideresistance.org/search.php",
+    "citation": "Mota-Sanchez, D. and J.C. Wise. 2026. The Arthropod Pesticide Resistance Database."
+  },
+  "summary": {
+    "total": 564,
+    "high": 7,
+    "notHigh": 557
+  },
+  "entries": [
+    {
+      "name": "乙基三奈素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "乙基克繁草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "丁拉甲護谷",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "丁拉百速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "丁拉免速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "丁拉汰草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "丁拉依速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "丁拉芬諾",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "丁拉殺丹",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "丁拉復祿芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "丁拉普芬草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "丁拉氯比",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "丁拉樂滅草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "丁基加保扶",
+      "isHighResistanceRisk": false,
+      "caseCount": 41,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "丁基拉草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "丁基滅必蝨",
+      "isHighResistanceRisk": false,
+      "caseCount": 9,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "丁基賽伏草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "乃力松",
+      "isHighResistanceRisk": false,
+      "caseCount": 19,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "二、四－地",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "二、四－地胺鹽",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "二、四－地鈉鹽",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "二氟林",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "二福隆",
+      "isHighResistanceRisk": false,
+      "caseCount": 21,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "三元硫酸銅",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "三元銅克絕",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "三亞蟎",
+      "isHighResistanceRisk": false,
+      "caseCount": 106,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "三氟派瑞",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "三氟得克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "三氟敏",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "三泰芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "三泰隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "三得芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "三氯比",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "三氯松",
+      "isHighResistanceRisk": false,
+      "caseCount": 78,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "三落松",
+      "isHighResistanceRisk": false,
+      "caseCount": 94,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "三福林",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "三賽唑",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "凡殺克絕",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "凡殺歐西比",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "大克爛",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "大利松",
+      "isHighResistanceRisk": false,
+      "caseCount": 192,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "大滅松",
+      "isHighResistanceRisk": false,
+      "caseCount": 155,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "小菜蛾性費洛蒙",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "巴克素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "巴賽松",
+      "isHighResistanceRisk": false,
+      "caseCount": 87,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "比加普",
+      "isHighResistanceRisk": false,
+      "caseCount": 69,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "比多農",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "比拉芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "比芬諾",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "比達寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "丙基喜樂松",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "加保利",
+      "isHighResistanceRisk": false,
+      "caseCount": 149,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "加保扶",
+      "isHighResistanceRisk": false,
+      "caseCount": 49,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "加保福化利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "加福松",
+      "isHighResistanceRisk": false,
+      "caseCount": 4,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "可尼丁",
+      "isHighResistanceRisk": false,
+      "caseCount": 61,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "可芬諾",
+      "isHighResistanceRisk": false,
+      "caseCount": 1,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "可滅鼠",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "可滅蹤",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "可濕性硫黃",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "右滅達樂",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "四克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "四氯右滅達樂",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "四氯托敏",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "四氯保淨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "四氯曼普胺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "四氯異苯腈",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "四氯福多寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "四氯賽得",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "左固殺草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "左旋莫多草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "布芬三亞蟎",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "布芬大利松",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "布芬益化利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "布芬淨",
+      "isHighResistanceRisk": false,
+      "caseCount": 134,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "布芬第滅寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "布得芬諾",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "布瑞莫",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "平克座",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "平氟芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "平速比拉芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "平速爛",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "平硫瑞",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "必克蝨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "必芬諾",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "必芬蟎",
+      "isHighResistanceRisk": false,
+      "caseCount": 21,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "本達快克草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "本達亞喜芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "本達隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "本達樂",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "生長寧素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "甲氧基護谷",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "甲基巴拉松",
+      "isHighResistanceRisk": false,
+      "caseCount": 116,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "甲基合氯氟",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "甲基多保淨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "甲基鋅乃浦",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "甲鋅保淨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "甲鋅保粒素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "甲鋅毆殺斯",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "白列克收欣",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "白列克敏",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "白克列",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "白克松",
+      "isHighResistanceRisk": false,
+      "caseCount": 0,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "白粉松",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "白殭菌A1",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "石灰硫黃",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "伏寄普",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "伏速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "伏滅鼠",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "印楝素",
+      "isHighResistanceRisk": false,
+      "caseCount": 1,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "合速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "合賽多",
+      "isHighResistanceRisk": false,
+      "caseCount": 18,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "合賽芬普寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "因汀氟滅",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "因得克",
+      "isHighResistanceRisk": false,
+      "caseCount": 298,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "因滅汀",
+      "isHighResistanceRisk": false,
+      "caseCount": 195,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "多保鏈黴素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "多得淨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "多寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "好達勝",
+      "isHighResistanceRisk": false,
+      "caseCount": 171,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "安丹",
+      "isHighResistanceRisk": false,
+      "caseCount": 141,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "安美速",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "托福松",
+      "isHighResistanceRisk": false,
+      "caseCount": 2,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "托福毆殺滅",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "百克敏",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "百利普芬",
+      "isHighResistanceRisk": false,
+      "caseCount": 126,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "百里酚",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "百速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "百滅寧",
+      "isHighResistanceRisk": true,
+      "caseCount": 574,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "艾維激素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "艾繁草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "西殺草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "伽瑪賽洛寧",
+      "isHighResistanceRisk": false,
+      "caseCount": 9,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "佈飛百滅寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "佈飛松",
+      "isHighResistanceRisk": false,
+      "caseCount": 261,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "佈飛賽滅寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "佈殺丹",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "佈賜芬蟎",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "克凡洛寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "克凡派",
+      "isHighResistanceRisk": false,
+      "caseCount": 87,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "克收欣",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "克芬蟎",
+      "isHighResistanceRisk": false,
+      "caseCount": 10,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "克枯三賽唑",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "克枯爛",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "克美素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "克草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "克絕波爾多",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "克絕座賽胺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "克福隆",
+      "isHighResistanceRisk": false,
+      "caseCount": 41,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "克熱淨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "克熱淨(烷苯磺酸鹽)",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "克熱賜圃",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "克蠅香",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "免扶克",
+      "isHighResistanceRisk": false,
+      "caseCount": 3,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "免扶賽洛寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "免得克敏",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "免得爛",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "免速普拉草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "免速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "免敵克",
+      "isHighResistanceRisk": false,
+      "caseCount": 56,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "免賴地",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "免賴得",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "含毒甲基丁香油",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "吲哚丁酸",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "快伏草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "快克草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "快得克絕",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "快得依普同",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "快得保淨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "快得滅達樂",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "快得寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "快諾芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "扶比胺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "扶吉胺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "汰芬隆",
+      "isHighResistanceRisk": false,
+      "caseCount": 16,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "汰草龍",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "汰硫免速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "汰硫草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "貝他-賽扶寧",
+      "isHighResistanceRisk": false,
+      "caseCount": 0,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "貝芬四克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "貝芬同",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "貝芬依滅列",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "貝芬待克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "貝芬得",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "貝芬普寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "貝芬替",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "貝芬硫醌",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "貝芬菲克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "貝芬撲克拉",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "貝芬錳",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "貝萊斯芽孢桿菌 BACY",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "貝萊斯芽孢桿菌BF",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "貝萊斯芽孢桿菌N17",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "貝萊斯芽孢桿菌WG6-14",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "亞托待克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "亞托得克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "亞托敏",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "亞托環克座",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "亞克瑞",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "unmatched",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "亞汰尼",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "亞芬松",
+      "isHighResistanceRisk": false,
+      "caseCount": 1,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "亞派占",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "亞烈寧",
+      "isHighResistanceRisk": false,
+      "caseCount": 18,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "亞特松",
+      "isHighResistanceRisk": false,
+      "caseCount": 64,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "亞培松",
+      "isHighResistanceRisk": false,
+      "caseCount": 223,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "亞速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "亞喜芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "亞滅培",
+      "isHighResistanceRisk": false,
+      "caseCount": 235,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "亞滅寧",
+      "isHighResistanceRisk": false,
+      "caseCount": 146,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "亞賜圃",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "亞醌蟎",
+      "isHighResistanceRisk": false,
+      "caseCount": 6,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "依芬寧",
+      "isHighResistanceRisk": false,
+      "caseCount": 76,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "依得利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "依殺松",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "依殺蟎",
+      "isHighResistanceRisk": false,
+      "caseCount": 5,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "依速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "依普同",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "依普克敏",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "依普氟殺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "依普座",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "依滅列",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "依滅草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "依瑞莫",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "固殺草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "披扶座",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "拉草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "易胺座",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "果收生長素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "治滅蝨",
+      "isHighResistanceRisk": false,
+      "caseCount": 5,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "波爾多",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "芬化利",
+      "isHighResistanceRisk": false,
+      "caseCount": 179,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "芬佈賜",
+      "isHighResistanceRisk": false,
+      "caseCount": 13,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "芬座克敏",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "芬殺松",
+      "isHighResistanceRisk": false,
+      "caseCount": 135,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "芬殺蟎",
+      "isHighResistanceRisk": false,
+      "caseCount": 7,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "芬普尼",
+      "isHighResistanceRisk": false,
+      "caseCount": 176,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "芬普寧",
+      "isHighResistanceRisk": false,
+      "caseCount": 78,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "芬普毆蟎多",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "芬普蟎",
+      "isHighResistanceRisk": false,
+      "caseCount": 32,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "芬硫克",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "unmatched",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "芬滅松",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "unmatched",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "芬瑞莫",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "芬諾尼",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "芬諾克",
+      "isHighResistanceRisk": false,
+      "caseCount": 1,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "阿巴汀",
+      "isHighResistanceRisk": false,
+      "caseCount": 372,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "阿巴安勃",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "阿扶巴汀",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "阿扶平",
+      "isHighResistanceRisk": false,
+      "caseCount": 0,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "阿納寧",
+      "isHighResistanceRisk": false,
+      "caseCount": 51,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "保米熱斯",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "保米黴素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "保粒快得寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "保粒保淨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "保粒黴素   甲",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "保粒黴素 丁",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "剋安勃",
+      "isHighResistanceRisk": false,
+      "caseCount": 325,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "剋草同",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "勃寧激素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "勃激素A3",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "待克三元銅",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "待克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "待普克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "拜裕松",
+      "isHighResistanceRisk": false,
+      "caseCount": 51,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "施得圃",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "枯草桿菌KHY8",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "枯草桿菌Y1336",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "氟大滅",
+      "isHighResistanceRisk": false,
+      "caseCount": 63,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "氟比拔克",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "氟比賽得",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "氟尼胺",
+      "isHighResistanceRisk": false,
+      "caseCount": 29,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "氟印淨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "氟克殺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "氟芬隆",
+      "isHighResistanceRisk": false,
+      "caseCount": 10,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "氟派瑞",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "氟美派",
+      "isHighResistanceRisk": false,
+      "caseCount": 3,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "氟殺比",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "氟殺克敏",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "氟殺待克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "氟速芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "氟氯比",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "氟硫滅",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "派本克",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "派伏免速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "派地巴汀",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "派芬農",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "派美尼",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "派滅芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "派滅淨",
+      "isHighResistanceRisk": false,
+      "caseCount": 38,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "美尼派瑞",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "美氟綜",
+      "isHighResistanceRisk": false,
+      "caseCount": 46,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "美速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "美賜平",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "unmatched",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "耐克螺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "苦參鹼",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "茉莉酸丙酯",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "庫斯蘇力菌ABTS-351",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "unmatched",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "庫斯蘇力菌E-911",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "unmatched",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "庫斯蘇力菌EG-2371",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "unmatched",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "庫斯蘇力菌EG-7841",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "unmatched",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "庫斯蘇力菌SA-11",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "unmatched",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "庫斯蘇力菌SA-12",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "unmatched",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "氧化亞銅",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "特安勃",
+      "isHighResistanceRisk": false,
+      "caseCount": 23,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "特酮草氟胺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "益丁滅蝨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "益化利",
+      "isHighResistanceRisk": false,
+      "caseCount": 94,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "益收生長素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "益保扶",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "益洛寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "益斯普",
+      "isHighResistanceRisk": false,
+      "caseCount": 42,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "益發靈",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "益滅松",
+      "isHighResistanceRisk": false,
+      "caseCount": 27,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "益滅蝨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "益滅賽寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "益達胺",
+      "isHighResistanceRisk": true,
+      "caseCount": 804,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "納乃得",
+      "isHighResistanceRisk": false,
+      "caseCount": 359,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "納得亞滅寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "納得護賽寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "純白鏈黴菌素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "草殺淨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "草脫淨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "草滅淨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "除草靈",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "馬拉松",
+      "isHighResistanceRisk": true,
+      "caseCount": 558,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "培丹",
+      "isHighResistanceRisk": false,
+      "caseCount": 17,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "密滅汀",
+      "isHighResistanceRisk": false,
+      "caseCount": 19,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "得克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "得克芬胺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "得克派瑞",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "得拉本",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "得芬瑞",
+      "isHighResistanceRisk": false,
+      "caseCount": 13,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "得芬諾",
+      "isHighResistanceRisk": false,
+      "caseCount": 36,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "得恩地",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "得殺草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "斜紋夜蛾費洛蒙",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "曼普胺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "曼普歐西比",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "殺丹",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "殺丹免速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "殺芬草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "殺紋依得利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "殺紋滅達樂",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "殺紋寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "氫氧化銅",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "液化澱粉芽孢桿菌Ba-BPD1",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "液化澱粉芽孢桿菌CL3",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "液化澱粉芽孢桿菌D747",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "液化澱粉芽孢桿菌PMB01",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "液化澱粉芽孢桿菌QST713",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "液化澱粉芽孢桿菌Tcba05",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "液化澱粉芽孢桿菌YCMA1",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "理有龍",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "甜菜夜蛾核多角體病毒",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "甜菜夜蛾費洛蒙",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "畢克草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "畢汰芬",
+      "isHighResistanceRisk": false,
+      "caseCount": 0,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "畢芬寧",
+      "isHighResistanceRisk": false,
+      "caseCount": 368,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "畢達本",
+      "isHighResistanceRisk": false,
+      "caseCount": 57,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "移植生長素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "第滅達胺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "第滅寧",
+      "isHighResistanceRisk": true,
+      "caseCount": 952,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "細胞分裂素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "脫禾草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "脫克松",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "脫芬瑞",
+      "isHighResistanceRisk": false,
+      "caseCount": 0,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "莫多草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "莫多草淨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "速殺氟",
+      "isHighResistanceRisk": false,
+      "caseCount": 37,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "速殺諾特",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "陶斯松",
+      "isHighResistanceRisk": true,
+      "caseCount": 730,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "魚藤精",
+      "isHighResistanceRisk": false,
+      "caseCount": 4,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "傑他賽滅寧",
+      "isHighResistanceRisk": false,
+      "caseCount": 37,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "喜樂克拉",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "單克素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "復祿芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "普伏松",
+      "isHighResistanceRisk": false,
+      "caseCount": 0,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "普克三賽唑",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "普克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "普快淨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "普拉比拉芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "普拉草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "普拔克",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "普拔草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "普速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "氯酸鈉",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "氰滿素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "番茄生長素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "發光光桿菌0805-P2R",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "硫黃芬胺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "硫滅松",
+      "isHighResistanceRisk": false,
+      "caseCount": 29,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "硫酸快得寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "硫酸銅",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "硫敵克",
+      "isHighResistanceRisk": false,
+      "caseCount": 74,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "硫敵芬化利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "硫賜安",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "腈硫克敏",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "腈硫克絕",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "腈硫醌",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "腈硫醌銅",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "菲克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "菲克利腐絕",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "萘乙酸鈉",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "開寧激素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "愛殺松",
+      "isHighResistanceRisk": false,
+      "caseCount": 25,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "新殺蟎",
+      "isHighResistanceRisk": false,
+      "caseCount": 3,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "溴克座",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "滅大松",
+      "isHighResistanceRisk": false,
+      "caseCount": 55,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "滅必淨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "滅必蝨",
+      "isHighResistanceRisk": false,
+      "caseCount": 43,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "滅多松",
+      "isHighResistanceRisk": false,
+      "caseCount": 25,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "滅克蝨",
+      "isHighResistanceRisk": false,
+      "caseCount": 0,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "滅芬百速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "滅芬免速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "滅芬座",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "滅芬草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "滅芬農",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "滅芬諾",
+      "isHighResistanceRisk": false,
+      "caseCount": 98,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "滅芬諾特",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "滅派林",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "滅特座",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "滅草胺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "滅普寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "滅落脫",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "滅達樂",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "滅線蟲",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "滅蝨丹",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "滅賜克",
+      "isHighResistanceRisk": false,
+      "caseCount": 13,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "祿芬隆",
+      "isHighResistanceRisk": false,
+      "caseCount": 35,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "裕必松",
+      "isHighResistanceRisk": false,
+      "caseCount": 15,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "達有龍",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "達克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "達特南",
+      "isHighResistanceRisk": false,
+      "caseCount": 52,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "達滅克敏",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "達滅克絕",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "達滅芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "達滅脫定",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "嘉保信",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "嘉賜三賽唑",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "嘉賜克枯爛",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "嘉賜快得寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "嘉賜貝芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "嘉賜圃",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "嘉賜銅",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "嘉賜黴素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "嘉磷氟氯比",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "嘉磷塞 (胺鹽 )",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "嘉磷塞(三甲基硫鹽)",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "嘉磷塞異丙胺鹽",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "碳酸氫鉀",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "福化利",
+      "isHighResistanceRisk": false,
+      "caseCount": 29,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "福文松",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "福多寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "福芬素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "福隆納乃得",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "福瑞松",
+      "isHighResistanceRisk": false,
+      "caseCount": 5,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "福賽快得寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "福賽亞汰尼",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "福賽得",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "福賽絕",
+      "isHighResistanceRisk": false,
+      "caseCount": 3,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "綠木黴菌R42",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "維利黴素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "聚乙醛",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "腐絕",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "腐絕快得寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "蓋普丹",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "蓋棘木黴菌ICC080/012",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賓克隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賓得克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "銅右滅達樂",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "銅合硫磺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "銅合腐絕",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "銅快得寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "銅滅達樂",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "摩朗得(酒石酸鹽)",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "撲克拉",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "撲克拉錳",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "撲芬松",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "撲馬松",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "撲殺培丹",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "撲殺熱",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "撲殺賜圃",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "撲滅松",
+      "isHighResistanceRisk": false,
+      "caseCount": 185,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "撲滅芬普寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "撲滅鼠",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "撲滅寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "樂滅草",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "歐西比",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "歐索林酸",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "毆殺松",
+      "isHighResistanceRisk": false,
+      "caseCount": 55,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "毆殺滅",
+      "isHighResistanceRisk": false,
+      "caseCount": 17,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "毆蟎多",
+      "isHighResistanceRisk": false,
+      "caseCount": 18,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "熱必斯",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "稻得免速隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "稻得壯",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "蝨必殺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賜派地",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "unmatched",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "賜派芬",
+      "isHighResistanceRisk": false,
+      "caseCount": 31,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "賜派滅",
+      "isHighResistanceRisk": false,
+      "caseCount": 51,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "賜派滅特勃",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賜滅芬",
+      "isHighResistanceRisk": false,
+      "caseCount": 19,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "賜諾特",
+      "isHighResistanceRisk": false,
+      "caseCount": 67,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "賜諾殺",
+      "isHighResistanceRisk": false,
+      "caseCount": 351,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "鋅錳乃浦",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "鋅錳右本達樂",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "鋅錳本達樂",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "鋅錳克絕",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "鋅錳座賽胺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "鋅錳曼普胺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "鋅錳滅達樂",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "鋅錳毆殺斯",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "撻乃安",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "蕈狀芽孢桿菌AGB01",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "諾伐隆",
+      "isHighResistanceRisk": false,
+      "caseCount": 6,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "錳乃浦",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "鮎澤蘇力菌Ab12",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "unmatched",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "鮎澤蘇力菌ABTS-1857",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "unmatched",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "鮎澤蘇力菌GC-91",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "unmatched",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "鮎澤蘇力菌NB-200",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "unmatched",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "環克座",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "磷化鎂",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "unmatched",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "繁米松",
+      "isHighResistanceRisk": false,
+      "caseCount": 10,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "賽安勃",
+      "isHighResistanceRisk": false,
+      "caseCount": 49,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "賽扶寧",
+      "isHighResistanceRisk": false,
+      "caseCount": 139,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "賽果培",
+      "isHighResistanceRisk": false,
+      "caseCount": 69,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "賽芬蟎",
+      "isHighResistanceRisk": false,
+      "caseCount": 19,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "賽氟菲克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賽氟滅",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賽洛安勃",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賽洛寧",
+      "isHighResistanceRisk": true,
+      "caseCount": 1133,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "賽派芬",
+      "isHighResistanceRisk": false,
+      "caseCount": 6,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "賽座滅",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賽速安",
+      "isHighResistanceRisk": false,
+      "caseCount": 275,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "賽速安勃",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賽速洛寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賽普待克利",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賽普洛",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賽普護汰寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賽滅松",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賽滅淨",
+      "isHighResistanceRisk": false,
+      "caseCount": 26,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "賽滅寧",
+      "isHighResistanceRisk": true,
+      "caseCount": 820,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "賽達松",
+      "isHighResistanceRisk": false,
+      "caseCount": 21,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "賽福芬胺",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賽福保淨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賽福座",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "賽福寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "邁克尼",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "邁克諾芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "邁隆",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "覆滅蟎",
+      "isHighResistanceRisk": false,
+      "caseCount": 36,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "雙滅必蝨",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "鏈土黴素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "鏈四環黴素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "鏈黴素",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "礦物油",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "護汰芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "護汰派滅芬",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "護汰寧",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "護矽得",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "護粒三賽唑",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "護粒丹",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "護粒松",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "護賽寧",
+      "isHighResistanceRisk": false,
+      "caseCount": 14,
+      "evidenceStatus": "verified",
+      "checkedAt": "2026-08-14"
+    },
+    {
+      "name": "鹼性氯氧化銅",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    },
+    {
+      "name": "鹼氯氫氧銅",
+      "isHighResistanceRisk": false,
+      "caseCount": null,
+      "evidenceStatus": "not_aprd_scope",
+      "checkedAt": null
+    }
+  ]
+}

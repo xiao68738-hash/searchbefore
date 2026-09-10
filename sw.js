@@ -8,7 +8,7 @@
    這個動作本身就是觸發更新的開關,不要忘記。
 */
 
-const CACHE_VERSION = "v0.3.9.7-agent-usage-cache-2026-08-14";
+const CACHE_VERSION = "v0.3.9.9-pest-grouping-search-2026-09-09";
 const CACHE_NAME = "pqc-" + CACHE_VERSION;
 
 /* 只放骨架。App 本體(index.html)約 1MB gzip,用 reload 強制繞過 HTTP 快取抓最新版。 */
@@ -18,6 +18,7 @@ const PRECACHE = [
   "./account.js",
   "./cloud-sync.js",
   "./safety.js",
+  "./mrl-status.js",
   "./farm-records.js",
   "./crop-forms.js",
   "./pinyin-pro.js",
@@ -25,12 +26,22 @@ const PRECACHE = [
   "./form-ocr.js",
   "./form-ocr-ui.js",
   "./export-formats.js",
+  "./field-summary.js",
+  "./mrl-status.js",
   "./about.html",
   "./privacy.html",
   "./delete-account.html",
+  "./guides.html",
+  "./guide-label.html",
+  "./guide-dilution.html",
+  "./guide-phi.html",
+  "./guide-ppe.html",
+  "./guide.css",
   "./manifest.webmanifest",
   "./brand-lockup.png",
   "./brand-logo-120.png",
+  "./brand-logo-transparent.png",
+  "./brand-logo-transparent.png",
   "./icon-192.png",
   "./icon-512.png",
   "./icon-maskable-512.png",
@@ -68,13 +79,16 @@ self.addEventListener("message", event => {
    沒訊號 → 直接吃快取;有訊號 → 先給快取(秒開),同時抓新版本備著。 */
 async function handleNavigate(request) {
   const cache = await caches.open(CACHE_NAME);
-  const cached = await cache.match("./", { ignoreSearch: true });
+  const url = new URL(request.url);
+  const isAppEntry = url.pathname === "/" || url.pathname.endsWith("/index.html");
+  const cacheKey = isAppEntry ? "./" : `.${url.pathname}`;
+  const cached = await cache.match(cacheKey, { ignoreSearch: true });
 
   const fresh = fetch(request)
-    .then(res => { if (res && res.ok) cache.put("./", res.clone()); return res; })
+    .then(res => { if (res && res.ok) cache.put(cacheKey, res.clone()); return res; })
     .catch(() => null);
 
-  if (cached) return cached;                     // 快取優先,不等網路(fresh 在背景跑完)
+  if (cached) return cached;                     // 精確路徑快取優先,不把指南誤回成首頁
   const net = await fresh;
   if (net) return net;
   return new Response(
