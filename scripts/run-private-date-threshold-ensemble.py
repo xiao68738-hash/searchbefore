@@ -27,12 +27,37 @@ def restricted(path: Path, root: Path, *, create: bool = False) -> Path:
     return resolved
 
 
+def select_stable_candidate(runs: list[dict[str, object]], minimum_consensus: int) -> tuple[str, int]:
+    """Select a valid candidate only after independent threshold agreement."""
+    valid_runs = [
+        run for run in runs
+        if run.get("status") == "completed"
+        and run.get("ensembleAgrees") is True
+        and run.get("calendarRangeValid") is True
+        and bool(run.get("candidate"))
+    ]
+    counts: dict[str, int] = {}
+    for run in valid_runs:
+        candidate = str(run["candidate"])
+        counts[candidate] = counts.get(candidate, 0) + 1
+    if not counts:
+        return "", 0
+    candidate, count = max(counts.items(), key=lambda item: item[1])
+    return (candidate, count) if count >= minimum_consensus else ("", count)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", required=True, type=Path)
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--model", required=True, type=Path, action="append")
     parser.add_argument("--thresholds", default="100,115,125,140,155")
+    parser.add_argument(
+        "--min-consensus",
+        type=int,
+        default=0,
+        help="minimum agreeing thresholds; 0 means strict unanimity",
+    )
     args = parser.parse_args()
 
     input_path = restricted(args.input, PRIVATE_ROOT)
@@ -41,6 +66,9 @@ def main() -> None:
     thresholds = [int(value.strip()) for value in args.thresholds.split(",") if value.strip()]
     if not thresholds or any(value < 1 or value > 254 for value in thresholds):
         raise ValueError("Thresholds must be integers from 1 to 254")
+    minimum_consensus = args.min_consensus or len(thresholds)
+    if minimum_consensus < 2 or minimum_consensus > len(thresholds):
+        raise ValueError("min-consensus must be between 2 and the threshold count")
 
     runs: list[dict[str, object]] = []
     for threshold in thresholds:
@@ -87,19 +115,13 @@ def main() -> None:
                 }
             )
 
-    candidates = {str(run["candidate"]) for run in runs if run.get("candidate")}
-    every_run_valid = all(
-        run.get("status") == "completed"
-        and run.get("ensembleAgrees") is True
-        and run.get("calendarRangeValid") is True
-        and bool(run.get("candidate"))
-        for run in runs
-    )
-    stable_candidate = next(iter(candidates)) if every_run_valid and len(candidates) == 1 else ""
+    stable_candidate, stable_count = select_stable_candidate(runs, minimum_consensus)
     summary = {
         "schemaVersion": 1,
         "stableCandidate": stable_candidate,
-        "allThresholdsAgree": bool(stable_candidate),
+        "allThresholdsAgree": bool(stable_candidate) and stable_count == len(thresholds),
+        "consensusCount": stable_count,
+        "minimumConsensus": minimum_consensus,
         "thresholds": thresholds,
         "runs": runs,
         "usesGroundTruth": False,

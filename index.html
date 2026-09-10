@@ -2926,7 +2926,7 @@ function renderPlotDetail(){
     +'<div class="risk-card">'+riskGaugeSvg(risk)+'<div><h4>抗藥性風險 '+esc(risk.label)+'</h4><p>'+risk.text+'</p></div></div>'
     +'<h3 style="margin-top:14px;font-size:16px">作業鏈概況</h3><div class="record-chain">'+chain+'</div>'
     +'<div class="hint">共 '+coverage.total+' 筆；這裡只表示已留存的紀錄，不代表已符合產銷履歷或有機驗證要求。</div>'
-    +'<div class="plot-actions"><button class="btn btn-ghost" onclick="setActivePlot(\''+p.id+'\')">設為預設</button><button class="btn btn-orange" onclick="exportCombinedRecordsAs(\'xlsx\',\''+p.id+'\')">匯出 Excel</button><button class="btn btn-orange" onclick="exportCombinedRecordsAs(\'pdf\',\''+p.id+'\')">列印／PDF</button><button class="btn btn-ghost" onclick="exportCombinedRecordsAs(\'csv\',\''+p.id+'\')">CSV</button></div>'
+    +'<div class="plot-actions"><button class="btn btn-ghost" data-pqc-action="set-active-plot" data-pqc-id="'+esc(p.id)+'">設為預設</button><button class="btn btn-orange" data-pqc-action="export-plot" data-pqc-format="xlsx" data-pqc-id="'+esc(p.id)+'">匯出 Excel</button><button class="btn btn-orange" data-pqc-action="export-plot" data-pqc-format="pdf" data-pqc-id="'+esc(p.id)+'">列印／PDF</button><button class="btn btn-ghost" data-pqc-action="export-plot" data-pqc-format="csv" data-pqc-id="'+esc(p.id)+'">CSV</button></div>'
     +'<h3 style="margin-top:14px;font-size:16px">完整作業時間軸</h3>'
     +'<div class="plot-record-list">'+rows+'</div>';
 }
@@ -2975,10 +2975,10 @@ function renderPlotRecordBox(){
     const farmList=farmRecords.filter(function(r){return r.plotId===p.id});
     const active=list.filter(function(r){const d=daysLeft(r);return d==null||d>0}).length;
     const cropState=plotCropLinkState(p);
-    return '<div class="plot-card '+(activePlotId===p.id?'on':'')+'" onclick="openPlotDetail(\''+p.id+'\')">'
+    return '<div class="plot-card '+(activePlotId===p.id?'on':'')+'" data-pqc-action="open-plot" data-pqc-id="'+esc(p.id)+'">'
       +'<div class="plot-title"><div><b>'+esc(plotDisplayName(p))+'</b><span class="plot-crop-badge'+(cropState.custom?' custom':'')+'">'+cropState.label+'</span><small>'+esc(plotPlantLabel(p))+' · '+list.length+' 筆用藥 · '+farmList.length+' 筆作業 · '+active+' 筆停採中</small></div><span class="plot-tag">查看</span></div>'
       +unassignedPlotNotice(p)
-      +'<div class="plot-actions"><button class="btn btn-main" onclick="event.stopPropagation();openPlotDetail(\''+p.id+'\')">查看紀錄</button><button class="btn btn-ghost" onclick="event.stopPropagation();setActivePlot(\''+p.id+'\')">設預設</button><button class="btn btn-ghost" onclick="event.stopPropagation();delFieldPlot(\''+p.id+'\')">刪除</button></div>'
+      +'<div class="plot-actions"><button class="btn btn-main" data-pqc-action="open-plot" data-pqc-id="'+esc(p.id)+'">查看紀錄</button><button class="btn btn-ghost" data-pqc-action="set-active-plot" data-pqc-id="'+esc(p.id)+'">設預設</button><button class="btn btn-ghost" data-pqc-action="delete-plot" data-pqc-id="'+esc(p.id)+'">刪除</button></div>'
       +'</div>';
   }).join(""):'<div class="empty" style="padding:24px 12px"><b>尚未建立種植批次</b>建立後,點開批次可查看用藥紀錄與抗藥性風險。</div>';
   el.innerHTML='<div class="plot-box">'
@@ -2992,7 +2992,26 @@ function renderPlotRecordBox(){
   if(plotDetailId&&document.getElementById("plotDetailModal")&&document.getElementById("plotDetailModal").classList.contains("open"))renderPlotDetail();
   renderFarmRecordBox();
 }
+function handleStoredRecordAction(event){
+  const target=event.target&&event.target.closest&&event.target.closest("[data-pqc-action]");
+  if(!target)return;
+  const action=target.dataset.pqcAction;
+  const id=String(target.dataset.pqcId||"");
+  if(!/^[A-Za-z0-9_-]{1,100}$/.test(id))return;
+  event.stopPropagation();
+  if(action==="open-plot")openPlotDetail(id);
+  else if(action==="set-active-plot")setActivePlot(id);
+  else if(action==="delete-plot")delFieldPlot(id);
+  else if(action==="delete-farm-record")delFarmRecord(id);
+  else if(action==="delete-record")delRecord(id);
+  else if(action==="add-calendar")addToCalendarById(id);
+  else if(action==="export-plot"){
+    const format=String(target.dataset.pqcFormat||"");
+    if(["xlsx","pdf","csv"].includes(format))exportCombinedRecordsAs(format,id);
+  }
+}
 document.addEventListener("click",function(event){
+  handleStoredRecordAction(event);
   if(!event.target.closest(".plot-crop-wrap"))closePlotCropResults();
 });
 
@@ -3266,7 +3285,7 @@ function renderFarmRecordList(){
       +esc(PQC_FARM.summary(r))
       +((r.operator||r.notes)?'<small>'+(r.operator?'執行人：'+esc(r.operator):'')+(r.operator&&r.notes?' · ':'')+(r.notes?esc(r.notes):'')+'</small>':'')
       +(r.type==="harvest"?'<small>'+esc(harvestSafetyLabel(r.safetyCheck))+'</small>':'')
-      +'</div><button class="x" onclick="delFarmRecord(\''+r.id+'\')" aria-label="刪除">✕</button></div>';
+      +'</div><button class="x" data-pqc-action="delete-farm-record" data-pqc-id="'+esc(r.id)+'" aria-label="刪除">✕</button></div>';
   }).join("");
   el.innerHTML='<div class="farm-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><div><h3>田間作業清單</h3><p class="farm-note" style="margin:0">共 '+farmRecords.length+' 筆；可分開匯出，或把用藥與所有作業合併成一份時間順序紀錄。</p></div><div style="display:flex;gap:7px;flex-wrap:wrap"><button class="btn btn-orange" onclick="exportCombinedRecordsAs(\'xlsx\')">完整 Excel</button><button class="btn btn-orange" onclick="exportCombinedRecordsAs(\'pdf\')">完整 列印／PDF</button><button class="btn btn-ghost" onclick="exportFarmRecordsAs(\'xlsx\')">僅農務 Excel</button><button class="btn btn-ghost" onclick="exportFarmRecordsAs(\'pdf\')">僅農務 PDF</button><button class="btn btn-ghost" onclick="exportCombinedRecordsAs(\'csv\')">CSV</button></div></div><div class="farm-list">'+rows+'</div><p class="disclaimer">此檔案供農友自行保存與查閱；實際用藥與安全採收期仍以產品標示及主管機關最新公告為準。</p></div>';
 }
@@ -3538,7 +3557,7 @@ function renderDayPanel(ev){
     return `<div class="dev" style="border-left:3px solid ${cropColor(x.r.crop)}">
       <span class="badge harvest">可採收</span>
       <div style="flex:1"><b>${esc(x.r.crop)}</b>${plotChip(x.r)} 自本日起可採收<small>${detail}</small></div>
-      <button class="btn btn-ghost" style="font-size:12px;padding:7px 10px;flex:none" onclick="addToCalendarById('${x.r.id}')">加入行事曆</button>
+      <button class="btn btn-ghost" style="font-size:12px;padding:7px 10px;flex:none" data-pqc-action="add-calendar" data-pqc-id="${esc(x.r.id)}">加入行事曆</button>
     </div>`;
   }).join("");
 }
@@ -3573,7 +3592,7 @@ function renderRecords(){
       +'<div class="info"><h3>'+esc(info.crop)+plotChip(r)+'</h3>'
       +'<p>共 '+info.records.length+' 筆施藥紀錄 · 最後限制：'+esc(r.agent)+'（'+r.date+'）</p>'
       +'<span class="st">'+st+' · '+(od.getMonth()+1)+'/'+od.getDate()+' 起可採</span>'
-      +'<button class="cal-btn" onclick="event.stopPropagation();addToCalendarById(\''+r.id+'\')">加入行事曆</button></div>'
+      +'<button class="cal-btn" data-pqc-action="add-calendar" data-pqc-id="'+esc(r.id)+'">加入行事曆</button></div>'
       +'</div>';
   }).join("");
   if(typeof hView!=="undefined"&&hView==="cal")renderCal();
@@ -3951,7 +3970,7 @@ function renderRecTable(){
       +'<span class="d">'+esc(r.date)+'</span>'
       +'<div class="m"><b>'+esc(r.crop)+'</b>'+plotChip(r)+' · '+esc(r.agent)
       +'<small>'+(plot?'田區:'+esc(plot)+' · ':'')+(r.pest?esc(r.pest)+' · ':'')+(r.dil?r.dil+' 倍 · ':'')+(r.phi==null?'採收期需查標示':'採收期 '+r.phi+' 天')+(r.moa?' · '+esc(r.moa):'')+'</small></div>'
-      +'<button class="x" onclick="delRecord(\''+r.id+'\')" aria-label="刪除">✕</button>'
+      +'<button class="x" data-pqc-action="delete-record" data-pqc-id="'+esc(r.id)+'" aria-label="刪除">✕</button>'
       +'</div>';
   }).join("");
 }

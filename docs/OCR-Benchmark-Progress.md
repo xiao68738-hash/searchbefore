@@ -88,3 +88,11 @@ Google ML Kit Latin 16.0.1 已在Android 14 API 34 x86_64模擬器實跑同一�
 以上實驗再次證明，不得用格式限制強迫模型輸出合法日期，也不得用已知正解挑選預處理版本。下一個有效資訊必須來自更多不同筆跡的實拍 ground truth，或具繁中手寫能力且完成隱私評估的引擎。
 
 三方 benchmark 完成狀態：ML Kit已完成；Document AI與Azure未完成，仍不得對外宣稱已完成三方比較。
+
+## 2026-09-09 準確率閘門與完整 TrOCR 文字欄位重跑
+
+本輪新增保守的日期 token 校正：只有已含 `/`、`.` 或 `-` 分隔符的 token 才將手寫 `l`／`I`／`|` 視為 `1`、`O`／`o`／圓圈字視為 `0`；普通文字與未分隔數字不改寫。這項規則已加入 `form-ocr.js`，並由 `tests/form-ocr.test.js` 回歸測試覆蓋，仍只產生待確認候選。
+
+為確認現有英文手寫基準是否值得保留，使用本機快取的 Microsoft `trocr-small-handwritten` 完整重跑 NAF 376 個文字欄位，結果為 exact-field rate 5.05%、CER 99.81%、WER 145.75%、有文字輸出率100%。它比 ML Kit Latin 的 7.45% exact-field rate 更差，故不加入正式 OCR，也不以此模型聲稱繁中能力。推論 runner 為 `scripts/run-trocr-text-crop-benchmark.py`，強制 `local_files_only`；結果在 `D:\SearchBefore\private\ocr-benchmark\reports\trocr-naf-text-crops-v1.json`。
+
+新增 `scripts/ocr-accuracy-gate.mjs` 產生研究用閘門報告：目前獨立 holdout 結構 Cell F1 為23.69%，實拍人工覆核僅2個欄位，整體狀態為未通過。只有獨立文字 exact-field rate、獨立結構 Cell F1 都至少50%，且至少30個實拍欄位完成人工覆核，才可標記「整體50%」。

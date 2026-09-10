@@ -4,6 +4,8 @@ const O = require("../form-ocr.js");
 assert.deepEqual(O.findPartialDates("日期 7/14").map(item => item.value), ["07/14"], "缺年份的月日應保留為人工確認提示");
 assert.deepEqual(O.findPartialDates("日期 115/7/14"), [], "完整民國日期的尾段不得重複當成缺年份日期");
 assert.deepEqual(O.findPartialDates("日期 13/40"), [], "不可能的月日不得成為候選");
+assert.deepEqual(O.findPartialDates("date 7/l4").map(item => item.value), ["07/14"], "手寫日期中的 l 應只在日期格式內視為 1");
+assert.deepEqual(O.findDates("115/7/O4").map(item => item.value), ["2026-07-04"], "手寫日期中的 O 應只在日期格式內視為 0");
 const fuzzyMaterials = O.recognizedMaterialCandidates("資材名稱：蘇力 劑型：水懸劑", ["蘇力菌", "益達胺"]);
 const fuzzyMaterial = fuzzyMaterials.find(item => item.value === "蘇力菌");
 assert.ok(fuzzyMaterial, "標籤後只差一字的資材名稱應列為低信心候選");
@@ -11,6 +13,40 @@ assert.equal(fuzzyMaterial.match, "label-context-edit-distance-1");
 assert.ok(fuzzyMaterial.confidence < 0.75, "近似候選不得達到自動預選門檻");
 assert.ok(fuzzyMaterials.some(item => item.value === "蘇力" && item.match === "label-extracted-unverified"), "無法確認的標籤後原文仍應供人工核對");
 assert.equal(O.recognizedMaterialCandidates("資材名稱：蘇力菌 劑型：水懸劑", ["蘇力菌"])[0].confidence, 0.96, "完全符合字典時維持高信心");
+const longerFuzzyMaterials = O.recognizedMaterialCandidates("資材名稱：賽洛寧劑 劑型：乳劑", ["賽洛寧乳劑"]);
+const longerFuzzyMaterial = longerFuzzyMaterials.find(item => item.value === "賽洛寧乳劑");
+assert.ok(longerFuzzyMaterial, "較長資材名稱漏兩字時仍應列出人工核對候選");
+assert.equal(longerFuzzyMaterial.match, "label-context-edit-distance-1");
+const twoErrorFuzzyMaterials = O.recognizedMaterialCandidates("資材名稱：賽洛寧甲甲 劑型：乳劑", ["賽洛寧乳劑"]);
+const twoErrorFuzzyMaterial = twoErrorFuzzyMaterials.find(item => item.value === "賽洛寧乳劑");
+assert.ok(twoErrorFuzzyMaterial, "較長資材名稱漏兩個字時應保留低信心候選");
+assert.equal(twoErrorFuzzyMaterial.match, "label-context-edit-distance-2");
+assert.ok(twoErrorFuzzyMaterial.confidence < 0.6, "兩字差異候選不得接近自動預選門檻");
+
+const localCorrectionRecord = {
+  schemaVersion: 1,
+  recordType: "ocr-local-correction",
+  privacy: {
+    autoUploadAllowed: false,
+    imageIncluded: false,
+    sourceFileMetadataIncluded: false,
+    accountIdentifiersIncluded: false
+  },
+  fields: [{ key: "material", candidates: [{ value: "教角", confidence: 0.4 }], confirmedValue: "蘇力菌" }]
+};
+const locallyCorrected = O.recognizedMaterialCandidates(
+  "資材名稱：教角 劑型：",
+  ["蘇力菌"],
+  [localCorrectionRecord]
+);
+assert.equal(locallyCorrected[0].value, "蘇力菌", "使用者明確確認的本機校正可恢復字典候選");
+assert.equal(locallyCorrected[0].match, "local-confirmed-correction");
+assert.ok(locallyCorrected[0].confidence < 0.75, "本機校正仍必須人工確認，不得自動帶入");
+assert.equal(O.recognizedMaterialCandidates(
+  "資材名稱：教角 劑型：",
+  ["益達胺"],
+  [localCorrectionRecord]
+).some(item => item.value === "蘇力菌"), false, "本機校正目標不在目前字典時不得注入新藥劑");
 
 const clear = O.assessQuality({
   width: 1600,

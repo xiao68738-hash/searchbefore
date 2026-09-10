@@ -25,6 +25,7 @@
 - 每個段落的 `words`：包含單字文字、信心值、位置及 `detectedBreak` 換行／空白提示。
 - `wordsTruncated`：若單段或整份文件超過安全上限，明確告知幾何資料未完整回傳。
 - `rowCandidates`：依同頁單字的 Y 中心與高度容差形成列，再依明顯水平空隙及可靠的行尾提示形成 `cellCandidates`。每列保留 `pageIndex`、來源區、位置、文字、平均信心及單字來源索引；每格保留位置、文字、平均信心與 `wordIds`。
+- 後端另以同頁／同來源區的候選格中心做保守欄位共識，附加 `columnIndex`、`columnSupport`、`columnCountEstimate` 與 `layout.columnAlignment = geometry-consensus-v1`。這些是幾何提示，不是欄位語意判定；若版面不穩定則省略提示。
 - `layout.semanticInference = false`：列／格只代表幾何候選，絕不推測「日期」「資材名稱」「數量」等欄位語意。
 
 寬幅照片中央若有明顯裝訂溝，候選器會先分成左右來源區，避免把雙頁同一高度的文字合成一列；一般表格仍以水平空隙保留多格候選。這是保守的版面提示，不是表格欄位判定，前端仍須讓使用者對照原圖確認。

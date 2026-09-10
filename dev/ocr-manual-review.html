@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>噴前查｜OCR 人工核對</title>
+  <style>
+    :root { color-scheme: light; --bg: #f4f1e8; --card: #fffdf8; --ink: #173c2a; --muted: #667367; --line: #d9d5c8; --accent: #2d7c4c; --warn: #9c5e00; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.55 system-ui, "Noto Sans TC", sans-serif; }
+    main { width: min(1180px, calc(100% - 28px)); margin: 0 auto; padding: 28px 0 64px; }
+    h1, h2, p { margin-top: 0; }
+    h1 { margin-bottom: 8px; font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.08; }
+    h2 { margin-bottom: 8px; font-size: 1.25rem; }
+    .lead, .hint, small { color: var(--muted); }
+    .notice { margin: 18px 0; padding: 14px 16px; border-left: 4px solid var(--accent); background: #e8f0e8; border-radius: 10px; }
+    .controls, .case { padding: 20px; border: 1px solid var(--line); border-radius: 18px; background: var(--card); box-shadow: 0 10px 24px rgba(35, 54, 39, .06); }
+    .controls { display: grid; gap: 14px; }
+    label { display: grid; gap: 6px; font-weight: 800; }
+    input, textarea, select, button { font: inherit; }
+    input[type=file], input[type=text], textarea, select { width: 100%; padding: 10px 12px; border: 1px solid #bfc7bc; border-radius: 10px; background: #fff; color: var(--ink); }
+    textarea { min-height: 76px; resize: vertical; }
+    button { min-height: 42px; padding: 9px 14px; border: 0; border-radius: 10px; background: var(--accent); color: #fff; font-weight: 800; cursor: pointer; }
+    button.secondary { background: #e6e3d8; color: var(--ink); }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .cases { display: grid; gap: 18px; margin-top: 18px; }
+    .case-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+    .case-grid { display: grid; grid-template-columns: minmax(280px, .9fr) minmax(0, 1.1fr); gap: 18px; margin-top: 14px; }
+    .preview { min-height: 260px; display: grid; place-items: center; padding: 10px; border: 1px dashed #acb8aa; border-radius: 12px; background: #f2f4ed; }
+    .preview img { max-width: 100%; max-height: 620px; object-fit: contain; border-radius: 8px; }
+    .preview .empty { color: var(--muted); text-align: center; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 680px; }
+    th, td { padding: 9px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { color: var(--muted); font-size: .86rem; }
+    td input, td textarea, td select { margin: 0; }
+    .metrics { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .metric { padding: 6px 10px; border-radius: 999px; background: #edf1eb; font-size: .9rem; }
+    .status-ok { color: #1e6c3b; }
+    .status-fix { color: #9c5e00; }
+    .status-unknown { color: #6f5e87; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+    @media (max-width: 800px) { main { width: min(100% - 18px, 620px); padding-top: 18px; } .case-grid { grid-template-columns: 1fr; } .controls, .case { padding: 15px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>OCR 人工核對頁</h1>
+    <p class="lead">逐欄比對 OCR 候選與實際手寫內容，將修正結果匯出成 ground truth。</p>
+    <div class="notice"><strong>只在本機執行。</strong>本頁不連網、不上傳圖片、不載入第三方套件。照片只留在目前瀏覽器分頁記憶體；匯出 JSON 由你自行保存。</div>
+
+    <section class="controls" aria-labelledby="input-title">
+      <h2 id="input-title">載入測試資料</h2>
+      <label>表單照片（可多選）<input id="image-input" type="file" accept="image/*" multiple></label>
+      <label>既有 OCR JSON（可選）<input id="json-input" type="file" accept="application/json,.json"></label>
+      <p class="hint">若沒有 JSON，仍可直接輸入候選與人工答案。照片不會寫入專案。</p>
+      <div class="actions">
+        <button id="export" type="button">匯出核對 JSON</button>
+        <button id="reset" class="secondary" type="button">清除本頁資料</button>
+      </div>
+      <div id="message" class="hint" role="status"></div>
+    </section>
+
+    <section id="cases" class="cases" aria-live="polite"></section>
+  </main>
+  <script>
+    (() => {
+      "use strict";
+      const casesEl = document.getElementById("cases");
+      const messageEl = document.getElementById("message");
+      const state = { cases: [] };
+      const demoFields = [
+        { key: "date", label: "日期", candidate: "未可靠辨識", truth: "7/14", status: "needs-fix", note: "Windows OCR 未讀出手寫值；人工確認" },
+        { key: "materialName", label: "資材名稱", candidate: "未可靠辨識", truth: "蘇力菌", status: "needs-fix", note: "Windows OCR 未讀出手寫值；人工確認" },
+        { key: "productName", label: "商品名（廠牌）", candidate: "", truth: "", status: "unknown", note: "尚未填寫" },
+        { key: "purchaseAmount", label: "購買量", candidate: "", truth: "", status: "unknown", note: "空白欄位需確認是否為空白" },
+        { key: "usageAmount", label: "使用量", candidate: "", truth: "", status: "unknown", note: "空白欄位需確認是否為空白" },
+        { key: "remainingAmount", label: "剩餘量", candidate: "", truth: "", status: "unknown", note: "空白欄位需確認是否為空白" }
+      ];
+
+      function makeCase(id, title, fields = demoFields) {
+        return { id, title, imageUrl: "", imageName: "", fields: fields.map(field => ({ ...field })) };
+      }
+      state.cases.push(makeCase("form13", "NAF 表 13｜使用者確認示例"));
+
+      function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>\"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[char]));
+      }
+      function metricFor(fields) {
+        const evaluated = fields.filter(field => field.truth !== "" || field.candidate !== "");
+        const exact = evaluated.filter(field => field.candidate === field.truth).length;
+        const rate = evaluated.length ? Math.round((exact / evaluated.length) * 100) : 0;
+        return `${exact}/${evaluated.length} 欄 exact（${rate}%）`;
+      }
+      function render() {
+        casesEl.innerHTML = state.cases.map((item, caseIndex) => `
+          <article class="case" data-case-index="${caseIndex}">
+            <div class="case-head"><h2>${escapeHtml(item.title)}</h2><small>${escapeHtml(item.imageName || "尚未選取照片")}</small></div>
+            <div class="case-grid">
+              <div class="preview">${item.imageUrl ? `<img src="${item.imageUrl}" alt="${escapeHtml(item.title)} 預覽">` : `<div class="empty">請在上方選取照片<br>照片只會留在此分頁</div>`}</div>
+              <div>
+                <div class="table-wrap"><table><thead><tr><th>欄位</th><th>OCR 候選</th><th>人工答案</th><th>狀態</th><th>備註</th></tr></thead><tbody>
+                  ${item.fields.map((field, fieldIndex) => `<tr data-field-index="${fieldIndex}">
+                    <td><strong>${escapeHtml(field.label)}</strong><br><small>${escapeHtml(field.key)}</small></td>
+                    <td><label class="sr-only">${escapeHtml(field.label)} OCR 候選</label><textarea data-role="candidate">${escapeHtml(field.candidate)}</textarea></td>
+                    <td><label class="sr-only">${escapeHtml(field.label)} 人工答案</label><textarea data-role="truth">${escapeHtml(field.truth)}</textarea></td>
+                    <td><label class="sr-only">${escapeHtml(field.label)} 狀態</label><select data-role="status"><option value="confirmed" ${field.status === "confirmed" ? "selected" : ""}>正確</option><option value="needs-fix" ${field.status === "needs-fix" ? "selected" : ""}>需修正</option><option value="unknown" ${field.status === "unknown" ? "selected" : ""}>不確定</option></select></td>
+                    <td><label class="sr-only">${escapeHtml(field.label)} 備註</label><textarea data-role="note">${escapeHtml(field.note)}</textarea></td>
+                  </tr>`).join("")}
+                </tbody></table></div>
+                <div class="metrics"><span class="metric">${metricFor(item.fields)}</span><span class="metric">狀態需人工確認：${item.fields.filter(field => field.status !== "confirmed").length} 欄</span></div>
+              </div>
+            </div>
+          </article>`).join("");
+      }
+      function syncFromDom() {
+        document.querySelectorAll("[data-case-index]").forEach(article => {
+          const caseItem = state.cases[Number(article.dataset.caseIndex)];
+          article.querySelectorAll("[data-field-index]").forEach(row => {
+            const field = caseItem.fields[Number(row.dataset.fieldIndex)];
+            field.candidate = row.querySelector('[data-role="candidate"]').value;
+            field.truth = row.querySelector('[data-role="truth"]').value;
+            field.status = row.querySelector('[data-role="status"]').value;
+            field.note = row.querySelector('[data-role="note"]').value;
+          });
+        });
+      }
+      function downloadJson() {
+        syncFromDom();
+        const payload = { schemaVersion: 1, exportedAt: new Date().toISOString(), localOnly: true, cases: state.cases.map(item => ({ ...item, imageUrl: "", imageName: item.imageName })) };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `ocr-manual-review-${new Date().toISOString().slice(0, 10)}.json`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+        messageEl.textContent = "已產生核對 JSON；請自行保存到 private/，不要提交原始照片。";
+      }
+      function applyImages(files) {
+        [...files].forEach((file, index) => {
+          const target = state.cases[index] || makeCase(`case-${state.cases.length + 1}`, file.name, []);
+          if (!state.cases[index]) state.cases.push(target);
+          if (target.imageUrl) URL.revokeObjectURL(target.imageUrl);
+          target.imageUrl = URL.createObjectURL(file);
+          target.imageName = file.name;
+          if (!target.fields.length) target.fields = demoFields.map(field => ({ ...field, truth: "", status: "unknown", note: "" }));
+        });
+        render();
+        messageEl.textContent = `${files.length} 張照片已載入本機預覽。`;
+      }
+      function applyJson(file) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const parsed = JSON.parse(reader.result);
+            const imported = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.cases) ? parsed.cases : [parsed]);
+            imported.forEach((item, index) => {
+              const target = state.cases[index] || makeCase(item.id || `case-${index + 1}`, item.title || item.sourceImage || `匯入案例 ${index + 1}`, []);
+              if (!state.cases[index]) state.cases.push(target);
+              target.id = item.id || target.id;
+              target.title = item.title || target.title;
+              target.imageName = item.imageName || item.sourceImage || target.imageName;
+              const importedFields = (item.fields || []).map(field => ({ key: field.key || field.label || "field", label: field.label || field.key || "欄位", candidate: field.candidate || field.prediction || "", truth: field.truth || field.groundTruth || "", status: field.status || "unknown", note: field.note || "" }));
+              if (importedFields.length) {
+                target.fields = importedFields;
+              } else if (item.text) {
+                if (!target.fields.length) target.fields = demoFields.map(field => ({ ...field, truth: "", status: "unknown", note: "" }));
+                target.fields.push({ key: "fullText", label: "整頁 OCR 文字", candidate: item.text, truth: "", status: "unknown", note: "由匯入的 OCR JSON 產生；請改以欄位 crop 核對" });
+              }
+            });
+            render();
+            messageEl.textContent = `已匯入 ${imported.length} 個案例；請逐欄確認。`;
+          } catch (error) { messageEl.textContent = `JSON 讀取失敗：${error.message}`; }
+        };
+        reader.readAsText(file, "utf-8");
+      }
+      document.getElementById("image-input").addEventListener("change", event => applyImages(event.target.files));
+      document.getElementById("json-input").addEventListener("change", event => { if (event.target.files[0]) applyJson(event.target.files[0]); });
+      document.getElementById("export").addEventListener("click", downloadJson);
+      document.getElementById("reset").addEventListener("click", () => { state.cases = [makeCase("form13", "NAF 表 13｜使用者確認示例")]; render(); messageEl.textContent = "已清除本頁資料。"; });
+      render();
+    })();
+  </script>
+</body>
+</html>

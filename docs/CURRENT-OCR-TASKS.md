@@ -1,12 +1,25 @@
 # OCR 工作清單
 
+## 2026-09-09 繁體中文手寫表單來源與人工核對
+
+- 公開來源檢核與授權判斷：見 `docs/OCR-HANDWRITTEN-TRADITIONAL-SOURCES-2026-09-09.md`。
+- 尚未找到同時具備台灣繁中、真實手寫、已填寫表格、cell-level 標註且可商用的單一公開資料集；公開資料只作補強，不替代 NAF 實拍 ground truth。
+- 本機人工核對頁：`dev/ocr-manual-review.html`；無網路、無上傳、可匯出人工核對 JSON。
+- 表 13 smoke test 已確認：資材名稱「蘇力菌」、日期「7/14」。目前 Windows OCR 對兩個手寫值均未可靠辨識，頁面已標為 `needs-fix`。
+- 未完成至少 30 份並保留獨立 holdout 前，不宣稱 OCR 達到 50% 準確率。
+- 新增可選的 ZihCiLin 繁中 TrOCR 研究 runner；預設不上網下載、只在 `private/` 本機推論，模型輸出固定需人工覆核，不接正式 APP。
+- 手寫候選復原：較長藥劑名稱允許最多兩字編輯差異作為低信心候選；短名稱仍維持一字限制，且不會自動預選或寫入紀錄。
+
 > 全專案任務請以 `D:\SearchBefore\TASKS.md` 為唯一總表；本檔只保留 OCR 與近期延伸工作的細節。
 
-更新時間：2026-08-28（Asia/Taipei）
+更新時間：2026-09-09（Asia/Taipei）
+
+最新研究：區域格線補救只對 v11 空頁執行，50 份開發 F1 28.20%、21 份歷史驗證 F1 23.69%、原始 40 份回歸 F1 38.51%；三組均改善，保留新研究基準。另加入不改變 cell 幾何的跨列欄位共識提示，詳見 [區域格線實驗](D:/SearchBefore/repo/docs/OCR-LOCAL-GRID-RECOVERY-2026-09-09.md) 與 [欄位共識提示](D:/SearchBefore/repo/docs/OCR-COLUMN-CONSENSUS-2026-09-09.md)。以上未接正式 APP、不是文字辨識率。下表保留各階段結果；其他產品現況以根目錄 TASKS.md 為準。歷史驗證集已多次查看，後續需新盲測樣本。
 
 | 任務 | 狀態 | 已完成／下一步 | 外部需求 |
 |---|---|---|---|
 | NAF 40 份 cell 結構 ground truth | 已完成 | 40 份、21 群組、13,053 cells；驗證 0 錯誤、0 警告 | 無 |
+| 跨列欄位共識提示 | 已完成研究版 | Cloud Vision 幾何候選新增 `columnIndex`／`columnSupport`；不改動 cell、不推測語意，測試與安全上限通過 | 仍需真實雲端結果及盲測，未接正式 APP |
 | Ground truth 疊圖抽查 | 已完成 | 已抽查 8 份不同複雜度表單 | 無 |
 | 統一 prediction schema 與評分器 | 已完成 | 支援 cell P/R/F1、IoU、列欄誤差、偵測率與延遲 | 無 |
 | Microsoft TATR baseline | 已完成（不合格 baseline） | 40/40 已推論；cell F1 5.36%，表格偵測率 35% | 下一版需加入歷史表單候選區域／格線策略 |
@@ -17,7 +30,7 @@
 | Projection 信心閘門 v10 | 已完成實驗版及跨資料驗證 | 只限制高誤判的v5 projection lane；原40份結果不變。21份驗證集：F1 21.13%、precision 24.60%、recall 18.51%、表格偵測率66.67% | precision與F1跨資料改善，但犧牲recall；適合作為偏保守候選模式，仍不足以上線自動填表 |
 | 方向補救信心閘門 v11 | 已完成實驗版及跨資料驗證 | v10空結果才嘗試方向補救；50份train：F1 24.58%、precision 30.22%、recall 20.71%；21份holdout：F1 21.91%、precision 25.30%、recall 19.33%、表格偵測率71.43%；原40份不變 | train與holdout同步改善，可保留為新研究基準；仍不足以上線自動填表 |
 | Google ML Kit 文字辨識 | 已完成（不合格 baseline） | Android 14模擬器實跑376欄位；原圖CER 93.93%、WER 107.77%、完全符合7.45%、有文字輸出34.31%。放大、對比與二值化均未改善 | 後續若要判斷台灣表單實用性，需以TGAP繁中真實表單另建ground truth |
-| 首張繁中表13實拍驗收 | 進行中（未達門檻） | 人工正解已確認為資材名稱「蘇力菌」、日期「7/14」；已建立2欄field-level ground truth與可重跑評分。2026-08-27 在乾淨 Android 14 模擬器重跑 Chinese／Latin 共32次欄位嘗試，仍為0/2欄有任一完全符合。2026-08-28 再測12個手寫區焦點版本、6個去表格線版本及17個 Microsoft TrOCR 日期版本，仍無任何欄位完全符合；焦點裁切會失去脈絡，去線無法救回辨識，英文手寫 TrOCR 會產生無關英文詞句，三者皆不接產品。已加入低對比／空白阻擋、真實表格覆蓋率、雙模型數字衝突降信心、月日不補年份、名稱模糊候選不自動選取及去識別化人工校正JSON；這些只提升防錯能力，不宣稱提升實拍文字準確率 | 需要更多不同手寫者的清楚正拍實拍表單；目前維持人工核對，不上線自動填表 |
+| 首張繁中表13實拍驗收 | 進行中（未達門檻） | 人工正解已確認為資材名稱「蘇力菌」、日期「7/14」；已建立2欄field-level ground truth與可重跑評分。2026-08-27 在乾淨 Android 14 模擬器重跑 Chinese／Latin 共32次欄位嘗試，仍為0/2欄有任一完全符合。2026-08-28 再測12個手寫區焦點版本、6個去表格線版本及17個 Microsoft TrOCR 日期版本，仍無任何欄位完全符合；2026-09-09 以 Windows.Media.Ocr `zh-Hant-TW` 重跑實拍原圖，辨識 58 行／698 字，但未讀出「蘇力菌」與「7/14」。焦點裁切會失去脈絡，去線無法救回辨識，英文手寫 TrOCR 會產生無關英文詞句，三者皆不接產品。已加入低對比／空白阻擋、真實表格覆蓋率、雙模型數字衝突降信心、月日不補年份、名稱模糊候選不自動選取及去識別化人工校正JSON；這些只提升防錯能力，不宣稱提升實拍文字準確率 | 需要更多不同手寫者的清楚正拍實拍表單；目前維持人工核對，不上線自動填表 |
 | Google Document AI Form Parser | 等待雲端設定 | runner 與正規化格式已完成 | Google service account、project、location、processor ID |
 | Azure Document Intelligence | 等待雲端設定 | runner 與正規化格式已完成 | Azure endpoint、key |
 | 三方報告 | 進行中 | 已產生可重建報告、完整性閘門及376欄位CER/WER評分器；Windows OCR與Google ML Kit已完成，Document AI／Azure仍不得假裝完成 | Google/Azure雲端設定 |
@@ -180,3 +193,19 @@ NAF 每份標註的 `transcriptions` 實際包含 `fieldBBs` 對應文字。現�
 Windows.Media.Ocr `en-US` 僅作本機管線檢查：原始crop的辨識欄位率22.87%、exact field rate 4.26%、CER 95.79%、WER 108.38%，不合格。放大、對比強化、固定閾值二值化都未改善CER（分別97.22%、96.78%、98.45%），故不採用。這些數字不代表 ML Kit、Document AI、Azure；指定三方仍須各自實跑。
 
 Google ML Kit Latin 16.0.1 已在Android 14 API 34模擬器完成同一批376欄位：原圖CER 93.93%、WER 107.77%、完全符合率7.45%、有文字輸出率34.31%、平均每欄421ms；其中2個小於32像素的crop被模型拒絕。3倍放大CER 93.90%但有輸出率降至32.45%、平均535ms；對比強化CER 98.21%；固定閾值二值化CER 101.96%。原圖仍為最佳實驗基線，但絕對準確度不合格。
+
+## 2026-09-09 日期欄位去線補救與本機校正記憶
+
+表13 實拍日期欄位原先被表格橫線連成單一元件，導致 ML Kit 與原有分割器漏掉 `7/14`。新增長且平緩的橫線支撐閘門、三像素去線帶及底部殘線過濾；以兩個未使用私人正解訓練的 MNIST 數字模型重跑五個閾值，四個獨立結果均為 `7/14`，一個結果因模型不一致而拒絕。採用明確的4/5共識後，日期欄位為1/1（100%）候選正確，但仍需人工確認，不能自動送出。
+
+以同一張表的兩個欄位重新評分，去線後的 post-processing exact field rate 為1/2（50%，CER 42.86%）；未辨識的資材名稱刻意留白，不以人工正解冒充模型輸出。這個50%只代表單張表的欄位級去線結果，不代表一般繁中手寫表單或未參與調參的 NAF holdout 已達50%。
+
+另加入去識別化本機校正記憶：使用者按下匯出校正資料後，才將符合 schema、禁止上傳且不含影像的記錄限量存於本機；下一次相同 OCR 原文出現時，字典內的確認藥劑只以0.64低信心候選顯示，不會自動預選。表13 的 `教角`→`蘇力菌` 可由該機制恢復候選，但未載入校正記錄時原始辨識仍維持未通過。完整說明與重跑指令見 `docs/OCR-DATE-COMPONENT-LINE-REMOVAL-2026-09-09.md`。
+
+## 2026-09-09 本輪準確率閘門與數字欄位補強
+
+日期解析新增「只在已有日期分隔符的 token 內」的保守校正：手寫 `l`／`I`／`|` 可視為 `1`，`O`／`o`／圓圈字可視為 `0`；一般文字與沒有分隔符的數字不會被改寫。這讓 `7/l4` 可成為 `07/14` 候選、`115/7/O4` 可成為 `2026-07-04` 候選，且仍維持人工覆核與不可自動提交政策。相關回歸測試已通過，見 `form-ocr.js` 與 `tests/form-ocr.test.js`。
+
+新增 `scripts/run-trocr-text-crop-benchmark.py`，使用現有本機快取的 Microsoft TrOCR handwritten 模型跑 NAF 376 個文字欄位；runner 強制 `local_files_only`，避免意外連網。另新增 `scripts/ocr-accuracy-gate.mjs`，固定以獨立 holdout 為準，只有「獨立文字 exact-field rate ≥50%、獨立結構 Cell F1 ≥50%，並有至少30個實拍人工覆核欄位」才會回報整體通過。研究上限、訓練集、單張實拍或模板轉移結果均不會讓閘門誤判為通過。
+
+本輪實跑結果：TrOCR 376/376 欄位完成，exact-field rate 5.05%、CER 99.81%、WER 145.75%；相較 ML Kit Latin 的 7.45% exact-field rate，沒有達到可替換基準，因此不接入產品。準確率閘門目前仍為未通過：獨立 holdout 結構 Cell F1 23.69%，實拍人工覆核只有2個欄位，不能宣稱整體50%。結果保存於 `private/ocr-benchmark/reports/trocr-naf-text-crops-v1.json` 與 `private/ocr-benchmark/reports/ocr-accuracy-gate-2026-09-09.json`。
