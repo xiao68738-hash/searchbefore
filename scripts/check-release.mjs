@@ -42,6 +42,12 @@ const aidsSandbox = {};
 vm.runInNewContext(await readFile(path.join(outDir, "query-aids.js"), "utf8"), aidsSandbox);
 assert.ok(aidsSandbox.PQC_AIDS.pestSearchMatch("鱗翅目", "夜蛾類"), "壓縮後仍須保留分類搜尋");
 assert.equal(aidsSandbox.PQC_AIDS.pestSearchMatch("夜蛾科", "小菜蛾"), null, "壓縮後不得誤納其他科");
+for (const [q,p] of [["夜蛾類","大螟"],["螟蛾類","玉米螟"],["蚜蟲類","棉蚜"],["飛蝨類","褐飛蝨"],["紫螟","大螟"]]) {
+  assert.ok(aidsSandbox.PQC_AIDS.pestSearchMatch(q,p), "壓縮後不得漏接：" + q + " / " + p);
+}
+for (const [q,p] of [["螟蛾類","大螟"],["螟蛾類","甜菜白帶野螟蛾"],["葉蜂類","松綠葉蜂"],["夜蛾科","小造橋蟲"]]) {
+  assert.equal(aidsSandbox.PQC_AIDS.pestSearchMatch(q,p), null, "壓縮後不得恢復字根誤納：" + q + " / " + p);
+}
 const sharedConfig = await readFile(path.join(outDir, "service-config.js"), "utf8");
 const webSupportConfig = await readFile(path.join(outDir, "web-support-config.js"), "utf8");
 const ocrUi = await readFile(path.join(outDir, "form-ocr-ui.js"), "utf8");

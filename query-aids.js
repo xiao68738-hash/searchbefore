@@ -9,7 +9,7 @@
       現行顯示「見標示」易被誤解為資料缺漏,也可能被誤當噴施用藥。
 
    ── 不可破壞的原則 ──
-   1. 從屬採有來源的明確對照與既有完整字根規則;僅末字相同者一律不算
+   1. 從屬只採有來源的明確對照，不以名稱字根或末字推論
       (排查證實會產生「毒蛾類⊃斜紋夜蛾」「根蟎類⊃二點葉蟎」等誤判)。
    2. 從屬提示不得自動合併藥劑清單(同交接文件安全規則 7)。
    3. 種子處理辨識只依備註明確文字,不推測。
@@ -199,55 +199,136 @@
   }
 
   /* ── A. 害物從屬 ── */
-  /* 搜尋用分類，不是登記適用範圍。新增項目需附一手來源並補負例測試。
-     鱗翅目對照本次先涵蓋夜蛾相關條目，並非完整昆蟲分類表。
-     來源與限制：docs/PEST-TAXONOMY-SEARCH-2026-09-08.md */
+  /* 官方查詢群組 != 生物學科別 != 登記適用範圍。
+     來源：2026-09-08 官方 DOM；只採同名唯一對應，明列所有祖先，不以字根推論。
+     完整來源與代碼：tests/fixtures/pest-official-tree-2026-09-08.txt
+     證據與限制：docs/PEST-GROUPING-SEARCH-2026-09-09.md */
+  const OFFICIAL_PEST_GROUPS = new Map([
+    ["水螟類", ["褐帶紋水螟蛾"]],
+    ["草螟蛾類", ["甜菜白帶野螟蛾"]],
+    ["松葉蜂科", ["松綠葉蜂"]],
+    ["介殼蟲類", ["盾介殼蟲類","粉介殼蟲類","膠蟲","軟介殼蟲類"]],
+    ["刺蛾類", ["黃刺蛾"]],
+    ["夜蛾類", ["切根蟲","大螟","小造橋蟲","擬尺蠖","斜紋夜蛾","甜菜夜蛾","稻螟蛉"]],
+    ["天蛾類", ["蝦殼天蛾"]],
+    ["木蠹蛾類", ["咖啡木蠹蛾"]],
+    ["果實蠅類", ["東方果實蠅","瓜實蠅"]],
+    ["椿象類", ["南方綠椿象","竹盲椿象","花編蟲","青椿象","黑椿象","黑盲椿象"]],
+    ["毒蛾類", ["黑角舞蛾"]],
+    ["潛蠅類", ["斑潛蠅類","根潛蠅類","番茄斑潛蠅","莖潛蠅類","蔥潛蠅","韭潛蠅"]],
+    ["癭蚋類", ["壯鋏普癭蚋","荔枝癭蚋"]],
+    ["稻熱病", ["穗稻熱病","葉稻熱病"]],
+    ["稻蝨類", ["斑飛蝨","褐飛蝨","長綠飛蝨"]],
+    ["積穀害蟲", ["穀蠹","菸甲蟲","蒜頭蛀蟲"]],
+    ["粉蝨類", ["柑桔刺粉蝨","溫室粉蝨","銀葉粉蝨","黑疣粉蝨"]],
+    ["細蛾類", ["柑桔潛葉蛾","檬果細蛾","荔枝細蛾"]],
+    ["細蟎類", ["稻細蟎"]],
+    ["花薊馬類", ["花薊馬"]],
+    ["葉蜂類", ["優美藺葉蜂"]],
+    ["葉蟎類", ["二點葉蟎","柑桔葉蟎","神澤氏葉蟎","赤葉蟎"]],
+    ["葉蟬類", ["二點小綠葉蟬","小綠葉蟬","綠葉蟬","黑尾葉蟬"]],
+    ["葉部薊馬類", ["南黃薊馬","小黃薊馬","淡色薊馬","腹鉤薊馬","蔥薊馬"]],
+    ["薊馬類", ["南黃薊馬","小黃薊馬","淡色薊馬","腹鉤薊馬","花薊馬","花薊馬類","葉部薊馬類","蔥薊馬"]],
+    ["蚜蟲類", ["偽菜蚜","大桔蚜","柑桔捲葉蚜","梨瘤蚜","棉蚜","蘋果綿蚜","豆蚜","高粱蚜"]],
+    ["蝗蟲類", ["條背土蝗"]],
+    ["螟蛾類", ["一點螟蟲","二化螟蟲","大菜螟","玉米螟","瘤野螟","菜心螟"]],
+    ["蟎蜱類", ["二點葉蟎","捲葉節蟎","柑桔葉蟎","柑桔銹蟎","根蟎類","神澤氏葉蟎","稻細蟎","細蟎類","葉蟎類","赤葉蟎","銹蜱類"]],
+    ["象鼻蟲類", ["假莖象鼻蟲","水象鼻蟲","球莖象鼻蟲","稻象鼻蟲"]],
+    ["金花蟲類", ["負泥蟲","鐵甲蟲","黃守瓜","黃條葉蚤"]],
+    ["銹蜱類", ["捲葉節蟎","柑桔銹蟎"]],
+    ["鱗翅目害蟲", ["一點螟蟲","二化螟蟲","切根蟲","刺蛾類","咖啡木蠹蛾","夜蛾類","大菜螟","大螟","天蛾類","小菜蛾","小造橋蟲","尺蠖蛾類","捲葉蛾類","擬尺蠖","斜紋夜蛾","木蠹蛾類","松毛蟲","柑桔潛葉蛾","椰子綴蛾","樹蔭蝶","檬果細蛾","毒蛾類","燈蛾類","玉米螟","甘藷潛葉蛾","甜菜夜蛾","甜菜白帶野螟蛾","瘤野螟","稻苞蟲","稻螟蛉","紋白蝶","細蛾類","茶蠶","荔枝細蛾","菜心螟","蝦殼天蛾","螟蛾類","褐帶紋水螟蛾","避債蛾類","鳥羽蛾類","鳳蝶類","黃刺蛾","黑角舞蛾"]]
+  ].map(function (entry) { return [entry[0], new Set(entry[1])]; }));
+  // 獨立科別證據：官方 UI 把秋行軍蟲放在「其他」，不因此撤回既有分類搜尋。
+  const SCIENTIFIC_PEST_GROUPS = new Map([
+    ["夜蛾科", new Set(["斜紋夜蛾", "甜菜夜蛾", "秋行軍蟲", "切根蟲", "大螟", "稻螟蛉"])],
+    ["夜蛾類", new Set(["秋行軍蟲"])],
+    ["鱗翅目害蟲", new Set(["秋行軍蟲"])]
+  ]);
   const PEST_ALIASES = new Map([
     ["鱗翅目", "鱗翅目害蟲"], ["鱗翅目害蟲", "鱗翅目害蟲"],
-    ["夜蛾科", "夜蛾類"], ["夜蛾", "夜蛾類"], ["夜蛾類", "夜蛾類"],
-    ["斜紋夜盜蛾", "斜紋夜蛾"], ["切根蟲類", "切根蟲"]
+    ["夜蛾", "夜蛾類"], ["夜蛾類", "夜蛾類"],
+    ["斜紋夜盜蛾", "斜紋夜蛾"], ["切根蟲類", "切根蟲"],
+    ["一點螟蛾", "一點螟蟲"],
+    ["二化螟蛾", "二化螟蟲"],
+    ["鋸蠅", "偽毛蟲"],
+    ["紫螟", "大螟"],
+    ["姬黃薊馬", "小黃薊馬"],
+    ["茶黃薊馬", "小黃薊馬"],
+    ["捲葉蚜", "柑桔捲葉蚜"],
+    ["梨綠蚜", "柑桔捲葉蚜"],
+    ["柑桔皺葉刺節蜱", "柑桔銹蟎"],
+    ["臺灣兜蟲", "犀角金龜"],
+    ["癭蠅類", "癭蚋類"],
+    ["盾介殼蟲科", "盾介殼蟲類"],
+    ["草地貪夜蛾", "秋行軍蟲"],
+    ["秋粘蟲", "秋行軍蟲"],
+    ["草地夜蛾", "秋行軍蟲"],
+    ["飛蝨類", "稻蝨類"],
+    ["苗腐病", "苗立枯病"],
+    ["蒂蛀蟲", "荔枝細蛾"],
+    ["棉長鬚象蟲", "蒜頭蛀蟲"],
+    ["長角象鼻蟲", "蒜頭蛀蟲"],
+    ["草皮地下害蟲", "蠐螬害蟲"],
+    ["軟介殼蟲科", "軟介殼蟲類"],
+    ["節蟎類", "銹蜱類"],
+    ["銹蜱", "銹蜱類"],
+    ["節蜱科", "銹蜱類"],
+    ["銹蟎", "銹蜱類"]
   ]);
-  const PEST_PARENTS = new Map([
-    ["夜蛾類", "鱗翅目害蟲"],
-    ["斜紋夜蛾", "夜蛾類"], ["甜菜夜蛾", "夜蛾類"],
-    ["秋行軍蟲", "夜蛾類"], ["切根蟲", "夜蛾類"]
-  ]);
+  const AMBIGUOUS_PEST_NAMES = new Set(["扁蝸牛", "炭疽病", "立枯病", "黃葉病"]);
   function canonicalPest(value) {
     const p = normalizeSearchText(value);
-    return PEST_ALIASES.get(p) || p;
+    return AMBIGUOUS_PEST_NAMES.has(p) ? p : (PEST_ALIASES.get(p) || p);
   }
   function groupStem(pest) {
     const p = String(pest || "");
     return /類$/.test(p) ? p.slice(0, -1) : null;
   }
-  /* 只沿明確對照向上走，不用模糊搜尋或「蛾／蟲」單字推論分類。 */
-  function isParentOf(group, child) {
+  function pestRelation(group, child) {
     group = canonicalPest(group); child = canonicalPest(child);
-    if (group === child) return false;
-    let parent = PEST_PARENTS.get(child);
-    while (parent) {
-      if (parent === group) return true;
-      parent = PEST_PARENTS.get(parent);
-    }
-    const stem = groupStem(group);
-    if (!stem) return false;
-    return String(child || "").includes(stem);
+    if (group === child || AMBIGUOUS_PEST_NAMES.has(group) || AMBIGUOUS_PEST_NAMES.has(child)) return null;
+    if (OFFICIAL_PEST_GROUPS.get(group)?.has(child)) return "official-group";
+    if (SCIENTIFIC_PEST_GROUPS.get(group)?.has(child)) return "scientific";
+    return null;
   }
-  /* 上位查詢可找到已核實子項；反向不把上位登記當作子項直接命中。
-     不要求作物先有上位登記：候選永遠由該作物現有條目提供。 */
+  function isParentOf(group, child) {
+    return pestRelation(group, child) !== null;
+  }
+  const SEARCH_GROUPS = Array.from(new Set([
+    ...OFFICIAL_PEST_GROUPS.keys(), ...SCIENTIFIC_PEST_GROUPS.keys()
+  ]));
+  const GROUP_QUERY_TERMS = SEARCH_GROUPS.map(function (group) {
+    return [group, [group, ...Array.from(PEST_ALIASES)
+      .filter(function (entry) { return entry[1] === group; })
+      .map(function (entry) { return entry[0]; })]];
+  });
+  const KNOWN_PEST_NAMES = new Set([
+    ...SEARCH_GROUPS, ...PEST_ALIASES.values(), ...AMBIGUOUS_PEST_NAMES,
+    ...Array.from(OFFICIAL_PEST_GROUPS.values()).flatMap(function (children) { return Array.from(children); }),
+    ...Array.from(SCIENTIFIC_PEST_GROUPS.values()).flatMap(function (children) { return Array.from(children); })
+  ]);
+  /* 只允許分類入口做部分字串比對；物種別名須完整吻合。
+     結果只能由呼叫端的同作物原始條目供應，不能逆向套用上位登記。 */
   function pestSearchMatch(query, pest) {
     const q = normalizeSearchText(query), p = normalizeSearchText(pest);
     if (!q) return { kind: "all", label: "" };
-    if (p.includes(q)) return { kind: "name", label: "" };
+    if (p === q || (p.includes(q) && !SEARCH_GROUPS.includes(q))) return { kind: "name", label: "" };
     const cq = canonicalPest(q), cp = canonicalPest(p);
-    if (cq === cp) return { kind: "alias", label: "分類名稱對照" };
-    const groups = Array.from(new Set(Array.from(PEST_ALIASES)
-      .filter(function (entry) { return entry[0].includes(q); })
-      .map(function (entry) { return entry[1]; })));
-    // 單字不擴大到整個分類，避免「蛾」等廣泛字詞拉入無關條目。
-    if (isParentOf(cq, cp) || (q.length >= 2 && groups.some(function (g) { return g === cp || isParentOf(g, cp); }))) {
-      return { kind: "taxonomy", label: "分類相關・原登記：" + pest };
+    // 可提示官方查詢群組，但不能將其所有成員當作現行夜蛾科。
+    if (cq === "夜蛾科" && cp === "夜蛾類") {
+      return { kind: "taxonomy", evidence: "group-query", label: "查詢群組・原登記：" + pest };
     }
+    if (cq === cp) return { kind: "alias", label: "名稱對照・原登記：" + pest };
+    let evidence = pestRelation(cq, cp);
+    // 已知完整名稱只按本身對照，不能把「螟蛾類」當成「草螟蛾類」的片段。
+    if (!evidence && q.length >= 2 && !KNOWN_PEST_NAMES.has(cq)) {
+      for (const [group, terms] of GROUP_QUERY_TERMS) {
+        if (!terms.some(function (term) { return term.includes(q); })) continue;
+        evidence = group === cp ? "group-query" : pestRelation(group, cp);
+        if (evidence) break;
+      }
+    }
+    if (evidence) return { kind: "taxonomy", evidence: evidence, label: "分類相關・原登記：" + pest };
     return null;
   }
   /* 同一作物內,與 pest 有從屬關係的其他害物。
@@ -481,6 +562,7 @@
     fuzzyCandidates: fuzzyCandidates,
     groupStem: groupStem,
     canonicalPest: canonicalPest,
+    pestRelation: pestRelation,
     isParentOf: isParentOf,
     pestSearchMatch: pestSearchMatch,
     relatedPests: relatedPests,
