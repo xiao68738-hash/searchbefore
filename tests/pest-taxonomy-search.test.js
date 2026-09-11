@@ -74,12 +74,12 @@ const element = id => {
   return els.get(id);
 };
 const ctx = vm.createContext({PQC_AIDS:A, window:{PQC_AIDS:A}, DATA, selCrop:'蔥', selPest:'鱗翅目害蟲',
-  CUR:Object.fromEntries(Object.entries(DATA['蔥']).map(([p,list]) => [p,{list}])), overviewShow:1000, phiMax:0,
+  CUR:Object.fromEntries(Object.entries(DATA['蔥']).map(([p,list]) => [p,{list}])), overviewShow:1000, phiMax:0, selForm:'',
   document:{getElementById:element,querySelectorAll:()=>[]},
   esc:s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'),
   renderAgents(){ctx.agentRows = ctx.currentAgentList();}
 });
-for (const name of ['pestSearchMatchSafe','renderPests','cropOverviewData','renderCropOverview','renderPestRelated','currentAgentList','pickPest']) {
+for (const name of ['mrlStatus','mrlStatusTag','mrlNoDetectNotice','mrlOverviewNotice','pestSearchMatchSafe','renderPests','cropOverviewData','renderCropOverview','renderPestRelated','currentAgentList','pickPest']) {
   vm.runInContext(fn(name), ctx);
 }
 ctx.renderPests('夜蛾科');

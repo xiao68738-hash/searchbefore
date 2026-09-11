@@ -1,6 +1,8 @@
 # mrl-data — 農藥殘留容許量（MRL）資料管線
 
-**此資料夾目前完全不影響 App。** 尚未接入 `index.html`、不在 Service Worker 快取，也由 `.firebaseignore` 排除。屬 MRL 對照功能的**階段 0**。
+**完整候選與原始快照不直接部署；17 組歷史人工簽核組合已由根目錄 `mrl-status.js` 接入 App。** 不應將候選 JSON 或 CSV 全量載入前端。2026-09-11 重檢後，14 組保留精確提醒、豌豆 × 脫克松限鮮豆莢／乾豆；豌豆 × 培丹與蔥科根菜類 × 免扶克撤下直接判定，保留部位／分類覆核提醒。
+
+最新依據、限制與待辦見 `../docs/MRL重檢與實裝-2026-09-11.md`。歷史 CSV 是簽核紀錄，不代表忽略後續限制仍可全量顯示紅色提醒。
 
 完整設計與安全原則見 `docs/MRL對照實施手冊.md`。
 
@@ -22,6 +24,7 @@
 node mrl-data/fetch-mrl.mjs
 node mrl-data/fetch-reference-data.mjs
 node mrl-data/build-review-list.mjs
+node scripts/check-mrl-sources.mjs --live
 ```
 
 下載腳本會逐筆驗證必要欄位、檢查最低筆數，並採逾時、重試及原子寫入，避免不完整資料覆蓋最新快照。
