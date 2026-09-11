@@ -59,6 +59,16 @@ for (const number of whitelistNumbers) {
   assert.strictEqual(review["狀態"], "檢核完成", `白名單第${number}筆尚未完成`);
 }
 
+// 歷史人工簽核與執行期清單雙向一致；新複查只能收窄，不偷偷擴充。
+const MRL=require("../mrl-status.js");
+const key=(crop,agent)=>JSON.stringify([crop,agent]);
+const approvedKeys=[...whitelistNumbers].map(n=>key(candidates[n-1]["作物"],candidates[n-1]["藥劑"])).sort();
+assert.deepStrictEqual(MRL.REVIEWED.map(r=>key(r.crop,r.agent)).sort(),approvedKeys);
+for(const n of [49,50,68,69,70]){
+  const c=candidates[n-1];
+  assert.ok(!approvedKeys.includes(key(c["作物"],c["藥劑"])),`第${n}筆機器完成不等於人工簽核`);
+}
+
 const mustRemainBlocked = [
   1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
   21, 24, 25, 26,

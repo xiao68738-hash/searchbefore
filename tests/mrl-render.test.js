@@ -1,0 +1,72 @@
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const vm=require('node:vm');
+const MRL=require('../mrl-status.js');
+const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+const elements=new Map();
+const element=id=>{
+  if(!elements.has(id))elements.set(id,{innerHTML:'',textContent:'',value:'',style:{display:'none'}});
+  return elements.get(id);
+};
+const ctx=vm.createContext({window:{PQC_MRL:MRL},selCrop:'豌豆',selForm:'',selPest:null,
+  CUR:{測試害物:{list:[{name:'培丹',src:'豌豆'},{name:'培丹',src:'豌豆'},{name:'脫克松',src:'豌豆'}]}},overviewShow:50,
+  document:{getElementById:element},renderFormChips(){},
+  esc:s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')});
+for(const name of ['mrlStatus','mrlStatusTag','mrlNoDetectNotice','mrlOverviewNotice','cropOverviewData','renderCropOverview','setCropForm']){
+  const start=html.indexOf(`function ${name}(`);
+  assert.ok(start>=0,name);
+  vm.runInContext(html.slice(start,html.indexOf('\n}',start)+2),ctx);
+}
+const tag=(crop,agent,options)=>ctx.mrlStatusTag(ctx.mrlStatus(crop,agent,options));
+assert.match(tag('豌豆','培丹'),/部位／分類待確認/);
+assert.doesNotMatch(tag('豌豆','培丹'),/可使用/);
+assert.doesNotMatch(tag('豌豆','培丹',{form:'鮮豆莢'}),/可使用/);
+assert.match(tag('豌豆','脫克松',{form:'鮮豆莢'}),/在豌豆（鮮豆莢）依登記用途可使用，但相關成分不得檢出/);
+assert.doesNotMatch(tag('豌豆','培丹',{form:'葉用豌豆'}),/可使用/);
+assert.match(tag('小麥','納乃得'),/殘留提醒：在小麥依登記用途可使用，但相關成分不得檢出/);
+assert.match(tag('木瓜','嘉賜銅'),/在木瓜依登記用途/);
+assert.doesNotMatch(tag('蔥科根菜類','免扶克'),/可使用|不得檢出/);
+assert.equal(tag('未知作物','未知藥劑'),'');
+assert.match(ctx.mrlNoDetectNotice('小麥','納乃得'),/「可使用」僅指這筆登記的防治對象、施用方式及產品標示/);
+assert.match(ctx.mrlNoDetectNotice('小麥','納乃得'),/<details><summary>查看適用範圍與核對依據<\/summary>/);
+assert.doesNotMatch(ctx.mrlNoDetectNotice('小麥','納乃得'),/<details\s+open/);
+assert.match(ctx.mrlNoDetectNotice('蓮霧','嘉賜貝芬'),/不表示混劑所有成分均無標準/);
+assert.match(ctx.mrlNoDetectNotice('木瓜','嘉賜銅'),/Copper oxychloride/);
+assert.match(ctx.mrlNoDetectNotice('小麥','納乃得'),/noopener noreferrer/);
+assert.match(ctx.mrlNoDetectNotice('小麥','納乃得'),/2026-09-11/);
+ctx.renderCropOverview('');
+assert.equal((element('cropOverviewList').innerHTML.match(/role="note"/g)||[]).length,2,'總覽同藥多筆應去重');
+assert.match(element('cropOverviewList').innerHTML,/部位／分類待確認/);
+ctx.setCropForm('鮮豆莢');
+assert.equal((element('cropOverviewList').innerHTML.match(/依登記用途可使用，但相關成分不得檢出/g)||[]).length,1,'切部位只更新適用的脫克松，培丹不能外推');
+ctx.setCropForm('葉用豌豆');
+assert.doesNotMatch(element('cropOverviewList').innerHTML,/依登記用途可使用/);
+ctx.setCropForm('');
+assert.match(element('cropOverviewList').innerHTML,/請先區分鮮豆莢/);
+const hostile='<img src=x onerror=alert(1)>"';
+const escaped=ctx.mrlNoDetectNotice(hostile,'培丹',{registrationCrop:'豌豆',form:hostile});
+assert.doesNotMatch(escaped,/<img|form="/);
+assert.doesNotMatch(escaped,/onerror/,'未採用的部位文字不應輸出');
+const escapedForm=ctx.mrlNoDetectNotice('豌豆','脫克松',{form:hostile});
+assert.doesNotMatch(escapedForm,/<img/);
+assert.match(escapedForm,/&lt;img/);
+const unsafeTag=ctx.mrlStatusTag({status:'reviewed-no-detect',crop:hostile,form:hostile});
+assert.doesNotMatch(unsafeTag,/<img/);
+assert.match(unsafeTag,/&lt;img/);
+ctx.window.PQC_MRL={lookup(){throw Error('不可呼叫舊版判定')}};
+assert.equal(ctx.mrlNoDetectNotice('豌豆','培丹'),'', '舊模組不可誤標');
+ctx.window.PQC_MRL=null;
+ctx.renderCropOverview('');
+assert.doesNotMatch(element('cropOverviewList').innerHTML,/role="note"/);
+assert.match(element('cropOverviewList').innerHTML,/培丹/,'模組缺漏仍可查原始登記');
+assert.doesNotMatch(html,/PQC_MRL\.lookup/,'三個入口均不能繞過新版 resolver');
+assert.match(html,/mrlStatus\(selCrop,a\.name,mrlOptions\)/);
+assert.match(html,/mrlStatus\(g\.crop,r\.a\.name\)/);
+assert.match(html,/mrlNoDetectNotice\(selCrop,a\.name,mrlOptions\)/);
+assert.match(html,/mrlNoDetectNotice\(g\.crop,r\.a\.name\)/);
+const DATA=JSON.parse(html.match(/^const DATA=(.*);\r?$/m)[1]);
+const cartap=Object.values(DATA['豌豆']).flat().filter(a=>a.name==='培丹');
+assert.equal(cartap.length,1,'來源用途改變時須重新複核');
+assert.equal(cartap[0].note,'適用於葉用豌豆');
+console.log('✓ MRL 三入口、部位切換、去重、混版降級與 HTML 逸出');

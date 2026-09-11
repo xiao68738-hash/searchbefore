@@ -31,7 +31,7 @@ assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.index
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./field-summary.js"></script>') < html.indexOf("const DATA="), "field-summary.js 必須在主程式前載入");
 assert.match(html, /const APP_VERSION="0\.3\.9\.9"/);
-assert.match(sw, /const CACHE_VERSION = "v0\.3\.9\.9-pest-grouping-search-2026-09-09"/);
+assert.match(sw, /const CACHE_VERSION = "v0\.3\.9\.9-mrl-crop-label-2026-09-12"/);
 assert.match(html, /function usagePresentationSafe\(agent\)/);
 assert.match(html, /typeof PQC_AIDS\.usagePresentation==="function"/);
 assert.equal((html.match(/PQC_AIDS\.usagePresentation\(/g)||[]).length,1,"只有相容層可以直接呼叫 usagePresentation");
@@ -75,8 +75,8 @@ assert.match(html, /id="backupNote"/);
    不得檢出是「查無此筆」的預設結果 —— 因此比對失敗與真正未訂容許量
    在系統中無法區分。一旦把查無結果講成「風險」,合法登記藥劑會被誤報,
    農友被誤報一次就會忽略所有警告,包括真正該注意的。 */
-assert.match(html, /本查詢不含 MRL 判定/);
-assert.match(html, /均只能視為「尚無法確認」/);
+assert.match(html, /並非完整 MRL 判定/);
+assert.match(html, /未標示、資料未載入或查無資料，不代表已訂容許量、免訂或檢驗合格/);
 
 /* ── 作物別名的目標必須真的存在於 DATA ──
    查詢時 add() 會靜默跳過不存在的目標,所以指向錯誤的別名不會報錯,
@@ -111,7 +111,7 @@ assert.match(html, /均只能視為「尚無法確認」/);
   assert.equal(ptBad.length, 0,
     `採收期區間的 phi 必須等於上限(倒數採保守值):${ptBad.slice(0, 3).join("；")}`);
 }
-assert.match(html, /本版尚未提供衛福部農產品殘留容許量（MRL）判定/);
+assert.match(html, /僅提供部分已複核組合提醒，並非完整 MRL 判定/);
 assert.doesNotMatch(html, /殘留超標風險|有超標風險|不得檢出風險|禁用藥劑警告/);
 assert.match(html, /function renderBackupNote\(\)/);
 assert.match(html, /常用配方與偏好設定仍只存在這台裝置/);
@@ -231,7 +231,7 @@ assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
 assert.match(sw, /"\.\/guides\.html"/);
 assert.match(sw, /const cacheKey = isAppEntry \? "\.\/" : `\.\$\{url\.pathname\}`/, "指南導覽必須使用自己的快取鍵，不可誤回首頁");
-assert.match(sw, /v0\.3\.9\.9-pest-grouping-search/);
+assert.match(sw, /v0\.3\.9\.9-mrl-crop-label/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.match(sw, /"\.\/pinyin-pro\.js"/);
 assert.ok(html.indexOf('<script src="./pinyin-pro.js"></script>') < html.indexOf('<script src="./query-aids.js"></script>'), "拼音核心必須在搜尋輔助前載入");
