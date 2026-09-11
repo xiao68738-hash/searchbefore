@@ -25,3 +25,7 @@ jobs:
         run: npm ci
       - name: Run regression suite
         run: npm test
+      - name: Build release files
+        run: npm run build
+      - name: Validate release files
+        run: node scripts/check-release.mjs
