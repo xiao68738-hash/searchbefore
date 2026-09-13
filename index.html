@@ -239,11 +239,16 @@ h2.step .cnt{letter-spacing:0;color:var(--green);font-weight:900}
 .crop-overview-more{width:100%;margin-top:2px}
 
 /* 藥劑卡 */
-.agent{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 16px 14px;margin-bottom:12px}
+.agent{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:none;padding:20px;margin-bottom:16px;overflow-wrap:anywhere;container-type:inline-size}
 .agent .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
-.agent h3{font-size:21px;font-weight:900;color:var(--green-deep);line-height:1.3}
+.agent .top>div{min-width:0;width:100%}
+.agent h3{font-family:inherit;font-size:26px;font-weight:700;color:var(--green-deep);line-height:1.4}
 .agent .sub{font-size:14.5px;color:var(--ink-soft);margin-top:3px}
-.agent .sub .prod{font-size:17px;font-weight:900;color:var(--green-deep);-webkit-text-stroke:.4px var(--green-deep);letter-spacing:.02em}
+.agent .sub .prod{font-size:16px;font-weight:500;color:var(--green-deep)}
+.agent .agent-tags{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.agent .agent-tags:empty{display:none}
+.agent .agent-tags>span{margin:0}
+.agent-context{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:1px solid var(--line);padding:10px 4px;margin-bottom:14px;font-size:18px;font-weight:700;color:var(--green-deep);overflow-wrap:anywhere}
 .ftag{display:inline-block;font-size:12px;font-weight:900;border-radius:6px;padding:1px 7px;margin-right:5px;vertical-align:1px;letter-spacing:.05em}
 .f-liq{background:#E7EFF4;color:#3E6E8E}
 .f-pow{background:#F2ECDE;color:#8A6B3F}
@@ -471,9 +476,16 @@ h2.step .cnt{letter-spacing:0;color:var(--green);font-weight:900}
 .phi.p-warn{color:var(--orange)}
 .phi.p-long{color:var(--red)}
 .phi.p-none{color:#9AA294;border-style:dashed}
-.agent .facts{display:flex;gap:20px;margin:13px 0 4px;flex-wrap:wrap}
+.agent .facts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin:18px 0 0;padding-bottom:16px;border-bottom:1px solid var(--line)}
 .fact .v{font-family:var(--serif);font-size:24px;font-weight:900;font-variant-numeric:tabular-nums}
 .fact .k{font-size:12px;color:var(--ink-soft);letter-spacing:.05em;margin-top:1px}
+.agent .fact .k{font-size:14px;letter-spacing:0;margin:0 0 4px}
+.agent .fact .v{font-family:inherit;font-size:28px;font-weight:500;line-height:1.4}
+.agent .fact .v.fact-text{font-size:18px}
+.agent .agent-dose,.agent .agent-detail{margin-top:16px}
+.agent .agent-dose .v,.agent .agent-detail .v{font-size:21px}
+.agent .dose-basis{font-size:13px;color:var(--ink-soft);margin-top:5px}
+.agent .record-hint{font-size:13px;color:var(--ink-soft);text-align:center;margin-top:4px}
 .agent .note{font-size:14px;color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:9px;margin-top:9px;line-height:1.65}
 .agent .note.safety-note{background:#fff3cd;color:#6b4e00;border:1px solid #ead18a;border-radius:9px;padding:8px 10px;font-weight:800}
 .src-badge{display:inline-block;font-size:11px;font-weight:700;background:#EAF0FA;color:#3D5A8F;border-radius:6px;padding:1px 7px;margin-left:6px;vertical-align:2px;letter-spacing:.03em}
@@ -495,8 +507,12 @@ h2.step .cnt{letter-spacing:0;color:var(--green);font-weight:900}
 .mat .note{font-size:12.5px;color:var(--ink-soft);margin-top:7px}
 .mat-teaser{background:#F3F8F1;border:1.5px dashed #B9D2B0;border-radius:var(--radius);padding:15px 16px;text-align:center;font-size:14.5px;color:var(--ink-soft)}
 .mat-teaser b{color:var(--ok)}
-.agent .acts{display:grid;grid-template-columns:1fr 1.35fr 1fr;gap:8px;margin-top:11px}
-.agent .acts .btn{min-width:0;padding:9px 8px;font-size:14px}
+.agent .acts{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 8px;margin-top:18px}
+.agent .acts .btn{min-width:0;min-height:44px;padding:10px 8px;font-size:15px;border-radius:12px}
+.agent .acts .btn:first-child{grid-column:1/-1;min-height:48px;font-size:16px}
+.agent .acts .btn:not(:first-child){border-color:transparent;background:transparent;color:var(--green-deep);box-shadow:none}
+@media(max-width:360px){.agent{padding:16px}.agent .facts{gap:12px}.agent .fact .v{font-size:25px}.agent .fact .v.fact-text{font-size:18px}}
+@container(max-width:260px){.agent .facts{grid-template-columns:minmax(0,1fr)}}
 .btn-record{font-size:13px;line-height:1.28;white-space:normal;word-break:keep-all}
 .btn{font-family:inherit;font-size:15px;font-weight:700;border-radius:11px;padding:11px 15px;cursor:pointer;border:1.5px solid transparent;min-height:44px}
 .btn-main{background:var(--green);color:#fff;flex:1}
@@ -1001,6 +1017,7 @@ nav button.on{color:var(--green)}
         <div class="chips" id="pestChips"></div>
       </div>
       <div id="agentBlock" style="display:none">
+        <div class="agent-context" id="agentContext"></div>
         <h2 class="step"><b>4</b>登記藥劑 <span class="cnt" id="agentCount"></span></h2>
         <div class="phi-filter" id="phiFilter" style="display:none">
           <span class="phi-label">採收期篩選</span>
@@ -2086,6 +2103,21 @@ function phiBox(phi,adjusted,seed,phiText){
     :(adjusted?' title="已依備註採較長天數"':'');
   return `<div class="phi ${cls}"${tip}><div class="n${range?' range':''}">${range||phi}</div><div class="l">${adjusted?'備註最長':'天採收期'}</div></div>`;
 }
+/* 卡片呈現不改變採收倒數、篩選或計算的數值。區間保留原文。 */
+function agentPhiPresentation(a,seed){
+  if(a.phi==null)return {value:seed?"不適用":"請查產品標示",text:true};
+  const range=a.phiText&&/^\d+(?:\.\d+)?(?:-\d+(?:\.\d+)?)+$/.test(a.phiText)?a.phiText:"";
+  return {value:(range||a.phi)+" 天",text:false};
+}
+/* dose 來源為「每公頃使用用藥量」，但欄位亦含每株、每桶及特殊用途。
+   僅普通稀釋用法的純質量／體積值顯示面積基準，其他保留原文。 */
+function agentDosePresentation(a,usage,seed){
+  const value=String(a.dose||"").trim();
+  if(!value||/^[-—–]+$/.test(value))return null;
+  const plain=/^\d[\d,]*(?:\.\d+)?(?:\s*[-~～至]\s*\d[\d,]*(?:\.\d+)?)?\s*(?:公升|毫升|公撮|公斤|公克)$/i.test(value);
+  const area=plain&&usage.canCalculateDilution&&!usage.isSpecial&&!seed;
+  return {value,label:area?"每公頃每次用量":"登記用量（依原單位）",detail:area?"指藥劑製品用量，非稀釋後水量。":"請依原登記單位、附註及產品標示核對。"};
+}
 function parseDil(s){
   if(window.PQC_AIDS&&!PQC_AIDS.isDilutionMultiple(s))return null;
   const nums=String(s||"").replace(/,/g,"").match(/\d+(\.\d+)?/g);
@@ -2180,7 +2212,15 @@ function applyCustomPhi(btn){
   }
   setPhiFilter(btn,value);
 }
+let agentHeaderObserver=null;
 function renderAgents(){
+  document.getElementById("agentContext").textContent=selCrop+" › "+selPest;
+  const header=document.querySelector("header");
+  const alignContext=()=>{document.getElementById("agentContext").style.top=(header?header.offsetHeight:0)+"px"};
+  alignContext();
+  if(header&&!agentHeaderObserver&&typeof ResizeObserver!=="undefined"){
+    agentHeaderObserver=new ResizeObserver(alignContext);agentHeaderObserver.observe(header);
+  }
   const allList=CUR[selPest].list;
   const list=phiMax?allList.filter(a=>a.phi!=null&&a.phi<=phiMax):allList;
   /* 近 30 天內同作物施藥的作用機制,用於輪用警示 */
@@ -2212,31 +2252,36 @@ function renderAgents(){
       ?`<span class="rot-warn">輪用提醒:${esc(recentMoa[a.moa].date)} 於「${esc(recentMoa[a.moa].crop)}」施用過同作用機制(${esc(recentMoa[a.moa].agent)}),建議改用其他代碼藥劑。</span>`:"";
     const seed=!!(window.PQC_AIDS&&PQC_AIDS.isSeedTreatment(a));
     const usage=usagePresentationSafe(a);
+    const harvest=agentPhiPresentation(a,seed);
+    const dose=agentDosePresentation(a,usage,seed);
     return `
     <div class="agent">
       ${reason?`<div class="form-reason">⚠ ${esc(reason)}</div>`:""}
       <div class="top">
-        <div><h3>${esc(a.name)}${a.src!==selCrop?`<span class="src-badge">登記於:${esc(a.src)}</span>`:""}${formTags}${seed?`<span class="seed-tag">種子處理・非噴施</span>`:(usage.isSpecial?`<span class="special-use-tag">${esc(usage.value)}</span>`:"")}${mrlStatusTag(mrlHit)}</h3>
-          <div class="sub">${ftag}${mtag}${esc(a.content||"")} ${esc(a.form||"")}${bl.length===1?` · <span class="prod">${esc(bl[0])}</span>`:""}</div>
+        <div><h3>${esc(a.name)}</h3>
+          <div class="sub">${esc(a.content||"")} ${esc(a.form||"")}</div>
+          ${bl.length===1?`<div class="sub">商品名稱：<span class="prod">${esc(bl[0])}</span></div>`:""}
+          <div class="agent-tags">${ftag}${mtag}${a.src&&a.src!==selCrop?`<span class="src-badge">登記於:${esc(a.src)}</span>`:""}${formTags}${seed?`<span class="seed-tag">種子處理・非噴施</span>`:(usage.isSpecial?`<span class="special-use-tag">${esc(usage.value)}</span>`:"")}${mrlStatusTag(mrlHit)}</div>
           ${bl.length>1?`<button class="brand-toggle" onclick="openAgentBrands(${k})">查看 ${bl.length} 個可用商品</button>`:""}</div>
-        ${phiBox(a.phi,a.phiAdjusted,seed,a.phiText)}
       </div>
       <div class="facts">
-        <div class="fact"><div class="v">${esc(usage.value)}</div><div class="k">${esc(usage.label)}</div></div>
-        ${usage.detail?`<div class="fact"><div class="v">${esc(usage.detail)}</div><div class="k">登記施用方式</div></div>`:""}
-        ${a.dose&&a.dose!=="-"?`<div class="fact"><div class="v">${esc(a.dose)}</div><div class="k">登記用量</div></div>`:""}
-        ${a.times?`<div class="fact"><div class="v">${esc(a.times)}</div><div class="k">施用次數</div></div>`:""}
+        <div class="fact"><div class="k">${esc(usage.label)}</div><div class="v${usage.isSpecial?' fact-text':''}">${esc(usage.value)}</div></div>
+        <div class="fact agent-harvest"><div class="k">安全採收期</div><div class="v${harvest.text?' fact-text':''}">${esc(harvest.value)}</div>${a.phiAdjusted?'<div class="dose-basis">已依備註採較長天數</div>':""}</div>
       </div>
+      ${dose?`<div class="fact agent-dose"><div class="k">${esc(dose.label)}</div><div class="v">${esc(dose.value)}</div><div class="dose-basis">${esc(dose.detail)}</div></div>`:""}
+      ${usage.detail?`<div class="fact agent-detail"><div class="k">登記施用方式</div><div class="v">${esc(usage.detail)}</div></div>`:""}
+      ${a.times?`<div class="fact agent-detail"><div class="k">施用次數</div><div class="v">${esc(a.times)}</div></div>`:""}
       ${rw}
       ${seed?`<div class="note seed-note">此為<b>種子處理</b>用途，不是作物生長期間的一般噴施；請依登記用量與產品標示操作。安全採收期不適用。</div>`:(usage.isSpecial?`<div class="note special-use-note"><b>用途：${esc(usage.value)}</b>。這筆沒有數字稀釋資料，請依登記用量、施用方式及產品標示操作。</div>`:"")}
       ${a.phiAdjusted?`<div class="note safety-note">安全採收期已依備註採較長的 ${a.phi} 天；仍請核對產品標示與栽培方式。</div>`:""}
       ${mrlNoDetectNotice(selCrop,a.name,mrlOptions)}
       ${a.note?`<div class="note">${esc(a.note)}</div>`:""}
       <div class="acts">
-        ${usage.canCalculateDilution?`<button class="btn btn-main" onclick="toCalc(${k})">帶入計算</button>`:`<button class="btn btn-ghost" disabled title="此用法沒有可帶入的數字稀釋資料">不適用稀釋計算</button>`}
-        <button class="btn btn-ghost btn-record" onclick="recordAgent(${k})">紀錄用藥<br>有採收期才倒數</button>
-        <button class="btn btn-ghost" onclick="quickSaveAgent(${k})">存配方</button>
+        ${usage.canCalculateDilution?`<button class="btn btn-main" onclick="toCalc(${k})">配藥計算</button>`:`<button class="btn btn-ghost" disabled title="此用法沒有可帶入的數字稀釋資料">不適用稀釋計算</button>`}
+        <button class="btn btn-ghost btn-record" onclick="recordAgent(${k})">紀錄用藥</button>
+        <button class="btn btn-ghost" onclick="quickSaveAgent(${k})">存入配方</button>
       </div>
+      <div class="record-hint">有明確安全採收期的紀錄才會建立倒數。</div>
       <button class="report-link" onclick="openAgentReport(${k})">回報此筆資料問題</button>
     </div>`};
   /* 依型態分組(未選型態時 split 全數落在 unspecified,順序=原順序,行為不變) */
