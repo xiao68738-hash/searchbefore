@@ -31,7 +31,7 @@
 
 ## 3. 原生改寫進度
 
-新增同專案 `android-native` Kotlin／Compose 模組，已可建置獨立 debug APK。9 項 JUnit 核心測試通過。新增資料全量對照測試，確認 17,333 筆與相關導引分離。沒有 WebView／Chrome 容器。
+新增同專案 `android-native` Kotlin／Compose 模組，已可建置獨立 debug APK。最新續作共 14 項 JUnit 測試通過（核心 9、紀錄編輯 5）。新增資料全量對照測試，確認 17,333 筆與相關導引分離。沒有 WebView／Chrome 容器。
 
 本輪續作：新增田區／種植批次、相同原登記作物的用藥歸屬、田區篩選；未指定紀錄不自動歸屬。新田區沿用網站 `name/crop/tag/plantDate` 格式，未填日期保持空白，拒絕非法／未來日期與跨作物歸屬，修改失敗不改原資料。備份中小數採收天數向上取整，不截短等待日數；未知值不當作零。Kotlin 使用 in-process 編譯，避免受限環境的 daemon 目錄權限錯誤。
 
@@ -46,6 +46,6 @@ rtk proxy node scripts/check-release.mjs
 rtk proxy powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-android-native.ps1
 ```
 
-截至本輪整合目錄：42 個不同 Node 測試檔（runner 另重跑 2 次分類測試）、9 個原生核心測試；Web 成品 36 檔、6.53 MB。最終命令輸出與原生 XML 報告才是執行證據，不把本文件當自動通過標記。既有 GitHub CI 只跑 Node 回歸；原生 Gradle 測試及 APK 是本機結果。無連接手機，不宣稱原生 UI 或真實雲端驗收通過。
+截至本輪：42 個不同 Node 測試檔（runner 另重跑 2 次分類測試）、14 個原生測試；前輪 Web 成品 36 檔、6.53 MB。最新原生紀錄／田區編輯及待驗收步驟見 [紀錄編輯續作](NATIVE-RECORD-EDITING-2026-09-16.md)。最終命令輸出與原生 XML 報告才是執行證據，不把本文件當自動通過標記。既有 GitHub CI 只跑 Node 回歸；原生 Gradle 測試及 APK 是本機結果。無連接手機，不宣稱原生 UI 或真實雲端驗收通過。
 
 下一步：Web PR 審查後再部署與真實還原驗收；原生以草稿 PR 持續移轉。保持兩份獨立交付，不為發布同步修復而更換成未完成的原生版。本輪不合併、不發布 Play。

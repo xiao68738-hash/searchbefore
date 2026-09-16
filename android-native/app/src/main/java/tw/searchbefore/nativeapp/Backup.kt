@@ -106,6 +106,40 @@ object Backup {
         next.getJSONArray("records").put(record(row, date).put("plotId", plotId))
         return parse(encode(next))
     }
+    private fun nextStamp(previous: String): String {
+        val now = Instant.now()
+        val old = previous.takeIf { it.isNotEmpty() }?.let { Instant.parse(it) }
+        val next = if (old != null && !old.isBefore(now)) old.plusMillis(1) else now
+        return DateTimeFormatterBuilder().appendInstant(3).toFormatter().format(next)
+    }
+    fun updateRecord(data: JSONObject, id: String, expectedStamp: String, date: String, plotId: String, operator: String): JSONObject {
+        require(validDate(date) && !LocalDate.parse(date).isAfter(LocalDate.now())) { "請填有效的實際施藥日期，不可填未來日期" }
+        require(operator.trim().length <= 120) { "操作者姓名過長" }
+        val next = JSONObject(data.toString())
+        val records = next.getJSONArray("records")
+        val record = (0 until records.length()).map { records.getJSONObject(it) }.find { it.getString("id") == id }
+        requireNotNull(record) { "找不到原紀錄，請重新開啟" }
+        require(record.optString("updatedAt") == expectedStamp) { "紀錄已更新，請重新開啟再編輯" }
+        if (plotId.isNotEmpty()) {
+            val plot = plots(next).find { it.getString("id") == plotId }
+            require(plot != null && plot.optString("crop", plot.optString("name")) == record.getString("crop")) { "田區與登記作物不符" }
+        }
+        record.put("date", date).put("plotId", plotId).put("operator", operator.trim())
+            .put("updatedAt", nextStamp(expectedStamp))
+        // Update a clone in place: unknown backup fields and other records survive.
+        return parse(encode(next))
+    }
+    fun updatePlot(data: JSONObject, id: String, expectedStamp: String, tag: String, plantDate: String): JSONObject {
+        require(tag.trim().length in 1..120) { "請填寫 1～120 字的田區名稱" }
+        require(plantDate.isEmpty() || (validDate(plantDate) && !LocalDate.parse(plantDate).isAfter(LocalDate.now()))) { "種植日期不正確或尚未發生" }
+        val next = JSONObject(data.toString())
+        val plot = plots(next).find { it.getString("id") == id }
+        requireNotNull(plot) { "找不到原田區，請重新開啟" }
+        require(plot.optString("updatedAt") == expectedStamp) { "田區已更新，請重新開啟再編輯" }
+        // Crop/id remain immutable here so existing spray and farm records keep their meaning.
+        plot.put("tag", tag.trim()).put("plantDate", plantDate).put("updatedAt", nextStamp(expectedStamp))
+        return parse(encode(next))
+    }
     fun record(row: UsageRow, date: String): JSONObject {
         require(validDate(date)) { "請輸入 YYYY-MM-DD 日期" }
         require(!LocalDate.parse(date).isAfter(LocalDate.now())) { "實際施藥紀錄不可填未來日期" }

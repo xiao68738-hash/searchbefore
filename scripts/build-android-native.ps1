@@ -1,4 +1,4 @@
-param([string]$SharedRoot = "D:\SearchBefore")
+param([string]$SharedRoot = "D:\SearchBefore", [switch]$Lint)
 $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $changes = @{
@@ -15,7 +15,9 @@ try {
     }
     & (Join-Path $SharedRoot "tools\node\node.exe") (Join-Path $PSScriptRoot "export-native-catalog.cjs")
     if ($LASTEXITCODE -ne 0) { throw "Native catalog export failed" }
-    & (Join-Path $projectRoot "android-twa\gradlew.bat") -p (Join-Path $projectRoot "android-native") --no-daemon :app:testDebugUnitTest :app:assembleDebug
+    $nativeTasks = @(':app:testDebugUnitTest', ':app:assembleDebug')
+    if ($Lint) { $nativeTasks += ':app:lintDebug' }
+    & (Join-Path $projectRoot "android-twa\gradlew.bat") -p (Join-Path $projectRoot "android-native") --no-daemon @nativeTasks
     if ($LASTEXITCODE -ne 0) { throw "Native preview build/test failed" }
 } finally {
     foreach ($key in $previous.Keys) { [Environment]::SetEnvironmentVariable($key, $previous[$key], "Process") }
