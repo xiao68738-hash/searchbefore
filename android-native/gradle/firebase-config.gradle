@@ -1,0 +1,27 @@
+// Shared build-time validation. Never include config values in errors or logs.
+ext.nativeFirebaseValues = { config, boolean production ->
+    def reject = { throw new GradleException("Invalid native Firebase configuration; verify project, package, app ID and OAuth certificate") }
+    def packageName = production ? "tw.searchbefore.app" : "tw.searchbefore.app.nativepreview"
+    def appId = production ? "1:934300362639:android:a4a93aadef727eb2a5cdfa" : "1:934300362639:android:f8ffd9528072e4f5a5cdfa"
+    if (!(config instanceof Map) || config.project_info?.project_id != "searchbefore-4648b" ||
+            config.project_info?.project_number?.toString() != "934300362639" || !(config.client instanceof List)) reject()
+    def clients = config.client.findAll { it?.client_info?.android_client_info?.package_name == packageName }
+    if (clients.size() != 1) reject()
+    def client = clients[0]
+    if (client.client_info?.mobilesdk_app_id != appId || !(client.oauth_client instanceof List)) reject()
+    def web = client.oauth_client.findAll { it?.client_type == 3 }
+    if (web.size() != 1 || !(web[0]?.client_id instanceof String) ||
+            !(web[0].client_id ==~ /[0-9]+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com/)) reject()
+    if (production) {
+        def android = client.oauth_client.findAll { it?.client_type == 1 &&
+            it?.android_info?.package_name == packageName &&
+            it?.android_info?.certificate_hash?.toLowerCase(java.util.Locale.ROOT) == "9099bff03db174c03b5111d01128e3a439590ae9" }
+        if (android.size() != 1 || !(android[0]?.client_id instanceof String) ||
+                !(android[0].client_id ==~ /[0-9]+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com/)) reject()
+    }
+    if (!(client.api_key instanceof List) || client.api_key.size() != 1 ||
+            !(client.api_key[0]?.current_key instanceof String) || !(client.api_key[0].current_key ==~ /[A-Za-z0-9_-]{30,100}/)) reject()
+    [google_app_id: appId, google_api_key: client.api_key[0].current_key,
+        project_id: config.project_info.project_id, gcm_defaultSenderId: config.project_info.project_number.toString(),
+        default_web_client_id: web[0].client_id]
+}

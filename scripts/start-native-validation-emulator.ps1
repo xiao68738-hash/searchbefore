@@ -11,9 +11,14 @@ $logDir = Join-Path $SharedRoot ("audits\native-emulator-" + (Get-Date -Format "
 New-Item -ItemType Directory -Path $logDir | Out-Null
 $oldAvd = $env:ANDROID_AVD_HOME
 $oldSdk = $env:ANDROID_HOME
+$oldUser = $env:ANDROID_USER_HOME
+$oldEmulator = $env:ANDROID_EMULATOR_HOME
 try {
     $env:ANDROID_AVD_HOME = $avdRoot
     $env:ANDROID_HOME = Join-Path $SharedRoot "tools\android-sdk"
+    $env:ANDROID_USER_HOME = Join-Path $logDir "android-user-home"
+    New-Item -ItemType Directory -Path $env:ANDROID_USER_HOME | Out-Null
+    $env:ANDROID_EMULATOR_HOME = $env:ANDROID_USER_HOME
     # Disposable overlay. No wipe-data, no snapshot writes, and no change to the existing AVD.
     $process = Start-Process -FilePath $emulator -WindowStyle Hidden -PassThru -ArgumentList @(
         '-avd', 'SearchBefore_API36_Fresh', '-read-only', '-no-snapshot', '-no-window',
@@ -23,4 +28,6 @@ try {
 } finally {
     $env:ANDROID_AVD_HOME = $oldAvd
     $env:ANDROID_HOME = $oldSdk
+    $env:ANDROID_USER_HOME = $oldUser
+    $env:ANDROID_EMULATOR_HOME = $oldEmulator
 }

@@ -3,6 +3,11 @@ plugins {
     id "org.jetbrains.kotlin.android"
     id "org.jetbrains.kotlin.plugin.compose"
 }
+def internalCandidate = providers.gradleProperty("nativeInternalCandidate").orNull == "true"
+def signingPath = System.getenv("SEARCHBEFORE_KEYSTORE_PATH")
+def signingAlias = System.getenv("SEARCHBEFORE_KEY_ALIAS")
+def signingStorePassword = System.getenv("SEARCHBEFORE_STORE_PASSWORD")
+def signingKeyPassword = System.getenv("SEARCHBEFORE_KEY_PASSWORD")
 android {
     namespace "tw.searchbefore.nativeapp"
     compileSdk 36
@@ -11,17 +16,28 @@ android {
         minSdk 23
         targetSdk 36
         versionCode 5
-        versionName "1.1.0-native-preview"
+        versionName "1.1.0-internal"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-    buildTypes {
-        debug { applicationIdSuffix ".nativepreview" }
-        release { minifyEnabled false }
+    signingConfigs {
+        release {
+            if (internalCandidate && signingPath && signingAlias && signingStorePassword && signingKeyPassword) {
+                storeFile file(signingPath)
+                storePassword signingStorePassword
+                keyAlias signingAlias
+                keyPassword signingKeyPassword
+            }
+        }
     }
-    buildFeatures { compose true }
+    buildTypes {
+        debug { applicationIdSuffix ".nativepreview"; versionNameSuffix "-preview" }
+        release { minifyEnabled false; signingConfig signingConfigs.release }
+    }
+    buildFeatures { compose true; buildConfig true }
     lint { warningsAsErrors true }
     sourceSets.main.res.srcDir(layout.buildDirectory.dir("generated/branding/res"))
     sourceSets.debug.res.srcDir(layout.buildDirectory.dir("generated/firebase/res"))
+    sourceSets.release.res.srcDir(layout.buildDirectory.dir("generated/firebase-production/res"))
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -67,24 +83,26 @@ tasks.register("nativeBranding", Copy) {
     rename { "native_logo.png" }
 }
 tasks.named("preBuild").configure { dependsOn("checkNativeCatalog", "nativeBranding") }
-tasks.register("nativeFirebase") {
-    def source = rootProject.file("firebase-preview.json")
+apply from: rootProject.file("gradle/firebase-config.gradle")
+apply from: rootProject.file("gradle/firebase-config-tests.gradle")
+def registerNativeFirebase = { String taskName, String configName, String outputDir, boolean production ->
+tasks.register(taskName) {
+    def source = rootProject.file(configName)
     inputs.files(source.exists() ? [source] : [])
-    outputs.dir(layout.buildDirectory.dir("generated/firebase/res"))
+    inputs.property("production", production)
+    outputs.dir(layout.buildDirectory.dir(outputDir))
+    // Recheck the identity every time; a stale generated resource is not acceptance.
+    outputs.upToDateWhen { false }
     doLast {
-        def output = layout.buildDirectory.file("generated/firebase/res/values/firebase.xml").get().asFile
+        if (production && !source.exists()) throw new GradleException("Missing firebase-production.json; preview config cannot substitute for production")
+        def output = layout.buildDirectory.file("${outputDir}/values/firebase.xml").get().asFile
         output.parentFile.mkdirs()
         def values = [:]
         if (source.exists()) {
-            def config = new groovy.json.JsonSlurper().parse(source)
-            if (config.project_info.project_id != "searchbefore-4648b") throw new GradleException("Wrong Firebase project")
-            def client = config.client.find { it.client_info.android_client_info.package_name == "tw.searchbefore.app.nativepreview" }
-            if (!client) throw new GradleException("Missing native preview Firebase client")
-            def webClient = client.oauth_client.find { it.client_type == 3 }
-            if (!webClient) throw new GradleException("Missing Google OAuth web client; verify Android SHA configuration")
-            values = [google_app_id: client.client_info.mobilesdk_app_id, google_api_key: client.api_key[0].current_key,
-                project_id: config.project_info.project_id, gcm_defaultSenderId: config.project_info.project_number,
-                default_web_client_id: webClient.client_id]
+            def config
+            try { config = new groovy.json.JsonSlurper().parse(source) }
+            catch (Exception ignored) { throw new GradleException("Native Firebase configuration is unreadable or invalid JSON; contents are not logged") }
+            values = nativeFirebaseValues(config, production)
         }
         def xml = new StringWriter()
         // FirebaseOptions.fromResource reads project_id dynamically; keep the SDK resource explicitly.
@@ -96,10 +114,30 @@ tasks.register("nativeFirebase") {
         output.setText(xml.toString(), "UTF-8")
     }
 }
-tasks.configureEach { if (name == "preDebugBuild") dependsOn("nativeFirebase") }
-// Preview cannot accidentally be promoted as the production replacement.
+}
+registerNativeFirebase("nativeFirebase", "firebase-preview.json", "generated/firebase/res", false)
+registerNativeFirebase("nativeFirebaseProduction", "firebase-production.json", "generated/firebase-production/res", true)
+tasks.configureEach {
+    if (name == "preDebugBuild") dependsOn("nativeFirebase", "checkNativeFirebaseConfig")
+    if (name == "preReleaseBuild") dependsOn("nativeFirebaseProduction", "checkNativeFirebaseConfig")
+}
+// Default release builds remain blocked. Explicit candidate builds do NOT authorize production rollout.
+// Play track selection is a separate Console action; this is not a technical track restriction on the AAB.
 tasks.configureEach {
     if (name == "preReleaseBuild") doFirst {
-        throw new GradleException("Native release blocked: Google login/cloud sync and migration acceptance remain incomplete. See android-native/README.md")
+        if (!internalCandidate) throw new GradleException("Native release blocked: use the explicit internal-candidate script; production acceptance remains incomplete")
+        if (!signingPath || !signingAlias || !signingStorePassword || !signingKeyPassword) {
+            throw new GradleException("Internal candidate requires the existing upload signing identity")
+        }
+        try {
+            def keyStore = java.security.KeyStore.getInstance(file(signingPath), signingStorePassword.toCharArray())
+            def certificate = keyStore.getCertificate(signingAlias)
+            def digest = java.security.MessageDigest.getInstance("SHA-256").digest(certificate.encoded).encodeHex().toString()
+            if (digest != "d749133d6c22aabb0e48654a424652f45dbf9220c2c586813a9347cda7bf2fbe") {
+                throw new IllegalArgumentException("identity mismatch")
+            }
+        } catch (Exception ignored) {
+            throw new GradleException("Internal candidate upload signing identity check failed; key details are not logged")
+        }
     }
 }

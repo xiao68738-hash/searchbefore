@@ -46,4 +46,17 @@ class NativeNavigationTest {
         compose.onNodeWithText("紀錄", useUnmergedTree = true).performClick()
         compose.onNodeWithText("新增田區／種植批次").assertExists()
     }
+    @Test fun migrationGuideIsOptionalAndNeverStartsLoginOrImportByItself() {
+        ready()
+        compose.onNodeWithText("舊版資料移轉").performClick()
+        compose.onNodeWithText("把舊版紀錄帶過來").assertIsDisplayed()
+        compose.onNodeWithText("前往個人頁").performScrollTo()
+        compose.onNodeWithText("前往個人頁").performClick()
+        compose.onNodeWithText("你的資料").assertExists()
+        compose.onNodeWithText("同意合併雲端紀錄？").assertDoesNotExist()
+        compose.onNodeWithText("確認匯入備份").assertDoesNotExist()
+        compose.onNodeWithText("舊版資料移轉").performClick()
+        compose.onNodeWithText("先繼續使用").performClick()
+        compose.onNodeWithText("把舊版紀錄帶過來").assertDoesNotExist()
+    }
 }

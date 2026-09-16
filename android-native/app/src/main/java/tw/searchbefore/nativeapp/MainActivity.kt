@@ -53,6 +53,7 @@ class MainActivity : ComponentActivity() {
                 }
                 var consent by remember { mutableStateOf(false) }
                 var consentAccount by remember { mutableStateOf("") }
+                var migrationHelp by rememberSaveable { mutableStateOf(false) }
                 val export = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
                     if (uri != null) state.export(uri)
                 }
@@ -77,7 +78,8 @@ class MainActivity : ComponentActivity() {
                 }) { padding ->
                     Column(Modifier.padding(padding).padding(horizontal = 16.dp).fillMaxSize()) {
                         Text("噴前查", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(top = 12.dp))
-                        Text("原生開發預覽・不取代目前正式功能", style = MaterialTheme.typography.labelMedium)
+                        Text(if (BuildConfig.DEBUG) "原生開發預覽" else "原生候選版・僅供內部測試", style = MaterialTheme.typography.labelMedium)
+                        TextButton(enabled = !state.busy, onClick = { migrationHelp = true }) { Text("舊版資料移轉") }
                         if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 8.dp))
                         if (state.canUndo) TextButton(enabled = !state.busy, onClick = state::undo) { Text("撤銷上次本機修改") }
                         if (state.error.isNotBlank()) {
@@ -150,10 +152,27 @@ class MainActivity : ComponentActivity() {
                 }
                 state.pendingImport?.let { pending ->
                     AlertDialog(onDismissRequest = { state.pendingImport = null }, title = { Text("確認匯入備份") },
-                        text = { Text("讀入 ${pending.getJSONArray("records").length()} 筆用藥、${pending.getJSONArray("farmRecords").length()} 筆農務、${pending.getJSONArray("fieldPlots").length()} 個田區。只替換原生預覽內的資料，上一份資料會保留供回復。網站與雲端不變。") },
+                        text = { Text("讀入 ${pending.getJSONArray("records").length()} 筆用藥、${pending.getJSONArray("farmRecords").length()} 筆農務、${pending.getJSONArray("fieldPlots").length()} 個田區。只替換此裝置的原生 APP 資料，上一份資料會保留供回復。網站與雲端不變。") },
                         confirmButton = { TextButton(enabled = !state.busy, onClick = { state.pendingImport = null; persist(pending, true) }) { Text("保留上一份並匯入") } },
                         dismissButton = { TextButton(onClick = { state.pendingImport = null }) { Text("取消") } })
                 }
+                if (migrationHelp) AlertDialog(onDismissRequest = { migrationHelp = false }, title = { Text("把舊版紀錄帶過來") },
+                    text = {
+                        Column(Modifier.verticalScroll(rememberScrollState()).testTag("migrationHelp"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Text("升級不會自動讀取瀏覽器裡的舊紀錄。請先備份，不要清除 Chrome 資料或移除舊版；空白清單不代表舊資料已刪除。")
+                            Text("1. 用原本的瀏覽器開啟 searchbefore.tw，在個人頁匯出完整 JSON 備份。配方與偏好設定請使用這種方式移轉。")
+                            OutlinedButton(onClick = {
+                                runCatching { startActivity(Intent(Intent.ACTION_VIEW, "https://searchbefore.tw/".toUri())) }
+                                    .onFailure { state.error = "無法開啟瀏覽器，請自行開啟 https://searchbefore.tw/ 匯出備份。" }
+                            }) { Text("開啟網站備份") }
+                            Text("2. 選擇 JSON 備份並核對筆數。匯入會替換此裝置的原生資料，保留上一份供回復，不會清除網站或雲端資料。")
+                            OutlinedButton(enabled = !state.busy, onClick = { migrationHelp = false; importBackup.launch(arrayOf("application/json", "text/plain")) }) { Text("選擇 JSON 備份") }
+                            Text("3. 若舊版已完成雲端同步，可在個人頁登入同一 Google 帳號，再自行開啟同步並按立即同步。僅登入不會還原；雲端不包含配方與偏好。")
+                            TextButton(onClick = { migrationHelp = false; tab = 4 }) { Text("前往個人頁") }
+                            Text("完成後請核對田區、用藥日期、用量、農務和配方。尚未核對前，請保留原始備份；內部測試不代表正式驗收完成。")
+                        }
+                    },
+                    confirmButton = { TextButton(onClick = { migrationHelp = false }) { Text("先繼續使用") } })
                 if (consent) AlertDialog(onDismissRequest = { consent = false }, title = { Text("同意合併雲端紀錄？") },
                     text = { Text("帳號：${state.accountLabel}\n同步範圍包含用藥紀錄、田區、農務紀錄與刪除標記。配方與偏好設定不會上傳。按立即同步後會與此帳號的既有雲端資料合併；匯入備份會再次暫停同步。") },
                     confirmButton = { TextButton(enabled = !state.busy && state.signedIn && !state.ownerConflict && state.accountId == consentAccount, onClick = { consent = false; state.setSyncEnabled(true) }) { Text("同意開啟") } },

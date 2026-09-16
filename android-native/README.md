@@ -1,8 +1,8 @@
 # 噴前查原生 Android 開發
 
-2026-09-16：**原生預覽階段，不是完整替代版，不可發布到正式群組。**
+2026-09-16：**原生候選版階段，不是已驗收的完整替代版，不可發布到正式群組。** 使用者僅同意內部測試，不更動 Alpha／正式版，也不新增測試者。
 
-正式套件 `tw.searchbefore.app` 的 Firebase app 與 Play SHA-1／SHA-256 已經使用者同意建立；正式設定檔下載與 release 資源接入仍待完成，不能以預覽設定代替。詳見 [正式登入設定紀錄](../docs/NATIVE-PRODUCTION-FIREBASE-2026-09-16.md)。
+正式套件 `tw.searchbefore.app` 的 Firebase app 與 Play SHA-1／SHA-256 已經使用者同意建立；使用者提供的正式設定檔已核對並接入獨立 release resources，不能以預覽設定代替。正式簽署登入與移轉驗收仍待辦，發布鎖定保留。詳見 [正式登入設定紀錄](../docs/NATIVE-PRODUCTION-FIREBASE-2026-09-16.md)。
 
 與 `android-twa` 位於同一 Git 專案，但使用獨立 Gradle 專案。Kotlin + Jetpack Compose 畫面，沒有 WebView、Chrome 容器或執行期 JavaScript。
 
@@ -31,7 +31,7 @@
 
 | 項目 | 狀態／下一步 |
 |---|---|
-| Google 原生登入 | Android 11 預覽真實登入、登出與同帳號重登通過；正式 Firebase app／Play 指紋已設定，正式設定檔接入與實測待辦，取消／跨帳號完整驗收待辦 |
+| Google 原生登入 | Android 11 預覽真實登入、登出與同帳號重登通過；正式 Firebase app／Play 指紋與資源已接入，正式簽署實測、取消／跨帳號完整驗收待辦 |
 | 原生雲端同步 | 空白安裝下載、1 筆 TEST_ONLY 上傳與重登同步通過；第二台空白裝置還原新增資料、離線與跨帳號實測待辦 |
 | 田區、農務、設備、配方編輯 | 已接入本機編輯、刪除確認與撤銷；仍需真實資料回歸與手機操作驗收 |
 | 採收總覽／多筆用藥判斷 | 已有田區彙整與未知優先，37 組網站對照通過；仍需真實資料驗收，不是可採收許可 |
@@ -57,14 +57,22 @@ rtk proxy powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-andr
 - 單元測試：`app/build/reports/tests/testDebugUnitTest/index.html`
 - namespace：`tw.searchbefore.nativeapp`
 - debug applicationId：`tw.searchbefore.app.nativepreview`，與現有 APP 並存。
-- 正式基礎 applicationId：`tw.searchbefore.app`；未套用正式簽署。
+- 正式基礎 applicationId：`tw.searchbefore.app`；內部候選使用既有 upload key 簽署 AAB，由 Play App Signing 簽署派送的 APK。本機 upload key 不等於 Play 安裝簽章。
 - compile/target API 36，min API 23，Java 17／desugaring。
-- versionCode 5 僅為預覽預留；真正發布前須重查 Play 當時最大版本。
+- versionCode 5／versionName `1.1.0-internal`；2026-09-16 本輪 Play 最大套件代碼為 4。上傳時仍須留意並行發布造成版本衝突。
 - 預覽的 `firebase-preview.json` 由 Firebase Console 下載，必須符合預覽 package 與 project，且包含 Web OAuth client；此檔忽略於 Git。無設定時仍可使用本機功能，但登入不啟用。不能用此設定替代正式 Play 身分。
 
 最新實測結果與尚未通過項目集中在 [原生整合驗收](../docs/NATIVE-INTEGRATION-2026-09-16.md)，歷史測試數字不代表目前整包已驗收。
 
-`preReleaseBuild` 目前會主動拒絕執行，避免誤把未完成的原生版發給現有用戶。完成上述功能、資料移轉與安全驗收後，才可在另外的審查變更中解除。不要繞過保護直接打包正式版。
+一般 `preReleaseBuild` 仍會拒絕執行。僅明確的內部候選腳本可帶入正式 Firebase 設定與既有 upload key，並檢查上傳憑證 SHA-256、release 單元測試、Lint 再產出 AAB：
+
+```powershell
+rtk proxy powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-android-native-internal.ps1 -InternalTestingOnly
+```
+
+此腳本不執行上傳／发布，也不儲存密碼到 Git。**AAB 本身不能限制 Play 軌道**：內部測試限制必須在 Console 的實際發布操作遵守，不可將此候選提升到 Alpha 或正式版。正式 Google 登入與 TWA 升級仍必須使用 Play 派送版本驗收。
+
+APP 已提供「舊版資料移轉」入口；不自動登入、讀 Chrome 或上傳。先在原瀏覽器匯出完整 JSON，再核對匯入筆數；僅已有雲端同步的資料可從同帳號還原，雲端不含配方與偏好。匯入會保留上一份本機資料並暫停同步。完整真實雙向驗收尚待完成。
 
 原生化不要求新開商店 APP，但必須維持 applicationId 與正確的 Play App Signing 身分。不要解除安裝 TWA 來測試移轉；瀏覽器 localStorage 不會自動移到原生資料目錄。
 

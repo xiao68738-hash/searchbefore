@@ -9,6 +9,8 @@ on:
       - 'android-twa/gradlew*'
       - 'scripts/export-native-*.cjs'
       - 'scripts/build-android-native.ps1'
+      - 'scripts/build-android-native-internal.ps1'
+      - 'scripts/start-native-validation-emulator.ps1'
       - 'index.html'
       - 'safety.js'
       - 'cloud-sync.js'
@@ -55,6 +57,7 @@ jobs:
       - name: Verify no private Firebase configuration is tracked
         run: |
           test ! -f android-native/firebase-preview.json
+          test ! -f android-native/firebase-production.json
           test ! -f android-native/app/google-services.json
       - name: Unit tests, debug compilation and Android API/security lint
         run: bash android-twa/gradlew -p android-native --no-daemon :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
