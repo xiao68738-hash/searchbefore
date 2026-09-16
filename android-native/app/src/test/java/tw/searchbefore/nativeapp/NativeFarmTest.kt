@@ -20,7 +20,19 @@ class NativeFarmTest {
             assertEquals("keep", reread.getJSONObject("details").getString("unknownDetail"))
             assertEquals("乙", reread.getString("operator"))
             assertEquals(0, Farm.records(original).size)
-            assertTrue(runCatching { Farm.save(edited, row.getString("id"), row.getString("updatedAt"), type, "2026-01-02", "plot1", "", "", input(type)) }.isFailure)
+            assertTrue(runCatching { Farm.save(edited, row.getString("id"), row.getString("updatedAt"), type, "2026-01-02", "plot1", "", "", input(type), true) }.isFailure)
+        }
+    }
+    @Test fun rapidEditsAlwaysAdvancePersistedMilliseconds() {
+        val previous = "2026-01-01T00:00:00.123Z"
+        for(now in listOf("2026-01-01T00:00:00.123000001Z", "2026-01-01T00:00:00.123999999Z", "2026-01-01T00:00:00.122Z")) {
+            assertEquals("2026-01-01T00:00:00.124Z", Backup.nextStamp(previous, java.time.Instant.parse(now)))
+        }
+        var stamp = previous
+        repeat(100) {
+            val next = Backup.nextStamp(stamp, java.time.Instant.parse(previous))
+            assertTrue(java.time.Instant.parse(next).isAfter(java.time.Instant.parse(stamp)))
+            stamp = next
         }
     }
     @Test fun invalidRequiredQuantityDateAndPlotAreRejected() {

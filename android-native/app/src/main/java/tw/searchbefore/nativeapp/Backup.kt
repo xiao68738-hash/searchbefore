@@ -4,6 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.time.LocalDate
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 import java.time.format.DateTimeFormatterBuilder
 import java.util.UUID
 
@@ -115,8 +116,10 @@ object Backup {
         next.getJSONArray("records").put(record(row, date).put("plotId", plotId))
         return parse(encode(next))
     }
-    fun nextStamp(previous: String = ""): String {
-        val now = Instant.now()
+    fun nextStamp(previous: String = "", observedNow: Instant = Instant.now()): String {
+        // Compare at the precision we actually persist. A nanosecond clock value can be
+        // later than the previous instant yet format to the very same millisecond.
+        val now = observedNow.truncatedTo(ChronoUnit.MILLIS)
         val old = previous.takeIf { it.isNotEmpty() }?.let { Instant.parse(it) }
         val next = if (old != null && !old.isBefore(now)) old.plusMillis(1) else now
         return DateTimeFormatterBuilder().appendInstant(3).toFormatter().format(next)
