@@ -74,6 +74,7 @@ assert.match(gradle,/d749133d6c22aabb0e48654a424652f45dbf9220c2c586813a9347cda7b
 const internalBuilder=fs.readFileSync(path.join(__dirname,'../scripts/build-android-native-internal.ps1'),'utf8');
 assert.match(internalBuilder,/if \(!\$InternalTestingOnly\) \{ throw/);
 assert.match(internalBuilder,/:app:testReleaseUnitTest :app:lintRelease :app:bundleRelease/);
+assert.match(internalBuilder,/VerifyNativeBundle\.java/);
 assert.doesNotMatch(internalBuilder,/publishBundle|upload_to_play_store|tracks\/production/);
 const builder=fs.readFileSync(path.join(__dirname,'../scripts/build-android-native.ps1'),'utf8');
 assert.match(builder,/\[switch\]\$Lint/);

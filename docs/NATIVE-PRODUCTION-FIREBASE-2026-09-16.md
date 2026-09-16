@@ -26,6 +26,8 @@
 
 ## 尚未完成
 
+以下為設定接入當時的驗證紀錄。使用者之後另同意「只發布內部測試」；最新候選建置／發布進度請讀 [內部候選驗收](NATIVE-INTERNAL-CANDIDATE-2026-09-16.md)。不是正式版發布同意。
+
 本機驗證：debug build／Lint 成功（3m52s，Lint No issues found）；既有 55 JVM 測試本輪為 UP-TO-DATE，新增 13 項 Gradle 設定檢查實際執行通過。`nativeFirebaseProduction` 使用真實正式檔成功生成資源，隨後 `preReleaseBuild` 如預期因發布鎖定失敗（不是 Firebase 設定失敗），未產生正式套件。原生 catalog／安全邊界 Node 回歸通過。這些不取代正式簽署登入實測。
 
 - 正式簽署候選套件、Play 派送身分下的真實登入／同步與 TWA 資料移轉仍未驗收。資源接入不等於正式登入實測。

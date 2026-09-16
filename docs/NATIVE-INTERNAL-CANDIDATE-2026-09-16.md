@@ -16,7 +16,13 @@
 ## 本輪驗證狀態
 
 - Native catalog Node 對照測試：通過（17,333 筆）。
-- 本輪 release 單元測試／Lint／簽署 AAB：進行中，不能沿用前次 debug 成果。
+- 本輪 release 建置成功（16m59s，70 個任務實際執行）：55 JVM 測試全部通過、Lint No issues found、AAB 簽署完成；不是沿用前次 debug 成果。
+- bundletool 1.18.3 validate 通過；解出的 manifest 為 tw.searchbefore.app／versionCode 5／1.1.0-internal／target 36／min 23／非 debuggable／禁止明文／禁止系統備份。
+- jarsigner 顯示 jar verified，另有自簽／無時間戳及 JarInputStream 項目順序警告；使用 JarFile 完整讀取 300 個 payload 項目，逐項驗證 digest 與既有 upload certificate 通過。不把自簽憑證當公有 CA 驗證。
+- `VerifyNativeBundle.java` 同時核對 4 個 64-bit .so 的 ELF PT_LOAD 16 KB 對齊通過；不代替 Play 派送 APK 的 ZIP 對齊與 16 KB 系統实測。參考 [Android 16 KB 支援檢查](https://developer.android.com/guide/practices/page-sizes)。
+- AAB config 為 PAGE_ALIGNMENT_16K。初版 RELRO 檢查只看結束地址而誤報；核對 [Android 16 linker 的整頁保護算法](https://android.googlesource.com/platform/bionic/+/android16-qpr2-release/linker/linker_phdr.cpp) 後，改驗證保護擴張是否覆蓋 RELRO 以外仍需寫入／執行的 LOAD 位元組。6 組正反例與候選的 4 個函式庫通過；未更換或修改函式庫。這是靜態布局推論，不是 16 KB 系統實測。
+- 原候選 SHA-256：4bab9bdad015e75040b1a94072d2981f44ae1ffe28242910ff04f1b333c2d128（14,334,021 bytes），尚未上傳；若重建或更新須重新計算。
+- 本機 Node 全套與 GitHub Review／Android CI（3a44e30；Android run 35109306708）通過。CI 是 debug 編譯／JVM／Lint，不是 Play 登入驗收。
 - Android 16 UI：隔離模擬器設定路徑已修復，後續與建置分階段執行；未完成新一轮結果前不得宣稱通過。
 - Play 內部發布：待建置及驗收通過後操作，未上傳即不得寫成已發布。
 

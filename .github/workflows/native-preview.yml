@@ -11,6 +11,7 @@ on:
       - 'scripts/build-android-native.ps1'
       - 'scripts/build-android-native-internal.ps1'
       - 'scripts/start-native-validation-emulator.ps1'
+      - 'scripts/VerifyNativeBundle.java'
       - 'index.html'
       - 'safety.js'
       - 'cloud-sync.js'
@@ -61,5 +62,7 @@ jobs:
           test ! -f android-native/app/google-services.json
       - name: Unit tests, debug compilation and Android API/security lint
         run: bash android-twa/gradlew -p android-native --no-daemon :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
+      - name: Candidate ELF boundary regression tests (synthetic only)
+        run: java scripts/VerifyNativeBundle.java --self-test
       # No release signing, Firebase account, cloud writes, APK publishing or deployment.
       # Connected-device/login/migration acceptance remains a separate release gate.

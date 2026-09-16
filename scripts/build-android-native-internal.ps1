@@ -36,6 +36,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Catalog export failed" }
     & (Join-Path $projectRoot 'android-twa\gradlew.bat') -p (Join-Path $projectRoot 'android-native') --no-daemon -PnativeInternalCandidate=true :app:checkNativeFirebaseConfig :app:testReleaseUnitTest :app:lintRelease :app:bundleRelease
     if ($LASTEXITCODE -ne 0) { throw "Internal candidate verification/build failed" }
+    & (Join-Path $changes.JAVA_HOME 'bin\java.exe') -Xmx512m (Join-Path $PSScriptRoot 'VerifyNativeBundle.java') (Join-Path $projectRoot 'android-native\app\build\outputs\bundle\release\app-release.aab')
+    if ($LASTEXITCODE -ne 0) { throw "Internal candidate payload signature/alignment verification failed" }
 } finally {
     foreach ($key in $previous.Keys) { [Environment]::SetEnvironmentVariable($key, $previous[$key], 'Process') }
     $signing.Clear(); $changes.Clear(); $previous.Clear()
