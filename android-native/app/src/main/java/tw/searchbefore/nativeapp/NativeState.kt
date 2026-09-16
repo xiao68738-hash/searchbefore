@@ -69,7 +69,13 @@ class NativeState(application: Application) : AndroidViewModel(application) {
             catch (_: NoCredentialException) { error = "找不到可用的 Google 帳號。請先在 Android 系統加入 Google 帳號，並確認 Google Play 服務可用。" }
             catch (_: TimeoutCancellationException) { error = failure }
             catch (e: CancellationException) { throw e }
-            catch (_: Exception) { error = failure }
+            catch (e: Exception) {
+                val code = NativeFailure.code(e)
+                error = "$failure\n${NativeFailure.hint(e)}（錯誤代碼：$code）"
+                if (getApplication<Application>().applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0) {
+                    android.util.Log.w("NativeTask", "$code stage=${cloud.diagnosticStage} markers=${NativeFailure.markers(e)} ${NativeFailure.locations(e)}")
+                }
+            }
             finally { busy = false }
         }
     }

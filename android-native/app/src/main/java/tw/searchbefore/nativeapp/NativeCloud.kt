@@ -16,6 +16,8 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.MemoryCacheSettings
 import com.google.firebase.firestore.Source
+import com.google.firebase.firestore.DocumentSnapshot
+import com.google.firebase.firestore.FieldPath
 import kotlinx.coroutines.tasks.await
 import org.json.JSONArray
 import org.json.JSONObject
@@ -34,6 +36,7 @@ class NativeCloud(context: Context) {
         ?.let { FirebaseApp.getApps(appContext).find { app -> app.name == "native" } ?: FirebaseApp.initializeApp(appContext, it, "native") }
     val auth: FirebaseAuth? = app?.let { FirebaseAuth.getInstance(it) }
     val configured: Boolean get() = auth != null && clientId.endsWith(".apps.googleusercontent.com")
+    var diagnosticStage: String = "IDLE"; private set
     private val database: FirebaseFirestore? by lazy {
         app?.let { FirebaseFirestore.getInstance(it).apply {
             // NativeStore is the durable journal. Never leave an account's Firestore cache on disk.
@@ -80,16 +83,32 @@ class NativeCloud(context: Context) {
         var downloadedBytes = 0
         for (key in NativeSync.collections) {
             guard()
-            val snapshot = db.collection("users").document(uid).collection(key).limit(45001).get(Source.SERVER).await()
-            guard()
-            require(snapshot.size() <= 45000) { "雲端資料超出預覽版同步上限" }
-            server[key] = snapshot.documents.map {
-                requireNotNull(document(it.id, it.data)).also { row ->
+            diagnosticStage = "READ_$key"
+            val rows = mutableListOf<JSONObject>()
+            val ids = mutableSetOf<String>()
+            var cursor: DocumentSnapshot? = null
+            while (true) {
+                guard()
+                val pageSize = NativePagePolicy.requestSize(rows.size)
+                var query = db.collection("users").document(uid).collection(key)
+                    .orderBy(FieldPath.documentId()).limit(pageSize)
+                cursor?.let { query = query.startAfter(it) }
+                val page = query.get(Source.SERVER).await()
+                guard()
+                NativePagePolicy.validatePage(rows.size, page.size())
+                for (item in page.documents) {
+                    require(ids.add(item.id)) { "雲端分頁重複，請重新同步" }
+                    val row = requireNotNull(document(item.id, item.data))
                     downloadedBytes += row.toString().toByteArray(Charsets.UTF_8).size
                     require(downloadedBytes <= Backup.MAX_BYTES * 2) { "雲端資料超出同步大小上限" }
+                    rows.add(row)
                 }
+                if (page.size() < pageSize) break
+                cursor = page.documents.last()
             }
+            server[key] = rows
         }
+        diagnosticStage = "VALIDATE_DOWNLOAD"
         NativeSync.applyRemote(local, server) // Validate complete download before any upload.
         for (key in NativeSync.collections) {
             val originals = server.getValue(key).associateBy { it.getString("id") }
@@ -98,6 +117,7 @@ class NativeCloud(context: Context) {
                 val id = candidate.getString("id")
                 if (NativeSync.same(NativeSync.winner(candidate, originals[id]), originals[id])) continue
                 guard()
+                diagnosticStage = "WRITE_$key"
                 val ref = db.collection("users").document(uid).collection(key).document(id)
                 val committed = db.runTransaction { transaction ->
                     guard()
@@ -117,6 +137,7 @@ class NativeCloud(context: Context) {
             server[key] = observed.values.toList()
         }
         guard()
+        diagnosticStage = "MERGE"
         return NativeSync.applyRemote(local, server).put("lastSyncAt", Backup.nextStamp())
     }
 }
