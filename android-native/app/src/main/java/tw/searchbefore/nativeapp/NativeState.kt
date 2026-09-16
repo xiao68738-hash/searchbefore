@@ -37,6 +37,8 @@ class NativeState(application: Application) : AndroidViewModel(application) {
     val syncEnabled get() = document?.optBoolean("syncEnabled") == true && document?.optString("ownerUid") == cloud.auth?.currentUser?.uid
     val ownerConflict get() = document?.optString("ownerUid").orEmpty().let { it.isNotEmpty() && signedIn && it != cloud.auth?.currentUser?.uid }
     val lastSyncAt get() = document?.optString("lastSyncAt").orEmpty()
+    val remindersEnabled get() = document?.optBoolean("remindersEnabled") == true
+    var reminderStatus by mutableStateOf(""); private set
     private val store = NativeStore(application)
     private val cloud = NativeCloud(application)
     private val session = AtomicLong(0)
@@ -55,6 +57,7 @@ class NativeState(application: Application) : AndroidViewModel(application) {
             }
             catalog = loaded.first; document = loaded.second
             hasRecovery = withContext(Dispatchers.IO) { store.hasRecovery() }
+            refreshReminders()
         }
     }
     private fun task(failure: String, block: suspend () -> Unit) {
@@ -79,6 +82,8 @@ class NativeState(application: Application) : AndroidViewModel(application) {
         }
         document = checked
         hasRecovery = withContext(Dispatchers.IO) { store.hasRecovery() }
+        NativeReminders.invalidate(getApplication())
+        refreshReminders()
     }
     fun persist(next: JSONObject, importing: Boolean = false) = task("儲存失敗，原紀錄已保留，請重試。") {
         val previous = data?.let { JSONObject(it.toString()) }
@@ -86,7 +91,7 @@ class NativeState(application: Application) : AndroidViewModel(application) {
         if (importing) session.incrementAndGet()
         commit(updated, importing)
         undoData = if (importing) null else previous
-        error = if (importing) "已匯入並保留上一份資料；雲端同步已暫停，請核對後重新同意。" else "已儲存在此裝置；可在個人頁按立即同步。"
+        error = if (importing) "已匯入並保留上一份資料；雲端同步及本機提醒已暫停，請核對後重新同意。" else "已儲存在此裝置；可在個人頁按立即同步。"
     }
     fun undo() = task("無法撤銷，原紀錄已保留。") {
         val previous = requireNotNull(undoData)
@@ -142,9 +147,9 @@ class NativeState(application: Application) : AndroidViewModel(application) {
     fun signOut() = task("已停止同步；登出未完整完成，請再試一次。") {
         undoData = null
         session.incrementAndGet()
-        commit(JSONObject(requireNotNull(document).toString()).put("syncEnabled", false))
+        commit(JSONObject(requireNotNull(document).toString()).put("syncEnabled", false).put("remindersEnabled", false))
         cloud.signOut()
-        error = "已登出，雲端同步已關閉。本機紀錄仍保留在這台裝置。"
+        error = "已登出，雲端同步及本機提醒已關閉。本機紀錄仍保留在這台裝置。"
     }
     fun setSyncEnabled(enable: Boolean) = task("同步設定無法儲存，請再試一次。") {
         session.incrementAndGet()
@@ -170,6 +175,21 @@ class NativeState(application: Application) : AndroidViewModel(application) {
         commit(result)
         undoData = null
         error = "已完成與伺服器的紀錄同步。配方與個人偏好仍只在本機及匯出備份中。"
+    }
+    fun refreshReminders() {
+        if (document == null) return
+        val ok = runCatching { NativeReminders.reconcile(getApplication(), remindersEnabled) }.getOrDefault(false)
+        reminderStatus = if (!remindersEnabled) "本機提醒未開啟。" else if(ok) "已排程每日核對；實際時間由 Android 決定，省電或強制停止可能延後。" else "提醒無法送達：請確認系統通知權限／通知類別，或重新開啟提醒。"
+    }
+    fun setRemindersEnabled(enable: Boolean) = task("提醒設定未完成；請檢查系統通知權限。") {
+        if (enable) check(NativeReminders.allowed(getApplication()))
+        commit(JSONObject(requireNotNull(document).toString()).put("remindersEnabled", enable))
+        error = if (enable) reminderStatus else "本機提醒已關閉，已移除排程與已送出的提醒。"
+    }
+    fun testReminder() = task("測試通知未送出；請確認已開啟提醒及系統通知權限。") {
+        val sent = withContext(Dispatchers.IO) { NativeReminders.check(getApplication(), test = true) }
+        check(sent)
+        error = "已送出測試通知，請查看通知欄。這不代表後續排程能準時送達。"
     }
     override fun onCleared() {
         session.incrementAndGet()

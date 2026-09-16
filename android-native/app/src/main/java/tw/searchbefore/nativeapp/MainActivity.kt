@@ -1,6 +1,10 @@
 package tw.searchbefore.nativeapp
 
 import android.os.Bundle
+import android.os.Build
+import android.Manifest
+import android.content.Intent
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
@@ -37,7 +41,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaterialTheme(colorScheme = lightColorScheme(primary = Color(0xFF2E6B3F), background = Color(0xFFF7F4EB), surface = Color(0xFFFFFDF7))) {
                 val state: NativeState = viewModel()
-                var tab by rememberSaveable { mutableIntStateOf(0) }
+                var tab by rememberSaveable { mutableIntStateOf(if(intent.getBooleanExtra("open_records", false)) 1 else 0) }
+                DisposableEffect(state) {
+                    val observer = androidx.lifecycle.LifecycleEventObserver { _, event -> if(event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) state.refreshReminders() }
+                    lifecycle.addObserver(observer)
+                    onDispose { lifecycle.removeObserver(observer) }
+                }
+                val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+                    if(granted) state.setRemindersEnabled(true) else { state.error = "未允許通知，不影響查詢或本機紀錄。"; state.refreshReminders() }
+                }
                 var consent by remember { mutableStateOf(false) }
                 var consentAccount by remember { mutableStateOf("") }
                 val export = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
@@ -76,16 +88,16 @@ class MainActivity : ComponentActivity() {
                         if (cat != null && data != null) when (tab) {
                             0 -> QueryScreen(cat, data, !state.busy, saveRecipe = { row, water ->
                                 runCatching { Recipes.add(requireNotNull(state.data), row, water) }.onSuccess { persist(it) }.onFailure { state.error = it.message ?: "配方無法儲存" }
-                            }) { row, date, plotId ->
-                                runCatching { Backup.appendRecord(requireNotNull(state.data), row, date, plotId) }
+                            }) { row, date, plotId, details ->
+                                runCatching { Backup.appendRecord(requireNotNull(state.data), row, date, plotId, details) }
                                     .onSuccess { persist(it) }.onFailure { state.error = it.message ?: "紀錄格式有誤" }
                             }
                             1 -> RecordsScreen(data, cat, !state.busy,
                                 addPlot = { crop, tag, date ->
                                     runCatching { Backup.addPlot(requireNotNull(state.data), crop, tag, date, cat.crops) }
                                         .onSuccess { persist(it) }.onFailure { state.error = it.message ?: "田區格式有誤" }
-                                }, editRecord = { id, stamp, date, plotId, operator ->
-                                    runCatching { Backup.updateRecord(requireNotNull(state.data), id, stamp, date, plotId, operator) }
+                                }, editRecord = { id, stamp, date, plotId, details ->
+                                    runCatching { Backup.updateRecord(requireNotNull(state.data), id, stamp, date, plotId, details.operator, details) }
                                         .onSuccess { persist(it) }.onFailure { state.error = it.message ?: "紀錄修改失敗" }
                                 }, editPlot = { id, stamp, tag, date ->
                                     runCatching { Backup.updatePlot(requireNotNull(state.data), id, stamp, tag, date) }
@@ -97,6 +109,19 @@ class MainActivity : ComponentActivity() {
                             2 -> FarmScreen(data, !state.busy, save = { persist(it) }, report = { state.error = it }, export = { exportCsv.launch("噴前查農務_${LocalDate.now()}.csv") })
                             3 -> RecipesScreen(data, !state.busy, save = { persist(it) }, report = { state.error = it })
                             4 -> LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                item {
+                                    Info("本機紀錄提醒", "${state.reminderStatus}\n每天至多提醒一次：核對近期未確認或接近等待期的紀錄；不保證可採收／殘留合格。鎖定畫面不放作物、藥劑或帳號；不會因開啟通知而同步資料。匯入或登出會關閉提醒。")
+                                    OutlinedButton(enabled = !state.busy, onClick = {
+                                        if(state.remindersEnabled) state.setRemindersEnabled(false)
+                                        else if(Build.VERSION.SDK_INT >= 33 && !NativeReminders.allowed(this@MainActivity)) notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                        else state.setRemindersEnabled(true)
+                                    }) { Text(if(state.remindersEnabled) "關閉本機提醒" else "開啟本機提醒") }
+                                    OutlinedButton(enabled = !state.busy && state.remindersEnabled, onClick = state::testReminder) { Text("傳送測試提醒") }
+                                    TextButton(onClick = {
+                                        if(Build.VERSION.SDK_INT >= 26) startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName))
+                                        else startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:$packageName")))
+                                    }) { Text("系統通知設定") }
+                                }
                                 item { Info("你的資料", "預設儲存在此裝置。Google 登入不等於同意上傳；只有明確開啟同步後，才可與同帳號雲端紀錄合併。登出不會刪除本機紀錄。") }
                                 item { Info("Google 登入", if (state.signedIn) "目前帳號：${state.accountLabel}" else if (state.configured) "未登入，仍可使用本機查詢、紀錄與備份。" else "此安裝包尚未加入原生 Firebase 設定，登入暫不可用。") }
                                 item {
@@ -143,7 +168,7 @@ class MainActivity : ComponentActivity() {
     } }
 }
 
-@Composable private fun QueryScreen(catalog: Catalog, data: JSONObject, enabled: Boolean, saveRecipe: (UsageRow, String) -> Unit, record: (UsageRow, String, String) -> Unit) {
+@Composable private fun QueryScreen(catalog: Catalog, data: JSONObject, enabled: Boolean, saveRecipe: (UsageRow, String) -> Unit, record: (UsageRow, String, String, ApplicationDetails) -> Unit) {
     var mode by rememberSaveable { mutableIntStateOf(0) }
     var query by rememberSaveable { mutableStateOf("") }
     var crop by rememberSaveable { mutableStateOf("") }
@@ -154,6 +179,7 @@ class MainActivity : ComponentActivity() {
     var recording by remember { mutableStateOf<UsageRow?>(null) }
     var date by rememberSaveable { mutableStateOf(LocalDate.now().toString()) }
     var plotId by rememberSaveable { mutableStateOf("") }
+    var details by remember { mutableStateOf(ApplicationDetails()) }
     val cropSuggestions = remember(query, mode) { if(mode == 0) catalog.cropSuggestions(query) else emptyList() }
     val agentSuggestions = remember(query, mode) { if(mode == 1) catalog.agentSuggestions(query) else emptyList() }
     val queryListState = rememberLazyListState()
@@ -212,7 +238,7 @@ class MainActivity : ComponentActivity() {
                 val rows = catalog.exact(crop, pest).map { it.withHarvestForm(harvestForm) }
                     .sortedBy { if(it.formExcluded) 2 else if(it.json.optString("formCategory") == "matched") 0 else 1 }
                 item { Text("僅列此作物 × 此防治對象原登記，不合併相關分類。") }
-                items(rows.take(shown), key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = { water -> saveRecipe(row, water) }) { recording = row; plotId = "" } }
+                items(rows.take(shown), key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = { water -> saveRecipe(row, water) }) { recording = row; plotId = ""; date = LocalDate.now().toString(); details = ApplicationDetails() } }
                 if (rows.size > shown) item { TextButton(onClick = { shown += 20 }) { Text("顯示更多用法") } }
                 item { Text("資料供查詢參考，實際用法請核對產品標示與主管機關最新公告。", style = MaterialTheme.typography.bodySmall) }
                 if (catalog.related(crop, pest).isNotEmpty()) item {
@@ -228,11 +254,12 @@ class MainActivity : ComponentActivity() {
         }
     }
     recording?.let { row -> AlertDialog(onDismissRequest = { recording = null }, title = { Text("紀錄實際施藥") },
-        text = { Column { Text("${row.crop} × ${row.pest}｜${row.name}\n請確認已實際施用；不會因瀏覽或計算自動紀錄。")
+        text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) { Text("${row.crop} × ${row.pest}｜${row.name}\n請確認已實際施用；不會因瀏覽或計算自動紀錄。")
             OutlinedTextField(value = date, onValueChange = { date = it.take(10) }, label = { Text("日期 YYYY-MM-DD") })
             PlotPicker(Backup.plots(data).filter { it.optString("crop", it.optString("name")) == row.crop }, plotId, "未指定田區", enabled) { plotId = it }
             Text("只列相同登記作物的田區；未指定的紀錄不歸入任何田區。", style = MaterialTheme.typography.bodySmall)
-        } }, confirmButton = { TextButton(enabled = enabled && Backup.validDate(date) && !LocalDate.parse(date).isAfter(LocalDate.now()), onClick = { record(row, date, plotId); recording = null }) { Text("儲存到本機") } },
+            ApplicationFields(details) { details = it }
+        } }, confirmButton = { TextButton(enabled = enabled && runCatching { details.validate() }.isSuccess && Backup.validDate(date) && !LocalDate.parse(date).isAfter(LocalDate.now()), onClick = { record(row, date, plotId, details); recording = null }) { Text("儲存實際用藥") } },
         dismissButton = { TextButton(onClick = { recording = null }) { Text("取消") } }) }
 }
 
@@ -286,7 +313,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable private fun RecordsScreen(data: JSONObject, catalog: Catalog, enabled: Boolean,
     addPlot: (String, String, String) -> Unit,
-    editRecord: (String, String, String, String, String) -> Unit,
+    editRecord: (String, String, String, String, ApplicationDetails) -> Unit,
     editPlot: (String, String, String, String) -> Unit,
     delete: (String, String, String) -> Unit) {
     var selected by rememberSaveable { mutableStateOf("") }
@@ -299,7 +326,7 @@ class MainActivity : ComponentActivity() {
     var deleting by remember { mutableStateOf<Pair<String, JSONObject>?>(null) }
     var recordDate by rememberSaveable { mutableStateOf("") }
     var recordPlot by rememberSaveable { mutableStateOf("") }
-    var recordOperator by rememberSaveable { mutableStateOf("") }
+    var recordDetails by remember { mutableStateOf(ApplicationDetails()) }
     val plots = Backup.plots(data)
     val records = data.getJSONArray("records").let { a -> (0 until a.length()).map { a.getJSONObject(it) }.sortedByDescending { it.optString("date") } }
     val effectiveSelection = selected.takeIf { id -> plots.any { it.getString("id") == id } }.orEmpty()
@@ -322,10 +349,10 @@ class MainActivity : ComponentActivity() {
         items(visible, key = { it.getString("id") }) { r ->
             val harvest = Backup.harvestDate(r)?.let { "安全採收日參考：$it" } ?: "採收期未確認，請查產品標示"
             val plot = plots.find { it.optString("id") == r.optString("plotId") }?.let { Backup.plotLabel(it) } ?: "未指定田區"
-            Info("${r.optString("date")}｜${r.optString("crop")} × ${r.optString("pest")}", "${r.optString("agent")}\n$plot\n$harvest\n依產品標示及田間實際情況確認。")
+            Info("${r.optString("date")}｜${r.optString("crop")} × ${r.optString("pest")}", "${r.optString("agent")}\n$plot\n$harvest\n${ApplicationDetails.summary(r)}\n操作者：${r.optString("operator").ifBlank { "未填" }}\n${r.optString("notes")}\n依產品標示及田間實際情況確認。")
             TextButton(enabled = enabled, onClick = {
-                editingRecord = r; recordDate = r.getString("date"); recordPlot = r.optString("plotId"); recordOperator = r.optString("operator")
-            }) { Text("修改日期／田區／操作者") }
+                editingRecord = r; recordDate = r.getString("date"); recordPlot = r.optString("plotId"); recordDetails = ApplicationDetails.from(r)
+            }) { Text("修改實際用藥紀錄") }
             TextButton(enabled = enabled, onClick = { deleting = "records" to r }) { Text("刪除此筆用藥紀錄") }
         }
     }
@@ -351,11 +378,11 @@ class MainActivity : ComponentActivity() {
                 OutlinedTextField(value = recordDate, onValueChange = { recordDate = it.take(10) }, label = { Text("實際施藥日期 YYYY-MM-DD") })
                 PlotPicker(matchingPlots, recordPlot, "未指定田區", enabled) { recordPlot = it }
                 if (!plotValid) Text("原紀錄田區與作物不符，請重新選擇或解除歸屬。", color = MaterialTheme.colorScheme.error)
-                OutlinedTextField(value = recordOperator, onValueChange = { recordOperator = it.take(120) }, label = { Text("操作者（可留空）") })
-                Text("僅修改以上欄位；藥劑、倍數、採收期及原備份其他資料保持不變。改日期會重新計算逐筆採收日參考。")
+                ApplicationFields(recordDetails) { recordDetails = it }
+                Text("藥劑、原登記倍數與採收期保持不變。實際用量不是用藥建議；改日期會重新計算逐筆採收日參考。")
             }
-        }, confirmButton = { TextButton(enabled = enabled && plotValid && Backup.validDate(recordDate) && !LocalDate.parse(recordDate).isAfter(LocalDate.now()), onClick = {
-            editRecord(record.getString("id"), record.optString("updatedAt"), recordDate, recordPlot, recordOperator); editingRecord = null
+        }, confirmButton = { TextButton(enabled = enabled && plotValid && runCatching { recordDetails.validate() }.isSuccess && Backup.validDate(recordDate) && !LocalDate.parse(recordDate).isAfter(LocalDate.now()), onClick = {
+            editRecord(record.getString("id"), record.optString("updatedAt"), recordDate, recordPlot, recordDetails); editingRecord = null
         }) { Text("儲存修改") } }, dismissButton = { TextButton(onClick = { editingRecord = null }) { Text("取消") } })
     }
     editingPlot?.let { plot ->

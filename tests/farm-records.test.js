@@ -131,6 +131,16 @@ const safeBackupSource = {
   }
 };
 const safeBackup = farm.readBackup(safeBackupSource);
+const nativeSource = structuredClone(safeBackupSource);
+Object.assign(nativeSource.data.records[0], {water: 2.5, waterRecorded: true, totalWater: 5, actualAmount: "0.125", actualAmountUnit: "g", notes: "種子處理測試；不是推薦用法"});
+const nativeRoundtrip = farm.readBackup(farm.buildBackup(farm.readBackup(nativeSource), "native-compatible"));
+for (const key of ["actualAmount", "actualAmountUnit", "notes", "waterRecorded"]) assert.equal(nativeRoundtrip.records[0][key], nativeSource.data.records[0][key]);
+assert.equal(Number(nativeRoundtrip.records[0].water), 2.5);
+assert.equal(Number(nativeRoundtrip.records[0].totalWater), 5);
+for(const patch of [{actualAmount:"NaN"},{actualAmount:"1e3"},{actualAmount:"-1"},{actualAmount:"1.0000001"},{actualAmount:"10000001"},{actualAmountUnit:"倍"},{actualAmount:"",actualAmountUnit:"g"},{waterRecorded:"true"},{waterRecorded:false},{notes:"字".repeat(2001)}]) {
+  const bad=structuredClone(nativeSource); Object.assign(bad.data.records[0],patch);
+  assert.throws(() => farm.readBackup(bad), /備份/);
+}
 assert.equal(safeBackup.records[0].id, "rec-safe_1");
 assert.equal(safeBackup.records[0].ignoredField, undefined, "只應保留已知欄位");
 assert.notEqual(safeBackup.records[0], safeBackupSource.data.records[0], "還原結果應建立乾淨副本");

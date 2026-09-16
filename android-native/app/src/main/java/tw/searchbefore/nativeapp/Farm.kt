@@ -107,7 +107,7 @@ object Farm {
         val items = (NativeSync.rows(data.getJSONArray("records")).map { "用藥" to it } + records(data).map { (types[it.optString("type")] ?: it.optString("type")) to it }).sortedBy { it.second.optString("date") }
         val rows = items.map { (label, r) -> listOf(plots[r.optString("plotId")] ?: "未指定田區", r.optString("date"), label,
             if(label == "用藥") "${r.optString("crop")} × ${r.optString("pest")}｜${r.optString("agent")}" else label,
-            if(label == "用藥") "採收期：${if(r.isNull("phi")) "待確認" else r.get("phi")}；水量：${r.opt("water") ?: ""}" + (if(r.optDouble("dil", 0.0) > 0) "；倍數：${r.get("dil")}" else "；無數字倍數，請核對原用途")
+            if(label == "用藥") "採收期：${if(r.isNull("phi")) "待確認" else r.get("phi")}；${ApplicationDetails.summary(r)}" + (if(r.optDouble("dil", 0.0) > 0) "；原記錄倍數：${r.get("dil")}" else "；無數字倍數，請核對原用途")
             else fields[r.optString("type")]?.mapNotNull { field -> detailsText(r,field.key).takeIf { it.isNotEmpty() }?.let { "${field.label}：$it" } }?.joinToString("；") ?: r.opt("details")?.toString().orEmpty(),
             r.optString("operator"), r.optString("notes"), r.optString("id")) }
         return listOf(head) + rows

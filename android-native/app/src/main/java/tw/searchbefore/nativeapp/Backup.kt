@@ -56,6 +56,13 @@ object Backup {
                     require(item.getString("crop").length in 1..120 && item.getString("agent").length in 1..200)
                     require(validDate(item.getString("date"))) { "施藥日期格式不正確" }
                     if (!item.isNull("phi")) require(item.getDouble("phi") in 0.0..3650.0)
+                    if (item.has("actualAmount") || item.has("actualAmountUnit") || item.has("waterRecorded")) {
+                        if(item.has("waterRecorded")) {
+                            require(item.get("waterRecorded") is Boolean) { "實際水量標記格式錯誤" }
+                            require(item.getBoolean("waterRecorded") || item.optDouble("water", 0.0) <= 0) { "實際水量與未記錄標記不符" }
+                        }
+                        ApplicationDetails.from(item).validate()
+                    }
                 }
                 require(item.toString().length <= 100000) { "單筆備份內容過大" }
             }
@@ -106,14 +113,14 @@ object Backup {
         next.getJSONArray("fieldPlots").put(plot)
         return parse(encode(next))
     }
-    fun appendRecord(data: JSONObject, row: UsageRow, date: String, plotId: String): JSONObject {
+    fun appendRecord(data: JSONObject, row: UsageRow, date: String, plotId: String, details: ApplicationDetails = ApplicationDetails()): JSONObject {
         require(!row.formExcluded) { "此收穫型態用法待確認，請回原登記核對" }
         if (plotId.isNotEmpty()) {
             val plot = plots(data).find { it.getString("id") == plotId }
             require(plot != null && plot.optString("crop", plot.optString("name")) == row.crop) { "田區與登記作物不符，請重新選擇" }
         }
         val next = JSONObject(data.toString())
-        next.getJSONArray("records").put(record(row, date).put("plotId", plotId))
+        next.getJSONArray("records").put(details.applyTo(record(row, date).put("plotId", plotId)))
         return parse(encode(next))
     }
     fun nextStamp(previous: String = "", observedNow: Instant = Instant.now()): String {
@@ -124,7 +131,7 @@ object Backup {
         val next = if (old != null && !old.isBefore(now)) old.plusMillis(1) else now
         return DateTimeFormatterBuilder().appendInstant(3).toFormatter().format(next)
     }
-    fun updateRecord(data: JSONObject, id: String, expectedStamp: String, date: String, plotId: String, operator: String): JSONObject {
+    fun updateRecord(data: JSONObject, id: String, expectedStamp: String, date: String, plotId: String, operator: String, details: ApplicationDetails? = null): JSONObject {
         require(validDate(date) && !LocalDate.parse(date).isAfter(LocalDate.now())) { "請填有效的實際施藥日期，不可填未來日期" }
         require(operator.trim().length <= 120) { "操作者姓名過長" }
         val next = JSONObject(data.toString())
@@ -138,6 +145,7 @@ object Backup {
         }
         record.put("date", date).put("plotId", plotId).put("operator", operator.trim())
             .put("updatedAt", nextStamp(expectedStamp))
+        details?.copy(operator = operator)?.applyTo(record)
         // Update a clone in place: unknown backup fields and other records survive.
         return parse(encode(next))
     }
