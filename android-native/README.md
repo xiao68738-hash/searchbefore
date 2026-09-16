@@ -15,20 +15,24 @@
 - 既有紀錄可修改施藥日期、操作者與田區（也可解除歸屬）；田區可修改名稱／種植日期，不更改作物。保留其他備份欄位、拒絕過期編輯畫面，時間戳大於已知舊版本。
 - JSON 完整備份匯入／匯出。匯入確認後保留上一份資料，可回復。
 - 匯入時不帶入帳號、token、同步同意；10 MB、筆數、ID、日期、田區引用與巢狀深度防護。
-- 資料存於私有目錄，以 AtomicFile 寫入；沒有網路／相機／外部儲存權限，停用系統自動備份。
+- 資料與刪除日誌以一份 AtomicFile 存於 `noBackupFilesDir`；只新增登入／同步需要的網路權限，沒有相機／外部儲存權限，停用系統自動備份。
 - 明確排除 Android 12+ 雲端備份與裝置轉移的所有資料 domain；不只依賴舊版 `allowBackup` 設定。各廠牌真實轉移行為仍待實機驗收，手動匯出 JSON 不受此保護。
 - 使用專案既有透明 LOGO；不讀取或修改使用者現有 APP／網站資料。
+- 原生 Google 登入與手動 Firestore 同步已接入。登入不自動上傳；須另外同意同步。預覽 Firebase app 與 debug 指紋已登記，真實登入／雲端往返仍待驗收。
+- 六類農務（含設備）新增／修改／刪除、田區採收提醒、常用配方、水量調整與單次本機撤銷。
+- 收穫部位篩選、拼音／注音／錯字候選；不自動把候選當登記結果，不合併不同防治對象。
+- CSV、Excel、PDF 閱讀報表；完整移轉仍使用 JSON。報表不是官方 TAP 固定格式或驗證證明。
 
 ## 尚未完成，不能當作可上架
 
 | 項目 | 狀態／下一步 |
 |---|---|
-| Google 原生登入 | 尚未接入 Credential Manager／Firebase Auth；需核對 Android app 設定與簽章指紋 |
-| 原生雲端同步 | 尚未接入 Firestore；不得把本輪 Web 同步修復當作原生同步已完成 |
-| 田區、農務、設備、配方編輯 | 已有新增／修改田區與新舊紀錄歸屬、篩選；刪除與還原機制、農務／設備／配方編輯待完成，原始集合保存並可再匯出 |
-| 採收總覽／多筆用藥判斷 | 尚未移植完整田區安全核心；目前只列逐筆參考日期 |
-| 查詢完整相容 | 原生僅精確作物登記；作物群組、收穫部位選擇、模糊／注音搜尋仍待移植 |
-| 匯出 | JSON 已有；CSV、Excel、PDF 與 TAP 對照尚未移植 |
+| Google 原生登入 | Credential Manager／Firebase Auth 與預覽簽章設定已接入；需 Android 真實登入、取消與登出驗收；正式身分另行設定 |
+| 原生雲端同步 | 完整伺服器讀取、交易重比對、刪除標記、跨帳號防護已接入；真實上傳／重登匯入／斷線複測未完成 |
+| 田區、農務、設備、配方編輯 | 已接入本機編輯、刪除確認與撤銷；仍需真實資料回歸與手機操作驗收 |
+| 採收總覽／多筆用藥判斷 | 已有田區彙整與未知優先；需擴充多筆資料與網站安全核心的對照驗收；不是可採收許可 |
+| 查詢完整相容 | 保持精確作物原登記；收穫部位已依網站資料生成。模糊／注音僅提供候選，尚不宣稱與 Web 所有候選排序完全一致 |
+| 匯出 | JSON／CSV／Excel／PDF 已實作；中文 PDF、Excel 開啟與真實資料移轉需驗收；TAP 固定表單另列待辦 |
 | 無障礙、Android 16、離線與更新實機驗收 | 尚未完成；本輪沒有連接手機，不把編譯通過當實機通過 |
 | 全量資料移轉 | 需真實網站 JSON → 原生 → JSON → 網站的對照驗收，以及帳號一致性驗證 |
 | OCR | 不在本輪範圍，不是正式版功能 |
@@ -41,7 +45,7 @@
 rtk proxy powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-android-native.ps1
 ```
 
-加上 `-Lint` 可連同 Android 靜態檢查一起執行，報告位於 `app/build/reports/lint-results-debug.html`。Lint、單元測試與建置都不能取代實機操作、登入／同步或備份移轉驗收。
+加上 `-Lint` 可連同 Android 靜態檢查一起執行，報告位於 `app/build/reports/lint-results-debug.html`；`-Connected` 在連線 Android 上執行唯讀導覽測試，不登入、同步或修改私人紀錄。Lint、單元測試與建置都不能取代實機操作、登入／同步或備份移轉驗收。
 
 腳本先以既有 JS 純函式產生唯讀資料檔，再跑原生單元測試與 debug APK。生成檔忽略於 Git；農藥原始資料不變。預覽目前有 287 作物、17,333 原登記列，資料日 2026-07-21；**不是新的官方資料更新**。
 
@@ -52,6 +56,9 @@ rtk proxy powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-andr
 - 正式基礎 applicationId：`tw.searchbefore.app`；未套用正式簽署。
 - compile/target API 36，min API 23，Java 17／desugaring。
 - versionCode 5 僅為預覽預留；真正發布前須重查 Play 當時最大版本。
+- 預覽的 `firebase-preview.json` 由 Firebase Console 下載，必須符合預覽 package 與 project，且包含 Web OAuth client；此檔忽略於 Git。無設定時仍可使用本機功能，但登入不啟用。不能用此設定替代正式 Play 身分。
+
+最新實測結果與尚未通過項目集中在 [原生整合驗收](../docs/NATIVE-INTEGRATION-2026-09-16.md)，歷史測試數字不代表目前整包已驗收。
 
 `preReleaseBuild` 目前會主動拒絕執行，避免誤把未完成的原生版發給現有用戶。完成上述功能、資料移轉與安全驗收後，才可在另外的審查變更中解除。不要繞過保護直接打包正式版。
 

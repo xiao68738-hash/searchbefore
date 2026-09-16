@@ -28,7 +28,7 @@ class NativeRecordEditingTest {
         val record = Backup.parse(Backup.encode(after)).getJSONArray("records").getJSONObject(0)
         assertEquals("plot_a", record.getString("plotId"))
         assertEquals("測試者", record.getString("operator"))
-        assertEquals("2026-01-09", Backup.harvestDate(record))
+        assertEquals("2026-01-10", Backup.harvestDate(record))
         for (key in listOf("id", "crop", "agent", "pest", "phi", "water", "dil", "privateNotes")) {
             assertEquals(before.getJSONArray("records").getJSONObject(0).get(key).toString(), record.get(key).toString())
         }

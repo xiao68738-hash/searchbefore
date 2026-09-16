@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Offline preview: no internet, storage, camera or account permissions. -->
+    <!-- Network is only for optional native sign-in and explicitly enabled sync. -->
+    <uses-permission android:name="android.permission.INTERNET" />
     <application android:label="噴前查・原生預覽" android:icon="@drawable/native_logo" android:allowBackup="false"
         android:fullBackupContent="false" android:dataExtractionRules="@xml/data_extraction_rules"
         android:supportsRtl="true" android:usesCleartextTraffic="false"

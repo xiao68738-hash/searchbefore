@@ -1,0 +1,62 @@
+name: Native Android preview checks
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'android-native/**'
+      - 'android-twa/gradle/**'
+      - 'android-twa/gradlew*'
+      - 'scripts/export-native-*.cjs'
+      - 'scripts/build-android-native.ps1'
+      - 'index.html'
+      - 'safety.js'
+      - 'cloud-sync.js'
+      - 'query-aids.js'
+      - 'crop-forms.js'
+      - 'mrl-*.js'
+      - 'brand-logo-transparent.png'
+      - 'package*.json'
+      - '.github/workflows/native-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-preview-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-build-test-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out source without persisted credentials
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Set up Java
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Install locked dependencies and generate native catalog
+        run: |
+          npm ci
+          node scripts/export-native-catalog.cjs
+      - name: Install Android build platform
+        run: "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager 'platforms;android-36' 'build-tools;36.0.0'"
+      - name: Verify no private Firebase configuration is tracked
+        run: |
+          test ! -f android-native/firebase-preview.json
+          test ! -f android-native/app/google-services.json
+      - name: Unit tests, debug compilation and Android API/security lint
+        run: bash android-twa/gradlew -p android-native --no-daemon :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
+      # No release signing, Firebase account, cloud writes, APK publishing or deployment.
+      # Connected-device/login/migration acceptance remains a separate release gate.

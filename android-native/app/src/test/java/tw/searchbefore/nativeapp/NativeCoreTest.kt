@@ -9,8 +9,8 @@ class NativeCoreTest {
     @Test fun importedHarvestDaysNeverRoundDownOrAssumeUnknownIsZero() {
         val r = JSONObject().put("date", "2026-01-01").put("phi", JSONObject.NULL)
         assertNull(Backup.harvestDate(r))
-        assertEquals("2026-01-01", Backup.harvestDate(r.put("phi", 0)))
-        assertEquals("2026-01-03", Backup.harvestDate(r.put("phi", 1.5)))
+        assertEquals("2026-01-02", Backup.harvestDate(r.put("phi", 0)))
+        assertEquals("2026-01-04", Backup.harvestDate(r.put("phi", 1.5)))
         assertNull(Backup.harvestDate(r.put("phi", -1)))
         assertNull(Backup.harvestDate(r.put("phi", 7).put("date", "2026-02-30")))
     }

@@ -1,4 +1,4 @@
-param([string]$SharedRoot = "D:\SearchBefore", [switch]$Lint)
+param([string]$SharedRoot = "D:\SearchBefore", [switch]$Lint, [switch]$Connected)
 $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $changes = @{
@@ -17,6 +17,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Native catalog export failed" }
     $nativeTasks = @(':app:testDebugUnitTest', ':app:assembleDebug')
     if ($Lint) { $nativeTasks += ':app:lintDebug' }
+    if ($Connected) { $nativeTasks += ':app:connectedDebugAndroidTest' }
     & (Join-Path $projectRoot "android-twa\gradlew.bat") -p (Join-Path $projectRoot "android-native") --no-daemon @nativeTasks
     if ($LASTEXITCODE -ne 0) { throw "Native preview build/test failed" }
 } finally {

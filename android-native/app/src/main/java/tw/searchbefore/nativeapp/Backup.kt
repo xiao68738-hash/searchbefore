@@ -18,6 +18,13 @@ object Backup {
     fun parse(bytes: ByteArray): JSONObject {
         require(bytes.size <= MAX_BYTES) { "備份檔不能超過 10 MB" }
         val text = bytes.toString(Charsets.UTF_8)
+        checkDepth(text)
+        val root = JSONObject(text)
+        require(root.optString("product") == "searchbefore-backup" && root.optInt("formatVersion") == 1) { "不是支援的噴前查備份檔" }
+        val input = root.getJSONObject("data")
+        return validateData(input)
+    }
+    fun checkDepth(text: String) {
         // Reject excessive nesting before the recursive JSON parser runs.
         var depth = 0; var quoted = false; var escaped = false
         for (c in text) {
@@ -29,9 +36,9 @@ object Backup {
                 '}', ']' -> depth--
             }
         }
-        val root = JSONObject(text)
-        require(root.optString("product") == "searchbefore-backup" && root.optInt("formatVersion") == 1) { "不是支援的噴前查備份檔" }
-        val input = root.getJSONObject("data")
+        require(depth == 0 && !quoted) { "JSON 格式不完整" }
+    }
+    private fun validateData(input: JSONObject): JSONObject {
         val out = empty()
         for ((key, limit) in limits) {
             val a = if (!input.has(key) || input.isNull(key)) JSONArray() else input.getJSONArray(key)
@@ -75,9 +82,10 @@ object Backup {
     fun harvestDate(record: JSONObject): String? = runCatching {
         if (record.isNull("phi")) return null
         val days = record.getDouble("phi")
-        require(days.isFinite() && days in 0.0..3650.0)
-        // Imported fractional days must never be rounded down to an earlier date.
-        LocalDate.parse(record.getString("date")).plusDays(kotlin.math.ceil(days).toLong()).toString()
+        require(days.isFinite() && days in 0.0..365.0)
+        // Keep the existing web policy: actual application date + interval + one day.
+        // Also round fractional imported intervals UP, never shorten the waiting period.
+        LocalDate.parse(record.getString("date")).plusDays(kotlin.math.ceil(days).toLong() + 1).toString()
     }.getOrNull()
     fun plots(data: JSONObject): List<JSONObject> = data.getJSONArray("fieldPlots").let { a ->
         (0 until a.length()).map { a.getJSONObject(it) }
@@ -98,6 +106,7 @@ object Backup {
         return parse(encode(next))
     }
     fun appendRecord(data: JSONObject, row: UsageRow, date: String, plotId: String): JSONObject {
+        require(!row.formExcluded) { "此收穫型態用法待確認，請回原登記核對" }
         if (plotId.isNotEmpty()) {
             val plot = plots(data).find { it.getString("id") == plotId }
             require(plot != null && plot.optString("crop", plot.optString("name")) == row.crop) { "田區與登記作物不符，請重新選擇" }
@@ -106,7 +115,7 @@ object Backup {
         next.getJSONArray("records").put(record(row, date).put("plotId", plotId))
         return parse(encode(next))
     }
-    private fun nextStamp(previous: String): String {
+    fun nextStamp(previous: String = ""): String {
         val now = Instant.now()
         val old = previous.takeIf { it.isNotEmpty() }?.let { Instant.parse(it) }
         val next = if (old != null && !old.isBefore(now)) old.plusMillis(1) else now
@@ -144,6 +153,7 @@ object Backup {
         require(validDate(date)) { "請輸入 YYYY-MM-DD 日期" }
         require(!LocalDate.parse(date).isAfter(LocalDate.now())) { "實際施藥紀錄不可填未來日期" }
         return JSONObject().put("id", "rec_" + UUID.randomUUID().toString()).put("crop", row.crop)
+            .put("registrationId", row.id).put("harvestForm", row.json.optString("selectedHarvestForm"))
             .put("pest", row.pest).put("agent", row.name).put("date", date)
             .put("phi", row.phi ?: JSONObject.NULL).put("moa", row.json.optString("moa"))
             .put("dil", if(row.canCalculate) row.json.optString("dilution").replace(",", "").toDoubleOrNull() ?: 0 else 0)

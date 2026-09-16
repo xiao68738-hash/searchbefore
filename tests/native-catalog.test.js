@@ -1,6 +1,7 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
 const {buildCatalog}=require('../scripts/export-native-catalog.cjs');
 const catalog=buildCatalog(),A=require('../query-aids.js'),S=require('../safety.js'),M=require('../mrl-status.js');
+const F=require('../crop-forms.js');
 assert.equal(catalog.rows.length,17333);
 assert.equal(new Set(catalog.rows.map(r=>r.id)).size,catalog.rows.length);
 assert.equal(catalog.registrationScope,'exact-crop-only');
@@ -18,6 +19,11 @@ for(const [index,r] of catalog.rows.entries()){
   assert.deepEqual(r.usage,A.usagePresentation(r));
   assert.equal(r.formKind,S.formKind(r.form));
   assert.equal(r.mrl?.status||null,M.resolve(r.crop,r.name)?.status||null);
+  for(const form of F.FORMS[r.crop]?.forms||[]){
+    const split=F.splitIndices(r.crop,form.id,[source]);
+    assert.equal(r.cropForms[form.id].category,split.matched.length?'matched':split.excluded.length?'excluded':'unspecified');
+    assert.equal(r.cropForms[form.id].mrl?.status||null,M.resolve(r.crop,r.name,{form:form.id})?.status||null);
+  }
 }
 const beet=catalog.rows.filter(r=>r.crop==='蔥'&&r.pest==='甜菜夜蛾');
 assert.equal(beet.length,1,'native beet armyworm page must not inherit the 20 night-moth uses');
@@ -26,6 +32,9 @@ assert.equal(catalog.rows.filter(r=>r.crop==='蔥'&&r.pest==='夜蛾類').length
 const pea=catalog.rows.find(r=>r.crop==='豌豆'&&r.name==='脫克松');
 assert.equal(pea.usage.canCalculateDilution,false);
 assert.equal(pea.mrl.status,'scope-needs-review');
+assert.equal(pea.cropForms['鮮豆莢'].mrl.status,'reviewed-no-detect');
+assert.equal(pea.cropForms['葉用豌豆'].mrl.status,'scope-needs-review');
+assert.equal(catalog.rows.find(r=>r.crop==='豌豆'&&r.name==='培丹').cropForms['鮮豆莢'].category,'excluded');
 const main=fs.readFileSync(path.join(__dirname,'../android-native/app/src/main/java/tw/searchbefore/nativeapp/MainActivity.kt'),'utf8');
 assert.doesNotMatch(main,/android\.webkit|WebView|evaluateJavascript/);
 const manifest=fs.readFileSync(path.join(__dirname,'../android-native/app/src/main/AndroidManifest.xml'),'utf8');
@@ -41,7 +50,20 @@ for(const mode of ['cloud-backup','device-transfer']){
     assert.ok(section.includes('<exclude domain="'+domain+'" path="." />'),mode+' must exclude '+domain);
   }
 }
-assert.doesNotMatch(manifest,/<uses-permission/,'offline preview cannot upload private records');
+assert.match(manifest,/<uses-permission android:name="android.permission.INTERNET"/);
+assert.doesNotMatch(manifest,/READ_EXTERNAL_STORAGE|WRITE_EXTERNAL_STORAGE|GET_ACCOUNTS|CAMERA/);
+const state=fs.readFileSync(path.join(__dirname,'../android-native/app/src/main/java/tw/searchbefore/nativeapp/NativeState.kt'),'utf8');
+const sync=fs.readFileSync(path.join(__dirname,'../android-native/app/src/main/java/tw/searchbefore/nativeapp/NativeCloud.kt'),'utf8');
+const store=fs.readFileSync(path.join(__dirname,'../android-native/app/src/main/java/tw/searchbefore/nativeapp/NativeStore.kt'),'utf8');
+assert.match(state,/viewModelScope\.launch/);
+assert.doesNotMatch(main,/rememberCoroutineScope|AtomicFile|\.startWrite\(/);
+assert.match(store,/context\.noBackupFilesDir/);
+assert.match(state,/check\(syncEnabled && !ownerConflict\)/);
+assert.match(state,/it\.isEmpty\(\) \|\| it == uid/);
+assert.match(sync,/get\(Source\.SERVER\)/);
+assert.match(sync,/runTransaction/);
+assert.match(sync,/MemoryCacheSettings/);
+assert.doesNotMatch(sync,/whereGreaterThan|lastSyncAt.*get\(|firebase-analytics/);
 assert.match(manifest,/usesCleartextTraffic="false"/);
 const gradle=fs.readFileSync(path.join(__dirname,'../android-native/app/build.gradle'),'utf8');
 assert.match(gradle,/applicationIdSuffix "\.nativepreview"/);
@@ -50,4 +72,4 @@ const builder=fs.readFileSync(path.join(__dirname,'../scripts/build-android-nati
 assert.match(builder,/\[switch\]\$Lint/);
 assert.match(builder,/:app:lintDebug/);
 assert.doesNotMatch(builder,/:app:(?:bundle|assemble)Release|keystore\.properties/);
-console.log('Native catalog: 17,333 exact rows, related links separate, residue/special-usage parity, no WebView/no network permission.');
+console.log('Native catalog: 17,333 exact rows; native UI, retained IO, explicit-consent/account-guarded server sync.');
