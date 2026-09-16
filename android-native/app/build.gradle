@@ -19,6 +19,7 @@ android {
         release { minifyEnabled false }
     }
     buildFeatures { compose true }
+    lint { warningsAsErrors true }
     sourceSets.main.res.srcDir(layout.buildDirectory.dir("generated/branding/res"))
     sourceSets.debug.res.srcDir(layout.buildDirectory.dir("generated/firebase/res"))
     compileOptions {

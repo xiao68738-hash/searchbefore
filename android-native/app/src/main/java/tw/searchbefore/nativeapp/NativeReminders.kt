@@ -18,6 +18,7 @@ import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import java.time.LocalDate
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
@@ -68,7 +69,7 @@ object NativeReminders {
             if (!active()) return@synchronized false
             try {
                 NotificationManagerCompat.from(context).notify(NOTICE, notification)
-                if (!test) prefs.edit().putString("lastDay", today).apply()
+                if (!test) prefs.edit { putString("lastDay", today) }
                 true
             } catch (_: SecurityException) { false }
         } }

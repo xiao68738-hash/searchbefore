@@ -27,6 +27,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.core.view.WindowCompat
+import androidx.core.net.toUri
 import org.json.JSONObject
 import java.time.LocalDate
 
@@ -119,7 +120,7 @@ class MainActivity : ComponentActivity() {
                                     OutlinedButton(enabled = !state.busy && state.remindersEnabled, onClick = state::testReminder) { Text("傳送測試提醒") }
                                     TextButton(onClick = {
                                         if(Build.VERSION.SDK_INT >= 26) startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName))
-                                        else startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, android.net.Uri.parse("package:$packageName")))
+                                        else startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:$packageName".toUri()))
                                     }) { Text("系統通知設定") }
                                 }
                                 item { Info("你的資料", "預設儲存在此裝置。Google 登入不等於同意上傳；只有明確開啟同步後，才可與同帳號雲端紀錄合併。登出不會刪除本機紀錄。") }
