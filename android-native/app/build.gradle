@@ -1,0 +1,59 @@
+plugins {
+    id "com.android.application"
+    id "org.jetbrains.kotlin.android"
+    id "org.jetbrains.kotlin.plugin.compose"
+}
+android {
+    namespace "tw.searchbefore.nativeapp"
+    compileSdk 36
+    defaultConfig {
+        applicationId "tw.searchbefore.app"
+        minSdk 23
+        targetSdk 36
+        versionCode 5
+        versionName "1.1.0-native-preview"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        debug { applicationIdSuffix ".nativepreview" }
+        release { minifyEnabled false }
+    }
+    buildFeatures { compose true }
+    sourceSets.main.res.srcDir(layout.buildDirectory.dir("generated/branding/res"))
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true
+    }
+    kotlinOptions { jvmTarget = "17" }
+}
+dependencies {
+    implementation platform("androidx.compose:compose-bom:2025.08.01")
+    implementation "androidx.activity:activity-compose:1.10.1"
+    implementation "androidx.compose.material3:material3"
+    implementation "androidx.compose.ui:ui-tooling-preview"
+    debugImplementation "androidx.compose.ui:ui-tooling"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:2.9.2"
+    coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:2.1.5"
+    testImplementation "junit:junit:4.13.2"
+    testImplementation "org.json:json:20250517"
+}
+tasks.register("checkNativeCatalog") {
+    doLast {
+        if (!file("src/main/assets/catalog.json").exists()) {
+            throw new GradleException("Run node scripts/export-native-catalog.cjs first")
+        }
+    }
+}
+tasks.register("nativeBranding", Copy) {
+    from(rootProject.file("../brand-logo-transparent.png"))
+    into(layout.buildDirectory.dir("generated/branding/res/drawable-nodpi"))
+    rename { "native_logo.png" }
+}
+tasks.named("preBuild").configure { dependsOn("checkNativeCatalog", "nativeBranding") }
+// Preview cannot accidentally be promoted as the production replacement.
+tasks.configureEach {
+    if (name == "preReleaseBuild") doFirst {
+        throw new GradleException("Native release blocked: Google login/cloud sync and migration acceptance remain incomplete. See android-native/README.md")
+    }
+}

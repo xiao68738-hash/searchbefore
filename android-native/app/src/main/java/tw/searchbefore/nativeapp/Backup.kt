@@ -1,0 +1,118 @@
+package tw.searchbefore.nativeapp
+
+import org.json.JSONArray
+import org.json.JSONObject
+import java.time.LocalDate
+import java.time.Instant
+import java.time.format.DateTimeFormatterBuilder
+import java.util.UUID
+
+// Compatible envelope; account identity, tokens and sync consent are NEVER imported.
+object Backup {
+    const val MAX_BYTES = 10 * 1024 * 1024
+    private val limits = mapOf("records" to 20000, "fieldPlots" to 5000, "farmRecords" to 20000, "recipes" to 5000, "recentCrops" to 100)
+    private val safeId = Regex("^[A-Za-z0-9_-]{1,100}$")
+    fun empty(): JSONObject = JSONObject().put("schemaVersion", 1).put("activePlotId", "").put("lastFarmOperator", "").apply {
+        limits.keys.forEach { put(it, JSONArray()) }
+    }
+    fun parse(bytes: ByteArray): JSONObject {
+        require(bytes.size <= MAX_BYTES) { "備份檔不能超過 10 MB" }
+        val text = bytes.toString(Charsets.UTF_8)
+        // Reject excessive nesting before the recursive JSON parser runs.
+        var depth = 0; var quoted = false; var escaped = false
+        for (c in text) {
+            if (quoted) {
+                if (escaped) escaped = false else if (c == '\\') escaped = true else if (c == '"') quoted = false
+            } else when(c) {
+                '"' -> quoted = true
+                '{', '[' -> { depth++; require(depth <= 32) { "備份巢狀層數過多" } }
+                '}', ']' -> depth--
+            }
+        }
+        val root = JSONObject(text)
+        require(root.optString("product") == "searchbefore-backup" && root.optInt("formatVersion") == 1) { "不是支援的噴前查備份檔" }
+        val input = root.getJSONObject("data")
+        val out = empty()
+        for ((key, limit) in limits) {
+            val a = if (!input.has(key) || input.isNull(key)) JSONArray() else input.getJSONArray(key)
+            require(a.length() <= limit) { "備份筆數過多" }
+            val ids = mutableSetOf<String>()
+            for (i in 0 until a.length()) {
+                if (key == "recentCrops") { require(a.getString(i).length <= 120); continue }
+                val item = a.getJSONObject(i)
+                if (key != "recipes") {
+                    val id = item.getString("id")
+                    require(safeId.matches(id) && ids.add(id)) { "編號錯誤或重複" }
+                }
+                if (key == "records") {
+                    require(item.getString("crop").length in 1..120 && item.getString("agent").length in 1..200)
+                    require(validDate(item.getString("date"))) { "施藥日期格式不正確" }
+                    if (!item.isNull("phi")) require(item.getDouble("phi") in 0.0..3650.0)
+                }
+                require(item.toString().length <= 100000) { "單筆備份內容過大" }
+            }
+            out.put(key, JSONArray(a.toString()))
+        }
+        val plotIds = out.getJSONArray("fieldPlots").let { a -> (0 until a.length()).map { a.getJSONObject(it).getString("id") }.toSet() }
+        for (key in listOf("records", "farmRecords")) {
+            val a = out.getJSONArray(key)
+            for (i in 0 until a.length()) {
+                val plot = a.getJSONObject(i).optString("plotId")
+                require(plot.isEmpty() || (safeId.matches(plot) && plot in plotIds)) { "紀錄引用了不存在的田區" }
+            }
+        }
+        val active = input.optString("activePlotId")
+        require(active.isEmpty() || active in plotIds) { "預設田區不存在" }
+        out.put("activePlotId", active)
+        out.put("lastFarmOperator", input.optString("lastFarmOperator").take(120))
+        out.put("schemaVersion", input.optInt("schemaVersion", 1).also { require(it in 1..100) })
+        return out
+    }
+    fun encode(data: JSONObject): ByteArray = JSONObject().put("product", "searchbefore-backup")
+        .put("formatVersion", 1).put("appVersion", "1.1.0-native-preview")
+        .put("exportedAt", Instant.now().toString()).put("data", data).toString(2).toByteArray()
+    fun validDate(date: String) = Regex("\\d{4}-\\d{2}-\\d{2}").matches(date) && runCatching { LocalDate.parse(date) }.isSuccess
+    fun harvestDate(record: JSONObject): String? = runCatching {
+        if (record.isNull("phi")) return null
+        val days = record.getDouble("phi")
+        require(days.isFinite() && days in 0.0..3650.0)
+        // Imported fractional days must never be rounded down to an earlier date.
+        LocalDate.parse(record.getString("date")).plusDays(kotlin.math.ceil(days).toLong()).toString()
+    }.getOrNull()
+    fun plots(data: JSONObject): List<JSONObject> = data.getJSONArray("fieldPlots").let { a ->
+        (0 until a.length()).map { a.getJSONObject(it) }
+    }
+    fun plotLabel(plot: JSONObject): String = listOf(plot.optString("crop", plot.optString("name")),
+        plot.optString("variety"), plot.optString("tag")).filter { it.isNotBlank() }.joinToString(" / ")
+    fun addPlot(data: JSONObject, crop: String, tag: String, plantDate: String, catalogCrops: List<String>): JSONObject {
+        require(crop in catalogCrops) { "請選擇原登記作物名稱" }
+        require(tag.trim().length in 1..120) { "請填寫 1～120 字的田區名稱" }
+        require(plantDate.isEmpty() || validDate(plantDate)) { "種植日期格式不正確" }
+        require(plantDate.isEmpty() || !LocalDate.parse(plantDate).isAfter(LocalDate.now())) { "實際種植日期不可填未來日期" }
+        val next = JSONObject(data.toString())
+        val plot = JSONObject().put("id", "plot_" + UUID.randomUUID().toString()).put("name", crop)
+            .put("crop", crop).put("cropSource", "registered").put("tag", tag.trim()).put("variety", "")
+            .put("plantDate", plantDate).put("createdAt", LocalDate.now().toString())
+            .put("updatedAt", DateTimeFormatterBuilder().appendInstant(3).toFormatter().format(Instant.now()))
+        next.getJSONArray("fieldPlots").put(plot)
+        return parse(encode(next))
+    }
+    fun appendRecord(data: JSONObject, row: UsageRow, date: String, plotId: String): JSONObject {
+        if (plotId.isNotEmpty()) {
+            val plot = plots(data).find { it.getString("id") == plotId }
+            require(plot != null && plot.optString("crop", plot.optString("name")) == row.crop) { "田區與登記作物不符，請重新選擇" }
+        }
+        val next = JSONObject(data.toString())
+        next.getJSONArray("records").put(record(row, date).put("plotId", plotId))
+        return parse(encode(next))
+    }
+    fun record(row: UsageRow, date: String): JSONObject {
+        require(validDate(date)) { "請輸入 YYYY-MM-DD 日期" }
+        require(!LocalDate.parse(date).isAfter(LocalDate.now())) { "實際施藥紀錄不可填未來日期" }
+        return JSONObject().put("id", "rec_" + UUID.randomUUID().toString()).put("crop", row.crop)
+            .put("pest", row.pest).put("agent", row.name).put("date", date)
+            .put("phi", row.phi ?: JSONObject.NULL).put("moa", row.json.optString("moa"))
+            .put("dil", if(row.canCalculate) row.json.optString("dilution").replace(",", "").toDoubleOrNull() ?: 0 else 0)
+            .put("water", 0).put("plotId", "").put("operator", "").put("updatedAt", DateTimeFormatterBuilder().appendInstant(3).toFormatter().format(Instant.now()))
+    }
+}

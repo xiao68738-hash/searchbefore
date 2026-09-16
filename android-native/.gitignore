@@ -1,0 +1,7 @@
+.gradle/
+.idea/
+local.properties
+**/build/
+app/src/main/assets/catalog.json
+app/src/main/res/values/firebase-local.xml
+.kotlin/
