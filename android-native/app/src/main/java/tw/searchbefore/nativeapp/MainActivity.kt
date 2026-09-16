@@ -11,6 +11,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -155,8 +156,11 @@ class MainActivity : ComponentActivity() {
     var plotId by rememberSaveable { mutableStateOf("") }
     val cropSuggestions = remember(query, mode) { if(mode == 0) catalog.cropSuggestions(query) else emptyList() }
     val agentSuggestions = remember(query, mode) { if(mode == 1) catalog.agentSuggestions(query) else emptyList() }
+    val queryListState = rememberLazyListState()
+    // A new registration scope is a new result page, not the previous page's footer.
+    LaunchedEffect(mode, crop, pest, overview) { queryListState.scrollToItem(0) }
     BackHandler(crop.isNotEmpty()) { if (pest.isNotEmpty()) pest = "" else if (overview) overview = false else crop = "" }
-    LazyColumn(modifier = Modifier.testTag("queryList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
+    LazyColumn(state = queryListState, modifier = Modifier.testTag("queryList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
         item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(selected = mode == 0, onClick = { mode = 0; crop = ""; pest = ""; query = "" }, label = { Text("按作物查") })
             FilterChip(selected = mode == 1, onClick = { mode = 1; crop = ""; pest = ""; query = "" }, label = { Text("按藥劑查") })
