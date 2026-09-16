@@ -1,5 +1,7 @@
 # 原生預覽：Android 11 實機驗收
 
+後續更新：使用者已同意正式套件設定，Firebase app／Play 指紋已登記，詳見 [正式設定](NATIVE-PRODUCTION-FIREBASE-2026-09-16.md)。以下當時「等待同意」已解除，但正式設定檔接入與驗收仍未完成。
+
 本次使用 SUGAR C60（API 30），在原噴前查旁獨立安裝 `tw.searchbefore.app.nativepreview`。不解除安裝、不清除資料、不執行會安裝／解除安裝套件的 Gradle connected suite。正式 Play 套件與 release guard 不變。
 
 ## 已觀察
