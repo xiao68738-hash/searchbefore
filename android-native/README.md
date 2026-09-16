@@ -30,9 +30,9 @@
 | Google 原生登入 | Credential Manager／Firebase Auth 與預覽簽章設定已接入；需 Android 真實登入、取消與登出驗收；正式身分另行設定 |
 | 原生雲端同步 | 完整伺服器讀取、交易重比對、刪除標記、跨帳號防護已接入；真實上傳／重登匯入／斷線複測未完成 |
 | 田區、農務、設備、配方編輯 | 已接入本機編輯、刪除確認與撤銷；仍需真實資料回歸與手機操作驗收 |
-| 採收總覽／多筆用藥判斷 | 已有田區彙整與未知優先；需擴充多筆資料與網站安全核心的對照驗收；不是可採收許可 |
+| 採收總覽／多筆用藥判斷 | 已有田區彙整與未知優先，37 組網站對照通過；仍需真實資料驗收，不是可採收許可 |
 | 查詢完整相容 | 保持精確作物原登記；收穫部位已依網站資料生成。模糊／注音僅提供候選，尚不宣稱與 Web 所有候選排序完全一致 |
-| 匯出 | JSON／CSV／Excel／PDF 已實作；中文 PDF、Excel 開啟與真實資料移轉需驗收；TAP 固定表單另列待辦 |
+| 匯出 | JSON／CSV／Excel／PDF 已實作；假資料中文 PDF 與 Excel 已獨立開啟／渲染通過，真實資料移轉與 TAP 固定表單仍待辦 |
 | 無障礙、Android 16、離線與更新實機驗收 | 尚未完成；本輪沒有連接手機，不把編譯通過當實機通過 |
 | 全量資料移轉 | 需真實網站 JSON → 原生 → JSON → 網站的對照驗收，以及帳號一致性驗證 |
 | OCR | 不在本輪範圍，不是正式版功能 |
@@ -45,7 +45,7 @@
 rtk proxy powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-android-native.ps1
 ```
 
-加上 `-Lint` 可連同 Android 靜態檢查一起執行，報告位於 `app/build/reports/lint-results-debug.html`；`-Connected` 在連線 Android 上執行唯讀導覽測試，不登入、同步或修改私人紀錄。Lint、單元測試與建置都不能取代實機操作、登入／同步或備份移轉驗收。
+加上 `-Lint` 可連同 Android 靜態檢查一起執行，報告位於 `app/build/reports/lint-results-debug.html`。`-Connected` 只允許唯一連線的 `emulator-5580`，先用 `scripts/start-native-validation-emulator.ps1` 啟動可丟棄的唯讀 overlay，測試期間不要接其他裝置。UI 不登入／同步，但 Gradle 會安裝及解除安裝套件，**不可用此流程驗收使用者手機**。Lint、單元測試與建置都不能取代實機操作、登入／同步或備份移轉驗收。
 
 腳本先以既有 JS 純函式產生唯讀資料檔，再跑原生單元測試與 debug APK。生成檔忽略於 Git；農藥原始資料不變。預覽目前有 287 作物、17,333 原登記列，資料日 2026-07-21；**不是新的官方資料更新**。
 

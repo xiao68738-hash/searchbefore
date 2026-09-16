@@ -1,6 +1,21 @@
 param([string]$SharedRoot = "D:\SearchBefore", [switch]$Lint, [switch]$Connected)
 $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
+function Assert-IsolatedValidationDevice {
+    param([string[]]$DeviceOutput)
+    # connectedDebugAndroidTest installs/uninstalls packages, even when the UI tests only read.
+    # Never run this suite on a user's phone or an unrelated emulator.
+    $adb = Join-Path $SharedRoot "tools\android-sdk\platform-tools\adb.exe"
+    if (!$PSBoundParameters.ContainsKey('DeviceOutput')) {
+        $DeviceOutput = & $adb devices
+        if ($LASTEXITCODE -ne 0) { throw "Cannot inspect Android devices safely" }
+    }
+    $entries = @($DeviceOutput | Where-Object { ![string]::IsNullOrWhiteSpace($_) -and $_ -notmatch '^List of devices attached\s*$' })
+    if ($entries.Count -ne 1 -or $entries[0] -notmatch '^emulator-5580\s+device\b') {
+        throw "Connected tests require ONLY disposable emulator-5580. Disconnect phones and start scripts/start-native-validation-emulator.ps1; real-device acceptance is separate."
+    }
+}
+if ($Connected) { Assert-IsolatedValidationDevice }
 $changes = @{
     JAVA_HOME = Join-Path $SharedRoot "tools\jdk17\jdk-17.0.20+8"
     ANDROID_HOME = Join-Path $SharedRoot "tools\android-sdk"
@@ -18,6 +33,7 @@ try {
     $nativeTasks = @(':app:testDebugUnitTest', ':app:assembleDebug')
     if ($Lint) { $nativeTasks += ':app:lintDebug' }
     if ($Connected) { $nativeTasks += ':app:connectedDebugAndroidTest' }
+    if ($Connected) { Assert-IsolatedValidationDevice }
     & (Join-Path $projectRoot "android-twa\gradlew.bat") -p (Join-Path $projectRoot "android-native") --no-daemon @nativeTasks
     if ($LASTEXITCODE -ne 0) { throw "Native preview build/test failed" }
 } finally {
