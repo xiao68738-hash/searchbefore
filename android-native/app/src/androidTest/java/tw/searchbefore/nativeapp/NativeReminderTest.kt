@@ -31,12 +31,13 @@ class NativeReminderTest {
                 android.os.ParcelFileDescriptor.AutoCloseInputStream(fd).use { it.readBytes() }
             }
         }
-        val original=NativeReminders.allowed(app)
         try {
             val store=NativeStore(context)
             store.save(NativeDocument.empty().put("remindersEnabled",true))
-            permission("revoke")
+            // A fresh disposable install starts denied. Revoking our own permission mid-run
+            // kills the instrumentation process; cleanup is the host's uninstall, not a test.
             if(Build.VERSION.SDK_INT>=33) {
+                assertFalse("Run in a fresh disposable install; denial must actually be exercised", NativeReminders.allowed(app))
                 assertFalse(NativeReminders.reconcile(context,true))
                 assertFalse(NativeReminders.check(context,test=true))
             }
@@ -45,7 +46,10 @@ class NativeReminderTest {
             assertTrue(app.getSystemService(JobScheduler::class.java).allPendingJobs.any { it.id==NativeReminders.JOB })
             assertFalse(NativeReminders.check(context)) // empty data is not a harvest event
             assertTrue(NativeReminders.check(context,test=true))
-            val notification=app.getSystemService(NotificationManager::class.java).activeNotifications.first { it.id==NativeReminders.NOTICE }.notification
+            val manager=app.getSystemService(NotificationManager::class.java)
+            val deadline=android.os.SystemClock.uptimeMillis()+3000
+            while(manager.activeNotifications.none { it.id==NativeReminders.NOTICE } && android.os.SystemClock.uptimeMillis()<deadline) Thread.sleep(50)
+            val notification=manager.activeNotifications.first { it.id==NativeReminders.NOTICE }.notification
             assertTrue(notification.extras.getCharSequence("android.text").toString().contains("不是採收"))
             assertEquals(android.app.Notification.VISIBILITY_PRIVATE,notification.visibility)
             val restored=NativeDocument.replaceData(store.load(),Backup.empty(),true)
@@ -57,7 +61,6 @@ class NativeReminderTest {
             assertFalse(app.getSystemService(NotificationManager::class.java).activeNotifications.any { it.id==NativeReminders.NOTICE })
         } finally {
             NativeReminders.reconcile(context,false)
-            permission(if(original) "grant" else "revoke")
         }
     }
 }
