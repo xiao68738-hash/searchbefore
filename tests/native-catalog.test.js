@@ -66,6 +66,7 @@ assert.match(sync,/MemoryCacheSettings/);
 assert.doesNotMatch(sync,/whereGreaterThan|lastSyncAt.*get\(|firebase-analytics/);
 assert.match(manifest,/usesCleartextTraffic="false"/);
 const gradle=fs.readFileSync(path.join(__dirname,'../android-native/app/build.gradle'),'utf8');
+assert.match(gradle,/minSdk 24\b/,'retain Play automatic protection compatibility');
 assert.match(gradle,/applicationIdSuffix "\.nativepreview"/);
 assert.match(gradle,/name == "preReleaseBuild"[\s\S]*throw new GradleException/,'incomplete native preview must remain release-blocked');
 assert.match(gradle,/if \(!internalCandidate\) throw new GradleException/);

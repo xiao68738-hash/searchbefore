@@ -58,7 +58,7 @@ rtk proxy powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-andr
 - namespace：`tw.searchbefore.nativeapp`
 - debug applicationId：`tw.searchbefore.app.nativepreview`，與現有 APP 並存。
 - 正式基礎 applicationId：`tw.searchbefore.app`；內部候選使用既有 upload key 簽署 AAB，由 Play App Signing 簽署派送的 APK。本機 upload key 不等於 Play 安裝簽章。
-- compile/target API 36，min API 23，Java 17／desugaring。
+- compile/target API 36，min API 24（保留現有 Play 自動保護的最低要求），Java 17／desugaring。
 - versionCode 5／versionName `1.1.0-internal`；2026-09-16 本輪 Play 最大套件代碼為 4。上傳時仍須留意並行發布造成版本衝突。
 - 預覽的 `firebase-preview.json` 由 Firebase Console 下載，必須符合預覽 package 與 project，且包含 Web OAuth client；此檔忽略於 Git。無設定時仍可使用本機功能，但登入不啟用。不能用此設定替代正式 Play 身分。
 

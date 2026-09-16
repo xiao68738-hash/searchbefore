@@ -22,9 +22,10 @@
 - `VerifyNativeBundle.java` 同時核對 4 個 64-bit .so 的 ELF PT_LOAD 16 KB 對齊通過；不代替 Play 派送 APK 的 ZIP 對齊與 16 KB 系統实測。參考 [Android 16 KB 支援檢查](https://developer.android.com/guide/practices/page-sizes)。
 - AAB config 為 PAGE_ALIGNMENT_16K。初版 RELRO 檢查只看結束地址而誤報；核對 [Android 16 linker 的整頁保護算法](https://android.googlesource.com/platform/bionic/+/android16-qpr2-release/linker/linker_phdr.cpp) 後，改驗證保護擴張是否覆蓋 RELRO 以外仍需寫入／執行的 LOAD 位元組。6 組正反例與候選的 4 個函式庫通過；未更換或修改函式庫。這是靜態布局推論，不是 16 KB 系統實測。
 - 原候選 SHA-256：4bab9bdad015e75040b1a94072d2981f44ae1ffe28242910ff04f1b333c2d128（14,334,021 bytes），尚未上傳；若重建或更新須重新計算。
-- 本機 Node 全套與 GitHub Review／Android CI（3a44e30；Android run 35109306708）通過。CI 是 debug 編譯／JVM／Lint，不是 Play 登入驗收。
-- Android 16 UI：隔離模擬器設定路徑已修復，後續與建置分階段執行；未完成新一轮結果前不得宣稱通過。
-- Play 內部發布：待建置及驗收通過後操作，未上傳即不得寫成已發布。
+- 本機 Node 全套與 GitHub Review／Android CI（65a3f73；Review run 35111843180、Android run 35111842752）通過。CI 是 debug 編譯／JVM／Lint，不是 Play 登入驗收。
+- Android 16 UI：隔離 emulator-5580、1.5 倍字型，8 項測試全部通過（包含新增移轉指引），connected build 6m32s；恢復字型後已關閉本次唯讀模擬器，adb devices 空白。本輪沒有手機測試。此 UI 結果先於下面的 minSdk 單一相容性調整。
+- Play 初次上傳被自動保護檢核拒絕：最低 API 23 不符合已啟用保護的 API 24 要求。沒有關閉保護；候選改 minSdk 24，重新執行 release 測試／Lint／打包。Android 6 不在此候選支援範圍，舊 Alpha／正式版不動。
+- 已儲存內部草稿名稱及 zh-TW 說明。內部測試目前沒有勾選測試名單，既有「測試人員」26 人清單仍未勾選；沒有新增成員。尚未發布，待新 AAB 通過 Play 檢核。
 
 ## 仍需 Play 派送與實機的驗收
 
