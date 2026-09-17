@@ -22,6 +22,7 @@ async function harness(options = {}) {
   let authCallback, reloads = 0, confirmations = 0;
   let readHook = async () => [];
   let writeHook = async () => {};
+  let transactionHook = async () => null;
   const account = { onUser(cb) { authCallback = cb; } };
   const sandbox = {
     navigator: { onLine: true }, location: { protocol: "https:" },
@@ -34,12 +35,23 @@ async function harness(options = {}) {
     getFirestore: () => ({}), collection: (_, ...parts) => ({ parts }),
     doc: (_, ...parts) => ({ parts }), where: (...parts) => parts,
     query: (ref, condition) => ({ ...ref, condition }),
-    async getDocs(ref) {
+    async getDocsFromServer(ref) {
       reads.push(ref);
       const rows = await readHook(ref);
       return { forEach(cb) { for (const row of rows) cb({ id: row.id, data: () => clone(row) }); } };
     },
-    async setDoc(ref, body) { writes.push({ ref, body: clone(body) }); await writeHook(ref, body); },
+    async runTransaction(_, update) {
+      const pendingWrites = [];
+      const result = await update({
+        async get(ref) {
+          const row = await transactionHook(ref);
+          return { exists: () => !!row, data: () => clone(row) };
+        },
+        set(ref, body) { pendingWrites.push({ref, body:clone(body)}); }
+      });
+      for (const w of pendingWrites) { writes.push(w); await writeHook(w.ref,w.body); }
+      return result;
+    },
   };
   const modules = new Map();
   async function importModule(url) {
@@ -61,7 +73,7 @@ async function harness(options = {}) {
   const sync = sandbox.window.PQC_SYNC;
   sync.attach({ host: { get: k => clone(store[k] ?? null), set: (k, v) => { store[k] = clone(v); }, reload: () => reloads++ } });
   authCallback({ uid: "account-a" });
-  return { sync, store, writes, reads, login: authCallback, read: fn => { readHook = fn; }, write: fn => { writeHook = fn; }, reloads: () => reloads, confirmations: () => confirmations };
+  return { sync, store, writes, reads, login: authCallback, read: fn => { readHook = fn; }, transaction: fn => { transactionHook = fn; }, write: fn => { writeHook = fn; }, reloads: () => reloads, confirmations: () => confirmations };
 }
 
 (async () => {
@@ -159,5 +171,47 @@ async function harness(options = {}) {
     await h.sync.syncNow();
     assert.equal(h.writes.at(-1).body.note, "edited while upload pending", "Next sync must upload the pending edit");
   }
-  console.log("Cloud sync lifecycle: cancellation, account isolation, SDK retries, one-run locking and explicit account adoption passed.");
+  for (const col of ["records","fieldPlots","farmRecords"]) {
+    const h=await harness();
+    h.store.syncLastAt="2026-09-16T10:00:00.000Z";
+    h.store[col]=[{id:"local-old",note:"offline local edit",updatedAt:"2026-09-16T08:00:00.000Z"}];
+    const late={id:"late-upload",note:"uploaded after checkpoint",updatedAt:"2026-09-16T09:00:00.000Z"};
+    h.read(async ref=>ref.parts[2]===col?[late]:[]);
+    await h.sync.syncNow();
+    assert.ok(h.store[col].some(r=>r.id===late.id),col+": late upload before old checkpoint must be read");
+    assert.ok(h.writes.some(w=>w.ref.parts[2]===col&&w.ref.parts[3]==="local-old"),"old local timestamp must not skip upload");
+    assert.ok(h.reads.every(ref=>!ref.condition),"no client-time query cursor");
+  }
+  {
+    const h=await harness();
+    h.store.syncLastAt="2099-01-01T00:00:00.000Z";
+    h.read(async ref=>ref.parts[2]==="records"?[{id:"local-a",_deleted:true,updatedAt:"2026-09-08T00:00:00.000Z"}]:[]);
+    await h.sync.syncNow();
+    assert.deepEqual(h.store.records,[],"late tombstone must remove old local data even with clock skew");
+    assert.equal(h.writes.length,0,"remote tombstone must not be overwritten");
+  }
+  {
+    const h=await harness();
+    const newer={id:"local-a",note:"concurrent server edit",updatedAt:"2026-09-08T00:00:00.000Z"};
+    h.transaction(async()=>newer);
+    await h.sync.syncNow();
+    assert.equal(h.writes.length,0,"transaction must protect a newer edit arriving after collection read");
+    assert.equal(h.store.records[0].note,newer.note,"transaction winner must also reach local data");
+  }
+  {
+    const h=await harness();
+    h.store.syncLastAt="2026-09-01T00:00:00.000Z";
+    h.read(async()=>{throw new Error("server unreachable; cached data is not confirmation");});
+    await h.sync.syncNow();
+    assert.equal(h.sync.statusLine().tone,"warn");
+    assert.equal(h.store.syncLastAt,"2026-09-01T00:00:00.000Z");
+    assert.equal(h.writes.length,0);
+  }
+  {
+    const h=await harness();
+    h.read(async ref=>clone(h.store[ref.parts[2]]||[]));
+    await h.sync.syncNow();await h.sync.syncNow();
+    assert.equal(h.writes.length,0,"full reads must not cause unchanged data to be rewritten");
+  }
+  console.log("Cloud sync lifecycle: late uploads/deletions, clock-skewed cursors, concurrent server edits, server failures, cancellation, isolation and retry passed.");
 })().catch(error => { console.error(error); process.exitCode = 1; });
