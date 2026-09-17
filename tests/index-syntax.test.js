@@ -31,7 +31,7 @@ assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.index
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./field-summary.js"></script>') < html.indexOf("const DATA="), "field-summary.js 必須在主程式前載入");
 assert.match(html, /const APP_VERSION="0\.3\.10\.0"/);
-assert.match(sw, /const CACHE_VERSION = "v0\.3\.10\.0-sync-related-navigation-2026-09-16"/);
+assert.match(sw, /const CACHE_VERSION = "v0\.3\.10\.0-sync-related-navigation-native-backup-2026-09-17"/);
 assert.match(html, /function usagePresentationSafe\(agent\)/);
 assert.match(html, /typeof PQC_AIDS\.usagePresentation==="function"/);
 assert.equal((html.match(/PQC_AIDS\.usagePresentation\(/g)||[]).length,1,"只有相容層可以直接呼叫 usagePresentation");

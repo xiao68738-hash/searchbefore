@@ -354,7 +354,7 @@
   function sanitizePesticideRecord(value, label) {
     const r = plainObject(value, label);
     const phi = safeNumber(r.phi, label + ".phi", { nullable: true, asNumber: true, min: 0, max: 3650 });
-    return syncFields(r, {
+    const target = {
       id: safeId(r.id, label + ".id", true),
       crop: safeString(r.crop, label + ".crop", 120, true),
       agent: safeString(r.agent, label + ".agent", 200, true),
@@ -367,7 +367,23 @@
       totalWater: safeNumber(r.totalWater, label + ".totalWater", { min: 0, max: 100000000 }),
       plotId: safeId(r.plotId, label + ".plotId", false),
       operator: safeString(r.operator, label + ".operator", 120, false)
-    }, label);
+    };
+    // Explicit extension whitelist for native actual-use records; never preserve arbitrary keys.
+    if (Object.prototype.hasOwnProperty.call(r, "waterRecorded")) {
+      if (typeof r.waterRecorded !== "boolean" || (!r.waterRecorded && Number(target.water) > 0)) throw new Error("備份實際水量標記錯誤：" + label);
+      target.waterRecorded = r.waterRecorded;
+    }
+    if (r.actualAmount != null || r.actualAmountUnit != null) {
+      const amount = safeString(r.actualAmount, label + ".actualAmount", 20, false);
+      const unit = safeString(r.actualAmountUnit, label + ".actualAmountUnit", 8, false);
+      if (amount && (!/^[0-9]+(?:\.[0-9]{1,6})?$/.test(amount) || Number(amount) > 10000000)) throw new Error("備份實際製品用量錯誤：" + label);
+      if ((amount && ["mL", "L", "g", "kg"].indexOf(unit) < 0) || (!amount && unit)) throw new Error("備份實際製品單位錯誤：" + label);
+      target.actualAmount = amount; target.actualAmountUnit = unit;
+    }
+    if (r.notes != null) target.notes = safeString(r.notes, label + ".notes", 2000, false);
+    if (r.registrationId != null) target.registrationId = safeId(r.registrationId, label + ".registrationId", false);
+    if (r.harvestForm != null) target.harvestForm = safeString(r.harvestForm, label + ".harvestForm", 120, false);
+    return syncFields(r, target, label);
   }
 
   function sanitizeSafetyCheck(value, label) {
