@@ -801,10 +801,9 @@ nav button.on{color:var(--green)}
   .pest-rel b{display:block;font-size:14px;color:var(--green-deep);margin-bottom:3px}
   .pest-rel p{font-size:13px;color:var(--ink-soft);line-height:1.6;margin-bottom:8px}
   .pest-rel .chip{margin:0 6px 0 0}
-  .pest-rel-group{border-top:1px solid var(--line);padding:9px 0}
-  .pest-rel-group summary{cursor:pointer;color:var(--green-deep);font-weight:800;line-height:1.6;padding:4px 0}
-  .pest-rel-group summary:focus-visible{outline:2px solid var(--green);outline-offset:2px}
-  .pest-rel-group p{overflow-wrap:anywhere;margin:8px 0}
+  .pest-rel-links{display:flex;flex-direction:column;gap:8px;margin:10px 0}
+  .pest-rel-links .chip{text-align:left;white-space:normal;line-height:1.6;padding:10px 12px;min-height:44px}
+  .pest-rel-links .chip:focus-visible{outline:2px solid var(--green);outline-offset:2px}
   /* 種子處理標示 */
   .seed-tag{display:inline-block;font-size:11.5px;font-weight:800;border-radius:20px;padding:1px 8px;margin-left:6px;vertical-align:middle;background:var(--mut-bg);color:var(--ink-soft);border:1px solid var(--line)}
   .seed-note{background:var(--mut-bg);border-left:3px solid var(--ink-soft)}
@@ -1439,7 +1438,7 @@ const DATA={"木瓜":{"白粉病":[{"name":"快得保淨","form":"WP","content":
 /* ═══ 維護區:改這裡就好 ═══════════════════════════════
    APP_VERSION:每次更新資料或功能時往上加
    ANNOUNCE:公告(新的放最上面,date 改了紅點會自動亮) */
-const APP_VERSION="0.3.9.9";
+const APP_VERSION="0.3.10.0";
 const DATA_VERSION="2026-07-21"; // 農藥資料抓取年月
 const ANNOUNCE=[
  {date:"2026-09-12",version:"0.3.9.9",title:"殘留提醒改為作物別標籤",body:"已複核組合在藥劑名稱旁顯示作物別殘留提醒，並提供可展開的核對依據。可使用僅指依該筆登記用途與產品標示使用；未完成部位或分類確認者仍標待確認，未標示不代表檢驗合格。"},
@@ -2296,12 +2295,11 @@ function renderAgents(){
   }else{
     cnt.textContent=phiMax?`(${standardSeq.length} 種一般用法・${specialSeq.length} 種特殊用法,≤${phiMax}天)`:`(${standardSeq.length} 種一般用法・${specialSeq.length} 種特殊用法)`;
   }
-  document.getElementById("agentList").innerHTML=renderPestRelated()
-    +shownSeq.map(k=>card(k,"")).join("")
+  document.getElementById("agentList").innerHTML=shownSeq.map(k=>card(k,"")).join("")
     +(standardSeq.length>agentShow?`<button class="more-btn" onclick="agentShow+=12;renderAgents()">顯示更多一般用法(還有 ${standardSeq.length-agentShow} 種)</button>`:"")
     +(specialSeq.length?`<details class="form-excluded special-uses"><summary>特殊施用方式(${specialSeq.length} 筆)——與一般噴施分開顯示</summary><div class="note special-use-note">包含種子處理、撒布、原液、登記施用水量或其他特殊方式；不提供稀釋計算，請依產品標示操作。</div>${specialSeq.map(k=>card(k,"")).join("")}</details>`:"")
     +(selForm&&split.excluded.length?`<details class="form-excluded"><summary>與「${esc(CF.formLabel(selCrop,selForm))}」不符或待確認(${split.excluded.length} 筆)——點開查看</summary>${split.excluded.map(e=>card(e.index,e.reason)).join("")}</details>`:"")
-    +renderMaterials();
+    +renderMaterials()+renderPestRelated();
 }
 /* 害物從屬提示:群組與具體物種的登記藥劑常完全不重疊,提示但不合併清單 */
 function renderPestRelated(){
@@ -2310,14 +2308,10 @@ function renderPestRelated(){
     ?PQC_AIDS.relatedPestRegistrations(selCrop,selPest,DATA)
     :PQC_AIDS.relatedPests(selCrop,selPest,DATA).filter(r=>r.agentCount>0);
   if(!rel.length)return "";
-  const groups=rel.map(r=>`<details class="pest-rel-group">
-    <summary>原登記：${esc(r.pest)} · ${r.agentCount} 筆用法${r.names?` / ${r.names.length} 種藥劑`:""}</summary>
-    ${r.names?`<p>${r.names.map(esc).join("、")}</p>`:""}
-    <button class="chip" onclick="pickPest(${esc(JSON.stringify(r.pest))})">查看「${esc(r.pest)}」原登記用法</button>
-    </details>`).join("");
-  return `<div class="pest-rel"><b>同作物相關分類用藥總覽（按原登記分組）</b>
-    <p>「${esc(selPest)}」與相關分類在登記資料中是分開的條目，清單可能<b>完全不同</b>。本工具不會自動合併。以下僅供查找，不代表可互用；不套用目前採收期篩選。請進入原登記用法核對倍數、採收期及產品標示。</p>
-    ${groups}<p>分類對照尚非完整清單；下方主清單仍僅列「${esc(selPest)}」原登記。</p></div>`;
+  const links=rel.map(r=>`<button class="chip" onclick="pickPest(${esc(JSON.stringify(r.pest))})">也要看看${esc(selCrop)} × ${esc(r.pest)}用藥嗎？</button>`).join("");
+  return `<div class="pest-rel" role="navigation" aria-label="相關防治對象"><b>看看相關防治對象</b>
+    <div class="pest-rel-links">${links}</div>
+    <p>各防治對象的登記用法分開顯示，不代表藥劑可互用。前往後請重新確認用法與採收期。</p></div>`;
 }
 function renderMaterials(){
   const mats=matchMaterials(selPest);

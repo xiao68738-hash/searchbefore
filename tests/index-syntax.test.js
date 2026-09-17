@@ -30,8 +30,8 @@ assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("co
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./field-summary.js"></script>') < html.indexOf("const DATA="), "field-summary.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="0\.3\.9\.9"/);
-assert.match(sw, /const CACHE_VERSION = "v0\.3\.9\.9-clean-agent-cards-2026-09-13"/);
+assert.match(html, /const APP_VERSION="0\.3\.10\.0"/);
+assert.match(sw, /const CACHE_VERSION = "v0\.3\.10\.0-sync-related-navigation-native-backup-2026-09-17"/);
 assert.match(html, /function usagePresentationSafe\(agent\)/);
 assert.match(html, /typeof PQC_AIDS\.usagePresentation==="function"/);
 assert.equal((html.match(/PQC_AIDS\.usagePresentation\(/g)||[]).length,1,"只有相容層可以直接呼叫 usagePresentation");
@@ -231,7 +231,7 @@ assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
 assert.match(sw, /"\.\/guides\.html"/);
 assert.match(sw, /const cacheKey = isAppEntry \? "\.\/" : `\.\$\{url\.pathname\}`/, "指南導覽必須使用自己的快取鍵，不可誤回首頁");
-assert.match(sw, /v0\.3\.9\.9-clean-agent-cards/);
+assert.match(sw, /v0\.3\.10\.0-sync-related-navigation/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.match(sw, /"\.\/pinyin-pro\.js"/);
 assert.ok(html.indexOf('<script src="./pinyin-pro.js"></script>') < html.indexOf('<script src="./query-aids.js"></script>'), "拼音核心必須在搜尋輔助前載入");
@@ -288,7 +288,7 @@ assert.match(html, /PQC_AIDS\.isSeedTreatment\(a\)/);
 assert.match(html, /種子處理・非噴施/);
 assert.match(html, /用途：\$\{esc\(usage\.value\)\}/);
 assert.match(html, /登記用量/);
-assert.match(html, /本工具不會自動合併/);
+assert.match(html, /各防治對象的登記用法分開顯示，不代表藥劑可互用/);
 assert.match(sw, /"\.\/crop-forms\.js"/);
 assert.ok(html.indexOf('<script src="./crop-forms.js"></script>') < html.indexOf("const DATA="), "crop-forms.js 必須在主程式前載入");
 assert.match(html, /id="formBlock"/);

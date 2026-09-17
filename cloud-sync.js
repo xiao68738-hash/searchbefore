@@ -121,13 +121,22 @@
       seen.add(item.id);
       const old=prev.get(item.id);
       if(old&&sameContent(old,item))return Object.assign({},item,{updatedAt:old.updatedAt||now});
-      return Object.assign({},item,{updatedAt:now});
+      return Object.assign({},item,{updatedAt:editStamp(now,old&&old.updatedAt)});
     });
     const tombstones=[];
     prev.forEach(function(old,id){
-      if(!seen.has(id))tombstones.push({col:col,id:id,updatedAt:now});
+      if(!seen.has(id))tombstones.push({col:col,id:id,updatedAt:editStamp(now,old.updatedAt)});
     });
     return {items:items,tombstones:tombstones};
+  }
+  // Also protect edits after a page restart or a clock correction. lastStamp
+  // alone is in-memory and may be older than a previously downloaded record.
+  function editStamp(now,previous){
+    const time=Date.parse(previous);
+    if(previous&&String(previous)>=now&&Number.isFinite(time)&&time<8640000000000000){
+      return new Date(time+1).toISOString();
+    }
+    return now;
   }
 
   /* ═══ 純函式：清掉太舊的刪除標記 ═══ */
@@ -252,42 +261,53 @@
       if(!current())return;
       if(!database)throw new Error("sync-unavailable");
       if(!ownerUid())host.set(K_OWNER,uid);
-      const tombs=arr(host.get(K_TOMB));
-      /* 增量同步:只抓上次成功同步之後變動過的文件。
-         全量讀取的話,200 筆紀錄每次同步就是 200 次讀取,
-         12 人每天各同步 15 次 = 36,000 次,逼近 Spark 每天 50,000 次上限,
-         而且完全無法隨使用者成長。首次同步(沒有 since)才做全量。
-         注意:K_LAST 只在整輪成功後才更新,所以中途失敗不會漏掉資料。 */
-      const since=String(host.get(K_LAST)||"");
+      /* 完整伺服器核對：updatedAt 是編輯時間，不是到達雲端的時間。
+         離線舊編輯可能稍後才上傳，不能用 syncLastAt 過濾讀取或寫入。
+         保持舊資料／舊客戶端相容；代價是每輪讀取完整集合。
+         K_LAST 僅供顯示。必須使用 server 來源，快取不能冒充成功備份。 */
 
       for(const col of COLLECTIONS){
         if(!current())return;
         const ref=fsApi.collection(database,"users",uid,col);
-        const snap=await fsApi.getDocs(
-          since?fsApi.query(ref,fsApi.where("updatedAt",">",since)):ref
-        );
+        const snap=await fsApi.getDocsFromServer(ref);
         if(!current())return;
         const remote=[];
-        snap.forEach(function(d){remote.push(Object.assign({id:d.id},d.data()))});
+        snap.forEach(function(d){remote.push(Object.assign({},d.data(),{id:d.id}))});
 
         const localItems=arr(host.get(col)).slice();
-        tombs.filter(function(t){return t.col===col}).forEach(function(t){
+        arr(host.get(K_TOMB)).filter(function(t){return t.col===col}).forEach(function(t){
           localItems.push({id:t.id,_deleted:true,updatedAt:t.updatedAt});
         });
 
         const res=mergeCollection(localItems,remote);
         host.set(col,res.merged);
 
-        /* updatedAt <= since 的項目在前一輪成功同步時已經推送過,不必重傳。 */
-        const toPush=res.toPush.filter(function(i){
-          return !since||String(i.updatedAt||"")>since;
-        });
-        for(const item of toPush){
+        for(const item of res.toPush){
           if(!current())return;
-          const body=Object.assign({},item);
-          delete body.id;
-          await fsApi.setDoc(fsApi.doc(database,"users",uid,col,String(item.id)),body,{merge:false});
+          const docRef=fsApi.doc(database,"users",uid,col,String(item.id));
+          // Re-read atomically; another device can update after the collection read.
+          const accepted=await fsApi.runTransaction(database,async function(tx){
+            if(!current())throw new Error("sync-cancelled");
+            const latest=await tx.get(docRef);
+            if(!current())throw new Error("sync-cancelled");
+            const server=latest.exists()?Object.assign({},latest.data(),{id:String(item.id)}):null;
+            const checked=mergeCollection([item],server?[server]:[]);
+            if(checked.toPush.length){
+              const body=Object.assign({},item);delete body.id;
+              tx.set(docRef,body,{merge:false});
+              return item;
+            }
+            return server;
+          });
           if(!current())return;
+          // Preserve local edits/deletions made while awaiting the transaction.
+          if(accepted){
+            const latestLocal=arr(host.get(col)).slice();
+            arr(host.get(K_TOMB)).filter(function(t){return t.col===col}).forEach(function(t){
+              latestLocal.push({id:t.id,_deleted:true,updatedAt:t.updatedAt});
+            });
+            host.set(col,mergeCollection(latestLocal,[accepted]).merged);
+          }
         }
       }
       // Edits made while awaiting uploads must stay newer than this checkpoint.

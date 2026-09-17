@@ -225,3 +225,11 @@ assert.equal(S.isEnabled(), false, "可由使用者再次關閉");
 }
 
 console.log("✓ 雲端同步:合併、時戳、刪除傳播與清理邏輯正確");
+
+{
+  const old={id:'future',note:'imported',updatedAt:'2030-01-01T00:00:00.000Z'};
+  const changed=S.stampCollection('records',[{...old,note:'corrected'}],[old],'2026-09-16T00:00:00.000Z');
+  assert.ok(changed.items[0].updatedAt>old.updatedAt,'edit after restart/clock correction must beat the known previous version');
+  const deleted=S.stampCollection('records',[],[old],'2026-09-16T00:00:00.000Z');
+  assert.ok(deleted.tombstones[0].updatedAt>old.updatedAt,'deletion must beat the known previous version');
+}

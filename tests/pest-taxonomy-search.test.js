@@ -91,10 +91,12 @@ ctx.renderCropOverview('鱗翅目');
 assert.match(element('cropOverviewList').innerHTML, /氟芬隆/);
 assert.match(element('cropOverviewList').innerHTML, /甜菜夜蛾核多角體病毒/);
 const related = ctx.renderPestRelated();
-assert.match(related, /原登記：夜蛾類/);
-assert.match(related, /20 筆用法 \/ 11 種藥劑/);
-assert.match(related, /氟芬隆/);
-assert.match(related, /不套用目前採收期篩選/);
+assert.match(related, /也要看看蔥 × 夜蛾類用藥嗎？/);
+assert.doesNotMatch(related, /<details|氟芬隆|20 筆用法|同作物相關分類用藥總覽/);
+assert.match(related, /不代表藥劑可互用/);
+assert.match(related, /<div class="pest-rel" role="navigation"/);
+assert.doesNotMatch(related, /<nav\b/, 'global nav CSS is fixed-position; related links must stay in document flow');
+assert.match(fn('renderAgents'), /renderMaterials\(\)\+renderPestRelated\(\)/, 'related links must be last, after the current list');
 assert.strictEqual(ctx.currentAgentList(), DATA['蔥']['鱗翅目害蟲']);
 
 function clickHandlers(markup) {
@@ -116,7 +118,7 @@ ctx.DATA['安全測試']['甜菜夜蛾'] = ctx.CUR[hostilePest].list;
 ctx.renderPests('夜蛾');
 const maliciousMarkup = ctx.renderPestRelated();
 assert.doesNotMatch(maliciousMarkup, /<img/);
-assert.match(maliciousMarkup, /&lt;img/);
+assert.doesNotMatch(maliciousMarkup, /&lt;img/, 'related navigation does not embed other agents');
 for (const markup of [element('pestChips').innerHTML, maliciousMarkup]) {
   for (const handler of clickHandlers(markup)) vm.runInContext(handler, ctx);
   assert.equal(ctx.injected, undefined);
