@@ -1,4 +1,4 @@
-param([string]$SharedRoot = "D:\SearchBefore", [switch]$Lint, [switch]$Connected)
+param([string]$SharedRoot = "D:\SearchBefore", [switch]$Lint, [switch]$Connected, [switch]$UiTestApk)
 $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
 function Assert-IsolatedValidationDevice {
@@ -32,6 +32,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Native catalog export failed" }
     $nativeTasks = @(':app:testDebugUnitTest', ':app:assembleDebug')
     if ($Lint) { $nativeTasks += ':app:lintDebug' }
+    # Build only; no device installation. Explicit-serial emulator validation is a separate step.
+    if ($UiTestApk) { $nativeTasks += ':app:assembleDebugAndroidTest' }
     if ($Connected) { $nativeTasks += ':app:connectedDebugAndroidTest' }
     if ($Connected) { Assert-IsolatedValidationDevice }
     & (Join-Path $projectRoot "android-twa\gradlew.bat") -p (Join-Path $projectRoot "android-native") --no-daemon @nativeTasks

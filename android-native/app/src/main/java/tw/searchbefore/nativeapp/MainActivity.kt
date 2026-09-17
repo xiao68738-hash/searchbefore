@@ -17,12 +17,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,7 +42,7 @@ class MainActivity : ComponentActivity() {
             isAppearanceLightNavigationBars = true
         }
         setContent {
-            MaterialTheme(colorScheme = lightColorScheme(primary = Color(0xFF2E6B3F), background = Color(0xFFF7F4EB), surface = Color(0xFFFFFDF7))) {
+            SearchBeforeTheme {
                 val state: NativeState = viewModel()
                 var tab by rememberSaveable { mutableIntStateOf(if(intent.getBooleanExtra("open_records", false)) 1 else 0) }
                 DisposableEffect(state) {
@@ -68,22 +70,22 @@ class MainActivity : ComponentActivity() {
                 fun persist(next: JSONObject, keepRecovery: Boolean = false) {
                     state.persist(next, keepRecovery)
                 }
-                Scaffold(modifier = Modifier.fillMaxSize().systemBarsPadding(), bottomBar = {
-                    NavigationBar {
+                Scaffold(modifier = Modifier.fillMaxSize().systemBarsPadding().imePadding(), bottomBar = {
+                    NavigationBar(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
                         listOf("查詢", "紀錄", "農務", "配方", "個人").forEachIndexed { index, title ->
                             NavigationBarItem(selected = tab == index, enabled = !state.busy, onClick = { tab = index },
-                                icon = { Text(listOf("查", "記", "農", "配", "我")[index]) }, label = { Text(title) })
+                                icon = { NativeTabIcon(index) }, label = { Text(title) },
+                                colors = NavigationBarItemDefaults.colors(indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer, selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer))
                         }
                     }
                 }) { padding ->
                     Column(Modifier.padding(padding).padding(horizontal = 16.dp).fillMaxSize()) {
-                        Text("噴前查", style = MaterialTheme.typography.headlineMedium, modifier = Modifier.padding(top = 12.dp))
-                        Text(if (BuildConfig.DEBUG) "原生開發預覽" else "原生候選版・僅供內部測試", style = MaterialTheme.typography.labelMedium)
-                        TextButton(enabled = !state.busy, onClick = { migrationHelp = true }) { Text("舊版資料移轉") }
+                        BrandHeader(!state.busy) { migrationHelp = true }
                         if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 8.dp))
                         if (state.canUndo) TextButton(enabled = !state.busy, onClick = state::undo) { Text("撤銷上次本機修改") }
                         if (state.error.isNotBlank()) {
-                            Text(state.error, modifier = Modifier.padding(vertical = 8.dp), color = MaterialTheme.colorScheme.primary)
+                            Text(state.error, modifier = Modifier.heightIn(max = 120.dp).verticalScroll(rememberScrollState()).padding(vertical = 8.dp), color = MaterialTheme.colorScheme.primary)
                             TextButton(onClick = { state.error = "" }) { Text("收起訊息") }
                         }
                         val cat = state.catalog
@@ -111,20 +113,7 @@ class MainActivity : ComponentActivity() {
                                 })
                             2 -> FarmScreen(data, !state.busy, save = { persist(it) }, report = { state.error = it }, export = { exportCsv.launch("噴前查農務_${LocalDate.now()}.csv") })
                             3 -> RecipesScreen(data, !state.busy, save = { persist(it) }, report = { state.error = it })
-                            4 -> LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                item {
-                                    Info("本機紀錄提醒", "${state.reminderStatus}\n每天至多提醒一次：核對近期未確認或接近等待期的紀錄；不保證可採收／殘留合格。鎖定畫面不放作物、藥劑或帳號；不會因開啟通知而同步資料。匯入或登出會關閉提醒。")
-                                    OutlinedButton(enabled = !state.busy, onClick = {
-                                        if(state.remindersEnabled) state.setRemindersEnabled(false)
-                                        else if(Build.VERSION.SDK_INT >= 33 && !NativeReminders.allowed(this@MainActivity)) notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                                        else state.setRemindersEnabled(true)
-                                    }) { Text(if(state.remindersEnabled) "關閉本機提醒" else "開啟本機提醒") }
-                                    OutlinedButton(enabled = !state.busy && state.remindersEnabled, onClick = state::testReminder) { Text("傳送測試提醒") }
-                                    TextButton(onClick = {
-                                        if(Build.VERSION.SDK_INT >= 26) startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName))
-                                        else startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:$packageName".toUri()))
-                                    }) { Text("系統通知設定") }
-                                }
+                            4 -> LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 24.dp)) {
                                 item { Info("你的資料", "預設儲存在此裝置。Google 登入不等於同意上傳；只有明確開啟同步後，才可與同帳號雲端紀錄合併。登出不會刪除本機紀錄。") }
                                 item { Info("Google 登入", if (state.signedIn) "目前帳號：${state.accountLabel}" else if (state.configured) "未登入，仍可使用本機查詢、紀錄與備份。" else "此安裝包尚未加入原生 Firebase 設定，登入暫不可用。") }
                                 item {
@@ -139,12 +128,29 @@ class MainActivity : ComponentActivity() {
                                     Button(enabled = !state.busy && state.syncEnabled, onClick = state::synchronize) { Text("立即同步／匯入雲端紀錄") }
                                     Text(if (state.lastSyncAt.isNotEmpty()) "上次完整同步：${state.lastSyncAt}" else "尚未完成雲端同步；本機儲存不代表雲端已備份。")
                                 }
+                                item { NativeLegalLinks(!state.busy) { page ->
+                                    runCatching { startActivity(Intent(Intent.ACTION_VIEW, page.url.toUri())) }
+                                        .onFailure { state.error = "無法開啟瀏覽器。請自行前往 ${page.url}；尚未提交任何申請。" }
+                                } }
                                 item { Button(enabled = !state.busy, onClick = { export.launch("噴前查原生備份_${LocalDate.now()}.json") }) { Text("匯出完整備份") } }
                                 item { OutlinedButton(enabled = !state.busy, onClick = { exportExcel.launch("噴前查農務_${LocalDate.now()}.xlsx") }) { Text("匯出 Excel 報表") } }
                                 item { OutlinedButton(enabled = !state.busy, onClick = { exportPdf.launch("噴前查農務_${LocalDate.now()}.pdf") }) { Text("匯出 PDF 報表") } }
                                 item { OutlinedButton(enabled = !state.busy, onClick = { importBackup.launch(arrayOf("application/json", "text/plain")) }) { Text("匯入網站／APP 的 JSON 備份") } }
                                 item { Text("匯入前會確認，並在本機保留上一份資料。授權、登入狀態與雲端同步同意不會匯入。") }
                                 item { OutlinedButton(enabled = !state.busy && state.hasRecovery, onClick = state::readRecovery) { Text("回復匯入前的資料") } }
+                                item {
+                                    Info("本機紀錄提醒", "${state.reminderStatus}\n每天至多提醒一次：核對近期未確認或接近等待期的紀錄；不保證可採收／殘留合格。鎖定畫面不放作物、藥劑或帳號；不會因開啟通知而同步資料。匯入或登出會關閉提醒。")
+                                    OutlinedButton(enabled = !state.busy, onClick = {
+                                        if(state.remindersEnabled) state.setRemindersEnabled(false)
+                                        else if(Build.VERSION.SDK_INT >= 33 && !NativeReminders.allowed(this@MainActivity)) notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                                        else state.setRemindersEnabled(true)
+                                    }) { Text(if(state.remindersEnabled) "關閉本機提醒" else "開啟本機提醒") }
+                                    OutlinedButton(enabled = !state.busy && state.remindersEnabled, onClick = state::testReminder) { Text("傳送測試提醒") }
+                                    TextButton(onClick = {
+                                        if(Build.VERSION.SDK_INT >= 26) startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, packageName))
+                                        else startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:$packageName".toUri()))
+                                    }) { Text("系統通知設定") }
+                                }
                                 item { Text("資料版本 ${cat.version}\n資料來源：農業部農藥開放資料。本預覽僅列精確作物登記，尚未加入作物群組延伸。未列出不代表可使用；依產品標示及最新公告為準。") }
                             }
                         }
@@ -183,9 +189,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable fun Info(title: String, body: String) {
-    Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(title, style = MaterialTheme.typography.titleMedium); Text(body)
-    } }
+    BrandCard { Text(title, style = MaterialTheme.typography.titleMedium); Text(body, style = MaterialTheme.typography.bodyMedium) }
 }
 
 @Composable private fun QueryScreen(catalog: Catalog, data: JSONObject, enabled: Boolean, saveRecipe: (UsageRow, String) -> Unit, record: (UsageRow, String, String, ApplicationDetails) -> Unit) {
@@ -203,23 +207,31 @@ class MainActivity : ComponentActivity() {
     val cropSuggestions = remember(query, mode) { if(mode == 0) catalog.cropSuggestions(query) else emptyList() }
     val agentSuggestions = remember(query, mode) { if(mode == 1) catalog.agentSuggestions(query) else emptyList() }
     val queryListState = rememberLazyListState()
+    val focusManager = LocalFocusManager.current
     // A new registration scope is a new result page, not the previous page's footer.
     LaunchedEffect(mode, crop, pest, overview) { queryListState.scrollToItem(0) }
     BackHandler(crop.isNotEmpty()) { if (pest.isNotEmpty()) pest = "" else if (overview) overview = false else crop = "" }
     LazyColumn(state = queryListState, modifier = Modifier.testTag("queryList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
+        if (crop.isEmpty()) item {
+            Text("先找作物，再看登記用法", style = MaterialTheme.typography.headlineSmall)
+            Text("也能用藥劑名稱反查。每筆用法分開核對，不混用相關病蟲害的登記。",
+                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(selected = mode == 0, onClick = { mode = 0; crop = ""; pest = ""; query = "" }, label = { Text("按作物查") })
             FilterChip(selected = mode == 1, onClick = { mode = 1; crop = ""; pest = ""; query = "" }, label = { Text("按藥劑查") })
         } }
         if (crop.isEmpty()) {
             item { OutlinedTextField(value = query, onValueChange = { query = it.take(120) }, singleLine = true,
-                label = { Text(if (mode == 0) "作物名稱，例如：蔥" else "普通名稱或商品名") }, modifier = Modifier.fillMaxWidth()) }
+                label = { Text(if (mode == 0) "作物名稱，例如：蔥" else "普通名稱或商品名") }, modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() })) }
             if (mode == 0) {
                 val matches = catalog.cropMatches(query)
                 catalog.formAlias(query)?.let { (aliasCrop, aliasForm) -> item {
                     OutlinedButton(onClick = { crop = aliasCrop; harvestForm = aliasForm; pest = ""; overview = false }) { Text("查看登記作物：$aliasCrop" + if(aliasForm.isNotEmpty()) "／$aliasForm" else "") }
                 } }
-                items(matches.take(shown), key = { it }) { c -> OutlinedButton(onClick = { crop = c; harvestForm = ""; pest = ""; overview = false }, modifier = Modifier.fillMaxWidth()) { Text(c) } }
+                items(matches.take(shown), key = { it }) { c -> SearchChoice(c) { crop = c; harvestForm = ""; pest = ""; overview = false } }
                 if (matches.size > shown) item { TextButton(onClick = { shown += 30 }) { Text("顯示更多作物") } }
                 if(cropSuggestions.isNotEmpty()) item { Text("你是不是想找？請自行確認作物名稱，不會自動選取。") }
                 items(cropSuggestions, key = { "suggest:" + it.value }) { hit -> OutlinedButton(onClick = { crop = hit.value; harvestForm = ""; pest = ""; overview = false }) { Text("${hit.value}｜${hit.label}") } }
@@ -252,7 +264,7 @@ class MainActivity : ComponentActivity() {
                         } }
                     }
                 } else items(catalog.pests(crop), key = { it }) { p ->
-                    OutlinedButton(onClick = { pest = p }, modifier = Modifier.fillMaxWidth()) { Text("$p　${catalog.exact(crop, p).size} 筆登記用法") }
+                    SearchChoice("$p　${catalog.exact(crop, p).size} 筆登記用法") { pest = p }
                 }
             } else {
                 val rows = catalog.exact(crop, pest).map { it.withHarvestForm(harvestForm) }
@@ -283,24 +295,30 @@ class MainActivity : ComponentActivity() {
         dismissButton = { TextButton(onClick = { recording = null }) { Text("取消") } }) }
 }
 
-@Composable private fun UsageCard(row: UsageRow, enabled: Boolean, onRecipe: (String) -> Unit, onRecord: () -> Unit) {
+@Composable internal fun UsageCard(row: UsageRow, enabled: Boolean, onRecipe: (String) -> Unit, onRecord: () -> Unit) {
     var calculate by rememberSaveable(row.id) { mutableStateOf(false) }
     var water by rememberSaveable(row.id) { mutableStateOf("1") }
-    Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    BrandCard {
         if(row.formExcluded) Text("此型態不適用或待核對：${row.json.optString("formReason")}。保留原登記供查閱，不提供一鍵計算或記錄。", color = MaterialTheme.colorScheme.error)
         Text(row.name, style = MaterialTheme.typography.titleLarge)
-        Text("${row.json.optString("content")} ${row.json.optString("form")}  ${row.json.optString("moa")}")
-        Text("${row.usage.getString("label")}：${row.usage.getString("value")}")
-        Text("安全採收期：" + (row.phi?.let { "${it.toBigDecimal().stripTrailingZeros().toPlainString()} 天" } ?: if (row.json.optBoolean("seed")) "不適用" else "請查產品標示"))
+        Text("${row.json.optString("content")} ${row.json.optString("form")}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        row.json.optString("moa").takeIf { it.isNotBlank() && it != "-" }?.let { Text("作用機制：$it", style = MaterialTheme.typography.labelLarge) }
+        UsageFacts(row.usage.getString("label"), row.usage.getString("value"),
+            row.phi?.let { "${it.toBigDecimal().stripTrailingZeros().toPlainString()} 天" } ?: if (row.json.optBoolean("seed")) "不適用" else "請查產品標示")
         if (row.json.optBoolean("phiAdjusted")) Text("已依備註採較長採收期")
-        row.residueText?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+        row.residueText?.let { ResidueNotice(it) }
         val dose = row.json.optString("dose")
-        if (dose.isNotBlank() && dose != "-") Text("登記用量（依原單位）：$dose\n不是每桶水量，請核對附註。")
+        if (dose.isNotBlank() && dose != "-") {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Text("登記用量（依原單位）", style = MaterialTheme.typography.titleMedium)
+            Text(dose)
+            Text("這是登記的施用量，不是每桶水的配藥量；小面積使用也需核對原單位與附註。", style = MaterialTheme.typography.bodySmall)
+        }
         val note = row.json.optString("note")
-        if (note.isNotBlank() && note != "-") Text(note)
+        if (note.isNotBlank() && note != "-") { Text("使用注意事項", style = MaterialTheme.typography.titleMedium); Text(note, style = MaterialTheme.typography.bodyMedium) }
         if (row.brands.isNotEmpty()) Text("商品名：${row.brands.joinToString("、")}", style = MaterialTheme.typography.bodySmall)
         if (row.canCalculate && !row.formExcluded) {
-            OutlinedButton(onClick = { calculate = !calculate }) { Text("配藥計算") }
+            OutlinedButton(onClick = { calculate = !calculate }, modifier = Modifier.fillMaxWidth()) { Text(if(calculate) "收起配藥計算" else "配藥計算") }
             if (calculate) {
                 OutlinedTextField(value = water, onValueChange = { water = it.take(16) }, label = { Text("每桶水量（公升）") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth())
@@ -309,8 +327,8 @@ class MainActivity : ComponentActivity() {
                 OutlinedButton(enabled = enabled && row.amount(water) != null, onClick = { onRecipe(water) }) { Text("存成常用配方") }
             }
         } else Text("此用法不提供自動稀釋計算，請依產品標示操作。")
-        Button(enabled = enabled && !row.formExcluded, onClick = onRecord) { Text("紀錄用藥") }
-    } }
+        Button(enabled = enabled && !row.formExcluded, onClick = onRecord, modifier = Modifier.fillMaxWidth()) { Text("紀錄用藥") }
+    }
 }
 
 @Composable fun PlotPicker(plots: List<JSONObject>, selected: String, emptyLabel: String, enabled: Boolean, select: (String) -> Unit) {

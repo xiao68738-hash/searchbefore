@@ -381,6 +381,8 @@
       target.actualAmount = amount; target.actualAmountUnit = unit;
     }
     if (r.notes != null) target.notes = safeString(r.notes, label + ".notes", 2000, false);
+    if (r.registrationId != null) target.registrationId = safeId(r.registrationId, label + ".registrationId", false);
+    if (r.harvestForm != null) target.harvestForm = safeString(r.harvestForm, label + ".harvestForm", 120, false);
     return syncFields(r, target, label);
   }
 

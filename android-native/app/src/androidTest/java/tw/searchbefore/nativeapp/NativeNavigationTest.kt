@@ -23,6 +23,8 @@ class NativeNavigationTest {
     @Test fun exactRegistrationAndRelatedLinkRemainSeparate() {
         ready()
         compose.onNodeWithText("作物名稱，例如：蔥").performTextInput("蔥")
+        compose.onNodeWithText("作物名稱，例如：蔥").performImeAction()
+        compose.onNodeWithTag("queryList").performScrollToNode(hasText("蔥") and hasClickAction() and !hasSetTextAction())
         compose.onNode(hasText("蔥") and hasClickAction() and !hasSetTextAction()).performClick()
         compose.onNodeWithTag("queryList").performScrollToNode(hasText("甜菜夜蛾　1 筆登記用法"))
         compose.onNodeWithText("甜菜夜蛾　1 筆登記用法").performClick()
@@ -35,6 +37,7 @@ class NativeNavigationTest {
     }
     @Test fun fiveNativeTabsAndActivityRecreationWorkWithoutLogin() {
         ready()
+        capturePublicQuery("home.png")
         compose.onNodeWithText("農務", useUnmergedTree = true).performClick()
         compose.onNodeWithText("新增農務紀錄").assertExists()
         compose.onNodeWithText("配方", useUnmergedTree = true).performClick()

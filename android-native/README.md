@@ -1,5 +1,11 @@
 # 噴前查原生 Android 開發
 
+2026-09-18 接續：網站同步 #147 與備份欄位相容 #149 已合併部署；原生品牌介面／隱私入口最新 55 JVM、零問題 Lint、11 項 Android 16 操作測試通過。Play v5 備份副本經原生及網站解析器往返一致（2／1／4／0），但不等於完整雲端新增還原、真實配方或所有 UI 流程已驗收。新介面仍未發布到 Play，詳細見 [本輪證據](../docs/NATIVE-BRAND-UI-2026-09-17.md)。以下日期較早段落保留為歷史。
+
+2026-09-17 最新：Play v4 → v5 原地升級、Play 簽章、正式套件本人 Google 登入、空白本機匯入既有雲端及登出重登再同步已在 Android 11 通過，見 [Play 實機證據](../docs/NATIVE-PLAY-PHONE-2026-09-17.md)。完整移轉與其餘發布驗收仍待完成；以下 9/16 狀態屬歷史，不能再把正式登入列為完全未測。
+
+品牌介面接續採透明 LOGO、米白底白卡、深綠字體、線條分頁圖示；用法與採收期在窄螢幕／大字體改成上下排列。附註、殘留提醒仍可直接閱讀，未合併不同登記。個人頁優先資料／登入／同步，提醒設定放後方。這些本機開發變更不會自動更新 Play v5。
+
 2026-09-16：**原生候選版階段，不是已驗收的完整替代版，不可發布到正式群組。** 使用者僅同意內部測試，不更動 Alpha／正式版，也不新增測試者。
 
 正式套件 `tw.searchbefore.app` 的 Firebase app 與 Play SHA-1／SHA-256 已經使用者同意建立；使用者提供的正式設定檔已核對並接入獨立 release resources，不能以預覽設定代替。正式簽署登入與移轉驗收仍待辦，發布鎖定保留。詳見 [正式登入設定紀錄](../docs/NATIVE-PRODUCTION-FIREBASE-2026-09-16.md)。
@@ -50,6 +56,8 @@ rtk proxy powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-andr
 ```
 
 加上 `-Lint` 可連同 Android 靜態檢查一起執行，報告位於 `app/build/reports/lint-results-debug.html`。`-Connected` 只允許唯一連線的 `emulator-5580`，先用 `scripts/start-native-validation-emulator.ps1` 啟動可丟棄的唯讀 overlay，測試期間不要接其他裝置。UI 不登入／同步，但 Gradle 會安裝及解除安裝套件，**不可用此流程驗收使用者手機**。Lint、單元測試與建置都不能取代實機操作、登入／同步或備份移轉驗收。
+
+`-UiTestApk` 只額外編譯 Android UI 測試 APK，完全不安裝／操作裝置。手機仍連接時不可跑 `-Connected`；如需手動驗證，先核對唯讀獨立模擬器的 serial、qemu 與 API，再對明確的 `emulator-5580` 執行安裝與 instrumentation，不能使用沒有 `-s` 的安裝／測試指令。
 
 腳本先以既有 JS 純函式產生唯讀資料檔，再跑原生單元測試與 debug APK。生成檔忽略於 Git；農藥原始資料不變。預覽目前有 287 作物、17,333 原登記列，資料日 2026-07-21；**不是新的官方資料更新**。
 
