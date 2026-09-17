@@ -16,8 +16,8 @@ android {
         // Keep existing Play automatic protection enabled (requires API 24+).
         minSdk 24
         targetSdk 36
-        versionCode 5
-        versionName "1.1.0-internal"
+        versionCode 6
+        versionName "1.1.1-internal"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {

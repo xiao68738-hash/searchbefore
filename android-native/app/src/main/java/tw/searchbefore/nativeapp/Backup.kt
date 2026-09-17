@@ -84,7 +84,7 @@ object Backup {
         return out
     }
     fun encode(data: JSONObject): ByteArray = JSONObject().put("product", "searchbefore-backup")
-        .put("formatVersion", 1).put("appVersion", "1.1.0-native-preview")
+        .put("formatVersion", 1).put("appVersion", BuildConfig.VERSION_NAME)
         .put("exportedAt", Instant.now().toString()).put("data", data).toString(2).toByteArray()
     fun validDate(date: String) = Regex("\\d{4}-\\d{2}-\\d{2}").matches(date) && runCatching { LocalDate.parse(date) }.isSuccess
     fun harvestDate(record: JSONObject): String? = runCatching {

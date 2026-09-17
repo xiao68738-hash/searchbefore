@@ -1,6 +1,6 @@
 # 噴前查原生 Android 開發
 
-2026-09-18 接續：網站同步 #147 與備份欄位相容 #149 已合併部署；原生品牌介面／隱私入口最新 55 JVM、零問題 Lint、11 項 Android 16 操作測試通過。Play v5 備份副本經原生及網站解析器往返一致（2／1／4／0），但不等於完整雲端新增還原、真實配方或所有 UI 流程已驗收。新介面仍未發布到 Play，詳細見 [本輪證據](../docs/NATIVE-BRAND-UI-2026-09-17.md)。以下日期較早段落保留為歷史。
+2026-09-18 接續：網站同步 #147 與備份欄位相容 #149 已合併部署；原生品牌介面／隱私入口最新 55 JVM、零問題 Lint、11 項 Android 16 操作測試通過。Play v5 備份副本格式往返一致（2／1／4／0），新設備 TEST_ONLY 紀錄亦成功跨套件同步（2／1／5），但不等於全新裝置還原、真實配方或所有 UI 流程已驗收。v6 內部 AAB 已建置／驗簽，Play 上傳被工具安全審查服務容量不足阻擋，新介面未發布。詳見 [本輪證據](../docs/NATIVE-BRAND-UI-2026-09-17.md) 與 [v6 發布閘門](../docs/NATIVE-V6-READINESS-2026-09-18.md)。以下日期較早段落保留為歷史。
 
 2026-09-17 最新：Play v4 → v5 原地升級、Play 簽章、正式套件本人 Google 登入、空白本機匯入既有雲端及登出重登再同步已在 Android 11 通過，見 [Play 實機證據](../docs/NATIVE-PLAY-PHONE-2026-09-17.md)。完整移轉與其餘發布驗收仍待完成；以下 9/16 狀態屬歷史，不能再把正式登入列為完全未測。
 
@@ -67,7 +67,7 @@ rtk proxy powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-andr
 - debug applicationId：`tw.searchbefore.app.nativepreview`，與現有 APP 並存。
 - 正式基礎 applicationId：`tw.searchbefore.app`；內部候選使用既有 upload key 簽署 AAB，由 Play App Signing 簽署派送的 APK。本機 upload key 不等於 Play 安裝簽章。
 - compile/target API 36，min API 24（保留現有 Play 自動保護的最低要求），Java 17／desugaring。
-- versionCode 5／versionName `1.1.0-internal`；2026-09-16 本輪 Play 最大套件代碼為 4。上傳時仍須留意並行發布造成版本衝突。
+- 目前候選 versionCode 6／versionName `1.1.1-internal`；2026-09-18 最新成功讀取的 Play 最大套件代碼為 5。v6 本機已建好，尚未上傳；續作上傳仍須核對並行發布是否占用版本碼。
 - 預覽的 `firebase-preview.json` 由 Firebase Console 下載，必須符合預覽 package 與 project，且包含 Web OAuth client；此檔忽略於 Git。無設定時仍可使用本機功能，但登入不啟用。不能用此設定替代正式 Play 身分。
 
 最新實測結果與尚未通過項目集中在 [原生整合驗收](../docs/NATIVE-INTEGRATION-2026-09-16.md)，歷史測試數字不代表目前整包已驗收。
