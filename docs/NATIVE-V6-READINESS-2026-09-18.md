@@ -23,18 +23,18 @@
 
 ## 仍需保留的發布閘門
 
-### 本輪建置與外部阻擋
+### 本輪建置與內部發布
 
 v6／1.1.1-internal AAB 已完成（4m21s）；release 55 JVM 全通過、Lint `No issues found.`。300 筆 payload 簽章、既有 upload 憑證、4 個 64-bit library 的 16KB LOAD／RELRO 靜態驗證及 bundletool validate 通過；manifest versionCode=6。
 
 檔案：`D:/SearchBefore/releases/native-internal-v6-20260918/searchbefore-native-v6-internal.aab`，14,150,416 bytes，SHA256 `1a9cda7e8c95063d47569a17fbeceacf3add5ba0372c91df083db6ca723f90c1`。
 
-Console 內部測試「建立新版本」遭自動安全審查服務容量不足攔截；隨後唯讀確認亦遭同樣攔截，已停止瀏覽器操作，不繞過審查。沒有成功上傳／發布 v6；最後成功讀取的線上狀態為內部 v5、Alpha v4。恢復工具審查後從內部軌道續作，勿因本機 AAB 已產生就宣稱 Play 接受或已派送。
+前次工具審查容量阻擋已解除。9/18 00:34，Console 確認 v6「提供給內部測試人員」，版本名稱為「1.1.1-internal (6) 原生介面與備份驗收」。沒有操作 Alpha／正式版或測試者清單。支援裝置數不變；缺去模糊化檔與原生偵錯符號兩項非阻擋警告仍存在。
 
-後續 Git staging 也被同一審查容量問題攔截，未執行 v6 提交／推送。#148 遠端最新已推 1306226（品牌介面、隱私入口與 main 整合，兩項 CI 成功）；本機 v6 版本號、備份 appVersion 與本文件尚待提交。不要宣稱 v6 已在 PR 或 CI 中。
+v6 提交 c9099a33c93936263e0e2e572ac593ca73a94f74 已推 #148，Review checks 與 Native Android build/test/lint 均成功。#148 維持草稿，未合併原生正式版。
 
-1. v6 已完成本機 AAB／簽章／16KB 靜態驗證，內部 Play 上傳／接受受上述工具阻擋；建置不等於派送完成。
-2. v5→v6 真實 Play 原地更新、Google 登入、既有資料與同步回歸。
+1. 已完成 v6 本機驗證、內部發布及真實 Play 派送。手機 installer=com.android.vending、versionCode=6；firstInstallTime 保持 9/17 07:45:22，lastUpdateTime=9/18 00:36:12。未卸載或清除資料。
+2. 已驗證登入／同步同意保留、完整 JSON data 升級前後一致（2 田區／1 用藥／5 農務／0 配方）。v6 手動同步於 16:39:01.334Z 成功，force-stop 重開後登入與設定保留；再次匯出並 deepEqual 比對通過，僅 JSON 物件鍵順序不同。未把登入保留當成重新選帳號驗收。完整證據見 NATIVE-PLAY-V6-2026-09-18.md。
 3. 全新空白裝置完整還原、真實配方／偏好及完整 JSON UI 匯入；不得清除使用者手機資料來偽造空白環境。
 4. 全頁無障礙、離線／跨帳號／通知完整候選回歸；長期可靠性需要使用資料，不能用單輪自動化保證。
 5. 正式發布前更新商店原生截圖／說明、資料安全與隱私政策一致性；原生版仍鎖定正式發布。
