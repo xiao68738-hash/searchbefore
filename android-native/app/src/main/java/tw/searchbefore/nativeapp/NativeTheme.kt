@@ -190,7 +190,8 @@ import androidx.compose.ui.unit.sp
     Surface(modifier, color = Color.Transparent) {
         Column(Modifier.padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(value, fontSize = 25.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold)
+            val numeric = value.any { it.isDigit() }
+            Text(value, fontSize = if(numeric) 25.sp else 18.sp, lineHeight = if(numeric) 34.sp else 27.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
