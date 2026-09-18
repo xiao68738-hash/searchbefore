@@ -19,6 +19,8 @@
 - AAB已另存 `D:/SearchBefore/releases/native-internal-v8-20260918/searchbefore-native-v8-internal.aab`，SHA256 `a02b81a6f90d1c7facfd481f86b294f608af6c2970c3f65ddd2d16fe95742935`。只在本機準備，未上傳Play，未更新手機。
 - 前輪 23 UI 與系統選檔還原證據見 `NATIVE-PRODUCTION-READINESS-2026-09-18.md`；不得當成 v8 已經由 Play 安裝驗收。
 
-## 仍待使用者確認
+## 帳號驗收補記（23:21）
 
-手機第二測試帳號仍停在 Google 首次「同意並分享」，本輪只讀取畫面，尚未接受。原帳號登出、本機紀錄保留且同步關閉。已明確詢問是否允許姓名、Email、頭像提供給本專案以測試隔離；沒有上傳田間資料到第二帳號。
+使用者已明確同意基本帳號分享。Play v7完成第二帳號登入、重啟後仍阻擋原資料同步、回原帳號同步與重啟保留；完整JSON的data與先前備份逐欄完全相等（2田區／1用藥／5農務／0配方）。没有把原紀錄同步到第二帳號。私人證據與範圍限制見`NATIVE-PRODUCTION-READINESS-2026-09-18.md`；不宣稱伺服器隔離全面驗收。
+
+c4f1115兩項CI已確認SUCCESS。v8仍只在本機，尚待Play內部更新驗收，未發布Alpha或正式版。
