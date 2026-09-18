@@ -91,4 +91,29 @@ class NativeBrandUiTest {
             compose.onNodeWithText(it).assertIsDisplayed().assertHasClickAction()
         }
     }
+
+    @Test fun compactChromeKeepsMigrationAndAllSixAccessibleTargetsAtLargeText() {
+        var migrated = false
+        var selected = -1
+        compose.setContent {
+            val density = LocalDensity.current.density
+            CompositionLocalProvider(LocalDensity provides Density(density, 1.5f)) {
+                SearchBeforeTheme { Column {
+                    BrandHeader(true, compact = true) { migrated = true }
+                    TwaNavigation(0, true, compact = true) { selected = it }
+                } }
+            }
+        }
+        compose.onNodeWithText("噴前查").assertIsDisplayed()
+        compose.onNodeWithText("舊版資料移轉").assertIsDisplayed().performClick()
+        compose.runOnIdle { org.junit.Assert.assertTrue(migrated) }
+        listOf("查詢", "計算", "配方", "倒數", "紀錄", "個人").forEachIndexed { index, title ->
+            compose.onNodeWithText(title).assertIsDisplayed().assertHeightIsAtLeast(48.dp).performClick()
+            compose.runOnIdle { assertEquals(index, selected) }
+        }
+        val headerBounds = compose.onNodeWithTag("brandHeader").getUnclippedBoundsInRoot()
+        val navigationBounds = compose.onNodeWithTag("mainNavigation").getUnclippedBoundsInRoot()
+        org.junit.Assert.assertTrue(headerBounds.bottom - headerBounds.top <= 96.dp)
+        org.junit.Assert.assertTrue(navigationBounds.bottom - navigationBounds.top <= 64.dp)
+    }
 }

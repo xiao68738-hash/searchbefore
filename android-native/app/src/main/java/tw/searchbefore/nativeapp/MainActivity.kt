@@ -28,6 +28,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -44,6 +46,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             val state: NativeState = viewModel()
             SearchBeforeTheme(preferences = state.displayPreferences) {
+                // Keep actual content usable in short windows without shrinking text or
+                // removing navigation, migration help, safety notices or data controls.
+                val windowHeight = LocalWindowInfo.current.containerSize.height
+                val compactChrome = with(LocalDensity.current) { windowHeight.toDp() < 480.dp }
                 SideEffect {
                     WindowCompat.getInsetsController(window, window.decorView).apply {
                         isAppearanceLightStatusBars = !state.displayPreferences.dark
@@ -83,16 +89,21 @@ class MainActivity : ComponentActivity() {
                 // Paint behind system insets too: dark icons/labels must not sit on the
                 // default white window background. Insets still keep every control clear.
                 Scaffold(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).systemBarsPadding().imePadding(), bottomBar = {
-                    TwaNavigation(tab, !state.busy) { tab = it }
+                    TwaNavigation(tab, !state.busy, compact = compactChrome) { tab = it }
                 }) { padding ->
                     Column(Modifier.padding(padding).fillMaxSize()) {
-                        BrandHeader(!state.busy) { migrationHelp = true }
+                        BrandHeader(!state.busy, compact = compactChrome) { migrationHelp = true }
                         Column(Modifier.padding(horizontal = 16.dp).weight(1f).clipToBounds()) {
                         if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 8.dp))
                         if (state.canUndo) TextButton(enabled = !state.busy, onClick = state::undo) { Text("撤銷上次本機修改") }
                         if (state.error.isNotBlank()) {
-                            Text(state.error, modifier = Modifier.heightIn(max = 120.dp).verticalScroll(rememberScrollState()).padding(vertical = 8.dp), color = MaterialTheme.colorScheme.primary)
-                            TextButton(onClick = { state.error = "" }) { Text("收起訊息") }
+                            if(compactChrome) Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                                Text(state.error, modifier = Modifier.weight(1f).heightIn(max = 56.dp).verticalScroll(rememberScrollState()).padding(vertical = 4.dp), color = MaterialTheme.colorScheme.primary)
+                                TextButton(onClick = { state.error = "" }) { Text("收起訊息") }
+                            } else {
+                                Text(state.error, modifier = Modifier.heightIn(max = 120.dp).verticalScroll(rememberScrollState()).padding(vertical = 8.dp), color = MaterialTheme.colorScheme.primary)
+                                TextButton(onClick = { state.error = "" }) { Text("收起訊息") }
+                            }
                         }
                         val cat = state.catalog
                         val data = state.data

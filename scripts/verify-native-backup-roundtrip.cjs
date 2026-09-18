@@ -1,9 +1,9 @@
-// Run after the JVM test, so this reads an actual Kotlin export, not another JS export.
+// Default: JVM-produced Kotlin export. Optional path: actual Android SAF export.
 const fs=require('node:fs'), path=require('node:path'), assert=require('node:assert/strict');
 const farm=require('../farm-records.js');
 const {migrationFixture}=require('./native-backup-fixture.cjs');
-const output=path.join(__dirname,'../android-native/app/build/native-validation/web-roundtrip.json');
-assert.ok(fs.existsSync(output),'Run native JVM tests first');
+const output=process.argv[2] ? path.resolve(process.argv[2]) : path.join(__dirname,'../android-native/app/build/native-validation/web-roundtrip.json');
+assert.ok(fs.existsSync(output),'Run native JVM tests or supply an existing Android export');
 const actual=farm.readBackup(JSON.parse(fs.readFileSync(output,'utf8'))), expected=migrationFixture().expected;
 for(const key of ['records','fieldPlots','farmRecords']) {
   assert.equal(actual[key].length,expected[key].length);

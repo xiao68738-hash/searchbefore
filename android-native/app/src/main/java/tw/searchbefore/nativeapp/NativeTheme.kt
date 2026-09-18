@@ -89,13 +89,13 @@ internal fun nativeColors(preferences: DisplayPreferences): ColorScheme {
     }
 }
 
-@Composable fun BrandHeader(enabled: Boolean, migration: () -> Unit) {
-    Row(Modifier.fillMaxWidth().testTag("brandHeader").background(Color(0xFF17331F)).padding(horizontal = 18.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically,
+@Composable fun BrandHeader(enabled: Boolean, compact: Boolean = false, migration: () -> Unit) {
+    Row(Modifier.fillMaxWidth().testTag("brandHeader").background(Color(0xFF17331F)).padding(horizontal = 18.dp, vertical = if(compact) 4.dp else 12.dp), verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         Column(Modifier.weight(1f)) {
-            Text(if(LocalDensity.current.fontScale > 1.25f) "噴前查" else "噴前查 SearchBefore", color = Color.White, fontFamily = FontFamily.Serif,
+            Text(if(compact || LocalDensity.current.fontScale > 1.25f) "噴前查" else "噴前查 SearchBefore", color = Color.White, fontFamily = FontFamily.Serif,
                 fontSize = 21.sp, lineHeight = 29.sp, fontWeight = FontWeight.Bold)
-            Text("查詢 × 計算 × 田間紀錄", color = Color(0xFFD2DECF), fontSize = 12.sp)
+            if(!compact) Text("查詢 × 計算 × 田間紀錄", color = Color(0xFFD2DECF), fontSize = 12.sp)
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(if (BuildConfig.DEBUG) "原生開發預覽" else "內部測試版", color = Color(0xFFD2DECF), fontSize = 11.sp)
@@ -131,18 +131,19 @@ internal fun nativeColors(preferences: DisplayPreferences): ColorScheme {
 }
 
 /** Same six destinations as the TWA; each target remains at least 48dp tall. */
-@Composable internal fun TwaNavigation(selected: Int, enabled: Boolean, select: (Int) -> Unit) {
-    Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 2.dp) {
+@Composable internal fun TwaNavigation(selected: Int, enabled: Boolean, compact: Boolean = false, select: (Int) -> Unit) {
+    Surface(modifier = Modifier.testTag("mainNavigation"), color = MaterialTheme.colorScheme.surface, shadowElevation = 2.dp) {
         Column {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Row(Modifier.fillMaxWidth().selectableGroup()) {
                 listOf("查詢", "計算", "配方", "倒數", "紀錄", "個人").forEachIndexed { index, title ->
                     val active = selected == index
-                    Column(Modifier.weight(1f).heightIn(min = 64.dp)
+                    Column(Modifier.weight(1f).heightIn(min = if(compact) 48.dp else 64.dp)
                         .selectable(active, enabled = enabled, role = Role.Tab, onClick = { select(index) })
-                        .padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        .background(if(compact && active) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
+                        .padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                         CompositionLocalProvider(LocalContentColor provides if(active) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant) {
-                            Box(Modifier.background(if(active) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent, RoundedCornerShape(12.dp)).padding(horizontal = 12.dp, vertical = 5.dp)) { NativeTabIcon(index) }
+                            if(!compact) Box(Modifier.background(if(active) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent, RoundedCornerShape(12.dp)).padding(horizontal = 12.dp, vertical = 5.dp)) { NativeTabIcon(index) }
                             Text(title, fontSize = 12.sp, lineHeight = 18.sp, fontWeight = FontWeight.Bold)
                         }
                     }
