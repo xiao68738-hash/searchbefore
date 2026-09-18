@@ -187,7 +187,7 @@ class NativeState(application: Application) : AndroidViewModel(application) {
         check(session.get() == generation && cloud.auth.currentUser?.uid == uid)
         commit(result)
         undoData = null
-        error = "已完成與伺服器的紀錄同步。配方與個人偏好仍只在本機及匯出備份中。"
+        error = "已完成與伺服器的紀錄同步。配方不會上傳雲端，請用完整 JSON 備份移轉；顯示設定僅留在本機，不含在匯出備份中。"
     }
     fun refreshReminders() {
         if (document == null) return
