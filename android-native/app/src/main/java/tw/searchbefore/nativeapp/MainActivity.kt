@@ -6,11 +6,13 @@ import android.Manifest
 import android.content.Intent
 import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.compose.setContent
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,6 +40,7 @@ import java.time.LocalDate
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContent {
             val state: NativeState = viewModel()
             SearchBeforeTheme(preferences = state.displayPreferences) {
@@ -77,7 +80,9 @@ class MainActivity : ComponentActivity() {
                 fun persist(next: JSONObject, keepRecovery: Boolean = false) {
                     state.persist(next, keepRecovery)
                 }
-                Scaffold(modifier = Modifier.fillMaxSize().systemBarsPadding().imePadding(), bottomBar = {
+                // Paint behind system insets too: dark icons/labels must not sit on the
+                // default white window background. Insets still keep every control clear.
+                Scaffold(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).systemBarsPadding().imePadding(), bottomBar = {
                     TwaNavigation(tab, !state.busy) { tab = it }
                 }) { padding ->
                     Column(Modifier.padding(padding).fillMaxSize()) {

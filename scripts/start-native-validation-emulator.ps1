@@ -7,7 +7,8 @@ $avdRoot = Join-Path $SharedRoot "tools\android-avd"
 $avd = Join-Path $avdRoot ($AvdName + '.ini')
 if (!(Test-Path -LiteralPath $avd)) { throw "Selected existing validation AVD is missing" }
 $devices = & $adb devices
-if ($devices -match 'emulator-5580\s') { throw "Port 5580 is already in use; keep the existing emulator intact" }
+if ($LASTEXITCODE -ne 0) { throw 'Cannot inspect running Android devices' }
+if ($devices -match '^emulator-') { throw 'Close the existing emulator first; keep Play/account and validation profiles isolated' }
 $logDir = Join-Path $SharedRoot ("audits\native-emulator-" + (Get-Date -Format "yyyyMMdd-HHmmss"))
 New-Item -ItemType Directory -Path $logDir | Out-Null
 $oldAvd = $env:ANDROID_AVD_HOME

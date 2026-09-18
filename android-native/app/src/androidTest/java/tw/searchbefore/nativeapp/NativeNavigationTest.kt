@@ -8,7 +8,8 @@ import java.io.File
 import org.junit.Rule
 import org.junit.Test
 
-/** Read-only smoke tests. Never click login, sync, import, save or delete on a connected device. */
+/** Disposable-emulator navigation tests. The theme test restores its local preference.
+ * Never click login, sync, import, record save or delete; never run on a user's phone. */
 class NativeNavigationTest {
     @get:Rule val compose = createAndroidComposeRule<MainActivity>()
     private fun ready() {
@@ -28,6 +29,40 @@ class NativeNavigationTest {
         org.junit.Assert.assertEquals("Scrolled results must not paint over the fixed brand header",
             android.graphics.Color.rgb(23, 51, 31), bitmap.getPixel(header.left.toInt() + 4, header.center.y.toInt()))
         File(folder, name).outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+    }
+    @Test fun darkSystemBarsHaveDarkBackgroundAndLightIcons() {
+        ready()
+        compose.onNodeWithText("個人", useUnmergedTree = true).performClick()
+        val list = compose.onNode(hasScrollToIndexAction())
+        val toggle = compose.onNodeWithText("深色模式")
+        list.performScrollToNode(hasText("深色模式"))
+        // This setting is inside a tall, lazily composed card. Scroll the actual list
+        // first, then use real swipes to expose its lower controls at 1.5x fonts.
+        for (attempt in 0 until 8) {
+            if (runCatching { toggle.assertIsDisplayed() }.isSuccess) break
+            list.performTouchInput { swipeUp(startY = height * .75f, endY = height * .45f) }
+        }
+        toggle.assertIsDisplayed().performClick()
+        try {
+            compose.waitForIdle()
+            val instrumentation = InstrumentationRegistry.getInstrumentation()
+            instrumentation.waitForIdleSync()
+            android.os.SystemClock.sleep(250)
+            val bitmap = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
+            val background = android.graphics.Color.rgb(21, 28, 23)
+            org.junit.Assert.assertEquals("Status-bar inset must use the selected dark background", background, bitmap.getPixel(4, 4))
+            org.junit.Assert.assertEquals("Gesture inset must use the selected dark background", background, bitmap.getPixel(4, bitmap.height - 4))
+            compose.runOnIdle {
+                val window = compose.activity.window
+                val controller = androidx.core.view.WindowCompat.getInsetsController(window, window.decorView)
+                org.junit.Assert.assertFalse(controller.isAppearanceLightStatusBars)
+                org.junit.Assert.assertFalse(controller.isAppearanceLightNavigationBars)
+            }
+        } finally {
+            // Only the disposable emulator suite runs this test. Restore the default
+            // through the actual UI so following navigation tests retain their baseline.
+            toggle.assertIsDisplayed().performClick()
+        }
     }
     @Test fun exactRegistrationAndRelatedLinkRemainSeparate() {
         ready()
