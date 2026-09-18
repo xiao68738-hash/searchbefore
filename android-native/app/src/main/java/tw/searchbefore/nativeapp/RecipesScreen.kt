@@ -5,10 +5,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import org.json.JSONObject
 
@@ -16,24 +22,46 @@ import org.json.JSONObject
     var query by rememberSaveable { mutableStateOf("") }
     var selected by remember { mutableStateOf<Pair<Int, JSONObject>?>(null) }
     var deleting by remember { mutableStateOf<Pair<Int, JSONObject>?>(null) }
+    var batch by rememberSaveable { mutableStateOf(false) }
+    var batchWater by rememberSaveable { mutableStateOf("1") }
+    var batchTanks by rememberSaveable { mutableStateOf("1") }
     val rows = Recipes.rows(data)
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
+    val focus = LocalFocusManager.current
+    val done = KeyboardActions(onDone = { focus.clearFocus() })
+    LazyColumn(Modifier.testTag("recipesList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
         item { Text("常用配方", style = MaterialTheme.typography.headlineSmall) }
         item { Text("配方是先前保存的換算設定，不會自動產生施藥紀錄。使用前仍須核對當時登記及產品標示；本頁資料只在本機與 JSON 備份中。") }
         item { OutlinedTextField(value = query, onValueChange = { query = it.take(120) }, label = { Text("搜尋作物、藥劑或商品名") }, modifier = Modifier.fillMaxWidth()) }
+        if(rows.isNotEmpty()) item { FilterChip(selected = batch, enabled = enabled, onClick = { batch = !batch }, label = { Text("多筆獨立換算") }) }
+        if(batch) {
+            item { Info("依目前篩選逐筆試算", "以下各配方分別套用同一水量與桶數，不代表一起施用或可以混配，也不加總不同藥劑。舊配方不是最新登記證明，請回查詢核對；不更動保存水量或施藥紀錄。") }
+            item { OutlinedTextField(batchWater, { batchWater = it.take(16) }, label = { Text("試算每桶水量（公升）") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done), keyboardActions = done, singleLine = true, modifier = Modifier.fillMaxWidth()) }
+            item { OutlinedTextField(batchTanks, { batchTanks = it.take(5) }, label = { Text("各配方分別試算桶數") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done), keyboardActions = done, singleLine = true, modifier = Modifier.fillMaxWidth()) }
+        }
         if (rows.isEmpty()) item { Text("在查詢結果展開配藥計算後，按「存成常用配方」。") }
         itemsIndexed(rows) { index, recipe ->
             if (query.isBlank() || listOf("crop", "agent", "brand").any { recipe.optString(it).contains(query.trim()) }) {
-                Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                BrandCard {
                     Text("${recipe.optString("crop")} × ${recipe.optString("pest")}", style = MaterialTheme.typography.titleMedium)
                     Text(recipe.optString("agent"), style = MaterialTheme.typography.titleLarge)
                     if (recipe.optString("brand").isNotEmpty()) Text("商品名：${recipe.optString("brand")}")
                     val amount = Recipes.amount(recipe, recipe.optString("water"))
                     Text(if(amount == null) "此舊配方資料不完整，不提供自動換算；請回原登記查詢。" else "${recipe.optString("water")} 公升水 → $amount ${Recipes.unit(recipe)} 製品")
+                    if(batch) {
+                        HorizontalDivider()
+                        val estimate = recipeBatchAmounts(recipe, batchWater, batchTanks)
+                        if(estimate == null) Text("本筆無法試算：請核對水量、整數桶數與配方倍數／單位。", color = MaterialTheme.colorScheme.error)
+                        else {
+                            Text("獨立試算：每桶 ${estimate.perTank} ${Recipes.unit(recipe)}")
+                            Text("本筆合計：${estimate.agentTotal} ${Recipes.unit(recipe)}／${estimate.waterTotal} 公升水", style = MaterialTheme.typography.titleMedium)
+                        }
+                    }
                     if (recipe.optString("note").isNotBlank()) Text(recipe.optString("note"))
                     TextButton(enabled = enabled && amount != null, onClick = { selected = index to recipe }) { Text("調整水量／商品名／備註") }
                     TextButton(enabled = enabled, onClick = { deleting = index to recipe }) { Text("刪除此配方") }
-                } }
+                }
             }
         }
     }

@@ -4,11 +4,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import org.json.JSONObject
@@ -20,6 +23,12 @@ import java.time.temporal.ChronoUnit
 @Composable internal fun CalculationScreen(row: UsageRow?, enabled: Boolean, choose: () -> Unit, saveRecipe: (UsageRow, String) -> Unit) {
     var water by rememberSaveable(row?.id) { mutableStateOf("1") }
     var tanks by rememberSaveable(row?.id) { mutableStateOf("1") }
+    var areaMode by rememberSaveable(row?.id) { mutableStateOf(false) }
+    var area by rememberSaveable(row?.id) { mutableStateOf("") }
+    var areaUnitName by rememberSaveable(row?.id) { mutableStateOf(AreaUnit.SQUARE_METER.name) }
+    val areaUnit = AreaUnit.valueOf(areaUnitName)
+    val focus = LocalFocusManager.current
+    val done = KeyboardActions(onDone = { focus.clearFocus() })
     LazyColumn(Modifier.testTag("calculationList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
         item { QueryStep(1, "配藥計算") }
         if(row == null) {
@@ -37,11 +46,36 @@ import java.time.temporal.ChronoUnit
             if(row.canCalculate && !row.formExcluded) {
                 item { QueryStep(2, "輸入每桶水量") }
                 item { OutlinedTextField(water, { water = it.take(16) }, label = { Text("每桶水量（公升）") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), singleLine = true, modifier = Modifier.fillMaxWidth()) }
-                item { OutlinedTextField(tanks, { tanks = it.take(5) }, label = { Text("本次桶數（整數）") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), singleLine = true, modifier = Modifier.fillMaxWidth()) }
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done), keyboardActions = done, singleLine = true, modifier = Modifier.fillMaxWidth()) }
+                item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(selected = !areaMode, enabled = enabled, onClick = { areaMode = false }, label = { Text("用桶數算") })
+                    FilterChip(selected = areaMode, enabled = enabled, onClick = { areaMode = true }, label = { Text("按面積換算") })
+                } }
+                if(!areaMode) item { OutlinedTextField(tanks, { tanks = it.take(5) }, label = { Text("本次桶數（整數）") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done), keyboardActions = done, singleLine = true, modifier = Modifier.fillMaxWidth()) }
                 val amounts = tankAmounts(row, water, tanks)
-                item { BrandCard {
+                if(areaMode) {
+                    item { OutlinedTextField(area, { area = it.take(16) }, label = { Text("施用面積（${areaUnit.label}）") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done), keyboardActions = done, singleLine = true, modifier = Modifier.fillMaxWidth()) }
+                    item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        AreaUnit.entries.forEach { unit -> FilterChip(selected = areaUnit == unit, enabled = enabled,
+                            onClick = { areaUnitName = unit.name; area = "" }, label = { Text(unit.label) }) }
+                    } }
+                    val estimate = areaAmounts(row, water, area, areaUnit)
+                    item { BrandCard {
+                        Text("依登記範圍換算", style = MaterialTheme.typography.titleMedium)
+                        if(hectareDose(row) == null) Text("此筆每公頃用量或單位無法確認，不提供面積換算。請改用桶數計算，並核對原登記及產品標示。")
+                        else if(estimate == null) Text("請輸入有效水量及面積；換算量過小或超出上限時不顯示結果。")
+                        else {
+                            Text("全區藥劑製品：${estimate.agentTotal} ${row.unit}", style = MaterialTheme.typography.titleLarge)
+                            Text("換算總水量：${estimate.waterTotal} 公升")
+                            Text("約當 ${estimate.tanks} 桶（每桶 $water 公升）")
+                            Text("每桶製品用量：${estimate.perTank} ${row.unit}")
+                        }
+                        Text("保留原登記用量範圍，不代選最高值。約當桶數不進位，不代表建議噴幾桶；實際施用量須核對標示與現場條件。")
+                        Text("面積單位切換會清空輸入。小面積也不代表可任意用藥；極小用量需適當量具。此頁不會自動建立施藥紀錄。")
+                    } }
+                } else item { BrandCard {
                     Text("每桶藥劑製品用量", style = MaterialTheme.typography.titleMedium)
                     Text(amounts?.let { "${it.perTank} ${row.unit}" } ?: "請輸入有效水量與桶數", style = MaterialTheme.typography.headlineMedium)
                     if(amounts != null) {
@@ -56,8 +90,8 @@ import java.time.temporal.ChronoUnit
                 if(dose.isNotBlank() && dose != "-") item { Info("登記用量（依原單位）", dose) }
                 val note = row.json.optString("note")
                 if(note.isNotBlank() && note != "-") item { Info("使用注意事項", note) }
-                item { Text("常用配方只保存每桶水量與該筆用法，不保存本次桶數。", style = MaterialTheme.typography.bodySmall) }
-                item { Button(enabled = enabled && amounts != null, onClick = { saveRecipe(row, water) }, modifier = Modifier.fillMaxWidth()) { Text("存成常用配方") } }
+                item { Text("常用配方只保存每桶水量與該筆用法，不保存本次桶數、面積或估算總量。", style = MaterialTheme.typography.bodySmall) }
+                item { Button(enabled = enabled && (if(areaMode) areaAmounts(row, water, area, areaUnit) != null else amounts != null), onClick = { saveRecipe(row, water) }, modifier = Modifier.fillMaxWidth()) { Text("存成常用配方") } }
             } else item { Info("此用法不提供稀釋計算", "特殊施用方式或採收型態不適用／待核對，請依原登記及產品標示操作。") }
             item { OutlinedButton(enabled = enabled, onClick = choose, modifier = Modifier.fillMaxWidth()) { Text("返回查詢／紀錄實際用藥") } }
         }
