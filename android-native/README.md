@@ -1,5 +1,7 @@
 # 噴前查原生 Android 開發
 
+2026-09-18 晚間：準備 v7／1.1.2-internal，只供內部測試。正式設定71 JVM／Lint／AAB簽章与16KB靜態驗證通過，已保留手機升級前完整備份；Play發布／安裝最終狀態見 [v7驗收](../docs/NATIVE-V7-INTERNAL-2026-09-18.md)。不更新Alpha／正式版。
+
 2026-09-18 傍晚最終：D槽恢復後，補正深色模式系統列白底白圖示；最新 Android16／1.5倍字體 **22 UI 全通過**，71 JVM／Lint／網站全套／跨語言備份往返通過。測試新增專用模擬器及落檔腳本，實測失敗會正確阻擋。詳見[第四輪最終驗收](../docs/NATIVE-DISPLAY-MIGRATION-2026-09-18.md)。手機仍Play v6，本輪沒有发布AAB；新介面Play升級與跨帳號等發布閘門仍保留。以下輪次是歷史，勿將舊的「尚未測」當最新狀態。
 
 2026-09-18 第四輪：新增裝置限定的字體／深色／高對比設定、紀錄搜尋與卡片、個人頁分區。首輪71 JVM／Lint與跨語言備份往返通過，Android14大字體21 UI全過；Android16環境啟動失敗，另補重開配色順序修正。最終驗收／提交狀態一律見[第四輪驗收](../docs/NATIVE-DISPLAY-MIGRATION-2026-09-18.md)。修正舊說明：網站 JSON 本來不含顯示偏好，偏好不遷移也不上傳；配方包含在 JSON，但不上傳雲端。下方輪次為歷史，不表示最新待辦仍全數未做。
@@ -75,7 +77,7 @@ rtk proxy powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-andr
 - debug applicationId：`tw.searchbefore.app.nativepreview`，與現有 APP 並存。
 - 正式基礎 applicationId：`tw.searchbefore.app`；內部候選使用既有 upload key 簽署 AAB，由 Play App Signing 簽署派送的 APK。本機 upload key 不等於 Play 安裝簽章。
 - compile/target API 36，min API 24（保留現有 Play 自動保護的最低要求），Java 17／desugaring。
-- 目前候選 versionCode 6／versionName `1.1.1-internal`；2026-09-18 最新成功讀取的 Play 最大套件代碼為 5。v6 本機已建好，尚未上傳；續作上傳仍須核對並行發布是否占用版本碼。
+- 目前候選 versionCode 7／versionName `1.1.2-internal`；本輪建立前已核對 Play 最高代碼為6。最新發布狀態見上方v7驗收，不沿用較早的v6待上傳敘述。
 - 預覽的 `firebase-preview.json` 由 Firebase Console 下載，必須符合預覽 package 與 project，且包含 Web OAuth client；此檔忽略於 Git。無設定時仍可使用本機功能，但登入不啟用。不能用此設定替代正式 Play 身分。
 
 最新實測結果與尚未通過項目集中在 [原生整合驗收](../docs/NATIVE-INTEGRATION-2026-09-16.md)，歷史測試數字不代表目前整包已驗收。
