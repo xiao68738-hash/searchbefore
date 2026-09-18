@@ -40,7 +40,7 @@ class NativeStore(context: Context) {
 object NativeDocument {
     fun empty() = JSONObject().put("version", 1).put("data", Backup.empty())
         .put("ownerUid", "").put("syncEnabled", false).put("lastSyncAt", "")
-        .put("tombstones", JSONObject()).put("remindersEnabled", false)
+        .put("tombstones", JSONObject()).put("remindersEnabled", false).put("displayPrefs", DisplayPreferences().encode())
     fun encode(document: JSONObject): ByteArray = document.toString().toByteArray(Charsets.UTF_8)
     fun parse(bytes: ByteArray): JSONObject {
         require(bytes.size <= Backup.MAX_BYTES * 2) { "本機資料過大" }
@@ -57,6 +57,7 @@ object NativeDocument {
         val tombs = input.getJSONObject("tombstones")
         NativeSync.validateJournal(tombs)
         out.put("tombstones", JSONObject(tombs.toString()))
+        out.put("displayPrefs", DisplayPreferences.read(input.optJSONObject("displayPrefs")).encode())
         return out
     }
     fun replaceData(document: JSONObject, data: JSONObject, importing: Boolean = false): JSONObject {

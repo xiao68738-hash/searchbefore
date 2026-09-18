@@ -29,7 +29,7 @@ function buildGoldens(){
     batchSafety.push({records,plotId:'plot1',date,expected:safety.harvestStatus(records,'plot1',date)});
   }
   batchSafety.push({records:[],plotId:'plot1',date:'2026-01-01',expected:safety.harvestStatus([],'plot1','2026-01-01')});
-  return {harvest,sync,batchSafety};
+  return {harvest,sync,batchSafety,migration:require('./native-backup-fixture.cjs').migrationFixture()};
 }
 function writeGoldens(){
   const output=path.join(__dirname,'../android-native/app/src/test/resources/web-native-golden.json');

@@ -24,6 +24,7 @@ class NativeState(application: Application) : AndroidViewModel(application) {
     var catalog by mutableStateOf<Catalog?>(null); private set
     private var document by mutableStateOf<JSONObject?>(null)
     val data get() = document?.getJSONObject("data")
+    val displayPreferences get() = DisplayPreferences.read(document?.optJSONObject("displayPrefs"))
     var error by mutableStateOf("")
     var busy by mutableStateOf(false); private set
     var pendingImport by mutableStateOf<JSONObject?>(null)
@@ -52,10 +53,12 @@ class NativeState(application: Application) : AndroidViewModel(application) {
     init {
         cloud.auth?.addAuthStateListener(listener)
         task("資料載入失敗。原檔已保留，請勿清除 APP 資料。") {
-            val loaded = withContext(Dispatchers.IO) {
-                Catalog(application.assets.open("catalog.json").bufferedReader().use { it.readText() }) to store.load()
+            // Restore the small local envelope before parsing the catalog, so saved dark/large
+            // preferences also apply to the loading screen. No network or automatic sync.
+            document = withContext(Dispatchers.IO) { store.load() }
+            catalog = withContext(Dispatchers.IO) {
+                Catalog(application.assets.open("catalog.json").bufferedReader().use { it.readText() })
             }
-            catalog = loaded.first; document = loaded.second
             hasRecovery = withContext(Dispatchers.IO) { store.hasRecovery() }
             refreshReminders()
         }
@@ -104,6 +107,10 @@ class NativeState(application: Application) : AndroidViewModel(application) {
         commit(NativeDocument.replaceData(requireNotNull(document), previous))
         undoData = null
         error = "已撤銷上次本機修改；尚未同步到雲端。"
+    }
+    fun setDisplayPreferences(preferences: DisplayPreferences) = task("顯示設定儲存失敗，原設定保留。") {
+        commit(JSONObject(requireNotNull(document).toString()).put("displayPrefs", preferences.encode()))
+        // Does not create an undo record, update timestamps, upload, or request consent.
     }
     fun export(uri: Uri) = task("匯出失敗，原紀錄未變動。") {
         val bytes = Backup.encode(requireNotNull(data))

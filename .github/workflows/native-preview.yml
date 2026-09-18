@@ -8,6 +8,8 @@ on:
       - 'android-twa/gradle/**'
       - 'android-twa/gradlew*'
       - 'scripts/export-native-*.cjs'
+      - 'scripts/native-backup-fixture.cjs'
+      - 'scripts/verify-native-backup-roundtrip.cjs'
       - 'scripts/build-android-native.ps1'
       - 'scripts/build-android-native-internal.ps1'
       - 'scripts/start-native-validation-emulator.ps1'
@@ -15,6 +17,7 @@ on:
       - 'index.html'
       - 'safety.js'
       - 'cloud-sync.js'
+      - 'farm-records.js'
       - 'query-aids.js'
       - 'crop-forms.js'
       - 'mrl-*.js'
@@ -62,6 +65,8 @@ jobs:
           test ! -f android-native/app/google-services.json
       - name: Unit tests, debug compilation and Android API/security lint
         run: bash android-twa/gradlew -p android-native --no-daemon :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
+      - name: Web to Kotlin to web full-backup roundtrip (synthetic only)
+        run: node scripts/verify-native-backup-roundtrip.cjs
       - name: Candidate ELF boundary regression tests (synthetic only)
         run: java scripts/VerifyNativeBundle.java --self-test
       # No release signing, Firebase account, cloud writes, APK publishing or deployment.

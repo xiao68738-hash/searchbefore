@@ -56,6 +56,19 @@ class NativeStorageReportTest {
         assertFalse(export.contains("synthetic_owner"))
         assertFalse(export.contains("tombstones"))
     }
+    @Test fun displaySettingsSurviveReopenAndImportWithoutChangingRecordData() {
+        val context = isolated()
+        val store = NativeStore(context)
+        val document = NativeDocument.replaceData(store.load(), fixture())
+        val prefs = DisplayPreferences("xlarge", true, true)
+        store.save(document.put("displayPrefs", prefs.encode()))
+        val reopened = NativeStore(context).load()
+        assertEquals(prefs, DisplayPreferences.read(reopened.getJSONObject("displayPrefs")))
+        assertTrue(NativeSync.same(document.getJSONObject("data"), reopened.getJSONObject("data")))
+        store.save(NativeDocument.replaceData(reopened, Backup.empty(), importing = true))
+        assertEquals(prefs, DisplayPreferences.read(NativeStore(context).load().getJSONObject("displayPrefs")))
+        assertFalse(NativeStore(context).load().getBoolean("syncEnabled"))
+    }
     @Test fun corruptCurrentFileIsPreservedAndNeverReplacedByEmptyData() {
         val context = isolated()
         NativeStore(context).load()

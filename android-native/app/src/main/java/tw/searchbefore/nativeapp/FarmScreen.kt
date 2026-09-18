@@ -32,7 +32,7 @@ import java.time.LocalDate
         if (rows.isEmpty()) item { Text("尚無農務紀錄。栽培、施肥、採收、採後處理、資材購入及設備保養都可記在這裡。") }
         items(rows, key = { it.getString("id") }) { r ->
             val label = Farm.types[r.optString("type")] ?: "其他農務（原始備份）"
-            Card(Modifier.fillMaxWidth()) { Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            BrandCard {
                 Text("${r.optString("date")}｜$label", style = MaterialTheme.typography.titleMedium)
                 Text(plots.find { it.getString("id") == r.optString("plotId") }?.let(Backup::plotLabel) ?: "未指定田區／設備作業")
                 Farm.fields[r.optString("type")]?.forEach { field ->
@@ -43,7 +43,7 @@ import java.time.LocalDate
                 if (r.optString("notes").isNotEmpty()) Text("備註：${r.optString("notes")}")
                 if (r.optString("type") in Farm.types) TextButton(enabled = enabled, onClick = { editing = r; type = r.getString("type"); editorOpen = true }) { Text("修改紀錄") }
                 TextButton(enabled = enabled, onClick = { deleting = r }) { Text("刪除紀錄") }
-            } }
+            }
         }
     }
     if (showTypes) AlertDialog(onDismissRequest = { showTypes = false }, title = { Text("選擇農務類型") }, text = {

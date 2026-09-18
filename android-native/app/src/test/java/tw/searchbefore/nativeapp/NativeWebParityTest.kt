@@ -5,6 +5,32 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class NativeWebParityTest {
+    @Test fun webBackupSurvivesNativeImportAndExport() {
+        val fixture = fixtures().getJSONObject("migration")
+        val data = Backup.parse(fixture.getJSONObject("input").toString().toByteArray(Charsets.UTF_8))
+        val imported = NativeDocument.replaceData(NativeDocument.empty(), data, importing = true)
+        val actual = imported.getJSONObject("data")
+        val expected = fixture.getJSONObject("expected")
+        val normalized = JSONObject(actual.toString())
+        // Import is a local edit: its sync timestamps must advance, not be silently preserved.
+        for(key in NativeSync.collections) {
+            val before = expected.getJSONArray(key)
+            val after = normalized.getJSONArray(key)
+            assertEquals(before.length(), after.length())
+            for(i in 0 until before.length()) {
+                val oldStamp = before.getJSONObject(i).getString("updatedAt")
+                val newStamp = after.getJSONObject(i).getString("updatedAt")
+                assertTrue(java.time.Instant.parse(newStamp).isAfter(java.time.Instant.parse(oldStamp)))
+                after.getJSONObject(i).put("updatedAt", oldStamp)
+            }
+        }
+        assertTrue(NativeSync.same(expected, normalized))
+        assertEquals(6, actual.getJSONArray("farmRecords").length())
+        assertFalse(imported.getBoolean("syncEnabled"))
+        val output = java.io.File("build/native-validation/web-roundtrip.json")
+        requireNotNull(output.parentFile).mkdirs()
+        output.writeBytes(Backup.encode(actual))
+    }
     private fun fixtures() = JSONObject(requireNotNull(javaClass.classLoader?.getResourceAsStream("web-native-golden.json")) {
         "Run scripts/export-native-catalog.cjs before native tests"
     }.bufferedReader().use { it.readText() })

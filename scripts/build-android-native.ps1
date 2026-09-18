@@ -38,6 +38,8 @@ try {
     if ($Connected) { Assert-IsolatedValidationDevice }
     & (Join-Path $projectRoot "android-twa\gradlew.bat") -p (Join-Path $projectRoot "android-native") --no-daemon @nativeTasks
     if ($LASTEXITCODE -ne 0) { throw "Native preview build/test failed" }
+    & (Join-Path $SharedRoot "tools\node\node.exe") (Join-Path $PSScriptRoot "verify-native-backup-roundtrip.cjs")
+    if ($LASTEXITCODE -ne 0) { throw "Native/web backup roundtrip failed" }
 } finally {
     foreach ($key in $previous.Keys) { [Environment]::SetEnvironmentVariable($key, $previous[$key], "Process") }
 }

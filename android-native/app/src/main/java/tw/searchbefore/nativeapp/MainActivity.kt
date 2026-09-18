@@ -38,14 +38,15 @@ import java.time.LocalDate
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // This preview uses a light surface even when the system theme is dark.
-        WindowCompat.getInsetsController(window, window.decorView).apply {
-            isAppearanceLightStatusBars = true
-            isAppearanceLightNavigationBars = true
-        }
         setContent {
-            SearchBeforeTheme {
-                val state: NativeState = viewModel()
+            val state: NativeState = viewModel()
+            SearchBeforeTheme(preferences = state.displayPreferences) {
+                SideEffect {
+                    WindowCompat.getInsetsController(window, window.decorView).apply {
+                        isAppearanceLightStatusBars = !state.displayPreferences.dark
+                        isAppearanceLightNavigationBars = !state.displayPreferences.dark
+                    }
+                }
                 var tab by rememberSaveable { mutableIntStateOf(if(intent.getBooleanExtra("open_records", false)) 4 else 0) }
                 var recordSection by rememberSaveable { mutableIntStateOf(0) }
                 var calculationId by rememberSaveable { mutableStateOf("") }
@@ -126,8 +127,11 @@ class MainActivity : ComponentActivity() {
                                         .onSuccess { persist(it) }.onFailure { state.error = it.message ?: "刪除失敗" }
                                 })
                             }
-                            5 -> LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
+                            5 -> LazyColumn(Modifier.testTag("personalList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
+                                item { QueryStep(1, "個人與資料管理") }
                                 item { Info("你的資料", "預設儲存在此裝置。Google 登入不等於同意上傳；只有明確開啟同步後，才可與同帳號雲端紀錄合併。登出不會刪除本機紀錄。") }
+                                item { Info("本機資料概況", "${data.getJSONArray("fieldPlots").length()} 個田區　${data.getJSONArray("records").length()} 筆用藥\n${data.getJSONArray("farmRecords").length()} 筆農務　${data.getJSONArray("recipes").length()} 個配方\n配方與顯示偏好不會同步到雲端。") }
+                                item { QueryStep(2, "帳號與雲端同步") }
                                 item { Info("Google 登入", if (state.signedIn) "目前帳號：${state.accountLabel}" else if (state.configured) "未登入，仍可使用本機查詢、紀錄與備份。" else "此安裝包尚未加入原生 Firebase 設定，登入暫不可用。") }
                                 item {
                                     if (state.signedIn) OutlinedButton(enabled = !state.busy, onClick = state::signOut) { Text("登出 Google") }
@@ -145,12 +149,15 @@ class MainActivity : ComponentActivity() {
                                     runCatching { startActivity(Intent(Intent.ACTION_VIEW, page.url.toUri())) }
                                         .onFailure { state.error = "無法開啟瀏覽器。請自行前往 ${page.url}；尚未提交任何申請。" }
                                 } }
-                                item { Button(enabled = !state.busy, onClick = { export.launch("噴前查原生備份_${LocalDate.now()}.json") }) { Text("匯出完整備份") } }
+                                item { QueryStep(3, "備份與報表") }
+                                item { Text("JSON 用於完整紀錄還原；Excel／PDF 是閱讀用報表，不能用來還原。顯示設定僅留在本機，換裝置須重新設定。") }
+                                item { Button(enabled = !state.busy, onClick = { export.launch("噴前查原生備份_${LocalDate.now()}.json") }, modifier = Modifier.fillMaxWidth()) { Text("匯出完整備份") } }
                                 item { OutlinedButton(enabled = !state.busy, onClick = { exportExcel.launch("噴前查農務_${LocalDate.now()}.xlsx") }) { Text("匯出 Excel 報表") } }
                                 item { OutlinedButton(enabled = !state.busy, onClick = { exportPdf.launch("噴前查農務_${LocalDate.now()}.pdf") }) { Text("匯出 PDF 報表") } }
                                 item { OutlinedButton(enabled = !state.busy, onClick = { importBackup.launch(arrayOf("application/json", "text/plain")) }) { Text("匯入網站／APP 的 JSON 備份") } }
                                 item { Text("匯入前會確認，並在本機保留上一份資料。授權、登入狀態與雲端同步同意不會匯入。") }
                                 item { OutlinedButton(enabled = !state.busy && state.hasRecovery, onClick = state::readRecovery) { Text("回復匯入前的資料") } }
+                                item { QueryStep(4, "通知與閱讀設定") }
                                 item {
                                     Info("本機紀錄提醒", "${state.reminderStatus}\n每天至多提醒一次：核對近期未確認或接近等待期的紀錄；不保證可採收／殘留合格。鎖定畫面不放作物、藥劑或帳號；不會因開啟通知而同步資料。匯入或登出會關閉提醒。")
                                     OutlinedButton(enabled = !state.busy, onClick = {
@@ -164,6 +171,7 @@ class MainActivity : ComponentActivity() {
                                         else startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:$packageName".toUri()))
                                     }) { Text("系統通知設定") }
                                 }
+                                item { DisplaySettings(state.displayPreferences, !state.busy, state::setDisplayPreferences) }
                                 item { Text("資料版本 ${cat.version}\n資料來源：農業部農藥開放資料。本預覽僅列精確作物登記，尚未加入作物群組延伸。未列出不代表可使用；依產品標示及最新公告為準。") }
                             }
                         } }
@@ -172,7 +180,7 @@ class MainActivity : ComponentActivity() {
                 }
                 state.pendingImport?.let { pending ->
                     AlertDialog(onDismissRequest = { state.pendingImport = null }, title = { Text("確認匯入備份") },
-                        text = { Text("讀入 ${pending.getJSONArray("records").length()} 筆用藥、${pending.getJSONArray("farmRecords").length()} 筆農務、${pending.getJSONArray("fieldPlots").length()} 個田區。只替換此裝置的原生 APP 資料，上一份資料會保留供回復。網站與雲端不變。") },
+                        text = { Text("讀入 ${pending.getJSONArray("records").length()} 筆用藥、${pending.getJSONArray("farmRecords").length()} 筆農務、${pending.getJSONArray("fieldPlots").length()} 個田區、${pending.getJSONArray("recipes").length()} 個配方。只替換此裝置的原生 APP 紀錄，上一份資料會保留供回復；顯示偏好保持不變。網站與雲端不變。") },
                         confirmButton = { TextButton(enabled = !state.busy, onClick = { state.pendingImport = null; persist(pending, true) }) { Text("保留上一份並匯入") } },
                         dismissButton = { TextButton(onClick = { state.pendingImport = null }) { Text("取消") } })
                 }
@@ -180,7 +188,7 @@ class MainActivity : ComponentActivity() {
                     text = {
                         Column(Modifier.verticalScroll(rememberScrollState()).testTag("migrationHelp"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             Text("升級不會自動讀取瀏覽器裡的舊紀錄。請先備份，不要清除 Chrome 資料或移除舊版；空白清單不代表舊資料已刪除。")
-                            Text("1. 用原本的瀏覽器開啟 searchbefore.tw，在個人頁匯出完整 JSON 備份。配方與偏好設定請使用這種方式移轉。")
+                            Text("1. 用原本的瀏覽器開啟 searchbefore.tw，在個人頁匯出完整 JSON 備份；配方也包含在內。字體、深色模式等顯示偏好不含在備份中，請在新裝置重新設定。")
                             OutlinedButton(onClick = {
                                 runCatching { startActivity(Intent(Intent.ACTION_VIEW, "https://searchbefore.tw/".toUri())) }
                                     .onFailure { state.error = "無法開啟瀏覽器，請自行開啟 https://searchbefore.tw/ 匯出備份。" }
@@ -365,12 +373,14 @@ class MainActivity : ComponentActivity() {
     }, confirmButton = { TextButton(onClick = { open = false }) { Text("取消") } })
 }
 
-@Composable private fun RecordsScreen(data: JSONObject, catalog: Catalog, enabled: Boolean,
+@Composable internal fun RecordsScreen(data: JSONObject, catalog: Catalog, enabled: Boolean,
     addPlot: (String, String, String) -> Unit,
     editRecord: (String, String, String, String, ApplicationDetails) -> Unit,
     editPlot: (String, String, String, String) -> Unit,
     delete: (String, String, String) -> Unit) {
     var selected by rememberSaveable { mutableStateOf("") }
+    var recordQuery by rememberSaveable { mutableStateOf("") }
+    val focus = LocalFocusManager.current
     var adding by rememberSaveable { mutableStateOf(false) }
     var crop by rememberSaveable { mutableStateOf("") }
     var tag by rememberSaveable { mutableStateOf("") }
@@ -384,10 +394,14 @@ class MainActivity : ComponentActivity() {
     val plots = Backup.plots(data)
     val records = data.getJSONArray("records").let { a -> (0 until a.length()).map { a.getJSONObject(it) }.sortedByDescending { it.optString("date") } }
     val effectiveSelection = selected.takeIf { id -> plots.any { it.getString("id") == id } }.orEmpty()
-    val visible = records.filter { effectiveSelection.isEmpty() || it.optString("plotId") == effectiveSelection }
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
+    val visible = records.filter { (effectiveSelection.isEmpty() || it.optString("plotId") == effectiveSelection) && recordMatches(it, recordQuery) }
+    LazyColumn(Modifier.testTag("recordsList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
+        item { QueryStep(1, "用藥紀錄") }
         item { Text("本機紀錄 ${visible.size} / ${records.size} 筆", style = MaterialTheme.typography.titleLarge) }
         item { PlotPicker(plots, effectiveSelection, "全部田區與未指定紀錄", enabled) { selected = it } }
+        item { OutlinedTextField(recordQuery, { recordQuery = it.take(120) }, enabled = enabled,
+            label = { Text("搜尋藥劑、作物、日期或備註") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = KeyboardActions(onDone = { focus.clearFocus() })) }
         item { OutlinedButton(enabled = enabled, onClick = { crop = ""; tag = ""; plantDate = ""; adding = true }) { Text("新增田區／種植批次") } }
         if (effectiveSelection.isNotEmpty()) item {
             OutlinedButton(enabled = enabled, onClick = {
@@ -399,19 +413,29 @@ class MainActivity : ComponentActivity() {
         item { Text("目前 ${plots.size} 個田區、${data.getJSONArray("farmRecords").length()} 筆農務紀錄及 ${data.getJSONArray("recipes").length()} 個常用配方。") }
         item { Text("田區篩選不會推定未指定紀錄的歸屬；沒有紀錄不代表可採收。") }
         if (records.isEmpty()) item { Text("還沒有紀錄。查詢藥劑後可按「紀錄用藥」，或從個人頁匯入 JSON 備份。") }
-        if (records.isNotEmpty() && visible.isEmpty()) item { Text("此田區尚無指定的用藥紀錄。") }
+        if (records.isNotEmpty() && visible.isEmpty()) item { Text("沒有符合目前田區與搜尋條件的紀錄；可清空搜尋或改選全部田區。") }
         items(visible, key = { it.getString("id") }) { r ->
             val harvest = Backup.harvestDate(r)?.let { "安全採收日參考：$it" } ?: "採收期未確認，請查產品標示"
             val plot = plots.find { it.optString("id") == r.optString("plotId") }?.let { Backup.plotLabel(it) } ?: "未指定田區"
-            Info("${r.optString("date")}｜${r.optString("crop")} × ${r.optString("pest")}", "${r.optString("agent")}\n$plot\n$harvest\n${ApplicationDetails.summary(r)}\n操作者：${r.optString("operator").ifBlank { "未填" }}\n${r.optString("notes")}\n依產品標示及田間實際情況確認。")
+            BrandCard {
+            Text(r.optString("date"), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+            Text(r.optString("agent"), style = MaterialTheme.typography.titleLarge)
+            Text("${r.optString("crop")} × ${r.optString("pest")}｜$plot")
+            HorizontalDivider()
+            Text(harvest, style = MaterialTheme.typography.titleMedium)
+            Text(ApplicationDetails.summary(r))
+            Text("操作者：${r.optString("operator").ifBlank { "未填" }}")
+            if(r.optString("notes").isNotBlank()) Text("備註：${r.optString("notes")}")
+            Text("依產品標示及田間實際情況確認。", style = MaterialTheme.typography.bodySmall)
             TextButton(enabled = enabled, onClick = {
                 editingRecord = r; recordDate = r.getString("date"); recordPlot = r.optString("plotId"); recordDetails = ApplicationDetails.from(r)
             }) { Text("修改實際用藥紀錄") }
             TextButton(enabled = enabled, onClick = { deleting = "records" to r }) { Text("刪除此筆用藥紀錄") }
+            }
         }
     }
     if (adding) AlertDialog(onDismissRequest = { adding = false }, title = { Text("新增田區／種植批次") }, text = {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(value = crop, onValueChange = { crop = it.take(120) }, label = { Text("原登記作物，例如：蔥") })
             if (crop !in catalog.crops) Text("請填完整登記名稱。可回查詢頁確認；原生預覽尚不合併作物別名。")
             OutlinedTextField(value = tag, onValueChange = { tag = it.take(120) }, label = { Text("田區名稱，例如：後院第一區") })
