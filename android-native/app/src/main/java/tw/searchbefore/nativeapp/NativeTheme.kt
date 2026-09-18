@@ -2,11 +2,14 @@ package tw.searchbefore.nativeapp
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -16,7 +19,9 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,19 +34,19 @@ import androidx.compose.ui.unit.sp
             primaryContainer = Color(0xFFE7EFE4), onPrimaryContainer = Color(0xFF183528),
             secondary = Color(0xFF52634F), onSecondary = Color.White,
             secondaryContainer = Color(0xFFFCEAD8), onSecondaryContainer = Color(0xFF85420F),
-            background = Color(0xFFF5F2E9), onBackground = Color(0xFF183528),
-            surface = Color.White, onSurface = Color(0xFF183528),
+            background = Color(0xFFF7F4EB), onBackground = Color(0xFF22301F),
+            surface = Color.White, onSurface = Color(0xFF22301F),
             surfaceContainerLowest = Color.White, surfaceContainerLow = Color(0xFFFAF9F4),
             surfaceContainer = Color(0xFFF5F2E9), surfaceContainerHigh = Color(0xFFEEF1E9),
             surfaceContainerHighest = Color.White, surfaceTint = Color(0xFF2E6B3F),
             surfaceVariant = Color(0xFFEEF1E9), onSurfaceVariant = Color(0xFF52634F),
-            outline = Color(0xFF7B8578), outlineVariant = Color(0xFFDDD8CA),
+            outline = Color(0xFF7B8578), outlineVariant = Color(0xFFE1DDCF),
             error = Color(0xFF9E3026), onError = Color.White,
             errorContainer = Color(0xFFFFEDE6), onErrorContainer = Color(0xFF75271F)
         ),
         shapes = Shapes(
             extraSmall = RoundedCornerShape(8.dp), small = RoundedCornerShape(12.dp),
-            medium = RoundedCornerShape(18.dp), large = RoundedCornerShape(24.dp), extraLarge = RoundedCornerShape(28.dp)
+            medium = RoundedCornerShape(12.dp), large = RoundedCornerShape(16.dp), extraLarge = RoundedCornerShape(24.dp)
         ),
         typography = Typography(
             headlineMedium = androidx.compose.ui.text.TextStyle(fontWeight = FontWeight.Bold, fontSize = 28.sp, lineHeight = 36.sp),
@@ -56,16 +61,19 @@ import androidx.compose.ui.unit.sp
 }
 
 @Composable fun BrandHeader(enabled: Boolean, migration: () -> Unit) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically,
+    Row(Modifier.fillMaxWidth().testTag("brandHeader").background(Color(0xFF17331F)).padding(horizontal = 18.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        Image(painterResource(R.drawable.native_logo), contentDescription = null, modifier = Modifier.size(42.dp))
         Column(Modifier.weight(1f)) {
-            Text("噴前查", style = MaterialTheme.typography.titleLarge)
-            Text(if (BuildConfig.DEBUG) "原生開發預覽" else "內部測試版", style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(if(LocalDensity.current.fontScale > 1.25f) "噴前查" else "噴前查 SearchBefore", color = Color.White, fontFamily = FontFamily.Serif,
+                fontSize = 21.sp, lineHeight = 29.sp, fontWeight = FontWeight.Bold)
+            Text("查詢 × 計算 × 田間紀錄", color = Color(0xFFD2DECF), fontSize = 12.sp)
         }
-        TextButton(enabled = enabled, onClick = migration, contentPadding = PaddingValues(horizontal = 8.dp)) {
-            Text("舊版資料移轉", style = MaterialTheme.typography.labelMedium)
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(if (BuildConfig.DEBUG) "原生開發預覽" else "內部測試版", color = Color(0xFFD2DECF), fontSize = 11.sp)
+            OutlinedButton(enabled = enabled, onClick = migration, contentPadding = PaddingValues(horizontal = 10.dp),
+                border = BorderStroke(1.dp, Color(0xFFABBFA8)), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) {
+                Text("舊版資料移轉", fontSize = 12.sp)
+            }
         }
     }
 }
@@ -80,18 +88,66 @@ import androidx.compose.ui.unit.sp
             drawLine(ink, Offset(x1*u, y1*u), Offset(x2*u, y2*u), 1.8f*u, StrokeCap.Round)
         when (index) {
             0 -> { drawCircle(ink, 6.5f*u, Offset(10*u,10*u), style=stroke); line(15f,15f,21f,21f) }
-            1 -> { drawRoundRect(ink, Offset(5*u,3*u), Size(14*u,19*u), androidx.compose.ui.geometry.CornerRadius(2*u), style=stroke)
+            1 -> { drawRoundRect(ink, Offset(5*u,2*u), Size(14*u,20*u), androidx.compose.ui.geometry.CornerRadius(2*u), style=stroke)
+                line(8f,7f,16f,7f); for(y in listOf(12f,17f)) { line(8f,y,9f,y); line(15f,y,16f,y) } }
+            2 -> { val book = Path().apply { moveTo(12*u,5*u); quadraticTo(7*u,1*u,2*u,4*u); lineTo(2*u,20*u); quadraticTo(7*u,17*u,12*u,21*u); quadraticTo(17*u,17*u,22*u,20*u); lineTo(22*u,4*u); quadraticTo(17*u,1*u,12*u,5*u) }
+                drawPath(book,ink,style=stroke); line(12f,5f,12f,21f) }
+            3 -> { drawCircle(ink,8*u,Offset(12*u,14*u),style=stroke); line(9f,2f,15f,2f); line(12f,6f,12f,2f); line(12f,14f,12f,9f); line(12f,14f,16f,17f) }
+            4 -> { drawRoundRect(ink, Offset(5*u,3*u), Size(14*u,19*u), androidx.compose.ui.geometry.CornerRadius(2*u), style=stroke)
                 line(9f,2f,15f,2f); line(9f,9f,15f,9f); line(9f,13f,15f,13f); line(9f,17f,13f,17f) }
-            2 -> { line(12f,22f,12f,12f)
-                val leaf = Path().apply { moveTo(12*u,15*u); cubicTo(2*u,16*u,2*u,6*u,3*u,5*u); cubicTo(12*u,5*u,12*u,9*u,12*u,15*u)
-                    moveTo(12*u,12*u); cubicTo(12*u,4*u,18*u,3*u,22*u,3*u); cubicTo(22*u,10*u,18*u,13*u,12*u,12*u) }
-                drawPath(leaf,ink,style=stroke) }
-            3 -> { line(5f,3f,19f,3f); line(9f,3f,9f,9f); line(15f,3f,15f,9f)
-                val flask = Path().apply { moveTo(9*u,9*u); lineTo(3*u,20*u); lineTo(21*u,20*u); lineTo(15*u,9*u) }
-                drawPath(flask,ink,style=stroke); line(7f,15f,17f,15f) }
             else -> { drawCircle(ink,4*u,Offset(12*u,6*u),style=stroke)
                 drawArc(ink,180f,180f,false,Offset(4*u,13*u),Size(16*u,16*u),style=stroke) }
         }
+    }
+}
+
+/** Same six destinations as the TWA; each target remains at least 48dp tall. */
+@Composable internal fun TwaNavigation(selected: Int, enabled: Boolean, select: (Int) -> Unit) {
+    Surface(color = Color(0xFFFFFDF7), shadowElevation = 2.dp) {
+        Column {
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            Row(Modifier.fillMaxWidth().selectableGroup()) {
+                listOf("查詢", "計算", "配方", "倒數", "紀錄", "個人").forEachIndexed { index, title ->
+                    val active = selected == index
+                    Column(Modifier.weight(1f).heightIn(min = 64.dp)
+                        .selectable(active, enabled = enabled, role = Role.Tab, onClick = { select(index) })
+                        .padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                        CompositionLocalProvider(LocalContentColor provides if(active) Color(0xFF9C4C0A) else Color(0xFF66705F)) {
+                            Box(Modifier.background(if(active) Color(0xFFFFEFDE) else Color.Transparent, RoundedCornerShape(12.dp)).padding(horizontal = 12.dp, vertical = 5.dp)) { NativeTabIcon(index) }
+                            Text(title, fontSize = 12.sp, lineHeight = 18.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable internal fun QueryModeSwitch(mode: Int, change: (Int) -> Unit) {
+    Row(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        listOf("以作物找藥", "以藥劑找作物").forEachIndexed { index, title ->
+            Surface(Modifier.weight(1f).selectable(mode == index, role = Role.Tab, onClick = { change(index) }),
+                shape = RoundedCornerShape(12.dp), color = if(mode == index) Color(0xFFE9F2EB) else Color.White,
+                border = BorderStroke(if(mode == index) 1.5.dp else 1.dp, if(mode == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)) {
+                Box(Modifier.padding(horizontal = 8.dp, vertical = 14.dp), contentAlignment = Alignment.Center) {
+                    Text(title, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = if(mode == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+        }
+    }
+}
+
+@Composable internal fun SafetyNotice() {
+    Surface(shape = RoundedCornerShape(16.dp), color = Color(0xFFFFF5CE), border = BorderStroke(1.dp, Color(0xFFC39D2C))) {
+        Text("安全提醒：本工具是查詢與自主紀錄輔助。實際用藥、稀釋倍數及安全採收期，請以產品標示與主管機關最新公告為準。",
+            Modifier.padding(16.dp), color = Color(0xFF614A08), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+    }
+}
+
+@Composable internal fun QueryStep(number: Int, title: String) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text("$number", color = MaterialTheme.colorScheme.primary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
     }
 }
 
@@ -116,7 +172,7 @@ import androidx.compose.ui.unit.sp
 @Composable fun UsageFacts(label: String, value: String, harvest: String) {
     val largeText = LocalDensity.current.fontScale > 1.25f
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        if (maxWidth < 320.dp || largeText) {
+        if (maxWidth < 260.dp || largeText) {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 UsageFact(label, value, Modifier.fillMaxWidth())
                 UsageFact("安全採收期", harvest, Modifier.fillMaxWidth())
@@ -131,10 +187,21 @@ import androidx.compose.ui.unit.sp
 }
 
 @Composable private fun UsageFact(label: String, value: String, modifier: Modifier) {
-    Surface(modifier, shape = MaterialTheme.shapes.small, color = MaterialTheme.colorScheme.primaryContainer) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(label, style = MaterialTheme.typography.labelMedium)
-            Text(value, style = MaterialTheme.typography.titleLarge)
+    Surface(modifier, color = Color.Transparent) {
+        Column(Modifier.padding(vertical = 10.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(value, fontSize = 25.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}
+
+@Composable internal fun RegistrationTags(kind: String, moa: String) {
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if(kind.isNotBlank()) Surface(shape = RoundedCornerShape(6.dp), color = Color(0xFFF2ECDE), contentColor = Color(0xFF715329)) {
+            Text(kind, Modifier.padding(horizontal = 8.dp, vertical = 3.dp), fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        }
+        if(moa.isNotBlank() && moa != "-") Surface(shape = RoundedCornerShape(6.dp), color = Color(0xFFF0EAF6), contentColor = Color(0xFF6B4E8E)) {
+            Text(moa, Modifier.padding(horizontal = 8.dp, vertical = 3.dp), fontWeight = FontWeight.Bold, fontSize = 13.sp)
         }
     }
 }

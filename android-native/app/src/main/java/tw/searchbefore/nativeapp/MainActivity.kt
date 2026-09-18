@@ -21,7 +21,9 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
@@ -44,7 +46,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             SearchBeforeTheme {
                 val state: NativeState = viewModel()
-                var tab by rememberSaveable { mutableIntStateOf(if(intent.getBooleanExtra("open_records", false)) 1 else 0) }
+                var tab by rememberSaveable { mutableIntStateOf(if(intent.getBooleanExtra("open_records", false)) 4 else 0) }
+                var recordSection by rememberSaveable { mutableIntStateOf(0) }
+                var calculationId by rememberSaveable { mutableStateOf("") }
+                var calculationForm by rememberSaveable { mutableStateOf("") }
+                val pageState = rememberSaveableStateHolder()
                 DisposableEffect(state) {
                     val observer = androidx.lifecycle.LifecycleEventObserver { _, event -> if(event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) state.refreshReminders() }
                     lifecycle.addObserver(observer)
@@ -71,17 +77,11 @@ class MainActivity : ComponentActivity() {
                     state.persist(next, keepRecovery)
                 }
                 Scaffold(modifier = Modifier.fillMaxSize().systemBarsPadding().imePadding(), bottomBar = {
-                    NavigationBar(containerColor = MaterialTheme.colorScheme.surface, tonalElevation = 0.dp) {
-                        listOf("查詢", "紀錄", "農務", "配方", "個人").forEachIndexed { index, title ->
-                            NavigationBarItem(selected = tab == index, enabled = !state.busy, onClick = { tab = index },
-                                icon = { NativeTabIcon(index) }, label = { Text(title) },
-                                colors = NavigationBarItemDefaults.colors(indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
-                                    selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer, selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer))
-                        }
-                    }
+                    TwaNavigation(tab, !state.busy) { tab = it }
                 }) { padding ->
-                    Column(Modifier.padding(padding).padding(horizontal = 16.dp).fillMaxSize()) {
+                    Column(Modifier.padding(padding).fillMaxSize()) {
                         BrandHeader(!state.busy) { migrationHelp = true }
+                        Column(Modifier.padding(horizontal = 16.dp).weight(1f).clipToBounds()) {
                         if (state.busy) LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 8.dp))
                         if (state.canUndo) TextButton(enabled = !state.busy, onClick = state::undo) { Text("撤銷上次本機修改") }
                         if (state.error.isNotBlank()) {
@@ -90,14 +90,28 @@ class MainActivity : ComponentActivity() {
                         }
                         val cat = state.catalog
                         val data = state.data
-                        if (cat != null && data != null) when (tab) {
-                            0 -> QueryScreen(cat, data, !state.busy, saveRecipe = { row, water ->
+                        if (cat != null && data != null) pageState.SaveableStateProvider(tab) { when (tab) {
+                            0 -> QueryScreen(cat, data, !state.busy, onCalculate = { row ->
+                                calculationId = row.id; calculationForm = row.json.optString("selectedHarvestForm"); tab = 1
+                            }, saveRecipe = { row, water ->
                                 runCatching { Recipes.add(requireNotNull(state.data), row, water) }.onSuccess { persist(it) }.onFailure { state.error = it.message ?: "配方無法儲存" }
                             }) { row, date, plotId, details ->
                                 runCatching { Backup.appendRecord(requireNotNull(state.data), row, date, plotId, details) }
                                     .onSuccess { persist(it) }.onFailure { state.error = it.message ?: "紀錄格式有誤" }
                             }
-                            1 -> RecordsScreen(data, cat, !state.busy,
+                            1 -> CalculationScreen(cat.rows.find { it.id == calculationId }?.withHarvestForm(calculationForm), !state.busy,
+                                choose = { tab = 0 }, saveRecipe = { row, water ->
+                                    runCatching { Recipes.add(requireNotNull(state.data), row, water) }.onSuccess { persist(it) }.onFailure { state.error = it.message ?: "配方無法儲存" }
+                                })
+                            2 -> RecipesScreen(data, !state.busy, save = { persist(it) }, report = { state.error = it })
+                            3 -> CountdownScreen(data, !state.busy) { recordSection = 0; tab = 4 }
+                            4 -> Column {
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    FilterChip(selected = recordSection == 0, onClick = { recordSection = 0 }, label = { Text("用藥與田區") })
+                                    FilterChip(selected = recordSection == 1, onClick = { recordSection = 1 }, label = { Text("農務") })
+                                }
+                                if(recordSection == 1) FarmScreen(data, !state.busy, save = { persist(it) }, report = { state.error = it }, export = { exportCsv.launch("噴前查農務_${LocalDate.now()}.csv") })
+                                else RecordsScreen(data, cat, !state.busy,
                                 addPlot = { crop, tag, date ->
                                     runCatching { Backup.addPlot(requireNotNull(state.data), crop, tag, date, cat.crops) }
                                         .onSuccess { persist(it) }.onFailure { state.error = it.message ?: "田區格式有誤" }
@@ -111,9 +125,8 @@ class MainActivity : ComponentActivity() {
                                     runCatching { Farm.delete(requireNotNull(state.data), collection, id, stamp) }
                                         .onSuccess { persist(it) }.onFailure { state.error = it.message ?: "刪除失敗" }
                                 })
-                            2 -> FarmScreen(data, !state.busy, save = { persist(it) }, report = { state.error = it }, export = { exportCsv.launch("噴前查農務_${LocalDate.now()}.csv") })
-                            3 -> RecipesScreen(data, !state.busy, save = { persist(it) }, report = { state.error = it })
-                            4 -> LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(bottom = 24.dp)) {
+                            }
+                            5 -> LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
                                 item { Info("你的資料", "預設儲存在此裝置。Google 登入不等於同意上傳；只有明確開啟同步後，才可與同帳號雲端紀錄合併。登出不會刪除本機紀錄。") }
                                 item { Info("Google 登入", if (state.signedIn) "目前帳號：${state.accountLabel}" else if (state.configured) "未登入，仍可使用本機查詢、紀錄與備份。" else "此安裝包尚未加入原生 Firebase 設定，登入暫不可用。") }
                                 item {
@@ -153,6 +166,7 @@ class MainActivity : ComponentActivity() {
                                 }
                                 item { Text("資料版本 ${cat.version}\n資料來源：農業部農藥開放資料。本預覽僅列精確作物登記，尚未加入作物群組延伸。未列出不代表可使用；依產品標示及最新公告為準。") }
                             }
+                        } }
                         }
                     }
                 }
@@ -174,7 +188,7 @@ class MainActivity : ComponentActivity() {
                             Text("2. 選擇 JSON 備份並核對筆數。匯入會替換此裝置的原生資料，保留上一份供回復，不會清除網站或雲端資料。")
                             OutlinedButton(enabled = !state.busy, onClick = { migrationHelp = false; importBackup.launch(arrayOf("application/json", "text/plain")) }) { Text("選擇 JSON 備份") }
                             Text("3. 若舊版已完成雲端同步，可在個人頁登入同一 Google 帳號，再自行開啟同步並按立即同步。僅登入不會還原；雲端不包含配方與偏好。")
-                            TextButton(onClick = { migrationHelp = false; tab = 4 }) { Text("前往個人頁") }
+                            TextButton(onClick = { migrationHelp = false; tab = 5 }) { Text("前往個人頁") }
                             Text("完成後請核對田區、用藥日期、用量、農務和配方。尚未核對前，請保留原始備份；內部測試不代表正式驗收完成。")
                         }
                     },
@@ -192,7 +206,7 @@ class MainActivity : ComponentActivity() {
     BrandCard { Text(title, style = MaterialTheme.typography.titleMedium); Text(body, style = MaterialTheme.typography.bodyMedium) }
 }
 
-@Composable private fun QueryScreen(catalog: Catalog, data: JSONObject, enabled: Boolean, saveRecipe: (UsageRow, String) -> Unit, record: (UsageRow, String, String, ApplicationDetails) -> Unit) {
+@Composable private fun QueryScreen(catalog: Catalog, data: JSONObject, enabled: Boolean, onCalculate: (UsageRow) -> Unit, saveRecipe: (UsageRow, String) -> Unit, record: (UsageRow, String, String, ApplicationDetails) -> Unit) {
     var mode by rememberSaveable { mutableIntStateOf(0) }
     var query by rememberSaveable { mutableStateOf("") }
     var crop by rememberSaveable { mutableStateOf("") }
@@ -208,22 +222,23 @@ class MainActivity : ComponentActivity() {
     val agentSuggestions = remember(query, mode) { if(mode == 1) catalog.agentSuggestions(query) else emptyList() }
     val queryListState = rememberLazyListState()
     val focusManager = LocalFocusManager.current
-    // A new registration scope is a new result page, not the previous page's footer.
-    LaunchedEffect(mode, crop, pest, overview) { queryListState.scrollToItem(0) }
+    val scopeKey = org.json.JSONArray(listOf(mode, crop, pest, overview)).toString()
+    var lastScope by rememberSaveable { mutableStateOf(scopeKey) }
+    // Reset on a genuinely different registration, not when returning from another tab.
+    LaunchedEffect(scopeKey) {
+        if(lastScope != scopeKey) { queryListState.scrollToItem(0); lastScope = scopeKey }
+    }
     BackHandler(crop.isNotEmpty()) { if (pest.isNotEmpty()) pest = "" else if (overview) overview = false else crop = "" }
     LazyColumn(state = queryListState, modifier = Modifier.testTag("queryList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
-        if (crop.isEmpty()) item {
-            Text("先找作物，再看登記用法", style = MaterialTheme.typography.headlineSmall)
-            Text("也能用藥劑名稱反查。每筆用法分開核對，不混用相關病蟲害的登記。",
-                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = mode == 0, onClick = { mode = 0; crop = ""; pest = ""; query = "" }, label = { Text("按作物查") })
-            FilterChip(selected = mode == 1, onClick = { mode = 1; crop = ""; pest = ""; query = "" }, label = { Text("按藥劑查") })
-        } }
+        if (crop.isEmpty()) item { SafetyNotice() }
+        item { QueryModeSwitch(mode) { mode = it; crop = ""; pest = ""; query = ""; overview = false; harvestForm = "" } }
         if (crop.isEmpty()) {
+            item { QueryStep(1, if(mode == 0) "選作物（共 ${catalog.crops.size} 種）" else "找藥劑") }
             item { OutlinedTextField(value = query, onValueChange = { query = it.take(120) }, singleLine = true,
                 label = { Text(if (mode == 0) "作物名稱，例如：蔥" else "普通名稱或商品名") }, modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.large,
+                colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface, unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() })) }
             if (mode == 0) {
@@ -247,6 +262,7 @@ class MainActivity : ComponentActivity() {
             }
         } else {
             item { TextButton(onClick = { if (pest.isNotEmpty()) pest = "" else if (overview) overview = false else crop = "" }) { Text("返回上一層") } }
+            item { QueryStep(if(pest.isEmpty()) 2 else 3, if(pest.isEmpty()) "選病蟲害" else "查看登記用法") }
             item { Text(if (pest.isBlank()) crop else "$crop × $pest", style = MaterialTheme.typography.headlineSmall) }
             if(catalog.forms(crop).isNotEmpty()) item {
                 Text("先確認採收部位；未註明不代表適用，所有原登記仍保留供核對。")
@@ -270,7 +286,7 @@ class MainActivity : ComponentActivity() {
                 val rows = catalog.exact(crop, pest).map { it.withHarvestForm(harvestForm) }
                     .sortedBy { if(it.formExcluded) 2 else if(it.json.optString("formCategory") == "matched") 0 else 1 }
                 item { Text("僅列此作物 × 此防治對象原登記，不合併相關分類。") }
-                items(rows.take(shown), key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = { water -> saveRecipe(row, water) }) { recording = row; plotId = ""; date = LocalDate.now().toString(); details = ApplicationDetails() } }
+                items(rows.take(shown), key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = { water -> saveRecipe(row, water) }, onCalculate = { onCalculate(row) }, onRecord = { recording = row; plotId = ""; date = LocalDate.now().toString(); details = ApplicationDetails() }) }
                 if (rows.size > shown) item { TextButton(onClick = { shown += 20 }) { Text("顯示更多用法") } }
                 item { Text("資料供查詢參考，實際用法請核對產品標示與主管機關最新公告。", style = MaterialTheme.typography.bodySmall) }
                 if (catalog.related(crop, pest).isNotEmpty()) item {
@@ -295,14 +311,15 @@ class MainActivity : ComponentActivity() {
         dismissButton = { TextButton(onClick = { recording = null }) { Text("取消") } }) }
 }
 
-@Composable internal fun UsageCard(row: UsageRow, enabled: Boolean, onRecipe: (String) -> Unit, onRecord: () -> Unit) {
+@Composable internal fun UsageCard(row: UsageRow, enabled: Boolean, onRecipe: (String) -> Unit, onRecord: () -> Unit, onCalculate: (() -> Unit)? = null) {
     var calculate by rememberSaveable(row.id) { mutableStateOf(false) }
     var water by rememberSaveable(row.id) { mutableStateOf("1") }
     BrandCard {
         if(row.formExcluded) Text("此型態不適用或待核對：${row.json.optString("formReason")}。保留原登記供查閱，不提供一鍵計算或記錄。", color = MaterialTheme.colorScheme.error)
-        Text(row.name, style = MaterialTheme.typography.titleLarge)
+        Text(row.name, style = MaterialTheme.typography.headlineMedium)
         Text("${row.json.optString("content")} ${row.json.optString("form")}", color = MaterialTheme.colorScheme.onSurfaceVariant)
-        row.json.optString("moa").takeIf { it.isNotBlank() && it != "-" }?.let { Text("作用機制：$it", style = MaterialTheme.typography.labelLarge) }
+        if (row.brands.isNotEmpty()) Text("商品名稱：${row.brands.joinToString("、")}", style = MaterialTheme.typography.bodyLarge)
+        RegistrationTags(row.json.optString("formKind"), row.json.optString("moa"))
         UsageFacts(row.usage.getString("label"), row.usage.getString("value"),
             row.phi?.let { "${it.toBigDecimal().stripTrailingZeros().toPlainString()} 天" } ?: if (row.json.optBoolean("seed")) "不適用" else "請查產品標示")
         if (row.json.optBoolean("phiAdjusted")) Text("已依備註採較長採收期")
@@ -311,14 +328,13 @@ class MainActivity : ComponentActivity() {
         if (dose.isNotBlank() && dose != "-") {
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             Text("登記用量（依原單位）", style = MaterialTheme.typography.titleMedium)
-            Text(dose)
+            Text(dose, style = MaterialTheme.typography.headlineSmall)
             Text("這是登記的施用量，不是每桶水的配藥量；小面積使用也需核對原單位與附註。", style = MaterialTheme.typography.bodySmall)
         }
         val note = row.json.optString("note")
         if (note.isNotBlank() && note != "-") { Text("使用注意事項", style = MaterialTheme.typography.titleMedium); Text(note, style = MaterialTheme.typography.bodyMedium) }
-        if (row.brands.isNotEmpty()) Text("商品名：${row.brands.joinToString("、")}", style = MaterialTheme.typography.bodySmall)
         if (row.canCalculate && !row.formExcluded) {
-            OutlinedButton(onClick = { calculate = !calculate }, modifier = Modifier.fillMaxWidth()) { Text(if(calculate) "收起配藥計算" else "配藥計算") }
+            Button(enabled = enabled, onClick = { if(onCalculate != null) onCalculate() else calculate = !calculate }, modifier = Modifier.fillMaxWidth()) { Text(if(calculate) "收起配藥計算" else "配藥計算") }
             if (calculate) {
                 OutlinedTextField(value = water, onValueChange = { water = it.take(16) }, label = { Text("每桶水量（公升）") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth())
@@ -327,7 +343,7 @@ class MainActivity : ComponentActivity() {
                 OutlinedButton(enabled = enabled && row.amount(water) != null, onClick = { onRecipe(water) }) { Text("存成常用配方") }
             }
         } else Text("此用法不提供自動稀釋計算，請依產品標示操作。")
-        Button(enabled = enabled && !row.formExcluded, onClick = onRecord, modifier = Modifier.fillMaxWidth()) { Text("紀錄用藥") }
+        OutlinedButton(enabled = enabled && !row.formExcluded, onClick = onRecord, modifier = Modifier.fillMaxWidth()) { Text("紀錄用藥") }
     }
 }
 

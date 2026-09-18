@@ -69,4 +69,26 @@ class NativeBrandUiTest {
         compose.onNodeWithText("申請刪除帳號與雲端資料").performScrollTo().performClick()
         compose.runOnIdle { assertEquals(listOf(NativePublicPage.PRIVACY, NativePublicPage.DELETION), opened) }
     }
+
+    @Test fun separateCalculatorRejectsExcludedFormWithoutSavingAnything() {
+        var saved = 0
+        val excluded = row().copy(json = row().json.put("formCategory", "excluded"))
+        compose.setContent { SearchBeforeTheme { CalculationScreen(excluded, true, {}, { _, _ -> saved++ }) } }
+        compose.onNodeWithTag("calculationList").performScrollToNode(hasText("此用法不提供稀釋計算"))
+        compose.onNodeWithText("每桶水量（公升）").assertDoesNotExist()
+        compose.onNodeWithText("存成常用配方").assertDoesNotExist()
+        compose.runOnIdle { assertEquals(0, saved) }
+    }
+
+    @Test fun sixDestinationsRemainReadableAtLargeText() {
+        compose.setContent {
+            val density = LocalDensity.current.density
+            CompositionLocalProvider(LocalDensity provides Density(density, 1.5f)) {
+                SearchBeforeTheme { Column(Modifier.width(300.dp)) { TwaNavigation(0, true) {} } }
+            }
+        }
+        listOf("查詢", "計算", "配方", "倒數", "紀錄", "個人").forEach {
+            compose.onNodeWithText(it).assertIsDisplayed().assertHasClickAction()
+        }
+    }
 }
