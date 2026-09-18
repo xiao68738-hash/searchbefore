@@ -1,0 +1,24 @@
+# v8 原生內部候選版準備（2026-09-18）
+
+## 範圍
+
+本輪依「確認後繼續作業」準備下一個可驗收套件，不代表正式上架完成。d53bcd6 的 Review／Native 兩項 CI 已於本輪確認成功。手機目前仍是 Play v7，沒有側載、解除安裝或清資料。
+
+## 變更
+
+- `versionCode 8`／`1.1.3-internal`，包含前輪已驗證的橫向版面與同步提示修正。
+- 正式套件 `tw.searchbefore.app` 的安裝名稱改為「噴前查」；開發套件 `.nativepreview` 仍為「噴前查・原生預覽」，不混淆並排安裝。
+- 頁首仍標示內部測試；預設 release 建置鎖、既有簽章檢查及僅內部發布限制不變。
+- Google 同意頁顯示名稱由 OAuth 設定管理，不是 Android 安裝名稱；本輪沒有修改 OAuth 品牌、權限、Firebase 規則或價格。
+
+## 驗證狀態
+
+- 網站全套及新增 build-variant 名稱回歸檢查通過。
+- 正式設定建置5分4秒成功：release JVM 71項通過、Lint零問題；300筆payload簽章符合既有upload憑證、4個64-bit library的16KB LOAD／RELRO通過，bundletool validate成功。
+- 從實際AAB讀取 `versionCode=8`，`string/app_name=噴前查`，權限清單與封存的v7相同。沒有新增權限；合併Manifest仍為min24／target36、allowBackup=false、usesCleartextTraffic=false，未設debuggable。
+- AAB已另存 `D:/SearchBefore/releases/native-internal-v8-20260918/searchbefore-native-v8-internal.aab`，SHA256 `a02b81a6f90d1c7facfd481f86b294f608af6c2970c3f65ddd2d16fe95742935`。只在本機準備，未上傳Play，未更新手機。
+- 前輪 23 UI 與系統選檔還原證據見 `NATIVE-PRODUCTION-READINESS-2026-09-18.md`；不得當成 v8 已經由 Play 安裝驗收。
+
+## 仍待使用者確認
+
+手機第二測試帳號仍停在 Google 首次「同意並分享」，本輪只讀取畫面，尚未接受。原帳號登出、本機紀錄保留且同步關閉。已明確詢問是否允許姓名、Email、頭像提供給本專案以測試隔離；沒有上傳田間資料到第二帳號。

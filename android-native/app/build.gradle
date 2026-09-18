@@ -16,8 +16,9 @@ android {
         // Keep existing Play automatic protection enabled (requires API 24+).
         minSdk 24
         targetSdk 36
-        versionCode 7
-        versionName "1.1.2-internal"
+        versionCode 8
+        versionName "1.1.3-internal"
+        resValue "string", "app_name", "噴前查"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     signingConfigs {
@@ -31,7 +32,11 @@ android {
         }
     }
     buildTypes {
-        debug { applicationIdSuffix ".nativepreview"; versionNameSuffix "-preview" }
+        debug {
+            applicationIdSuffix ".nativepreview"
+            versionNameSuffix "-preview"
+            resValue "string", "app_name", "噴前查・原生預覽"
+        }
         release { minifyEnabled false; signingConfig signingConfigs.release }
     }
     buildFeatures { compose true; buildConfig true }
