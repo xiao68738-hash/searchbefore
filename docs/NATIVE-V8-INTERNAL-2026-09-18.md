@@ -33,6 +33,15 @@ Play「登入詳細資料」（`app-content/testing-credentials`）目前保存�
 
 ## 實機升級狀態
 
+### 9/19 00:03 完成結果（取代下方等待狀態）
+
+- 23:56手機收到更新，23:57:18從Google Play原地升級至versionCode8／1.1.3-internal；installer為com.android.vending，firstInstallTime仍為9/17 07:45:22。未側載、卸載或清資料。
+- 升級後Google本人登入、同步同意及原最後同步時間保留。先透過系統選檔匯出`v8-after-update.json`，尚未進行新同步前，其完整data與v7基準`after-account-switch.json`做deepStrictEqual通過。
+- 手動同步成功，時間`2026-09-18T16:00:40.288Z`（台北9/19 00:00:40），畫面已顯示修正後配方／偏好說明。force-stop冷啟動後登入、同步同意及時間仍保留。
+- 再次系統匯出`v8-after-sync-restart.json`，完整data同時與v7基準及v8同步前備份一致；2田區／1用藥／5農務／0配方，3911bytes。不是只有筆數驗證。
+- 私人證據位於`D:/SearchBefore/private/native-release-acceptance-20260918/`，含上述JSON、`v8-sync-result.png`、`v8-restart-personal.png`等。沒有加入Git或商店。手機下載中兩份新備份保留，舊備份未覆寫；鍵盤恢復注音。
+- 這是v8的Play升級／本人同步／重啟／資料保留驗收。第二帳號阻擋的真實驗收在v7完成，v8未再切帳號，不把它描述為v8全面資安驗收。正式商店圖片、OAuth品牌、審查帳號、正式發布設定和Google預先發布報告仍待。
+
 發布前SUGAR C60為Play v7，firstInstallTime為2026-09-17 07:45:22、lastUpdateTime為2026-09-18 19:50:26。本輪既有完整備份基準是`private/native-release-acceptance-20260918/after-account-switch.json`，不放Git。
 
 23:49手機Play仍顯示「開啟」且版本資訊為v7舊說明，更新尚未送達；沒有卸載、清除或側載替代。後續必須確認installer=com.android.vending、versionCode8、firstInstallTime不變，再核對登入／同步、完整JSON及重啟保留；未完成前不宣稱v8實機驗收通過。
