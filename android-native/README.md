@@ -1,5 +1,16 @@
 # 噴前查原生 Android 開發
 
+## 目前狀態（2026-09-19，以此節為準）
+
+- Play 內部版：v8／1.1.3-internal；Alpha 仍 v4，沒有發布原生正式版。
+- 真實 Play v7→v8 原地更新、本人登入保留、手動同步／重啟與完整 JSON 比對通過；第二帳號同步阻擋的真實證據屬 v7，未冒稱在所有版本與裝置完整重測。
+- 最新來源 `5f82c4c` 已修正作物用藥總覽窄卡；71 JVM、Lint、網站全套、Android16 大字體 24 UI 與 GitHub 兩項 CI 通過。該版面修正尚不在 Play v8。
+- 正式發布仍待審查專用帳號／Play 存取聲明、OAuth 品牌、正式候選包與手機／平板最終素材、Google 品質報告；無 vitals 資料不等於零問題。
+- 目前驗收入口：[v8 實機驗收](../docs/NATIVE-V8-INTERNAL-2026-09-18.md)、[上架剩餘關卡](../docs/NATIVE-PRODUCTION-READINESS-2026-09-18.md)、[商店素材與總覽版面](../docs/NATIVE-STORE-PREP-2026-09-19.md)。
+- 新增[平板視窗驗證](../docs/NATIVE-TABLET-ACCEPTANCE-2026-09-19.md)：API36、600×960 直向及1280×800橫向，1.5倍文字各24/24通過，顯示設定還原成功；八張原始候選圖只存本機，沒有上傳商店。
+
+## 歷史進度（以下日期描述不代表現況）
+
 2026-09-18 晚間：v7／1.1.2-internal 已發布內部測試，SUGAR C60 經 Play 原地更新、保留登入與同步同意；升級後及手動同步／重啟後完整 JSON data 都與 v6 基準一致。正式設定71 JVM／Lint／AAB簽章與16KB靜態驗證、發布提交14fdc5e兩項CI通過。詳見 [v7驗收](../docs/NATIVE-V7-INTERNAL-2026-09-18.md)。Alpha／正式版未動；跨帳號等閘門仍保留。另修正同步完成提示的備份範圍文字，尚未包含在已發布v7。
 
 2026-09-18 傍晚最終：D槽恢復後，補正深色模式系統列白底白圖示；最新 Android16／1.5倍字體 **22 UI 全通過**，71 JVM／Lint／網站全套／跨語言備份往返通過。測試新增專用模擬器及落檔腳本，實測失敗會正確阻擋。詳見[第四輪最終驗收](../docs/NATIVE-DISPLAY-MIGRATION-2026-09-18.md)。手機仍Play v6，本輪沒有发布AAB；新介面Play升級與跨帳號等發布閘門仍保留。以下輪次是歷史，勿將舊的「尚未測」當最新狀態。
@@ -41,7 +52,7 @@
 - 收穫部位篩選、拼音／注音／錯字候選；不自動把候選當登記結果，不合併不同防治對象。
 - CSV、Excel、PDF 閱讀報表；完整移轉仍使用 JSON。報表不是官方 TAP 固定格式或驗證證明。
 
-## 尚未完成，不能當作可上架
+## 9/16 歷史待辦快照（最新關卡見本文頂部）
 
 2026-09-16 最新 [Android 11 實機驗收](../docs/NATIVE-PHONE-ACCEPTANCE-2026-09-16.md)：修正雲端查詢參數遭拒，改為有上限的完整分頁下載；55 JVM 與 Lint 通過。真實登入與同步已驗證部分流程，完整移轉與正式身分仍未完成。先前施藥表單、提醒及 7 項 Android 16 測試為 [上一輪證據](../docs/NATIVE-APPLICATION-REMINDERS-2026-09-16.md)，不視為最新版全部實測。
 
@@ -62,12 +73,23 @@
 在專案根目錄執行：
 
 ```powershell
-rtk proxy powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-android-native.ps1
+rtk proxy pwsh -NoProfile -File scripts/build-android-native.ps1
 ```
 
 加上 `-Lint` 可連同 Android 靜態檢查一起執行，報告位於 `app/build/reports/lint-results-debug.html`。`-Connected` 只允許唯一連線的 `emulator-5580`，先用 `scripts/start-native-validation-emulator.ps1` 啟動可丟棄的唯讀 overlay，測試期間不要接其他裝置。UI 不登入／同步，但 Gradle 會安裝及解除安裝套件，**不可用此流程驗收使用者手機**。Lint、單元測試與建置都不能取代實機操作、登入／同步或備份移轉驗收。
 
 `-UiTestApk` 只額外編譯 Android UI 測試 APK，完全不安裝／操作裝置。手機仍連接時不可跑 `-Connected`；如需手動驗證，先核對唯讀獨立模擬器的 serial、qemu 與 API，再對明確的 `emulator-5580` 執行安裝與 instrumentation，不能使用沒有 `-s` 的安裝／測試指令。
+
+### 可重跑的平板視窗檢查
+
+先使用 `-UiTestApk` 建好本次來源的兩個 APK，再啟動專用模擬器並等待完成開機。以下流程固定對 `emulator-5580` 操作；不使用手機或登入 Google 的 5582 profile。
+
+```powershell
+rtk proxy pwsh -NoProfile -File scripts/start-native-validation-emulator.ps1 -LowResolution
+rtk proxy pwsh -NoProfile -File scripts/test-native-tablet-matrix.ps1
+```
+
+矩陣涵蓋 600×960 直向與 1280×800 橫向、160dpi、1.5 倍字體，每组跑完整 UI suite，成功後才記錄該組通過。失敗會停止，`finally` 還原原有尺寸／密度／字體；復原失敗會明確報錯。證據存於 `audits/native-tablet-*` 和對應的 `native-ui-*`。這是可重跑的視窗相容驗證，不是實體 7 吋／10 吋硬體、Google 登入或 Play 正式版驗收。請使用 PowerShell 7；若 `pwsh` 不在 PATH，使用既有 runtime 的絕對路徑。
 
 腳本先以既有 JS 純函式產生唯讀資料檔，再跑原生單元測試與 debug APK。生成檔忽略於 Git；農藥原始資料不變。預覽目前有 287 作物、17,333 原登記列，資料日 2026-07-21；**不是新的官方資料更新**。
 
@@ -77,15 +99,15 @@ rtk proxy powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-andr
 - debug applicationId：`tw.searchbefore.app.nativepreview`，與現有 APP 並存。
 - 正式基礎 applicationId：`tw.searchbefore.app`；內部候選使用既有 upload key 簽署 AAB，由 Play App Signing 簽署派送的 APK。本機 upload key 不等於 Play 安裝簽章。
 - compile/target API 36，min API 24（保留現有 Play 自動保護的最低要求），Java 17／desugaring。
-- 目前候選 versionCode 7／versionName `1.1.2-internal`；本輪建立前已核對 Play 最高代碼為6。最新發布狀態見上方v7驗收，不沿用較早的v6待上傳敘述。
+- 目前內部 versionCode 8／versionName `1.1.3-internal`。下一次建立 AAB 前須重新核對 Play 最高代碼，不重用已上傳代碼；本機來源改動不會自動更新 Play。
 - 預覽的 `firebase-preview.json` 由 Firebase Console 下載，必須符合預覽 package 與 project，且包含 Web OAuth client；此檔忽略於 Git。無設定時仍可使用本機功能，但登入不啟用。不能用此設定替代正式 Play 身分。
 
-最新實測結果與尚未通過項目集中在 [原生整合驗收](../docs/NATIVE-INTEGRATION-2026-09-16.md)，歷史測試數字不代表目前整包已驗收。
+最新實測與關卡見本文頂部連結；[9/16 原生整合驗收](../docs/NATIVE-INTEGRATION-2026-09-16.md)為歷史證據，測試數字不代表目前整包已驗收。
 
 一般 `preReleaseBuild` 仍會拒絕執行。僅明確的內部候選腳本可帶入正式 Firebase 設定與既有 upload key，並檢查上傳憑證 SHA-256、release 單元測試、Lint 再產出 AAB：
 
 ```powershell
-rtk proxy powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-android-native-internal.ps1 -InternalTestingOnly
+rtk proxy pwsh -NoProfile -File scripts/build-android-native-internal.ps1 -InternalTestingOnly
 ```
 
 此腳本不執行上傳／发布，也不儲存密碼到 Git。**AAB 本身不能限制 Play 軌道**：內部測試限制必須在 Console 的實際發布操作遵守，不可將此候選提升到 Alpha 或正式版。正式 Google 登入與 TWA 升級仍必須使用 Play 派送版本驗收。
