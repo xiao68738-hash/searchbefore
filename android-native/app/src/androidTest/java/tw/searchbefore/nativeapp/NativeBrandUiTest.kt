@@ -59,6 +59,24 @@ class NativeBrandUiTest {
         compose.onNodeWithText("殘留提醒：在小麥可使用但不得檢出").performScrollTo().assertIsDisplayed()
     }
 
+    @Test fun overviewUsesFullWidthAndKeepsRelatedTargetsSeparateAtLargeText() {
+        val selected = mutableListOf<String>()
+        compose.setContent {
+            val density = LocalDensity.current.density
+            CompositionLocalProvider(LocalDensity provides Density(density, 1.5f)) {
+                SearchBeforeTheme { Column(Modifier.width(300.dp).verticalScroll(rememberScrollState())) {
+                    CropOverviewCard("測試藥劑", listOf("夜蛾類", "甜菜夜蛾", "夜蛾類")) { selected.add(it) }
+                } }
+            }
+        }
+        compose.onNodeWithTag("cropOverviewCard").assertWidthIsEqualTo(300.dp)
+        compose.onNodeWithText("原登記防治對象").assertIsDisplayed()
+        compose.onAllNodesWithText("夜蛾類").assertCountEquals(1)
+        compose.onNodeWithText("夜蛾類").performScrollTo().assertHeightIsAtLeast(48.dp).performClick()
+        compose.onNodeWithText("甜菜夜蛾").performScrollTo().assertIsDisplayed().performClick()
+        compose.runOnIdle { assertEquals(listOf("夜蛾類", "甜菜夜蛾"), selected) }
+    }
+
     @Test fun legalLinksOnlyOpenFixedPublicPagesAfterAnExplicitTap() {
         val opened = mutableListOf<NativePublicPage>()
         compose.setContent { SearchBeforeTheme { Column(Modifier.verticalScroll(rememberScrollState())) {

@@ -286,7 +286,7 @@ class MainActivity : ComponentActivity() {
             }
         } else {
             item { TextButton(onClick = { if (pest.isNotEmpty()) pest = "" else if (overview) overview = false else crop = "" }) { Text("返回上一層") } }
-            item { QueryStep(if(pest.isEmpty()) 2 else 3, if(pest.isEmpty()) "選病蟲害" else "查看登記用法") }
+            item { QueryStep(if(pest.isEmpty()) 2 else 3, if(pest.isNotEmpty()) "查看登記用法" else if(overview) "作物用藥總覽" else "選病蟲害") }
             item { Text(if (pest.isBlank()) crop else "$crop × $pest", style = MaterialTheme.typography.headlineSmall) }
             if(catalog.forms(crop).isNotEmpty()) item {
                 Text("先確認採收部位；未註明不代表適用，所有原登記仍保留供核對。")
@@ -298,10 +298,9 @@ class MainActivity : ComponentActivity() {
             if (pest.isBlank()) {
                 item { OutlinedButton(onClick = { overview = !overview }) { Text(if (overview) "切回病蟲害清單" else "作物用藥總覽") } }
                 if (overview) {
+                    item { Text("依藥劑名稱整理原登記防治對象。點選對象查看各筆用法；不同劑型、含量或採收部位不代表可互用。") }
                     items(catalog.overview(crop).entries.toList(), key = { it.key }) { (name, rows) ->
-                        Card { Column(Modifier.padding(16.dp)) { Text(name, style = MaterialTheme.typography.titleLarge)
-                            rows.map { it.pest }.distinct().forEach { p -> TextButton(onClick = { pest = p }) { Text(p) } }
-                        } }
+                        CropOverviewCard(name, rows.map { it.pest }) { pest = it }
                     }
                 } else items(catalog.pests(crop), key = { it }) { p ->
                     SearchChoice("$p　${catalog.exact(crop, p).size} 筆登記用法") { pest = p }
@@ -333,6 +332,22 @@ class MainActivity : ComponentActivity() {
             ApplicationFields(details) { details = it }
         } }, confirmButton = { TextButton(enabled = enabled && runCatching { details.validate() }.isSuccess && Backup.validDate(date) && !LocalDate.parse(date).isAfter(LocalDate.now()), onClick = { record(row, date, plotId, details); recording = null }) { Text("儲存實際用藥") } },
         dismissButton = { TextButton(onClick = { recording = null }) { Text("取消") } }) }
+}
+
+@Composable internal fun CropOverviewCard(name: String, pests: List<String>, onPest: (String) -> Unit) {
+    BrandCard(Modifier.testTag("cropOverviewCard")) {
+        Text(name, style = MaterialTheme.typography.titleLarge)
+        Text("原登記防治對象", style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        pests.distinct().forEach { pest ->
+            OutlinedButton(onClick = { onPest(pest) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(pest, modifier = Modifier.weight(1f))
+                    Text("›")
+                }
+            }
+        }
+    }
 }
 
 @Composable internal fun UsageCard(row: UsageRow, enabled: Boolean, onRecipe: (String) -> Unit, onRecord: () -> Unit, onCalculate: (() -> Unit)? = null) {
