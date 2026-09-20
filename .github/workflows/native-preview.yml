@@ -14,6 +14,8 @@ on:
       - 'scripts/build-android-native-internal.ps1'
       - 'scripts/start-native-validation-emulator.ps1'
       - 'scripts/VerifyNativeBundle.java'
+      - 'scripts/VerifyNativeManifest.java'
+      - 'tests/native-manifest-gate.test.js'
       - 'index.html'
       - 'safety.js'
       - 'cloud-sync.js'
@@ -67,6 +69,10 @@ jobs:
         run: bash android-twa/gradlew -p android-native --no-daemon :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
       - name: Web to Kotlin to web full-backup roundtrip (synthetic only)
         run: node scripts/verify-native-backup-roundtrip.cjs
+      - name: Merged manifest security baseline and negative regression tests
+        run: |
+          java scripts/VerifyNativeManifest.java --self-test
+          java scripts/VerifyNativeManifest.java debug android-native/app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml
       - name: Candidate ELF boundary regression tests (synthetic only)
         run: java scripts/VerifyNativeBundle.java --self-test
       # No release signing, Firebase account, cloud writes, APK publishing or deployment.
