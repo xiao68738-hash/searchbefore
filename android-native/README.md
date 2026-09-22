@@ -1,6 +1,8 @@
 # 噴前查原生 Android 開發
 
-## 目前狀態（2026-09-19，以此節為準）
+## 目前狀態（2026-09-22，以此節為準）
+
+9/22 補充：本機已完成 [v9／1.1.4-internal 候選包](../docs/NATIVE-V9-CANDIDATE-2026-09-22.md)，納入已驗證的總覽卡片修正，71 release tests、Lint、Manifest、簽章／16KB及bundletool通過。**尚未上傳、未安裝手機**，上傳前需重新核對 Play 版號；下列 Play v8 是先前最後查證，不是今日查證。CI 工具鏈已更新固定 SHA、Node24 action runtime 與 ubuntu-24.04，309fec7 兩項 CI 已成功。正式發布閘門不變。
 
 9/20 補充：[新增合併 Manifest 安全檢核](../docs/NATIVE-MANIFEST-GATE-2026-09-20.md)，接入本機開發／內部候選建置及 CI；不更動版本、資料或發布鎖。上輪 `d358750` 的兩項 CI 已確認成功。Play 當日狀態未重新查證。
 

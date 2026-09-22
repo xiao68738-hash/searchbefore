@@ -97,7 +97,10 @@ class VerifyNativeManifest {
             "com.google.android.providers.gsf.permission.READ_GSERVICES", pkg + ".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION")), "Permission baseline changed; review before release");
         var permission = one(root, "permission");
         require(a(permission, "name").equals(pkg + ".DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION") &&
-            a(permission, "protectionLevel").equals("signature"), "Dynamic receiver permission must remain signature-only");
+            // PermissionInfo.PROTECTION_SIGNATURE = 2. bundletool renders the compiled
+            // enum as 0x00000002; do not accept other bases or extra privilege flags.
+            Set.of("signature", "2", "0x00000002").contains(a(permission, "protectionLevel")),
+            "Dynamic receiver permission must remain signature-only");
         var app = one(root, "application");
         for (String flag : List.of("allowBackup", "fullBackupContent", "usesCleartextTraffic"))
             require(a(app, flag).equals("false"), flag + " must remain explicitly false");
@@ -163,6 +166,8 @@ class VerifyNativeManifest {
     static void selfTest() throws Exception {
         String good = fixture();
         verify(good, false);
+        for (String level : List.of("2", "0x00000002"))
+            verify(good.replace("android:protectionLevel=\"signature\"", "android:protectionLevel=\"" + level + "\""), false);
         String debug = good.replace(PACKAGE, PACKAGE + ".nativepreview").replace("<application ", "<application android:debuggable=\"true\" ");
         verify(debug.replace("</application>", "<activity android:name=\"androidx.compose.ui.tooling.PreviewActivity\" android:exported=\"true\"/></application>"), true);
         var bad = List.of(
@@ -179,6 +184,10 @@ class VerifyNativeManifest {
             good.replace("</manifest>", "<uses-permission android:name=\"android.permission.CAMERA\"/></manifest>"),
             good.replace("</manifest>", "<uses-permission-sdk-23 android:name=\"android.permission.CAMERA\"/></manifest>"),
             good.replace("android:protectionLevel=\"signature\"", "android:protectionLevel=\"normal\""),
+            good.replace("android:protectionLevel=\"signature\"", "android:protectionLevel=\"0x00000000\""),
+            good.replace("android:protectionLevel=\"signature\"", "android:protectionLevel=\"0x00000001\""),
+            good.replace("android:protectionLevel=\"signature\"", "android:protectionLevel=\"0x00000012\""),
+            good.replace("android:protectionLevel=\"signature\"", "android:protectionLevel=\"signature|privileged\""),
             good.replace("android:permission=\"android.permission.BIND_JOB_SERVICE\"", ""),
             good.replace("android:permission=\"android.permission.DUMP\"", "android:permission=\"android.permission.INTERNET\""),
             good.replace("android:permission=\"com.google.android.gms.auth.api.signin.permission.REVOCATION_NOTIFICATION\"", ""),
@@ -205,7 +214,7 @@ class VerifyNativeManifest {
         boolean variantRejected = false;
         try { verify(debug, false); } catch (SecurityException expected) { variantRejected = true; }
         require(variantRejected, "Debug must not be accepted as release");
-        System.out.println("PASS: 2 valid manifests and " + (bad.size() + 1) + " rejected unsafe/malformed/variant fixtures.");
+        System.out.println("PASS: 4 valid manifests and " + (bad.size() + 1) + " rejected unsafe/malformed/variant fixtures.");
     }
     public static void main(String[] args) throws Exception {
         if (args.length == 1 && args[0].equals("--self-test")) { selfTest(); return; }

@@ -1,5 +1,7 @@
 # 原生版合併 Manifest 安全回歸檢核
 
+9/22 補充：已用 v9 AAB 本體 dump 的 Manifest 追加驗證，修正編譯後 signature enum 的等值判讀，現為 4 正向／35 負向測試；只增加相同保護級別的表示方式，沒有允許其他級別或 flags。詳細與初次誤報揭露見 [v9 候選驗收](NATIVE-V9-CANDIDATE-2026-09-22.md)。下方 2／31 是 9/20 的歷史結果。
+
 ## 為什麼補這一項
 
 既有網站測試會檢查手寫 `AndroidManifest.xml`，但 Android 建置會合併第三方 SDK 的 Manifest。只查來源檔無法發現套件更新後新增的權限、對外服務或除錯入口。本次新增 `scripts/VerifyNativeManifest.java`，以實際生成的合併 Manifest 作為輸入；沒有改動 APP 功能、帳號、資料或版本。
