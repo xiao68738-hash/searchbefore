@@ -1,0 +1,10 @@
+.gradle/
+.idea/
+local.properties
+**/build/
+app/src/main/assets/catalog.json
+app/src/main/res/values/firebase-local.xml
+.kotlin/
+firebase-preview.json
+firebase-production.json
+app/src/test/resources/web-native-golden.json

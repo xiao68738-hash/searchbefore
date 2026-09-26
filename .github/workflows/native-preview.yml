@@ -1,0 +1,80 @@
+name: Native Android preview checks
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'android-native/**'
+      - 'android-twa/gradle/**'
+      - 'android-twa/gradlew*'
+      - 'scripts/export-native-*.cjs'
+      - 'scripts/native-backup-fixture.cjs'
+      - 'scripts/verify-native-backup-roundtrip.cjs'
+      - 'scripts/build-android-native.ps1'
+      - 'scripts/build-android-native-internal.ps1'
+      - 'scripts/start-native-validation-emulator.ps1'
+      - 'scripts/VerifyNativeBundle.java'
+      - 'scripts/VerifyNativeManifest.java'
+      - 'tests/native-manifest-gate.test.js'
+      - 'tests/ci-workflow-policy.test.js'
+      - 'index.html'
+      - 'safety.js'
+      - 'cloud-sync.js'
+      - 'farm-records.js'
+      - 'query-aids.js'
+      - 'crop-forms.js'
+      - 'mrl-*.js'
+      - 'brand-logo-transparent.png'
+      - 'package*.json'
+      - '.github/workflows/native-preview.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-preview-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-build-test-lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out source without persisted credentials
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - name: Set up Java
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: 17
+      - name: Install locked dependencies and generate native catalog
+        run: |
+          npm ci
+          node scripts/export-native-catalog.cjs
+      - name: Install Android build platform
+        run: "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager 'platforms;android-36' 'build-tools;36.0.0'"
+      - name: Verify no private Firebase configuration is tracked
+        run: |
+          test ! -f android-native/firebase-preview.json
+          test ! -f android-native/firebase-production.json
+          test ! -f android-native/app/google-services.json
+      - name: Unit tests, debug compilation and Android API/security lint
+        run: bash android-twa/gradlew -p android-native --no-daemon :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
+      - name: Web to Kotlin to web full-backup roundtrip (synthetic only)
+        run: node scripts/verify-native-backup-roundtrip.cjs
+      - name: Merged manifest security baseline and negative regression tests
+        run: |
+          java scripts/VerifyNativeManifest.java --self-test
+          java scripts/VerifyNativeManifest.java debug android-native/app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml
+      - name: Candidate ELF boundary regression tests (synthetic only)
+        run: java scripts/VerifyNativeBundle.java --self-test
+      # No release signing, Firebase account, cloud writes, APK publishing or deployment.
+      # Connected-device/login/migration acceptance remains a separate release gate.

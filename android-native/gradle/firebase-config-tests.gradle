@@ -1,0 +1,38 @@
+// Synthetic fixtures only; CI needs no real Firebase file, account or credentials.
+tasks.register("checkNativeFirebaseConfig") {
+    doLast {
+        def fixture = {
+            [project_info: [project_id: "searchbefore-4648b", project_number: "934300362639"], client: [
+                [client_info: [mobilesdk_app_id: "1:934300362639:android:a4a93aadef727eb2a5cdfa", android_client_info: [package_name: "tw.searchbefore.app"]],
+                 api_key: [[current_key: "fake_not_a_real_key_012345678901234567890"]],
+                 oauth_client: [[client_type: 3, client_id: "123-fakeweb.apps.googleusercontent.com"],
+                    [client_type: 1, client_id: "123-fakeandroid.apps.googleusercontent.com", android_info: [package_name: "tw.searchbefore.app", certificate_hash: "9099bff03db174c03b5111d01128e3a439590ae9"]]]],
+                [client_info: [mobilesdk_app_id: "1:934300362639:android:f8ffd9528072e4f5a5cdfa", android_client_info: [package_name: "tw.searchbefore.app.nativepreview"]],
+                 api_key: [[current_key: "fake_preview_key_012345678901234567890"]],
+                 oauth_client: [[client_type: 3, client_id: "123-fakeweb.apps.googleusercontent.com"]]]]]
+        }
+        assert nativeFirebaseValues(fixture(), true).google_app_id.endsWith("a4a93aadef727eb2a5cdfa")
+        assert nativeFirebaseValues(fixture(), false).google_app_id.endsWith("f8ffd9528072e4f5a5cdfa")
+        def invalid = [
+            { c -> c.project_info.project_id = "wrong" },
+            { c -> c.project_info.project_number = "1" },
+            { c -> c.client.remove(0) },
+            { c -> c.client.add(c.client[0]) },
+            { c -> c.client[0].client_info.mobilesdk_app_id = "preview" },
+            { c -> c.client[0].oauth_client.remove(0) },
+            { c -> c.client[0].oauth_client[0].client_id = "https://wrong.example" },
+            { c -> c.client[0].oauth_client[1].android_info.certificate_hash = "21ad5fde2aad0e3d691dd0c53913841b8e76c97b" },
+            { c -> c.client[0].oauth_client[1].android_info.package_name = "tw.searchbefore.app.nativepreview" },
+            { c -> c.client[0].api_key = [] },
+            { c -> c.client[0].api_key[0].current_key = "" }
+        ]
+        invalid.each { mutate ->
+            def c = fixture(); mutate(c)
+            def rejected = false
+            try { nativeFirebaseValues(c, true) }
+            catch (GradleException expected) { rejected = true; assert !expected.message.contains("fake_not_a_real_key") }
+            assert rejected : "Invalid production Firebase fixture must fail closed"
+        }
+        logger.lifecycle("Native Firebase configuration: 2 selection and 11 rejection checks passed (synthetic fixtures)")
+    }
+}
