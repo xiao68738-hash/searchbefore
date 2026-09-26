@@ -2,8 +2,10 @@
 
 ## 目前狀態（2026-09-26，以此節為準）
 
-- v9／1.1.4-internal 已於 9/22 23:08 發布內部軌道，9/23 Console 再確認；不是僅本機候選。9/26 未重讀 Console，不把历史觀察當成今日發布狀態。
-- 9/26 唯讀核對連接手機仍為 Play v8／1.1.3-internal，尚未完成 v9 原地更新驗收。本輪未安裝、清資料或操作登入／同步。
+- 9/26 已實際重讀 Console：內部仍 v9／1.1.4-internal（9/22 23:08 全面提供），Alpha v4；最高已上傳代碼為9。
+- 本機已完成 [v10／1.1.4 正式候選](../docs/NATIVE-V10-CANDIDATE-2026-09-26.md)：74 release tests、Lint、Manifest、簽章、16KB與bundletool通過；沒有上傳或發布。中性版本標示不等於正式版已獲驗收。
+- 9/26 手機仍 Play v8，Google Play 實際顯示離線；已匯出私人完整備份，與9/22完整data一致。沒有安裝、清資料、登出或同步操作；仍待網路恢復後原地升級。
+- Console 登入詳細資料仍選「否／所有部分不受限」，與雲端同步需登入不一致；公開隱私與刪除頁仍是舊文案。詳見 [線上申報核對](../docs/PLAY-DISCLOSURE-AUDIT-2026-09-26.md)。
 - 正式發行唯一操作入口改為 [正式版發行前置清單](../docs/PRODUCTION-LAUNCH-PREP-2026-09-26.md)，包含剩餘阻擋、商店素材規劃與不含帳密的審查說明。
 - 每日 Console／Threads 監管已按使用者要求終止，改由互動作業需要時查核，不再自動檢查或通知。
 
@@ -110,7 +112,7 @@ rtk proxy pwsh -NoProfile -File scripts/test-native-tablet-matrix.ps1
 - debug applicationId：`tw.searchbefore.app.nativepreview`，與現有 APP 並存。
 - 正式基礎 applicationId：`tw.searchbefore.app`；內部候選使用既有 upload key 簽署 AAB，由 Play App Signing 簽署派送的 APK。本機 upload key 不等於 Play 安裝簽章。
 - compile/target API 36，min API 24（保留現有 Play 自動保護的最低要求），Java 17／desugaring。
-- 目前來源 versionCode 9／versionName `1.1.4-internal`，已上傳內部軌道。下一次建立 AAB 前須重新核對 Play 最高代碼，不重用已上傳代碼；本機來源改動不會自動更新 Play。
+- 目前來源 versionCode 10／versionName `1.1.4`，僅本機候選；Play最高代碼於9/26核對仍為9。每次上傳前需重新核對，不重用已上傳代碼；本機來源改動不會自動更新 Play。
 - 預覽的 `firebase-preview.json` 由 Firebase Console 下載，必須符合預覽 package 與 project，且包含 Web OAuth client；此檔忽略於 Git。無設定時仍可使用本機功能，但登入不啟用。不能用此設定替代正式 Play 身分。
 
 最新實測與關卡見本文頂部連結；[9/16 原生整合驗收](../docs/NATIVE-INTEGRATION-2026-09-16.md)為歷史證據，測試數字不代表目前整包已驗收。

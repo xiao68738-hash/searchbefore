@@ -16,8 +16,10 @@ android {
         // Keep existing Play automatic protection enabled (requires API 24+).
         minSdk 24
         targetSdk 36
-        versionCode 9
-        versionName "1.1.4-internal"
+        // Production-shaped candidate; distribution still requires the explicit signing gate.
+        // Play highest observed code was 9 on 2026-09-26. This does not authorize rollout.
+        versionCode 10
+        versionName "1.1.4"
         resValue "string", "app_name", "噴前查"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

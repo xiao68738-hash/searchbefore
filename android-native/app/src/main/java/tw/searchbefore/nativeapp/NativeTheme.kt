@@ -98,7 +98,7 @@ internal fun nativeColors(preferences: DisplayPreferences): ColorScheme {
             if(!compact) Text("查詢 × 計算 × 田間紀錄", color = Color(0xFFD2DECF), fontSize = 12.sp)
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(if (BuildConfig.DEBUG) "原生開發預覽" else "內部測試版", color = Color(0xFFD2DECF), fontSize = 11.sp)
+            Text(releaseIdentityLabel(BuildConfig.DEBUG, BuildConfig.VERSION_NAME), color = Color(0xFFD2DECF), fontSize = 11.sp)
             OutlinedButton(enabled = enabled, onClick = migration, contentPadding = PaddingValues(horizontal = 10.dp),
                 border = BorderStroke(1.dp, Color(0xFFABBFA8)), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) {
                 Text("舊版資料移轉", fontSize = 12.sp)

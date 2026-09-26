@@ -468,7 +468,7 @@ class MainActivity : ComponentActivity() {
     if (adding) AlertDialog(onDismissRequest = { adding = false }, title = { Text("新增田區／種植批次") }, text = {
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(value = crop, onValueChange = { crop = it.take(120) }, label = { Text("原登記作物，例如：蔥") })
-            if (crop !in catalog.crops) Text("請填完整登記名稱。可回查詢頁確認；原生預覽尚不合併作物別名。")
+            if (crop !in catalog.crops) Text("請填完整登記名稱。可回查詢頁確認；此處不會自動合併作物別名。")
             OutlinedTextField(value = tag, onValueChange = { tag = it.take(120) }, label = { Text("田區名稱，例如：後院第一區") })
             OutlinedTextField(value = plantDate, onValueChange = { plantDate = it.take(10) }, label = { Text("種植日期 YYYY-MM-DD（可留空）") })
         }
