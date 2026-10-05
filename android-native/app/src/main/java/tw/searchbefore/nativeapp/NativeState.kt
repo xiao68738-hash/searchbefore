@@ -134,8 +134,9 @@ class NativeState(application: Application) : AndroidViewModel(application) {
             Backup.parse(bytes)
         }
     }
-    fun exportCsv(uri: Uri, scope: ReportScope = ReportScope()) = task("CSV 匯出失敗，請檢查日期與田區範圍；原紀錄未變動。") {
-        val bytes = Farm.csv(scope.select(requireNotNull(data)))
+    fun exportCsv(uri: Uri, scope: ReportScope = ReportScope(), layout: ReportLayout = ReportLayout.INTEGRATED) = task("CSV 匯出失敗，請檢查日期與田區範圍；原紀錄未變動。") {
+        layout.validate(scope)
+        val bytes = ReportTables.csv(scope.select(requireNotNull(data)), layout)
         withContext(Dispatchers.IO) {
             getApplication<Application>().contentResolver.openOutputStream(uri, "wt")?.use { it.write(bytes) } ?: error("無法開啟檔案")
         }
@@ -148,11 +149,12 @@ class NativeState(application: Application) : AndroidViewModel(application) {
         }
         error = "行事曆快照已匯出，尚未加入你的行事曆。匯入前請核對儲存位置與服務商；新施藥不會自動更新此檔，等待期到期不代表可採收。"
     }
-    fun exportReport(uri: Uri, pdf: Boolean, scope: ReportScope = ReportScope()) = task("報表匯出失敗。請檢查日期與田區；PDF 上限 2,000 筆，更多資料請用 CSV／Excel。原紀錄未變動。") {
+    fun exportReport(uri: Uri, pdf: Boolean, scope: ReportScope = ReportScope(), layout: ReportLayout = ReportLayout.INTEGRATED) = task("報表匯出失敗。請檢查日期與田區；PDF 上限 2,000 筆，更多資料請用 CSV／Excel。原紀錄未變動。") {
+        layout.validate(scope)
         val snapshot = scope.select(requireNotNull(data))
         withContext(Dispatchers.IO) {
             getApplication<Application>().contentResolver.openOutputStream(uri, "wt")?.use { output ->
-                if(pdf) NativePdf.write(snapshot, output) else output.write(NativeReports.xlsx(snapshot))
+                if(pdf) NativePdf.write(snapshot, output, layout) else output.write(NativeReports.xlsx(snapshot, layout))
             } ?: error("無法開啟檔案")
         }
         error = "報表已匯出。這不是驗證證明，也不能替代完整 JSON 還原備份。"

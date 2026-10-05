@@ -54,6 +54,8 @@ assert.match(ui, /System\/App ANR invalidates/);
 assert.match(ui, /UI suite failed or incomplete/);
 assert.match(ui, /Explicit allowlist/);
 assert.match(ui, /reports\/synthetic-report\.pdf reports\/synthetic-report\.xlsx reports\/synthetic-report-page1\.png/);
+assert.match(ui, /reports\/synthetic-use\.pdf reports\/synthetic-use\.xlsx reports\/synthetic-use-page1\.png/);
+assert.match(ui, /reports\/synthetic-tap\.pdf reports\/synthetic-tap\.xlsx reports\/synthetic-tap-page1\.png/);
 const evidenceLoop = ui.match(/for screen in ([\s\S]*?); do/)[1];
 assert.doesNotMatch(evidenceLoop, /\*|\.json|\.apk|before-import|state\.json/);
 assert.match(ui, /exec-out run-as tw\.searchbefore\.app\.nativepreview cat "cache\/native-validation\/\$screen"/);

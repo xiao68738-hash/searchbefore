@@ -103,4 +103,26 @@ class NativeStorageReportTest {
             }
         }
     }
+    @Test fun specializedReportFormatsRenderFromActualAndroidExporter() {
+        val output = File(target.cacheDir, "native-validation/reports").apply { mkdirs() }
+        val data = fixture()
+        data.getJSONArray("records").getJSONObject(0).put("water", 20).put("waterRecorded", true)
+        for(layout in listOf(ReportLayout.USE, ReportLayout.TAP)) {
+            val stem = if(layout == ReportLayout.USE) "synthetic-use" else "synthetic-tap"
+            val pdf = File(output, "$stem.pdf")
+            pdf.outputStream().use { NativePdf.write(data, it, layout) }
+            File(output, "$stem.xlsx").writeBytes(NativeReports.xlsx(data, layout))
+            ParcelFileDescriptor.open(pdf, ParcelFileDescriptor.MODE_READ_ONLY).use { descriptor ->
+                PdfRenderer(descriptor).use { renderer ->
+                    assertEquals(1, renderer.pageCount)
+                    renderer.openPage(0).use { page ->
+                        val bitmap = Bitmap.createBitmap(1190, 1684, Bitmap.Config.ARGB_8888)
+                        bitmap.eraseColor(Color.WHITE); page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                        File(output, "$stem-page1.png").outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
+                        bitmap.recycle()
+                    }
+                }
+            }
+        }
+    }
 }

@@ -73,7 +73,9 @@ mkdir -p "$evidence/public-evidence"
 cp "$evidence/instrumentation.txt" "$evidence/public-evidence/instrumentation.txt"
 for screen in synthetic/area-range.png synthetic/recipe-batch.png \
   public-query/home.png public-query/beet-armyworm.png public-query/armyworm-group.png public-query/registered-use.png \
-  reports/synthetic-report.pdf reports/synthetic-report.xlsx reports/synthetic-report-page1.png; do
+  reports/synthetic-report.pdf reports/synthetic-report.xlsx reports/synthetic-report-page1.png \
+  reports/synthetic-use.pdf reports/synthetic-use.xlsx reports/synthetic-use-page1.png \
+  reports/synthetic-tap.pdf reports/synthetic-tap.xlsx reports/synthetic-tap-page1.png; do
   if "$adb" -s "$serial" shell run-as tw.searchbefore.app.nativepreview test -f "cache/native-validation/$screen"; then
     "$adb" -s "$serial" exec-out run-as tw.searchbefore.app.nativepreview cat "cache/native-validation/$screen" \
       >"$evidence/public-evidence/$(basename "$screen")"

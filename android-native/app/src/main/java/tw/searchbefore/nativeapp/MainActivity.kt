@@ -67,13 +67,16 @@ class MainActivity : ComponentActivity() {
                 var reportTo by rememberSaveable { mutableStateOf("") }
                 var reportPlot by rememberSaveable { mutableStateOf("") }
                 var reportKind by rememberSaveable { mutableStateOf("all") }
+                var reportLayoutName by rememberSaveable { mutableStateOf(ReportLayout.INTEGRATED.name) }
+                val reportLayout = ReportLayout.parse(reportLayoutName)
                 val reportScope = ReportScope(reportFrom, reportTo, reportPlot, reportKind)
                 // Preserve the selected scope through the system document picker/activity recreation.
                 var exportScopeJson by rememberSaveable { mutableStateOf("{}") }
                 var calendarExportPlot by rememberSaveable { mutableStateOf("") }
-                fun prepareReport(scope: ReportScope) {
-                    exportScopeJson = JSONObject().put("from", scope.from).put("to", scope.to).put("plotId", scope.plotId).put("kind", scope.kind).toString()
+                fun prepareReport(scope: ReportScope, layout: ReportLayout = ReportLayout.INTEGRATED) {
+                    exportScopeJson = JSONObject().put("from", scope.from).put("to", scope.to).put("plotId", scope.plotId).put("kind", scope.kind).put("layout", layout.name).toString()
                 }
+                fun selectedReportLayout() = ReportLayout.parse(JSONObject(exportScopeJson).optString("layout", ReportLayout.INTEGRATED.name))
                 fun selectedReport(): ReportScope = JSONObject(exportScopeJson).let {
                     ReportScope(it.optString("from"), it.optString("to"), it.optString("plotId"), it.optString("kind", "all"))
                 }
@@ -96,11 +99,11 @@ class MainActivity : ComponentActivity() {
                     if (uri != null) state.readImport(uri)
                 }
                 val exportCsv = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
-                    if (uri != null) state.exportCsv(uri, selectedReport())
+                    if (uri != null) state.exportCsv(uri, selectedReport(), selectedReportLayout())
                 }
-                val exportExcel = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) { uri -> if(uri != null) state.exportReport(uri, false, selectedReport()) }
+                val exportExcel = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) { uri -> if(uri != null) state.exportReport(uri, false, selectedReport(), selectedReportLayout()) }
                 val exportCalendar = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/calendar")) { uri -> if(uri != null) state.exportCalendar(uri, calendarExportPlot) }
-                val exportPdf = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri -> if(uri != null) state.exportReport(uri, true, selectedReport()) }
+                val exportPdf = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri -> if(uri != null) state.exportReport(uri, true, selectedReport(), selectedReportLayout()) }
                 fun persist(next: JSONObject, keepRecovery: Boolean = false) {
                     state.persist(next, keepRecovery)
                 }
@@ -209,10 +212,16 @@ class MainActivity : ComponentActivity() {
                                 item { ReportScopeFields(data, reportScope, !state.busy) { next ->
                                     reportFrom = next.from; reportTo = next.to; reportPlot = next.plotId; reportKind = next.kind
                                 } }
-                                val validReport = runCatching { reportScope.validate(data) }.isSuccess
-                                item { OutlinedButton(enabled = !state.busy && validReport, onClick = { prepareReport(reportScope); exportCsv.launch("噴前查農務_${LocalDate.now()}.csv") }) { Text("匯出 CSV 報表") } }
-                                item { OutlinedButton(enabled = !state.busy && validReport, onClick = { prepareReport(reportScope); exportExcel.launch("噴前查農務_${LocalDate.now()}.xlsx") }) { Text("匯出 Excel 報表") } }
-                                item { OutlinedButton(enabled = !state.busy && validReport, onClick = { prepareReport(reportScope); exportPdf.launch("噴前查農務_${LocalDate.now()}.pdf") }) { Text("匯出 PDF 報表") } }
+                                item { ReportLayoutFields(reportLayout, !state.busy) { layout ->
+                                    reportLayoutName = layout.name
+                                    if(layout != ReportLayout.INTEGRATED) reportKind = "records"
+                                } }
+                                val reportValidation = runCatching { reportScope.validate(data); reportLayout.validate(reportScope) }
+                                val validReport = reportValidation.isSuccess
+                                if(reportValidation.isFailure) item { Text(reportValidation.exceptionOrNull()?.message ?: "請核對匯出條件") }
+                                item { OutlinedButton(enabled = !state.busy && validReport, onClick = { prepareReport(reportScope, reportLayout); exportCsv.launch("噴前查${reportLayout.label}_${LocalDate.now()}.csv") }) { Text("匯出 CSV 報表") } }
+                                item { OutlinedButton(enabled = !state.busy && validReport, onClick = { prepareReport(reportScope, reportLayout); exportExcel.launch("噴前查${reportLayout.label}_${LocalDate.now()}.xlsx") }) { Text("匯出 Excel 報表") } }
+                                item { OutlinedButton(enabled = !state.busy && validReport, onClick = { prepareReport(reportScope, reportLayout); exportPdf.launch("噴前查${reportLayout.label}_${LocalDate.now()}.pdf") }) { Text("匯出 PDF 報表") } }
                                 item { OutlinedButton(enabled = !state.busy, onClick = { importBackup.launch(arrayOf("application/json", "text/plain")) }) { Text("匯入網站／APP 的 JSON 備份") } }
                                 item { Text("匯入前會確認，並在本機保留上一份資料。授權、登入狀態與雲端同步同意不會匯入。") }
                                 item { OutlinedButton(enabled = !state.busy && state.hasRecovery, onClick = state::readRecovery) { Text("回復匯入前的資料") } }
