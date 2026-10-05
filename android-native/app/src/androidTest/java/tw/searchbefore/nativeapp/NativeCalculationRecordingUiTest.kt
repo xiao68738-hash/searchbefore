@@ -65,6 +65,18 @@ class NativeCalculationRecordingUiTest {
         compose.onNodeWithText("確認並儲存實際用藥").performClick()
         compose.runOnIdle { assertEquals(ApplicationDetails(water = "1"), actual) }
     }
+    @Test fun overlongBucketCountIsRejectedInsteadOfSilentlyTruncated() {
+        var saves = 0
+        compose.setContent { SearchBeforeTheme { CalculationScreen(row(), true, {}, { _, _ -> saves++ }, Backup.empty(),
+            record = { _, _, _, _, _ -> saves++; true }) } }
+        reveal("本次桶數（整數）").performTextReplacement("000019")
+        compose.onNodeWithText("本次桶數（整數）").assertTextContains("000019").performImeAction()
+        reveal("帶入實際施藥確認").assertIsNotEnabled()
+        reveal("本次桶數（整數）").performTextReplacement("19")
+        compose.onNodeWithText("本次桶數（整數）").performImeAction()
+        reveal("帶入實際施藥確認").assertIsEnabled()
+        compose.runOnIdle { assertEquals(0, saves) }
+    }
     @Test fun futureDateAndFailedSaveKeepTheFormWithoutLosingInput() {
         var calls = 0
         val row = row(); val draft = CalculationRecording.tanks(row, "20", "1")!!

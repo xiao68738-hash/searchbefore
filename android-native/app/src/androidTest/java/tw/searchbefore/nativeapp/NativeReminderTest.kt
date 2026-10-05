@@ -57,8 +57,13 @@ class NativeReminderTest {
             store.save(restored)
             NativeReminders.reconcile(context,false)
             assertFalse(NativeReminders.check(context,test=true))
+            // NotificationManager cancellation crosses a system-service boundary, just
+            // like posting above. Require actual disappearance within the same bound;
+            // do not mistake an immediately sampled pending cancellation for delivery.
+            val cancellationDeadline=android.os.SystemClock.uptimeMillis()+3000
+            while(manager.activeNotifications.any { it.id==NativeReminders.NOTICE } && android.os.SystemClock.uptimeMillis()<cancellationDeadline) Thread.sleep(50)
             assertFalse(app.getSystemService(JobScheduler::class.java).allPendingJobs.any { it.id==NativeReminders.JOB })
-            assertFalse(app.getSystemService(NotificationManager::class.java).activeNotifications.any { it.id==NativeReminders.NOTICE })
+            assertFalse("Cancelled reminder must actually disappear within 3 seconds", manager.activeNotifications.any { it.id==NativeReminders.NOTICE })
         } finally {
             NativeReminders.reconcile(context,false)
         }

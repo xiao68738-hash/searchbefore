@@ -17,6 +17,18 @@ class NativeCalculationRecordingTest {
         assertTrue(draft.reference.contains("不是實際施用證明"))
         assertEquals(before, row.json.toString())
     }
+    @Test fun pastedDigitsAndExponentsCannotBecomeDifferentValidAmounts() {
+        for(water in listOf("00000000000000019", "0000000000000001", "1e2", "1e-999999999", "1.1234567")) {
+            assertNull(Dilution.amount(water, "1000"))
+            assertNull(CalculationRecording.tanks(row(), water, "1"))
+        }
+        for(count in listOf("100009", "000019", "1000000")) {
+            assertNull(CalculationRecording.tanks(row(), "1", count))
+            assertNull(recipeBatchAmounts(JSONObject().put("unit", "mL").put("dil", 1000), "1", count))
+        }
+        assertEquals("0.125", Dilution.amount("0.125", "1000"))
+        assertEquals("1000000", Dilution.amount("1000000", "1000"))
+    }
     @Test fun powderNeverTurnsIntoVolumeAndFractionalWaterIsPreserved() {
         assertEquals(ApplicationDetails(water = "0.5", totalWater = "1", amount = "1", unit = "g"),
             CalculationRecording.tanks(row(true), "0.500", "2")!!.details)

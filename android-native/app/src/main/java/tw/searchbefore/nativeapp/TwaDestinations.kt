@@ -56,7 +56,7 @@ import java.time.temporal.ChronoUnit
                     FilterChip(selected = !areaMode, enabled = enabled, onClick = { areaMode = false }, label = { Text("用桶數算") })
                     FilterChip(selected = areaMode, enabled = enabled, onClick = { areaMode = true }, label = { Text("按面積換算") })
                 } }
-                if(!areaMode) item { OutlinedTextField(tanks, { tanks = it.take(5) }, label = { Text("本次桶數（整數）") },
+                if(!areaMode) item { OutlinedTextField(tanks, { tanks = it.take(6) }, label = { Text("本次桶數（整數）") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done), keyboardActions = done, singleLine = true, modifier = Modifier.fillMaxWidth()) }
                 val amounts = tankAmounts(row, water, tanks)
                 if(areaMode) {

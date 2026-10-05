@@ -117,6 +117,11 @@ class NativeTwaDestinationsTest {
         showResult("recipesList", "本筆合計：60 mL／60 公升水")
         showResult("recipesList", "本筆合計：30 g／60 公升水")
         captureSynthetic("recipe-batch.png")
+        compose.onNodeWithTag("recipesList").performScrollToNode(hasText("各配方分別試算桶數"))
+        compose.onNodeWithText("各配方分別試算桶數").performTextReplacement("000019")
+        compose.onNodeWithText("各配方分別試算桶數").assertTextContains("000019").performImeAction()
+        compose.onNodeWithText("本筆合計：60 mL／60 公升水").assertDoesNotExist()
+        compose.onNodeWithText("本筆合計：20 mL／20 公升水").assertDoesNotExist()
         compose.runOnIdle { assertEquals(0, saves); assertEquals(before, data.toString()) }
     }
 }

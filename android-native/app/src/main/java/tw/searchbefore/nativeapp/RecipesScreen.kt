@@ -40,7 +40,7 @@ import org.json.JSONObject
             item { Info("依目前篩選逐筆試算", "以下各配方分別套用同一水量與桶數，不代表一起施用或可以混配，也不加總不同藥劑。舊配方不是最新登記證明，請回查詢核對；不更動保存水量或施藥紀錄。") }
             item { OutlinedTextField(batchWater, { batchWater = it.take(16) }, label = { Text("試算每桶水量（公升）") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done), keyboardActions = done, singleLine = true, modifier = Modifier.fillMaxWidth()) }
-            item { OutlinedTextField(batchTanks, { batchTanks = it.take(5) }, label = { Text("各配方分別試算桶數") },
+            item { OutlinedTextField(batchTanks, { batchTanks = it.take(6) }, label = { Text("各配方分別試算桶數") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done), keyboardActions = done, singleLine = true, modifier = Modifier.fillMaxWidth()) }
         }
         if (rows.isEmpty()) item { Text("在配藥計算按「存成常用配方」；沒有稀釋計算的用法可在查詢結果按「收藏此用途」。") }

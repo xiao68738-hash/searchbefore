@@ -36,6 +36,9 @@ data class UsageRow(val json: JSONObject) {
 
 object Dilution {
     fun amount(water: String, multiple: String): String? = runCatching {
+        // Same bounded plain-decimal input as the tank/area screens. A truncated paste
+        // or scientific exponent must never turn into a different usable water amount.
+        require(Regex("[0-9]{1,7}(\\.[0-9]{1,6})?").matches(water))
         val liters = water.toBigDecimal()
         val ratio = multiple.replace(",", "").toBigDecimal()
         require(liters > BigDecimal.ZERO && liters <= BigDecimal("1000000"))
