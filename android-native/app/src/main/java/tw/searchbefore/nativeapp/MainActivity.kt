@@ -274,6 +274,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable private fun QueryScreen(catalog: Catalog, data: JSONObject, enabled: Boolean, onCalculate: (UsageRow) -> Unit, saveRecipe: (UsageRow, String) -> Unit, record: (UsageRow, String, String, ApplicationDetails) -> Unit) {
     var mode by rememberSaveable { mutableIntStateOf(0) }
+    var comparing by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
     var crop by rememberSaveable { mutableStateOf("") }
     var harvestForm by rememberSaveable { mutableStateOf("") }
@@ -305,10 +306,19 @@ class MainActivity : ComponentActivity() {
         if(lastScope != scopeKey) { queryListState.scrollToItem(0); lastScope = scopeKey }
     }
     fun goBack() { if (pest.isNotEmpty()) { pest = ""; agentScope = "" } else if (overview) overview = false else crop = "" }
+    if(comparing) {
+        BackHandler { comparing = false }
+        MultiCropComparisonScreen(catalog, enabled, back = { comparing = false }) { row ->
+            comparing = false; mode = 0; crop = row.crop; pest = row.pest; harvestForm = row.json.optString("selectedHarvestForm")
+            overview = false; agentScope = row.name; query = ""
+        }
+        return
+    }
     BackHandler(crop.isNotEmpty()) { goBack() }
     LazyColumn(state = queryListState, modifier = Modifier.testTag("queryList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
         if (crop.isEmpty()) item { SafetyNotice() }
         item { QueryModeSwitch(mode) { mode = it; crop = ""; pest = ""; query = ""; overview = false; harvestForm = ""; agentScope = "" } }
+        if(crop.isEmpty()) item { OutlinedButton(enabled = enabled, onClick = { focusManager.clearFocus(); comparing = true }, modifier = Modifier.fillMaxWidth()) { Text("多作物共同查找") } }
         if (crop.isEmpty()) {
             item { QueryStep(1, if(mode == 0) "選作物（共 ${catalog.crops.size} 種）" else "找藥劑") }
             item { OutlinedTextField(value = query, onValueChange = { query = it.take(120) }, singleLine = true,
