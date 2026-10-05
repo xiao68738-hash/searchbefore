@@ -49,6 +49,8 @@ object Dilution {
 class Catalog(text: String) {
     private val root = JSONObject(text)
     val version = root.getString("dataVersion")
+    val guides = root.optJSONArray("guides")?.let { a -> (0 until a.length()).map { a.getJSONObject(it) } }.orEmpty()
+    val feedbackEmail = root.optString("feedbackEmail")
     val rows = root.getJSONArray("rows").let { a -> (0 until a.length()).map { UsageRow(a.getJSONObject(it)) } }
     private val byCrop = rows.groupBy { it.crop }
     val crops = byCrop.keys.sorted()

@@ -54,6 +54,10 @@ object Recipes {
         next.put("recipes", JSONArray(rows.filterIndexed { i, _ -> i != index }))
         return Backup.parse(Backup.encode(next))
     }
-    fun unit(recipe: JSONObject): String? = when (recipe.optString("unit").lowercase()) { "ml" -> "mL"; "g" -> "g"; else -> null }
+    fun unit(recipe: JSONObject): String? = when (recipe.optString("unit").trim().lowercase()) {
+        "ml", "毫升" -> "mL"
+        "g", "公克", "克" -> "g"
+        else -> null
+    }
     fun amount(recipe: JSONObject, water: String): String? = if(referenceOnly(recipe)) null else Dilution.amount(water, recipe.optString("dil"))
 }

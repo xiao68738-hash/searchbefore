@@ -21,6 +21,19 @@ class NativeRecipesTest {
         val unknown = row().json.put("formKind", "未知")
         assertTrue(runCatching { Recipes.add(Backup.empty(), UsageRow(unknown), "2") }.isFailure)
     }
+    @Test fun importedChineseUnitAliasesStayCalculableWithoutRewritingOrChangingScale() {
+        for ((source, expected) in listOf("毫升" to "mL", "公克" to "g", "克" to "g", " mL " to "mL")) {
+            val recipe = Recipes.rows(Recipes.add(Backup.empty(), row(), "2")).single().put("unit", source)
+            assertEquals(expected, Recipes.unit(recipe))
+            assertEquals("2", Recipes.amount(recipe, "2"))
+            assertEquals(source, recipe.getString("unit"))
+        }
+        for (unknownScale in listOf("L", "公升", "kg", "公斤", "未知")) {
+            val recipe = Recipes.rows(Recipes.add(Backup.empty(), row(), "2")).single().put("unit", unknownScale)
+            assertTrue(Recipes.referenceOnly(recipe))
+            assertNull(Recipes.amount(recipe, "2"))
+        }
+    }
     @Test fun editPreservesOtherFieldsAndRejectsForeignBrandOrStaleIndex() {
         val data = Recipes.add(Backup.empty(), row(), "2")
         val recipe = Recipes.rows(data).single().put("unknown", "keep")

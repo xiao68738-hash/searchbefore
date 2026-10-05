@@ -240,6 +240,7 @@ class MainActivity : ComponentActivity() {
                                     }) { Text("系統通知設定") }
                                 }
                                 item { DisplaySettings(state.displayPreferences, !state.busy, state::setDisplayPreferences) }
+                                item { NativeHelpCard(cat, !state.busy) }
                                 item { Text("資料版本 ${cat.version}\n資料來源：農業部農藥開放資料。本預覽僅列精確作物登記，尚未加入作物群組延伸。未列出不代表可使用；依產品標示及最新公告為準。") }
                             }
                         } }

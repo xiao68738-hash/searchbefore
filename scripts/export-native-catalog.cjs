@@ -34,7 +34,7 @@ function buildCatalog(){
     sourceSha256:crypto.createHash('sha256').update(raw).digest('hex'),
     registrationScope:'exact-crop-only',related,rows,pestSearchRules:A.pestSearchRules(),
     forms:Object.fromEntries(Object.entries(F.FORMS).map(([crop,def])=>[crop,def.forms.map(({id,label})=>({id,label}))])),
-    formAliases:F.FORM_ALIAS,readings,characterReadings};
+    formAliases:F.FORM_ALIAS,readings,characterReadings,...require('./native-help-content.cjs').buildHelp(root)};
 }
 if(require.main===module){
   const output=path.join(root,'android-native/app/src/main/assets/catalog.json');

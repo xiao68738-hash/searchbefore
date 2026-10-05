@@ -5,11 +5,16 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import org.json.JSONObject
 import java.time.LocalDate
@@ -92,16 +97,22 @@ import java.time.LocalDate
         Farm.fields.getValue(type).forEach { put(it.key, existing?.let { r -> Farm.detailsText(r, it.key) }.orEmpty()) }
     }.toString()) }
     val values = JSONObject(valuesJson).let { obj -> Farm.fields.getValue(type).associate { it.key to obj.optString(it.key) } }
+    val focus = LocalFocusManager.current
+    val done = KeyboardActions(onDone = { focus.clearFocus() })
     AlertDialog(onDismissRequest = close, title = { Text((if (existing == null) "新增" else "修改") + Farm.types.getValue(type)) }, text = {
         Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             PlotPicker(Backup.plots(data), plotId, if(type == "equipmentMaintenance") "設備作業可不指定田區" else "請指定田區", enabled) { plotId = it }
             if (Backup.plots(data).isEmpty() && type != "equipmentMaintenance") Text("請先到紀錄頁新增田區。")
-            OutlinedTextField(value = date, onValueChange = { date = it.take(10) }, label = { Text("實際日期 YYYY-MM-DD") })
+            OutlinedTextField(value = date, onValueChange = { date = it.take(11) }, label = { Text("實際日期 YYYY-MM-DD") },
+                singleLine = true, keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = done)
             Farm.fields.getValue(type).forEach { field ->
-                OutlinedTextField(value = values[field.key].orEmpty(), onValueChange = { valuesJson = JSONObject(valuesJson).put(field.key, it.take(500)).toString(); harvestConfirmed = false }, label = { Text(field.label + if(field.required) "（必填）" else "") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = values[field.key].orEmpty(), onValueChange = { valuesJson = JSONObject(valuesJson).put(field.key, it.take(501)).toString(); harvestConfirmed = false }, label = { Text(field.label + if(field.required) "（必填）" else "") }, modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = if(field.numeric) KeyboardType.Decimal else KeyboardType.Text, imeAction = ImeAction.Done), keyboardActions = done)
             }
-            OutlinedTextField(value = operator, onValueChange = { operator = it.take(120) }, label = { Text("操作者") })
-            OutlinedTextField(value = notes, onValueChange = { notes = it.take(2000) }, label = { Text("備註") })
+            OutlinedTextField(value = operator, onValueChange = { operator = it.take(121) }, label = { Text("操作者") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = done)
+            OutlinedTextField(value = notes, onValueChange = { notes = it.take(2001) }, label = { Text("備註") },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = done)
             if (type == "harvest" && plotId.isNotEmpty() && Backup.validDate(date)) Text(Farm.safetyLabel(Farm.safety(data, plotId, date)))
             if (type == "harvest") Row {
                 Checkbox(checked = harvestConfirmed, onCheckedChange = { harvestConfirmed = it })
