@@ -32,7 +32,7 @@ function buildCatalog(){
   const characterReadings=Object.fromEntries(Array.from(new Set(terms.join(''))).filter(c=>/\p{Script=Han}/u.test(c)).map(c=>[c,A.readingProfile(c).full]));
   return {formatVersion:1,dataVersion:html.match(/const DATA_VERSION="([^"]+)"/)[1],
     sourceSha256:crypto.createHash('sha256').update(raw).digest('hex'),
-    registrationScope:'exact-crop-only',related,rows,
+    registrationScope:'exact-crop-only',related,rows,pestSearchRules:A.pestSearchRules(),
     forms:Object.fromEntries(Object.entries(F.FORMS).map(([crop,def])=>[crop,def.forms.map(({id,label})=>({id,label}))])),
     formAliases:F.FORM_ALIAS,readings,characterReadings};
 }

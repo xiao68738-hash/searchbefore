@@ -60,6 +60,19 @@ class MainActivity : ComponentActivity() {
                 var recordSection by rememberSaveable { mutableIntStateOf(0) }
                 var calculationId by rememberSaveable { mutableStateOf("") }
                 var calculationForm by rememberSaveable { mutableStateOf("") }
+                var reportFrom by rememberSaveable { mutableStateOf("") }
+                var reportTo by rememberSaveable { mutableStateOf("") }
+                var reportPlot by rememberSaveable { mutableStateOf("") }
+                var reportKind by rememberSaveable { mutableStateOf("all") }
+                val reportScope = ReportScope(reportFrom, reportTo, reportPlot, reportKind)
+                // Preserve the selected scope through the system document picker/activity recreation.
+                var exportScopeJson by rememberSaveable { mutableStateOf("{}") }
+                fun prepareReport(scope: ReportScope) {
+                    exportScopeJson = JSONObject().put("from", scope.from).put("to", scope.to).put("plotId", scope.plotId).put("kind", scope.kind).toString()
+                }
+                fun selectedReport(): ReportScope = JSONObject(exportScopeJson).let {
+                    ReportScope(it.optString("from"), it.optString("to"), it.optString("plotId"), it.optString("kind", "all"))
+                }
                 val pageState = rememberSaveableStateHolder()
                 DisposableEffect(state) {
                     val observer = androidx.lifecycle.LifecycleEventObserver { _, event -> if(event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) state.refreshReminders() }
@@ -79,10 +92,10 @@ class MainActivity : ComponentActivity() {
                     if (uri != null) state.readImport(uri)
                 }
                 val exportCsv = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) { uri ->
-                    if (uri != null) state.exportCsv(uri)
+                    if (uri != null) state.exportCsv(uri, selectedReport())
                 }
-                val exportExcel = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) { uri -> if(uri != null) state.exportReport(uri, false) }
-                val exportPdf = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri -> if(uri != null) state.exportReport(uri, true) }
+                val exportExcel = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) { uri -> if(uri != null) state.exportReport(uri, false, selectedReport()) }
+                val exportPdf = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri -> if(uri != null) state.exportReport(uri, true, selectedReport()) }
                 fun persist(next: JSONObject, keepRecovery: Boolean = false) {
                     state.persist(next, keepRecovery)
                 }
@@ -127,7 +140,9 @@ class MainActivity : ComponentActivity() {
                                     FilterChip(selected = recordSection == 0, onClick = { recordSection = 0 }, label = { Text("用藥與田區") })
                                     FilterChip(selected = recordSection == 1, onClick = { recordSection = 1 }, label = { Text("農務") })
                                 }
-                                if(recordSection == 1) FarmScreen(data, !state.busy, save = { persist(it) }, report = { state.error = it }, export = { exportCsv.launch("噴前查農務_${LocalDate.now()}.csv") })
+                                if(recordSection == 1) FarmScreen(data, !state.busy, save = { persist(it) }, report = { state.error = it }, export = { plot ->
+                                    prepareReport(ReportScope(plotId = plot)); exportCsv.launch("噴前查農務_${LocalDate.now()}.csv")
+                                })
                                 else RecordsScreen(data, cat, !state.busy,
                                 addPlot = { crop, tag, date ->
                                     runCatching { Backup.addPlot(requireNotNull(state.data), crop, tag, date, cat.crops) }
@@ -168,8 +183,13 @@ class MainActivity : ComponentActivity() {
                                 item { QueryStep(3, "備份與報表") }
                                 item { Text("JSON 用於完整紀錄還原；Excel／PDF 是閱讀用報表，不能用來還原。顯示設定僅留在本機，換裝置須重新設定。") }
                                 item { Button(enabled = !state.busy, onClick = { export.launch("噴前查原生備份_${LocalDate.now()}.json") }, modifier = Modifier.fillMaxWidth()) { Text("匯出完整備份") } }
-                                item { OutlinedButton(enabled = !state.busy, onClick = { exportExcel.launch("噴前查農務_${LocalDate.now()}.xlsx") }) { Text("匯出 Excel 報表") } }
-                                item { OutlinedButton(enabled = !state.busy, onClick = { exportPdf.launch("噴前查農務_${LocalDate.now()}.pdf") }) { Text("匯出 PDF 報表") } }
+                                item { ReportScopeFields(data, reportScope, !state.busy) { next ->
+                                    reportFrom = next.from; reportTo = next.to; reportPlot = next.plotId; reportKind = next.kind
+                                } }
+                                val validReport = runCatching { reportScope.validate(data) }.isSuccess
+                                item { OutlinedButton(enabled = !state.busy && validReport, onClick = { prepareReport(reportScope); exportCsv.launch("噴前查農務_${LocalDate.now()}.csv") }) { Text("匯出 CSV 報表") } }
+                                item { OutlinedButton(enabled = !state.busy && validReport, onClick = { prepareReport(reportScope); exportExcel.launch("噴前查農務_${LocalDate.now()}.xlsx") }) { Text("匯出 Excel 報表") } }
+                                item { OutlinedButton(enabled = !state.busy && validReport, onClick = { prepareReport(reportScope); exportPdf.launch("噴前查農務_${LocalDate.now()}.pdf") }) { Text("匯出 PDF 報表") } }
                                 item { OutlinedButton(enabled = !state.busy, onClick = { importBackup.launch(arrayOf("application/json", "text/plain")) }) { Text("匯入網站／APP 的 JSON 備份") } }
                                 item { Text("匯入前會確認，並在本機保留上一份資料。授權、登入狀態與雲端同步同意不會匯入。") }
                                 item { OutlinedButton(enabled = !state.busy && state.hasRecovery, onClick = state::readRecovery) { Text("回復匯入前的資料") } }
@@ -237,7 +257,13 @@ class MainActivity : ComponentActivity() {
     var harvestForm by rememberSaveable { mutableStateOf("") }
     var pest by rememberSaveable { mutableStateOf("") }
     var overview by rememberSaveable { mutableStateOf(false) }
-    var shown by rememberSaveable(crop, pest, query, overview, harvestForm) { mutableIntStateOf(20) }
+    var agentScope by rememberSaveable { mutableStateOf("") }
+    var pestQuery by rememberSaveable(crop) { mutableStateOf("") }
+    var overviewQuery by rememberSaveable(crop) { mutableStateOf("") }
+    var phiMax by rememberSaveable(crop, pest, agentScope) { mutableIntStateOf(0) }
+    var showSpecial by rememberSaveable(crop, pest, agentScope) { mutableStateOf(false) }
+    var showExcluded by rememberSaveable(crop, pest, agentScope) { mutableStateOf(false) }
+    var shown by rememberSaveable(crop, pest, query, overview, harvestForm, phiMax, overviewQuery, agentScope) { mutableIntStateOf(20) }
     var recording by remember { mutableStateOf<UsageRow?>(null) }
     var date by rememberSaveable { mutableStateOf(LocalDate.now().toString()) }
     var plotId by rememberSaveable { mutableStateOf("") }
@@ -252,10 +278,11 @@ class MainActivity : ComponentActivity() {
     LaunchedEffect(scopeKey) {
         if(lastScope != scopeKey) { queryListState.scrollToItem(0); lastScope = scopeKey }
     }
-    BackHandler(crop.isNotEmpty()) { if (pest.isNotEmpty()) pest = "" else if (overview) overview = false else crop = "" }
+    fun goBack() { if (pest.isNotEmpty()) { pest = ""; agentScope = "" } else if (overview) overview = false else crop = "" }
+    BackHandler(crop.isNotEmpty()) { goBack() }
     LazyColumn(state = queryListState, modifier = Modifier.testTag("queryList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
         if (crop.isEmpty()) item { SafetyNotice() }
-        item { QueryModeSwitch(mode) { mode = it; crop = ""; pest = ""; query = ""; overview = false; harvestForm = "" } }
+        item { QueryModeSwitch(mode) { mode = it; crop = ""; pest = ""; query = ""; overview = false; harvestForm = ""; agentScope = "" } }
         if (crop.isEmpty()) {
             item { QueryStep(1, if(mode == 0) "選作物（共 ${catalog.crops.size} 種）" else "找藥劑") }
             item { OutlinedTextField(value = query, onValueChange = { query = it.take(120) }, singleLine = true,
@@ -278,14 +305,14 @@ class MainActivity : ComponentActivity() {
                 val results = catalog.byAgent(query)
                 if (query.isNotBlank() && results.isEmpty()) item { Text("沒有找到精確名稱相關的登記；未列出不代表可使用。") }
                 items(results.take(shown), key = { it.id }) { row ->
-                    OutlinedButton(onClick = { crop = row.crop; harvestForm = ""; pest = row.pest }, modifier = Modifier.fillMaxWidth()) { Text("${row.name}｜${row.crop} × ${row.pest}\n${row.json.optString("content")} ${row.json.optString("form")}") }
+                    OutlinedButton(onClick = { crop = row.crop; harvestForm = ""; pest = row.pest; agentScope = row.name }, modifier = Modifier.fillMaxWidth()) { Text("${row.name}｜${row.crop} × ${row.pest}\n${row.json.optString("content")} ${row.json.optString("form")}") }
                 }
                 if (results.size > shown) item { TextButton(onClick = { shown += 20 }) { Text("顯示更多登記") } }
                 if(agentSuggestions.isNotEmpty()) item { Text("相近名稱建議，不代表同一藥劑；請核對後點選。") }
                 items(agentSuggestions, key = { "suggest:" + it.value }) { hit -> OutlinedButton(onClick = { query = hit.value }) { Text("${hit.value}｜${hit.label}") } }
             }
         } else {
-            item { TextButton(onClick = { if (pest.isNotEmpty()) pest = "" else if (overview) overview = false else crop = "" }) { Text("返回上一層") } }
+            item { TextButton(onClick = { goBack() }) { Text("返回上一層") } }
             item { QueryStep(if(pest.isEmpty()) 2 else 3, if(pest.isNotEmpty()) "查看登記用法" else if(overview) "作物用藥總覽" else "選病蟲害") }
             item { Text(if (pest.isBlank()) crop else "$crop × $pest", style = MaterialTheme.typography.headlineSmall) }
             if(catalog.forms(crop).isNotEmpty()) item {
@@ -299,24 +326,65 @@ class MainActivity : ComponentActivity() {
                 item { OutlinedButton(onClick = { overview = !overview }) { Text(if (overview) "切回病蟲害清單" else "作物用藥總覽") } }
                 if (overview) {
                     item { Text("依藥劑名稱整理原登記防治對象。點選對象查看各筆用法；不同劑型、含量或採收部位不代表可互用。") }
-                    items(catalog.overview(crop).entries.toList(), key = { it.key }) { (name, rows) ->
+                    item { OutlinedTextField(overviewQuery, { overviewQuery = it.take(120) }, label = { Text("篩選藥劑或病蟲害") },
+                        singleLine = true, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() })) }
+                    val entries = catalog.filteredOverview(crop, overviewQuery)
+                    item { Text("${entries.size} 種藥劑；依原登記防治對象數排序，不代表優先推薦。") }
+                    if(entries.isEmpty()) item { Text("查無符合的已登記藥劑或病蟲害。") }
+                    items(entries.take(shown), key = { it.key }) { (name, rows) ->
                         CropOverviewCard(name, rows.map { it.pest }) { pest = it }
                     }
-                } else items(catalog.pests(crop), key = { it }) { p ->
-                    SearchChoice("$p　${catalog.exact(crop, p).size} 筆登記用法") { pest = p }
+                    if(entries.size > shown) item { TextButton(onClick = { shown += 20 }) { Text("顯示更多藥劑") } }
+                } else {
+                    item { OutlinedTextField(pestQuery, { pestQuery = it.take(120) }, label = { Text("篩選病蟲害或分類，例：夜蛾科") },
+                        singleLine = true, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() })) }
+                    val pests = catalog.pests(crop).filter { catalog.pestLabel(pestQuery, it) != null }
+                        .sortedByDescending { catalog.exact(crop, it).size }
+                    if(pestQuery.isNotBlank()) item { Text("${pests.size} 項；分類相關結果按原登記分列，不代表用藥可互用。分類對照尚非完整清單。") }
+                    if(pests.isEmpty()) item { Text("查無符合的直接登記項目，可改查原病蟲害名稱。") }
+                    items(pests, key = { it }) { p ->
+                        SearchChoice("$p　${catalog.exact(crop, p).size} 筆登記用法") { pest = p }
+                        catalog.pestLabel(pestQuery, p)?.takeIf { it.isNotEmpty() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                    }
                 }
             } else {
-                val rows = catalog.exact(crop, pest).map { it.withHarvestForm(harvestForm) }
+                val original = catalog.exact(crop, pest).map { it.withHarvestForm(harvestForm) }
+                val rows = QueryFilters.registrations(original, agentScope, phiMax.takeIf { it > 0 })
                     .sortedBy { if(it.formExcluded) 2 else if(it.json.optString("formCategory") == "matched") 0 else 1 }
+                val sections = QueryFilters.sections(rows)
                 item { Text("僅列此作物 × 此防治對象原登記，不合併相關分類。") }
-                items(rows.take(shown), key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = { water -> saveRecipe(row, water) }, onCalculate = { onCalculate(row) }, onRecord = { recording = row; plotId = ""; date = LocalDate.now().toString(); details = ApplicationDetails() }) }
-                if (rows.size > shown) item { TextButton(onClick = { shown += 20 }) { Text("顯示更多用法") } }
+                if(agentScope.isNotEmpty()) item {
+                    Info("目前只看：$agentScope", "以下僅列這個普通名稱在本作物／防治對象的原登記；仍須核對劑型、含量與商品標示。")
+                    TextButton(onClick = { agentScope = "" }) { Text("查看此作物／防治對象的全部藥劑") }
+                }
+                item { key(crop, pest, agentScope) { PhiFilterBar(phiMax) { phiMax = it } } }
+                item { Text("一般用法 ${sections.ordinary.size} 筆・特殊用法 ${sections.special.size} 筆・不符或待確認 ${sections.excluded.size} 筆") }
+                if(rows.isEmpty()) item { Text("沒有符合目前篩選的登記用法。可改選「全部」，不代表其他藥劑可使用。") }
+                items(sections.ordinary.take(shown), key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = { water -> saveRecipe(row, water) }, onCalculate = { onCalculate(row) }, onRecord = { recording = row; plotId = ""; date = LocalDate.now().toString(); details = ApplicationDetails() }) }
+                if (sections.ordinary.size > shown) item { TextButton(onClick = { shown += 20 }) { Text("顯示更多用法") } }
+                if(sections.special.isNotEmpty()) {
+                    item { OutlinedButton(onClick = { showSpecial = !showSpecial }, modifier = Modifier.fillMaxWidth()) {
+                        Text("${if(showSpecial) "收合" else "展開"}特殊施用方式（${sections.special.size} 筆）")
+                    } }
+                    if(showSpecial) {
+                        item { Info("特殊施用方式，與一般噴施分開", "包含種子處理、撒布、原液等用途；不提供稀釋計算，請依原登記方式與產品標示操作。") }
+                        items(sections.special, key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = { water -> saveRecipe(row, water) }, onRecord = { recording = row; plotId = ""; date = LocalDate.now().toString(); details = ApplicationDetails() }) }
+                    }
+                }
+                if(sections.excluded.isNotEmpty()) {
+                    item { OutlinedButton(onClick = { showExcluded = !showExcluded }, modifier = Modifier.fillMaxWidth()) {
+                        Text("${if(showExcluded) "收合" else "展開"}型態不符或待確認（${sections.excluded.size} 筆）")
+                    } }
+                    if(showExcluded) items(sections.excluded, key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = {}, onRecord = {}) }
+                }
                 item { Text("資料供查詢參考，實際用法請核對產品標示與主管機關最新公告。", style = MaterialTheme.typography.bodySmall) }
                 if (catalog.related(crop, pest).isNotEmpty()) item {
                     Card { Column(Modifier.padding(16.dp)) {
                         Text("看看相關防治對象", style = MaterialTheme.typography.titleMedium)
                         catalog.related(crop, pest).forEach { other ->
-                            TextButton(onClick = { pest = other }) { Text("也要看看$crop × ${other}用藥嗎？") }
+                            TextButton(onClick = { pest = other; agentScope = "" }) { Text("也要看看$crop × ${other}用藥嗎？") }
                         }
                         Text("分開查看，不代表藥劑可互用。", style = MaterialTheme.typography.bodySmall)
                     } }
@@ -359,9 +427,11 @@ class MainActivity : ComponentActivity() {
         Text("${row.json.optString("content")} ${row.json.optString("form")}", color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (row.brands.isNotEmpty()) Text("商品名稱：${row.brands.joinToString("、")}", style = MaterialTheme.typography.bodyLarge)
         RegistrationTags(row.json.optString("formKind"), row.json.optString("moa"))
-        UsageFacts(row.usage.getString("label"), row.usage.getString("value"),
-            row.phi?.let { "${it.toBigDecimal().stripTrailingZeros().toPlainString()} 天" } ?: if (row.json.optBoolean("seed")) "不適用" else "請查產品標示")
+        UsageFacts(row.usage.getString("label"), row.usage.getString("value"), row.harvestLabel())
         if (row.json.optBoolean("phiAdjusted")) Text("已依備註採較長採收期")
+        if(row.json.optString("phiText").contains("-") && row.phi != null) Text("登記區間依原文顯示；篩選與倒數採 ${row.phi} 天，仍請核對產品標示。", style = MaterialTheme.typography.bodySmall)
+        if(row.usage.optString("detail").isNotBlank()) Info("登記施用方式", row.usage.getString("detail"))
+        if(row.json.optString("times").isNotBlank()) Info("施用次數", row.json.getString("times"))
         row.residueText?.let { ResidueNotice(it) }
         val dose = row.json.optString("dose")
         if (dose.isNotBlank() && dose != "-") {

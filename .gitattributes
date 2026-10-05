@@ -1,0 +1,2 @@
+# Executed by Bash on the isolated Linux UI runner; no blanket repository rewrite.
+scripts/test-native-ci-emulator.sh text eol=lf

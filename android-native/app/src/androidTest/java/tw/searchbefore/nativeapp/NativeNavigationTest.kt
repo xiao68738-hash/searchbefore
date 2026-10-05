@@ -82,7 +82,11 @@ class NativeNavigationTest {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val firstName = Catalog(context.assets.open("catalog.json").bufferedReader().use { it.readText() }).exact("蔥", "夜蛾類").first().name
         compose.onNodeWithTag("queryList").performScrollToNode(hasText(firstName))
-        compose.onNodeWithTag("queryList").performScrollToIndex(5)
+        // Controls can grow; reveal the actual card instead of relying on a fixed item index.
+        for (attempt in 0 until 8) {
+            if (runCatching { compose.onNodeWithText(firstName).assertIsDisplayed() }.isSuccess) break
+            compose.onNodeWithTag("queryList").performTouchInput { swipeUp(startY = height * .75f, endY = height * .45f) }
+        }
         compose.onNodeWithText(firstName).assertIsDisplayed()
         capturePublicQuery("registered-use.png")
     }

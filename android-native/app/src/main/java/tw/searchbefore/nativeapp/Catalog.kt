@@ -54,6 +54,11 @@ class Catalog(text: String) {
     val crops = byCrop.keys.sorted()
     private val search = NativeSearch(root.optJSONObject("readings") ?: JSONObject(), root.optJSONObject("characterReadings") ?: JSONObject())
     private val agentNames = rows.flatMap { listOf(it.name) + it.brands }.distinct()
+    private val pestSearch = PestSearch(root.optJSONObject("pestSearchRules") ?: JSONObject())
+    fun pestLabel(query: String, pest: String) = pestSearch.label(query, pest)
+    fun filteredOverview(crop: String, query: String) = overview(crop).entries.filter { (name, rows) ->
+        NativeSearch.normalize(name).contains(NativeSearch.normalize(query)) || rows.any { pestLabel(query, it.pest) != null }
+    }.sortedWith(compareByDescending<Map.Entry<String, List<UsageRow>>> { it.value.map { r -> r.pest }.distinct().size }.thenBy { it.key })
     fun cropMatches(query: String) = crops.filter { query.isBlank() || NativeSearch.normalize(it).contains(NativeSearch.normalize(query)) }
     fun cropSuggestions(query: String) = search.suggestions(query, crops)
     fun agentSuggestions(query: String) = search.suggestions(query, agentNames)

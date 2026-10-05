@@ -29,7 +29,13 @@ function buildGoldens(){
     batchSafety.push({records,plotId:'plot1',date,expected:safety.harvestStatus(records,'plot1',date)});
   }
   batchSafety.push({records:[],plotId:'plot1',date:'2026-01-01',expected:safety.harvestStatus([],'plot1','2026-01-01')});
-  return {harvest,sync,batchSafety,migration:require('./native-backup-fixture.cjs').migrationFixture()};
+  const aids=require('../query-aids.js'),rules=aids.pestSearchRules();
+  const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+  const data=JSON.parse(html.match(/^const DATA=(.*);\r?$/m)[1]);
+  const pests=Array.from(new Set(Object.values(data).flatMap(Object.keys)));
+  const terms=Array.from(new Set([...rules.known,...Object.keys(rules.aliases),'螟蛾','蛾','夜','夜蛾 科','白帶野螟蛾','未知分類','']));
+  const pestSearch={rules,queries:terms,pests,labels:terms.map(q=>pests.map(p=>aids.pestSearchMatch(q,p)?.label??null))};
+  return {harvest,sync,batchSafety,pestSearch,migration:require('./native-backup-fixture.cjs').migrationFixture()};
 }
 function writeGoldens(){
   const output=path.join(__dirname,'../android-native/app/src/test/resources/web-native-golden.json');

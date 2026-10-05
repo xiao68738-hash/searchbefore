@@ -134,15 +134,15 @@ class NativeState(application: Application) : AndroidViewModel(application) {
             Backup.parse(bytes)
         }
     }
-    fun exportCsv(uri: Uri) = task("CSV 匯出失敗，原紀錄未變動。") {
-        val bytes = Farm.csv(requireNotNull(data))
+    fun exportCsv(uri: Uri, scope: ReportScope = ReportScope()) = task("CSV 匯出失敗，請檢查日期與田區範圍；原紀錄未變動。") {
+        val bytes = Farm.csv(scope.select(requireNotNull(data)))
         withContext(Dispatchers.IO) {
             getApplication<Application>().contentResolver.openOutputStream(uri, "wt")?.use { it.write(bytes) } ?: error("無法開啟檔案")
         }
         error = "用藥與農務 CSV 已匯出。這是閱讀用報表，完整還原請使用 JSON 備份。"
     }
-    fun exportReport(uri: Uri, pdf: Boolean) = task("報表匯出失敗。PDF 上限 2,000 筆，更多資料請用 CSV／Excel；原紀錄未變動。") {
-        val snapshot = JSONObject(requireNotNull(data).toString())
+    fun exportReport(uri: Uri, pdf: Boolean, scope: ReportScope = ReportScope()) = task("報表匯出失敗。請檢查日期與田區；PDF 上限 2,000 筆，更多資料請用 CSV／Excel。原紀錄未變動。") {
+        val snapshot = scope.select(requireNotNull(data))
         withContext(Dispatchers.IO) {
             getApplication<Application>().contentResolver.openOutputStream(uri, "wt")?.use { output ->
                 if(pdf) NativePdf.write(snapshot, output) else output.write(NativeReports.xlsx(snapshot))

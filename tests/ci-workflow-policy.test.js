@@ -33,6 +33,17 @@ for (const file of ['review.yml', 'native-preview.yml']) {
     assert.match(active, /java-version: 17\b/);
     assert.match(active, /:app:testDebugUnitTest :app:assembleDebug :app:lintDebug/);
     assert.doesNotMatch(active, /:app:(?:bundle|assemble)Release|SEARCHBEFORE_(?:KEY|STORE)/);
+    assert.match(active, /:app:assembleDebugAndroidTest/);
+    assert.match(active, /run: bash scripts\/test-native-ci-emulator\.sh/);
   }
 }
+const ui = fs.readFileSync(path.join(__dirname, '../scripts/test-native-ci-emulator.sh'), 'utf8');
+assert.match(ui, /RUNNER_ENVIRONMENT:-\}" == github-hosted/);
+assert.match(ui, /serial=emulator-5580/);
+assert.match(ui, /ro\.kernel\.qemu/);
+assert.match(ui, /nativepreview\.test\/androidx\.test\.runner/);
+assert.match(ui, /trap cleanup EXIT/);
+assert.match(ui, /System\/App ANR invalidates/);
+assert.match(ui, /UI suite failed or incomplete/);
+assert.doesNotMatch(ui, /adb[^\n]*\s(?:uninstall|clear)\s|tw\.searchbefore\.app\/|chmod\s+(?:777|a\+rw)|-wipe-data/);
 console.log('CI workflow policy: reviewed immutable pins, explicit OS, read-only token, no retained credentials or release secrets.');

@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import org.json.JSONObject
 import java.time.LocalDate
 
-@Composable fun FarmScreen(data: JSONObject, enabled: Boolean, save: (JSONObject) -> Unit, report: (String) -> Unit, export: () -> Unit) {
+@Composable fun FarmScreen(data: JSONObject, enabled: Boolean, save: (JSONObject) -> Unit, report: (String) -> Unit, export: (String) -> Unit) {
     var plotId by rememberSaveable { mutableStateOf("") }
     var type by rememberSaveable { mutableStateOf("cultivation") }
     var showTypes by remember { mutableStateOf(false) }
@@ -28,7 +28,7 @@ import java.time.LocalDate
         item { PlotPicker(plots, selectedPlot, "全部田區／設備作業", enabled) { plotId = it } }
         if (selectedPlot.isNotEmpty()) item { Info("採收等待期參考", Farm.safetyLabel(Farm.safety(data, selectedPlot))) }
         item { Button(enabled = enabled, onClick = { showTypes = true }) { Text("新增農務紀錄") } }
-        item { OutlinedButton(enabled = enabled, onClick = export) { Text("匯出用藥與農務 CSV") } }
+        item { OutlinedButton(enabled = enabled, onClick = { export(selectedPlot) }) { Text(if(selectedPlot.isEmpty()) "匯出全部用藥與農務 CSV" else "匯出此田區用藥與農務 CSV") } }
         if (rows.isEmpty()) item { Text("尚無農務紀錄。栽培、施肥、採收、採後處理、資材購入及設備保養都可記在這裡。") }
         items(rows, key = { it.getString("id") }) { r ->
             val label = Farm.types[r.optString("type")] ?: "其他農務（原始備份）"
