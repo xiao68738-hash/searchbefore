@@ -520,6 +520,7 @@ class MainActivity : ComponentActivity() {
                 OutlinedTextField(value = water, onValueChange = { water = it.take(16) }, label = { Text("每桶水量（公升）") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth())
                 Text(row.amount(water)?.let { "藥劑製品用量：$it ${row.unit}" } ?: "請輸入有效水量；極小量需另用合適量具核對。")
+                MeasurementAdviceText(row, row.amount(water))
                 Text("只依此筆稀釋倍數換算，仍須遵守登記用量及產品標示。", style = MaterialTheme.typography.bodySmall)
                 OutlinedButton(enabled = enabled && row.amount(water) != null, onClick = { onRecipe(water) }) { Text("存成常用配方") }
             }

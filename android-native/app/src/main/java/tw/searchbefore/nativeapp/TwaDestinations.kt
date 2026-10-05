@@ -76,6 +76,7 @@ import java.time.temporal.ChronoUnit
                             Text("換算總水量：${estimate.waterTotal} 公升")
                             Text("約當 ${estimate.tanks} 桶（每桶 $water 公升）")
                             Text("每桶製品用量：${estimate.perTank} ${row.unit}")
+                            MeasurementAdviceText(row, estimate.perTank)
                         }
                         Text("保留原登記用量範圍，不代選最高值。約當桶數不進位，不代表建議噴幾桶；實際施用量須核對標示與現場條件。")
                         Text("面積單位切換會清空輸入。小面積也不代表可任意用藥；極小用量需適當量具。此頁不會自動建立施藥紀錄。")
@@ -84,6 +85,7 @@ import java.time.temporal.ChronoUnit
                     Text("每桶藥劑製品用量", style = MaterialTheme.typography.titleMedium)
                     Text(amounts?.let { "${it.perTank} ${row.unit}" } ?: "請輸入有效水量與桶數", style = MaterialTheme.typography.headlineMedium)
                     if(amounts != null) {
+                        MeasurementAdviceText(row, amounts.perTank)
                         HorizontalDivider()
                         Text("本次總水量：${amounts.waterTotal} 公升")
                         Text("本次總藥量：${amounts.agentTotal} ${row.unit}", style = MaterialTheme.typography.titleLarge)
