@@ -47,7 +47,7 @@ class NativeLookupPresentationUiTest {
         compose.onNodeWithText("篩選商品名稱").performTextInput("TEST_E")
         compose.onNodeWithText("篩選商品名稱").performImeAction()
         compose.onNodeWithText("1／5 個").assertExists()
-        compose.onNodeWithText("TEST_E", useUnmergedTree = true).assertExists()
+        compose.onNode(hasText("TEST_E") and !hasSetTextAction()).assertIsDisplayed()
         compose.onNodeWithText("TEST_A").assertDoesNotExist()
         compose.onNodeWithText("關閉商品清單").performClick()
         compose.onNodeWithText("TEST_ONLY的商品名稱").assertDoesNotExist()
