@@ -44,7 +44,7 @@ class NativeCoreTest {
     }
     @Test fun nativeRejectsInvalidPlotInputsWithoutChangingData() {
         val original = Backup.empty()
-        for ((crop, tag, date) in listOf(Triple("洋蔥", "一區", ""), Triple("蔥", " ", ""),
+        for ((crop, tag, date) in listOf(Triple("洋蔥", "一區", ""), Triple("", "一區", ""),
             Triple("蔥", "長".repeat(121), ""), Triple("蔥", "一區", "2026-02-30"),
             Triple("蔥", "一區", java.time.LocalDate.now().plusDays(1).toString()))) {
             assertTrue(runCatching { Backup.addPlot(original, crop, tag, date, listOf("蔥")) }.isFailure)

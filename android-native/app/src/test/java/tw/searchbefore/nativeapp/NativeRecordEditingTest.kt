@@ -73,7 +73,7 @@ class NativeRecordEditingTest {
     }
     @Test fun plotEditRejectsBadInputAndDoesNotDeleteRecords() {
         val before = fixture(); val original = before.toString()
-        for (tag in listOf(" ", "字".repeat(121))) assertTrue(runCatching { Backup.updatePlot(before, "plot_a", stamp, tag, "") }.isFailure)
+        for (tag in listOf("bad\nname", "字".repeat(121))) assertTrue(runCatching { Backup.updatePlot(before, "plot_a", stamp, tag, "") }.isFailure)
         for (date in listOf("2026-02-30", LocalDate.now().plusDays(1).toString())) {
             assertTrue(runCatching { Backup.updatePlot(before, "plot_a", stamp, "一區", date) }.isFailure)
         }

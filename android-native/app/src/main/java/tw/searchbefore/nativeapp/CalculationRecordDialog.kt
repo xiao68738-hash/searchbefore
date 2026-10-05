@@ -16,7 +16,7 @@ import java.time.LocalDate
 @Composable internal fun CalculationRecordDialog(row: UsageRow, data: JSONObject, draft: CalculationDraft, enabled: Boolean,
     dismiss: () -> Unit, save: (String, String, ApplicationDetails, Boolean) -> Boolean) {
     var date by rememberSaveable(row.id, draft.reference) { mutableStateOf(LocalDate.now().toString()) }
-    var plotId by rememberSaveable(row.id, draft.reference) { mutableStateOf("") }
+    var plotId by rememberSaveable(row.id, draft.reference) { mutableStateOf(Backup.defaultPlot(data, row.crop)) }
     var water by rememberSaveable(row.id, draft.reference) { mutableStateOf(draft.details.water) }
     var total by rememberSaveable(row.id, draft.reference) { mutableStateOf(draft.details.totalWater) }
     var amount by rememberSaveable(row.id, draft.reference) { mutableStateOf(draft.details.amount) }

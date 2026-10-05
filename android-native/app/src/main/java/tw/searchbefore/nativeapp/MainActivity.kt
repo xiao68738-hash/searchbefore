@@ -161,18 +161,23 @@ class MainActivity : ComponentActivity() {
                                     prepareReport(scope); exportCsv.launch("噴前查農務_${LocalDate.now()}.csv")
                                 })
                                 else RecordsScreen(data, cat, !state.busy,
-                                addPlot = { crop, tag, date ->
-                                    runCatching { Backup.addPlot(requireNotNull(state.data), crop, tag, date, cat.crops) }
+                                addPlot = { draft ->
+                                    runCatching { Backup.addPlot(requireNotNull(state.data), draft.crop, draft.tag, draft.plantDate, cat.crops, draft.variety, draft.custom) }
                                         .onSuccess { persist(it) }.onFailure { state.error = it.message ?: "田區格式有誤" }
+                                        .isSuccess
                                 }, editRecord = { id, stamp, date, plotId, details ->
                                     runCatching { Backup.updateRecord(requireNotNull(state.data), id, stamp, date, plotId, details.operator, details) }
                                         .onSuccess { persist(it) }.onFailure { state.error = it.message ?: "紀錄修改失敗" }
-                                }, editPlot = { id, stamp, tag, date ->
-                                    runCatching { Backup.updatePlot(requireNotNull(state.data), id, stamp, tag, date) }
+                                }, editPlot = { id, stamp, draft ->
+                                    runCatching { Backup.updatePlot(requireNotNull(state.data), id, stamp, draft.tag, draft.plantDate, draft.variety) }
                                         .onSuccess { persist(it) }.onFailure { state.error = it.message ?: "田區修改失敗" }
+                                        .isSuccess
                                 }, delete = { collection, id, stamp ->
                                     runCatching { Farm.delete(requireNotNull(state.data), collection, id, stamp) }
                                         .onSuccess { persist(it) }.onFailure { state.error = it.message ?: "刪除失敗" }
+                                }, changeDefaultPlot = { id ->
+                                    runCatching { Backup.selectDefaultPlot(requireNotNull(state.data), id) }
+                                        .onSuccess { persist(it) }.onFailure { state.error = it.message ?: "預設田區設定失敗" }
                                 })
                             }
                             5 -> LazyColumn(Modifier.testTag("personalList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
@@ -398,7 +403,7 @@ class MainActivity : ComponentActivity() {
                 item { key(crop, pest, agentScope) { PhiFilterBar(phiMax) { phiMax = it } } }
                 item { Text("一般用法 ${sections.ordinary.size} 筆・特殊用法 ${sections.special.size} 筆・不符或待確認 ${sections.excluded.size} 筆") }
                 if(rows.isEmpty()) item { Text("沒有符合目前篩選的登記用法。可改選「全部」，不代表其他藥劑可使用。") }
-                items(sections.ordinary.take(shown), key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = { water -> saveRecipe(row, water) }, onCalculate = { onCalculate(row) }, rotation = rotationHistory[row.json.optString("moa").trim().uppercase()], onRecord = { recording = row; plotId = ""; date = LocalDate.now().toString(); details = ApplicationDetails() }) }
+                items(sections.ordinary.take(shown), key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = { water -> saveRecipe(row, water) }, onCalculate = { onCalculate(row) }, rotation = rotationHistory[row.json.optString("moa").trim().uppercase()], onRecord = { recording = row; plotId = Backup.defaultPlot(data, row.crop); date = LocalDate.now().toString(); details = ApplicationDetails() }) }
                 if (sections.ordinary.size > shown) item { TextButton(onClick = { shown += 20 }) { Text("顯示更多用法") } }
                 if(sections.special.isNotEmpty()) {
                     item { OutlinedButton(onClick = { showSpecial = !showSpecial }, modifier = Modifier.fillMaxWidth()) {
@@ -406,7 +411,7 @@ class MainActivity : ComponentActivity() {
                     } }
                     if(showSpecial) {
                         item { Info("特殊施用方式，與一般噴施分開", "包含種子處理、撒布、原液等用途；不提供稀釋計算，請依原登記方式與產品標示操作。") }
-                        items(sections.special, key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = { water -> saveRecipe(row, water) }, rotation = rotationHistory[row.json.optString("moa").trim().uppercase()], onRecord = { recording = row; plotId = ""; date = LocalDate.now().toString(); details = ApplicationDetails() }) }
+                        items(sections.special, key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = { water -> saveRecipe(row, water) }, rotation = rotationHistory[row.json.optString("moa").trim().uppercase()], onRecord = { recording = row; plotId = Backup.defaultPlot(data, row.crop); date = LocalDate.now().toString(); details = ApplicationDetails() }) }
                     }
                 }
                 if(sections.excluded.isNotEmpty()) {
@@ -516,18 +521,16 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable internal fun RecordsScreen(data: JSONObject, catalog: Catalog, enabled: Boolean,
-    addPlot: (String, String, String) -> Unit,
+    addPlot: (PlotDraft) -> Boolean,
     editRecord: (String, String, String, String, ApplicationDetails) -> Unit,
-    editPlot: (String, String, String, String) -> Unit,
-    delete: (String, String, String) -> Unit) {
+    editPlot: (String, String, PlotDraft) -> Boolean,
+    delete: (String, String, String) -> Unit, changeDefaultPlot: (String) -> Unit) {
     var selected by rememberSaveable { mutableStateOf("") }
     var recordQuery by rememberSaveable { mutableStateOf("") }
     val focus = LocalFocusManager.current
     var adding by rememberSaveable { mutableStateOf(false) }
-    var crop by rememberSaveable { mutableStateOf("") }
-    var tag by rememberSaveable { mutableStateOf("") }
-    var plantDate by rememberSaveable { mutableStateOf("") }
-    var editingPlot by remember { mutableStateOf<JSONObject?>(null) }
+    var editingPlotJson by rememberSaveable { mutableStateOf("") }
+    val editingPlot = editingPlotJson.takeIf { it.isNotEmpty() }?.let(::JSONObject)
     var editingRecord by remember { mutableStateOf<JSONObject?>(null) }
     var deleting by remember { mutableStateOf<Pair<String, JSONObject>?>(null) }
     var recordDate by rememberSaveable { mutableStateOf("") }
@@ -544,15 +547,20 @@ class MainActivity : ComponentActivity() {
         item { OutlinedTextField(recordQuery, { recordQuery = it.take(120) }, enabled = enabled,
             label = { Text("搜尋藥劑、作物、日期或備註") }, singleLine = true, modifier = Modifier.fillMaxWidth(),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = KeyboardActions(onDone = { focus.clearFocus() })) }
-        item { OutlinedButton(enabled = enabled, onClick = { crop = ""; tag = ""; plantDate = ""; adding = true }) { Text("新增田區／種植批次") } }
+        item { OutlinedButton(enabled = enabled, onClick = { adding = true }) { Text("新增田區／種植批次") } }
         if (effectiveSelection.isNotEmpty()) item {
+            OutlinedButton(enabled = enabled && data.optString("activePlotId") != effectiveSelection,
+                onClick = { changeDefaultPlot(effectiveSelection) }) { Text("設為新增紀錄預設田區") }
             OutlinedButton(enabled = enabled, onClick = {
-                editingPlot = plots.first { it.getString("id") == effectiveSelection }
-                tag = editingPlot!!.optString("tag"); plantDate = editingPlot!!.optString("plantDate")
+                editingPlotJson = plots.first { it.getString("id") == effectiveSelection }.toString()
             }) { Text("修改這個田區") }
             TextButton(enabled = enabled, onClick = { deleting = "fieldPlots" to plots.first { it.getString("id") == effectiveSelection } }) { Text("刪除空白田區") }
         }
         item { Text("目前 ${plots.size} 個田區、${data.getJSONArray("farmRecords").length()} 筆農務紀錄及 ${data.getJSONArray("recipes").length()} 個常用配方。") }
+        plots.firstOrNull { it.getString("id") == data.optString("activePlotId") }?.let { active -> item {
+            Text("新增紀錄預設：${Backup.plotLabel(active)}。用藥只在原登記作物完全相同時帶入，儲存前仍可更換。")
+            TextButton(enabled = enabled, onClick = { changeDefaultPlot("") }) { Text("取消預設田區") }
+        } }
         item { Text("田區篩選不會推定未指定紀錄的歸屬；沒有紀錄不代表可採收。") }
         if (records.isEmpty()) item { Text("還沒有紀錄。查詢藥劑後可按「紀錄用藥」，或從個人頁匯入 JSON 備份。") }
         if (records.isNotEmpty() && visible.isEmpty()) item { Text("沒有符合目前田區與搜尋條件的紀錄；可清空搜尋或改選全部田區。") }
@@ -576,15 +584,7 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-    if (adding) AlertDialog(onDismissRequest = { adding = false }, title = { Text("新增田區／種植批次") }, text = {
-        Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(value = crop, onValueChange = { crop = it.take(120) }, label = { Text("原登記作物，例如：蔥") })
-            if (crop !in catalog.crops) Text("請填完整登記名稱。可回查詢頁確認；此處不會自動合併作物別名。")
-            OutlinedTextField(value = tag, onValueChange = { tag = it.take(120) }, label = { Text("田區名稱，例如：後院第一區") })
-            OutlinedTextField(value = plantDate, onValueChange = { plantDate = it.take(10) }, label = { Text("種植日期 YYYY-MM-DD（可留空）") })
-        }
-    }, confirmButton = { TextButton(enabled = enabled && crop in catalog.crops && tag.isNotBlank() && (plantDate.isEmpty() || (Backup.validDate(plantDate) && !LocalDate.parse(plantDate).isAfter(LocalDate.now()))),
-        onClick = { addPlot(crop, tag, plantDate); adding = false }) { Text("儲存田區") } }, dismissButton = { TextButton(onClick = { adding = false }) { Text("取消") } })
+    if (adding) PlotEditorDialog(catalog.crops, null, enabled, dismiss = { adding = false }, save = addPlot)
     deleting?.let { (collection, item) -> AlertDialog(onDismissRequest = { deleting = null }, title = { Text("確認刪除？") },
         text = { Text(if(collection == "fieldPlots") "${Backup.plotLabel(item)}\n仍有用藥或農務紀錄的田區不能刪除。" else "${item.optString("date")}｜${item.optString("agent")}\n刪除會影響採收等待期參考。若已同意同步，下次同步會傳送刪除標記。") },
         confirmButton = { TextButton(enabled = enabled, onClick = { delete(collection, item.getString("id"), item.optString("updatedAt")); deleting = null }) { Text("確認刪除") } },
@@ -606,14 +606,8 @@ class MainActivity : ComponentActivity() {
         }) { Text("儲存修改") } }, dismissButton = { TextButton(onClick = { editingRecord = null }) { Text("取消") } })
     }
     editingPlot?.let { plot ->
-        AlertDialog(onDismissRequest = { editingPlot = null }, title = { Text("修改田區") }, text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("作物：${plot.optString("crop", plot.optString("name"))}。此處不更改作物，避免既有紀錄歸屬錯誤。")
-                OutlinedTextField(value = tag, onValueChange = { tag = it.take(120) }, label = { Text("田區名稱") })
-                OutlinedTextField(value = plantDate, onValueChange = { plantDate = it.take(10) }, label = { Text("種植日期 YYYY-MM-DD（可留空）") })
-            }
-        }, confirmButton = { TextButton(enabled = enabled && tag.isNotBlank() && (plantDate.isEmpty() || (Backup.validDate(plantDate) && !LocalDate.parse(plantDate).isAfter(LocalDate.now()))), onClick = {
-            editPlot(plot.getString("id"), plot.optString("updatedAt"), tag, plantDate); editingPlot = null
-        }) { Text("儲存修改") } }, dismissButton = { TextButton(onClick = { editingPlot = null }) { Text("取消") } })
+        PlotEditorDialog(catalog.crops, plot, enabled, dismiss = { editingPlotJson = "" }) { draft ->
+            editPlot(plot.getString("id"), plot.optString("updatedAt"), draft)
+        }
     }
 }

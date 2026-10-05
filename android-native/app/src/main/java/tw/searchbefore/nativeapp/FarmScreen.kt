@@ -83,7 +83,7 @@ import java.time.LocalDate
 @Composable private fun FarmEditor(data: JSONObject, type: String, selectedPlot: String, existing: JSONObject?, enabled: Boolean, close: () -> Unit, save: (JSONObject) -> Unit) {
     val editorKey = "$type:${existing?.optString("id").orEmpty()}"
     var date by rememberSaveable(editorKey) { mutableStateOf(existing?.optString("date") ?: LocalDate.now().toString()) }
-    var plotId by rememberSaveable(editorKey) { mutableStateOf(existing?.optString("plotId") ?: selectedPlot) }
+    var plotId by rememberSaveable(editorKey) { mutableStateOf(existing?.optString("plotId") ?: selectedPlot.ifEmpty { Backup.defaultPlot(data) }) }
     var operator by rememberSaveable(editorKey) { mutableStateOf(existing?.optString("operator") ?: data.optString("lastFarmOperator")) }
     var notes by rememberSaveable(editorKey) { mutableStateOf(existing?.optString("notes").orEmpty()) }
     var error by rememberSaveable(editorKey) { mutableStateOf("") }

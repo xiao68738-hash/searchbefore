@@ -100,18 +100,25 @@ object Backup {
     }
     fun plotLabel(plot: JSONObject): String = listOf(plot.optString("crop", plot.optString("name")),
         plot.optString("variety"), plot.optString("tag")).filter { it.isNotBlank() }.joinToString(" / ")
-    fun addPlot(data: JSONObject, crop: String, tag: String, plantDate: String, catalogCrops: List<String>): JSONObject {
-        require(crop in catalogCrops) { "請選擇原登記作物名稱" }
-        require(tag.trim().length in 1..120) { "請填寫 1～120 字的田區名稱" }
-        require(plantDate.isEmpty() || validDate(plantDate)) { "種植日期格式不正確" }
-        require(plantDate.isEmpty() || !LocalDate.parse(plantDate).isAfter(LocalDate.now())) { "實際種植日期不可填未來日期" }
+    fun addPlot(data: JSONObject, crop: String, tag: String, plantDate: String, catalogCrops: List<String>, variety: String = "", custom: Boolean = false): JSONObject {
+        val draft = PlotDraft(crop, tag, plantDate, variety, custom)
+        draft.validate(catalogCrops)
+        val name = crop.trim()
         val next = JSONObject(data.toString())
-        val plot = JSONObject().put("id", "plot_" + UUID.randomUUID().toString()).put("name", crop)
-            .put("crop", crop).put("cropSource", "registered").put("tag", tag.trim()).put("variety", "")
+        val plot = JSONObject().put("id", "plot_" + UUID.randomUUID().toString()).put("name", name)
+            .put("crop", name).put("cropSource", if(name in catalogCrops) "registered" else "custom").put("tag", tag.trim()).put("variety", variety.trim())
             .put("plantDate", plantDate).put("createdAt", LocalDate.now().toString())
             .put("updatedAt", DateTimeFormatterBuilder().appendInstant(3).toFormatter().format(Instant.now()))
         next.getJSONArray("fieldPlots").put(plot)
+        next.put("activePlotId", plot.getString("id"))
         return parse(encode(next))
+    }
+    fun defaultPlot(data: JSONObject, crop: String? = null): String = plots(data).firstOrNull {
+        it.optString("id") == data.optString("activePlotId") && (crop == null || it.optString("crop", it.optString("name")) == crop)
+    }?.getString("id").orEmpty()
+    fun selectDefaultPlot(data: JSONObject, id: String): JSONObject {
+        require(id.isEmpty() || plots(data).any { it.getString("id") == id }) { "預設田區已不存在，請重新選擇" }
+        return parse(encode(JSONObject(data.toString()).put("activePlotId", id)))
     }
     fun appendRecord(data: JSONObject, row: UsageRow, date: String, plotId: String, details: ApplicationDetails = ApplicationDetails()): JSONObject {
         require(!row.formExcluded) { "此收穫型態用法待確認，請回原登記核對" }
@@ -149,8 +156,9 @@ object Backup {
         // Update a clone in place: unknown backup fields and other records survive.
         return parse(encode(next))
     }
-    fun updatePlot(data: JSONObject, id: String, expectedStamp: String, tag: String, plantDate: String): JSONObject {
-        require(tag.trim().length in 1..120) { "請填寫 1～120 字的田區名稱" }
+    fun updatePlot(data: JSONObject, id: String, expectedStamp: String, tag: String, plantDate: String, variety: String? = null): JSONObject {
+        require(tag.trim().length <= 120 && tag.none { it.isISOControl() }) { "田區名稱最多 120 字，不含控制字元" }
+        require(variety == null || (variety.trim().length <= 120 && variety.none { it.isISOControl() })) { "品種最多 120 字，不含控制字元" }
         require(plantDate.isEmpty() || (validDate(plantDate) && !LocalDate.parse(plantDate).isAfter(LocalDate.now()))) { "種植日期不正確或尚未發生" }
         val next = JSONObject(data.toString())
         val plot = plots(next).find { it.getString("id") == id }
@@ -158,6 +166,7 @@ object Backup {
         require(plot.optString("updatedAt") == expectedStamp) { "田區已更新，請重新開啟再編輯" }
         // Crop/id remain immutable here so existing spray and farm records keep their meaning.
         plot.put("tag", tag.trim()).put("plantDate", plantDate).put("updatedAt", nextStamp(expectedStamp))
+        if(variety != null) plot.put("variety", variety.trim())
         return parse(encode(next))
     }
     fun record(row: UsageRow, date: String): JSONObject {
