@@ -141,6 +141,13 @@ class NativeState(application: Application) : AndroidViewModel(application) {
         }
         error = "用藥與農務 CSV 已匯出。這是閱讀用報表，完整還原請使用 JSON 備份。"
     }
+    fun exportCalendar(uri: Uri, plotId: String) = task("行事曆匯出失敗，請核對田區與等待期。原紀錄未變動。") {
+        val bytes = CalendarExport.encode(requireNotNull(data), plotId)
+        withContext(Dispatchers.IO) {
+            getApplication<Application>().contentResolver.openOutputStream(uri, "wt")?.use { it.write(bytes) } ?: error("無法開啟檔案")
+        }
+        error = "行事曆快照已匯出，尚未加入你的行事曆。匯入前請核對儲存位置與服務商；新施藥不會自動更新此檔，等待期到期不代表可採收。"
+    }
     fun exportReport(uri: Uri, pdf: Boolean, scope: ReportScope = ReportScope()) = task("報表匯出失敗。請檢查日期與田區；PDF 上限 2,000 筆，更多資料請用 CSV／Excel。原紀錄未變動。") {
         val snapshot = scope.select(requireNotNull(data))
         withContext(Dispatchers.IO) {

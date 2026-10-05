@@ -119,7 +119,7 @@ internal fun countdownLabel(record: JSONObject, today: LocalDate): String {
     return if(days > 0) "尚差 $days 天" else "等待期已到，仍需核對"
 }
 
-@Composable internal fun CountdownScreen(data: JSONObject, enabled: Boolean, today: LocalDate = LocalDate.now(), recordsPage: () -> Unit) {
+@Composable internal fun CountdownScreen(data: JSONObject, enabled: Boolean, today: LocalDate = LocalDate.now(), exportCalendar: ((String) -> Unit)? = null, recordsPage: () -> Unit) {
     var selected by rememberSaveable { mutableStateOf("") }
     var calendar by rememberSaveable { mutableStateOf(false) }
     var monthText by rememberSaveable { mutableStateOf(YearMonth.from(today).toString()) }
@@ -135,6 +135,7 @@ internal fun countdownLabel(record: JSONObject, today: LocalDate): String {
         item { QueryStep(1, "安全採收期倒數") }
         item { Text("同一田區以最晚等待期為準；任一筆未確認，整區不顯示已到期。未指定田區的紀錄分開計算。等待期已到不代表殘留合格。") }
         item { PlotPicker(plots, effective, "全部田區與未指定紀錄", enabled) { selected = it } }
+        if(exportCalendar != null) item { CalendarExportButton(data, selected, enabled, exportCalendar) }
         item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(selected = !calendar, enabled = enabled, onClick = { calendar = false }, label = { Text("清單") })
             FilterChip(selected = calendar, enabled = enabled, onClick = { calendar = true }, label = { Text("日曆") })

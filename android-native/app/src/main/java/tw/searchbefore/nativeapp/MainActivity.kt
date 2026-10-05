@@ -70,6 +70,7 @@ class MainActivity : ComponentActivity() {
                 val reportScope = ReportScope(reportFrom, reportTo, reportPlot, reportKind)
                 // Preserve the selected scope through the system document picker/activity recreation.
                 var exportScopeJson by rememberSaveable { mutableStateOf("{}") }
+                var calendarExportPlot by rememberSaveable { mutableStateOf("") }
                 fun prepareReport(scope: ReportScope) {
                     exportScopeJson = JSONObject().put("from", scope.from).put("to", scope.to).put("plotId", scope.plotId).put("kind", scope.kind).toString()
                 }
@@ -98,6 +99,7 @@ class MainActivity : ComponentActivity() {
                     if (uri != null) state.exportCsv(uri, selectedReport())
                 }
                 val exportExcel = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) { uri -> if(uri != null) state.exportReport(uri, false, selectedReport()) }
+                val exportCalendar = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/calendar")) { uri -> if(uri != null) state.exportCalendar(uri, calendarExportPlot) }
                 val exportPdf = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/pdf")) { uri -> if(uri != null) state.exportReport(uri, true, selectedReport()) }
                 fun persist(next: JSONObject, keepRecovery: Boolean = false) {
                     state.persist(next, keepRecovery)
@@ -145,7 +147,9 @@ class MainActivity : ComponentActivity() {
                                     pageState.removeState(1); calculationLaunch++; calculationWater = water
                                     calculationId = row.id; calculationForm = row.json.optString("selectedHarvestForm"); tab = 1
                                 })
-                            3 -> CountdownScreen(data, !state.busy) { recordSection = 0; tab = 4 }
+                            3 -> CountdownScreen(data, !state.busy, exportCalendar = { plot ->
+                                calendarExportPlot = plot; exportCalendar.launch("噴前查等待期提醒_${LocalDate.now()}.ics")
+                            }) { recordSection = 0; tab = 4 }
                             4 -> Column {
                                 Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                     FilterChip(selected = recordSection == 0, onClick = { recordSection = 0 }, label = { Text("用藥與田區") })
