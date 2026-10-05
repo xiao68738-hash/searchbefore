@@ -32,6 +32,17 @@ class NativeHelpUiTest {
         compose.onNodeWithText("開啟郵件草稿").assertDoesNotExist()
         compose.onNodeWithText("複製回饋內容").assertIsNotEnabled()
     }
+    @Test fun publicQueryContextRequiresSeparateOptInAndNeverSendsAutomatically() {
+        val copies = mutableListOf<String>(); var mails = 0
+        compose.setContent { SearchBeforeTheme { FeedbackDialog("TEST", true, {}, { copies += it }, true,
+            { _, _ -> mails++ }, publicContext = "作物：TEST_CROP\n防治對象：TEST_PEST") } }
+        compose.onNodeWithText("問題描述（最多 2,000 字）").performScrollTo().performTextInput("TEST_DESCRIPTION")
+        compose.onNodeWithText("複製回饋內容").performClick()
+        compose.runOnIdle { assertFalse(copies.single().contains("TEST_CROP")); assertEquals(0, mails) }
+        compose.onNodeWithTag("includePublicQuery").performScrollTo().assertIsOff().performClick()
+        compose.onNodeWithText("複製回饋內容").performClick()
+        compose.runOnIdle { assertTrue(copies.last().contains("TEST_CROP")); assertTrue(copies.last().contains("TEST_PEST")); assertEquals(0, mails) }
+    }
     @Test fun bundledGuideCanBeReadAndClosedWithoutNetworkAction() {
         val guide = JSONObject().put("id", "test").put("title", "TEST_GUIDE").put("sourceUrl", "https://searchbefore.tw/guide-phi.html")
             .put("blocks", JSONArray(listOf("TEST_OFFLINE_BODY", "安全界線 TEST_BOUNDARY")))

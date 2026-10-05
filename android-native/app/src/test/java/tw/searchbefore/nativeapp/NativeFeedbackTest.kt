@@ -19,4 +19,9 @@ class NativeFeedbackTest {
         for(email in listOf("", "feedback@example.org?bcc=other@example.org", "a@example.org,b@example.org", "a@example.org\nCC:b@example.org", "a@example.org "))
             assertFalse(NativeFeedback.validEmail(email))
     }
+    @Test fun optionalPublicContextIsBoundedAndNotAddedByDefault() {
+        assertFalse(NativeFeedback.body("其他", "TEST", "1", "1").contains("公開查詢條件"))
+        assertTrue(NativeFeedback.body("其他", "TEST", "1", "1", "作物：TEST_CROP").contains("公開查詢條件：\n作物：TEST_CROP"))
+        assertTrue(runCatching { NativeFeedback.body("其他", "TEST", "1", "1", "x".repeat(1001)) }.isFailure)
+    }
 }

@@ -24,6 +24,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -241,7 +242,7 @@ class MainActivity : ComponentActivity() {
                                 }
                                 item { DisplaySettings(state.displayPreferences, !state.busy, state::setDisplayPreferences) }
                                 item { NativeHelpCard(cat, !state.busy) }
-                                item { Text("資料版本 ${cat.version}\n資料來源：農業部農藥開放資料。本預覽僅列精確作物登記，尚未加入作物群組延伸。未列出不代表可使用；依產品標示及最新公告為準。") }
+                                item { Text("資料版本 ${cat.version}\n資料來源：農業部農藥開放資料。僅列所選作物的原登記，不自動延伸到相似作物或作物群組。未列出不代表可使用；依產品標示及最新公告為準。") }
                             }
                         } }
                         }
@@ -266,7 +267,7 @@ class MainActivity : ComponentActivity() {
                             OutlinedButton(enabled = !state.busy, onClick = { migrationHelp = false; importBackup.launch(arrayOf("application/json", "text/plain")) }) { Text("選擇 JSON 備份") }
                             Text("3. 若舊版已完成雲端同步，可在個人頁登入同一 Google 帳號，再自行開啟同步並按立即同步。僅登入不會還原；雲端不包含配方與偏好。")
                             TextButton(onClick = { migrationHelp = false; tab = 5 }) { Text("前往個人頁") }
-                            Text("完成後請核對田區、用藥日期、用量、農務和配方。尚未核對前，請保留原始備份；內部測試不代表正式驗收完成。")
+                            Text("完成後請核對田區、用藥日期、用量、農務和配方。尚未核對前，請保留原始備份，不要清除原裝置或瀏覽器的資料。")
                         }
                     },
                     confirmButton = { TextButton(onClick = { migrationHelp = false }) { Text("先繼續使用") } })
@@ -300,10 +301,12 @@ class MainActivity : ComponentActivity() {
     var showSpecial by rememberSaveable(crop, pest, agentScope) { mutableStateOf(false) }
     var showExcluded by rememberSaveable(crop, pest, agentScope) { mutableStateOf(false) }
     var shown by rememberSaveable(crop, pest, query, overview, harvestForm, phiMax, overviewQuery, agentScope) { mutableIntStateOf(20) }
-    var recording by remember { mutableStateOf<UsageRow?>(null) }
+    var recording by rememberSaveable(stateSaver = Saver<UsageRow?, String>(
+        save = { it?.json?.toString().orEmpty() }, restore = { it.takeIf(String::isNotEmpty)?.let { raw -> UsageRow(JSONObject(raw)) } }
+    )) { mutableStateOf<UsageRow?>(null) }
     var date by rememberSaveable { mutableStateOf(LocalDate.now().toString()) }
     var plotId by rememberSaveable { mutableStateOf("") }
-    var details by remember { mutableStateOf(ApplicationDetails()) }
+    var details by rememberSaveable(stateSaver = ApplicationDetailsSaver) { mutableStateOf(ApplicationDetails()) }
     val cropSuggestions = remember(query, mode) { if(mode == 0) catalog.cropSuggestions(query) else emptyList() }
     val agentSuggestions = remember(query, mode) { if(mode == 1) catalog.agentSuggestions(query) else emptyList() }
     val today = LocalDate.now()
@@ -451,12 +454,14 @@ class MainActivity : ComponentActivity() {
                         Text("分開查看，不代表藥劑可互用。", style = MaterialTheme.typography.bodySmall)
                     } }
                 }
+                item { NativeFeedbackEntry(catalog, enabled, listOf("作物：$crop", "防治對象：$pest",
+                    agentScope.takeIf { it.isNotEmpty() }?.let { "藥劑篩選：$it" }, harvestForm.takeIf { it.isNotEmpty() }?.let { "採收部位：$it" }).filterNotNull().joinToString("\n")) }
             }
         }
     }
     recording?.let { row -> AlertDialog(onDismissRequest = { recording = null }, title = { Text("紀錄實際施藥") },
         text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) { Text("${row.crop} × ${row.pest}｜${row.name}\n請確認已實際施用；不會因瀏覽或計算自動紀錄。")
-            OutlinedTextField(value = date, onValueChange = { date = it.take(10) }, label = { Text("日期 YYYY-MM-DD") })
+            OutlinedTextField(value = date, onValueChange = { date = it.take(11) }, label = { Text("日期 YYYY-MM-DD") })
             PlotPicker(Backup.plots(data).filter { it.optString("crop", it.optString("name")) == row.crop }, plotId, "未指定田區", enabled) { plotId = it }
             Text("只列相同登記作物的田區；未指定的紀錄不歸入任何田區。", style = MaterialTheme.typography.bodySmall)
             ApplicationFields(details) { details = it }
@@ -555,11 +560,13 @@ class MainActivity : ComponentActivity() {
     var adding by rememberSaveable { mutableStateOf(false) }
     var editingPlotJson by rememberSaveable { mutableStateOf("") }
     val editingPlot = editingPlotJson.takeIf { it.isNotEmpty() }?.let(::JSONObject)
-    var editingRecord by remember { mutableStateOf<JSONObject?>(null) }
+    var editingRecord by rememberSaveable(stateSaver = Saver<JSONObject?, String>(
+        save = { it?.toString().orEmpty() }, restore = { it.takeIf(String::isNotEmpty)?.let(::JSONObject) }
+    )) { mutableStateOf<JSONObject?>(null) }
     var deleting by remember { mutableStateOf<Pair<String, JSONObject>?>(null) }
     var recordDate by rememberSaveable { mutableStateOf("") }
     var recordPlot by rememberSaveable { mutableStateOf("") }
-    var recordDetails by remember { mutableStateOf(ApplicationDetails()) }
+    var recordDetails by rememberSaveable(stateSaver = ApplicationDetailsSaver) { mutableStateOf(ApplicationDetails()) }
     val plots = Backup.plots(data)
     val records = data.getJSONArray("records").let { a -> (0 until a.length()).map { a.getJSONObject(it) }.sortedByDescending { it.optString("date") } }
     val effectiveSelection = selected.takeIf { id -> plots.any { it.getString("id") == id } }.orEmpty()
@@ -619,7 +626,7 @@ class MainActivity : ComponentActivity() {
         AlertDialog(onDismissRequest = { editingRecord = null }, title = { Text("修改用藥紀錄") }, text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("${record.getString("crop")} × ${record.optString("pest")}｜${record.getString("agent")}")
-                OutlinedTextField(value = recordDate, onValueChange = { recordDate = it.take(10) }, label = { Text("實際施藥日期 YYYY-MM-DD") })
+                OutlinedTextField(value = recordDate, onValueChange = { recordDate = it.take(11) }, label = { Text("實際施藥日期 YYYY-MM-DD") })
                 PlotPicker(matchingPlots, recordPlot, "未指定田區", enabled) { recordPlot = it }
                 if (!plotValid) Text("原紀錄田區與作物不符，請重新選擇或解除歸屬。", color = MaterialTheme.colorScheme.error)
                 ApplicationFields(recordDetails) { recordDetails = it }

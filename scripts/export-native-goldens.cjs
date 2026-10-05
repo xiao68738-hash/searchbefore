@@ -41,6 +41,10 @@ function writeGoldens(){
   const output=path.join(__dirname,'../android-native/app/src/test/resources/web-native-golden.json');
   fs.mkdirSync(path.dirname(output),{recursive:true});
   const data=buildGoldens();fs.writeFileSync(output,JSON.stringify(data));
+  // Test APK assets only; never bundle backup fixtures in the application APK.
+  const migrationOutput=path.join(__dirname,'../android-native/app/src/androidTest/assets/synthetic-migration.json');
+  fs.mkdirSync(path.dirname(migrationOutput),{recursive:true});
+  fs.writeFileSync(migrationOutput,JSON.stringify(data.migration));
   console.log(`Native web-parity fixtures: ${data.harvest.length} harvest dates, ${data.sync.length} sync cases, ${data.batchSafety.length} batch safety cases.`);
 }
 if(require.main===module)writeGoldens();

@@ -90,5 +90,9 @@ class NativeQueryParityTest {
         reveal(hasText("匯出 Excel 報表"), "personalList").assertIsNotEnabled()
         reveal(hasText("清除報表篩選"), "personalList").performClick()
         reveal(hasText("匯出 Excel 報表"), "personalList").assertIsEnabled()
+        reveal(hasText("報表起日 YYYY-MM-DD（可留空）"), "personalList").performTextReplacement("2026-01-010")
+        compose.onNodeWithText("報表起日 YYYY-MM-DD（可留空）").performImeAction()
+        reveal(hasText("匯出 Excel 報表"), "personalList").assertIsNotEnabled()
+        reveal(hasText("匯出完整備份"), "personalList").assertIsEnabled()
     }
 }

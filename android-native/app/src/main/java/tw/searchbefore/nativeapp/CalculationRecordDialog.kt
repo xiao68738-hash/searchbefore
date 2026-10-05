@@ -41,7 +41,7 @@ import java.time.LocalDate
             Text(draft.reference)
             row.residueText?.let { ResidueNotice(it) }
             Text("只有最後按下儲存才會新增紀錄；取消不儲存。已開啟雲端同步者仍須自行執行同步。")
-            OutlinedTextField(date, { date = it.take(10); confirmed = false }, label = { Text("實際施藥日期 YYYY-MM-DD") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(date, { date = it.take(11); confirmed = false }, label = { Text("實際施藥日期 YYYY-MM-DD") }, modifier = Modifier.fillMaxWidth())
             if(!validDate) Text("請填有效的實際施藥日期，不可填未來日期。", color = MaterialTheme.colorScheme.error)
             PlotPicker(plots, plotId, "未指定田區", enabled && !submitting) { plotId = it; confirmed = false }
             Text("僅可選相同登記作物的田區；未指定不會自動歸入田區。", style = MaterialTheme.typography.bodySmall)

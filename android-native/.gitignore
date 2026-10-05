@@ -8,3 +8,4 @@ app/src/main/res/values/firebase-local.xml
 firebase-preview.json
 firebase-production.json
 app/src/test/resources/web-native-golden.json
+app/src/androidTest/assets/synthetic-migration.json

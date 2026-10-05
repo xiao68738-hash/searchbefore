@@ -22,10 +22,10 @@ import org.json.JSONObject
         ReportScope.kinds.forEach { (key, label) -> FilterChip(selected = scope.kind == key, enabled = enabled,
             onClick = { change(scope.copy(kind = key)) }, label = { Text(label) }) }
     }
-    OutlinedTextField(scope.from, { change(scope.copy(from = it.take(10))) }, enabled = enabled, label = { Text("報表起日 YYYY-MM-DD（可留空）") },
+    OutlinedTextField(scope.from, { change(scope.copy(from = it.take(11))) }, enabled = enabled, label = { Text("報表起日 YYYY-MM-DD（可留空）") },
         singleLine = true, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }))
-    OutlinedTextField(scope.to, { change(scope.copy(to = it.take(10))) }, enabled = enabled, label = { Text("報表迄日 YYYY-MM-DD（可留空）") },
+    OutlinedTextField(scope.to, { change(scope.copy(to = it.take(11))) }, enabled = enabled, label = { Text("報表迄日 YYYY-MM-DD（可留空）") },
         singleLine = true, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }))
     val selected = runCatching { scope.counts(data) }

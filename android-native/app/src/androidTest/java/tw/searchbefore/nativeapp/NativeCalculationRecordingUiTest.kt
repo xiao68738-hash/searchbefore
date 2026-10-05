@@ -73,6 +73,10 @@ class NativeCalculationRecordingUiTest {
         compose.onNodeWithTag("confirmActualApplication").performScrollTo().performClick()
         compose.onNodeWithText("確認並儲存實際用藥").assertIsNotEnabled()
         compose.runOnIdle { assertEquals(0, calls) }
+        compose.onNodeWithText("實際施藥日期 YYYY-MM-DD").performScrollTo().performTextReplacement("2020-01-010")
+        compose.onNodeWithTag("confirmActualApplication").performScrollTo().performClick()
+        compose.onNodeWithText("確認並儲存實際用藥").assertIsNotEnabled()
+        compose.runOnIdle { assertEquals(0, calls) }
         compose.onNodeWithText("實際施藥日期 YYYY-MM-DD").performScrollTo().performTextReplacement("2020-01-01")
         compose.onNodeWithTag("confirmActualApplication").performScrollTo().performClick()
         compose.onNodeWithText("確認並儲存實際用藥").performClick()

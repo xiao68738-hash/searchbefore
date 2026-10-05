@@ -14,10 +14,10 @@ import androidx.compose.ui.text.input.ImeAction
     OutlinedTextField(filter.query, { change(filter.copy(query = it.take(120))) }, enabled = enabled,
         label = { Text("搜尋紀錄、資材、操作者或備註") }, modifier = Modifier.fillMaxWidth(), singleLine = true,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search), keyboardActions = KeyboardActions(onSearch = { focus.clearFocus() }))
-    OutlinedTextField(filter.from, { change(filter.copy(from = it.take(10))) }, enabled = enabled,
+    OutlinedTextField(filter.from, { change(filter.copy(from = it.take(11))) }, enabled = enabled,
         label = { Text("紀錄起日 YYYY-MM-DD（可留空）") }, modifier = Modifier.fillMaxWidth(), singleLine = true,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }))
-    OutlinedTextField(filter.to, { change(filter.copy(to = it.take(10))) }, enabled = enabled,
+    OutlinedTextField(filter.to, { change(filter.copy(to = it.take(11))) }, enabled = enabled,
         label = { Text("紀錄迄日 YYYY-MM-DD（可留空）") }, modifier = Modifier.fillMaxWidth(), singleLine = true,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done), keyboardActions = KeyboardActions(onDone = { focus.clearFocus() }))
     TextButton(enabled = enabled, onClick = { change(filter.copy(from = "", to = "", query = "", type = "")) }) { Text("清除日期、文字與類型篩選") }
