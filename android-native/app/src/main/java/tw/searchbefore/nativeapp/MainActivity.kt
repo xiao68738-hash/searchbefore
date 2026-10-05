@@ -60,6 +60,8 @@ class MainActivity : ComponentActivity() {
                 var recordSection by rememberSaveable { mutableIntStateOf(0) }
                 var calculationId by rememberSaveable { mutableStateOf("") }
                 var calculationForm by rememberSaveable { mutableStateOf("") }
+                var calculationWater by rememberSaveable { mutableStateOf("1") }
+                var calculationLaunch by rememberSaveable { mutableIntStateOf(0) }
                 var reportFrom by rememberSaveable { mutableStateOf("") }
                 var reportTo by rememberSaveable { mutableStateOf("") }
                 var reportPlot by rememberSaveable { mutableStateOf("") }
@@ -122,6 +124,7 @@ class MainActivity : ComponentActivity() {
                         val data = state.data
                         if (cat != null && data != null) pageState.SaveableStateProvider(tab) { when (tab) {
                             0 -> QueryScreen(cat, data, !state.busy, onCalculate = { row ->
+                                pageState.removeState(1); calculationWater = "1"; calculationLaunch++
                                 calculationId = row.id; calculationForm = row.json.optString("selectedHarvestForm"); tab = 1
                             }, saveRecipe = { row, water ->
                                 runCatching { Recipes.add(requireNotNull(state.data), row, water) }.onSuccess { persist(it) }.onFailure { state.error = it.message ?: "配方無法儲存" }
@@ -132,8 +135,15 @@ class MainActivity : ComponentActivity() {
                             1 -> CalculationScreen(cat.rows.find { it.id == calculationId }?.withHarvestForm(calculationForm), !state.busy,
                                 choose = { tab = 0 }, saveRecipe = { row, water ->
                                     runCatching { Recipes.add(requireNotNull(state.data), row, water) }.onSuccess { persist(it) }.onFailure { state.error = it.message ?: "配方無法儲存" }
+                                }, data = data, record = { row, date, plotId, details, confirmed ->
+                                    runCatching { CalculationRecording.append(requireNotNull(state.data), row, date, plotId, details, confirmed) }
+                                        .onSuccess { persist(it) }.onFailure { state.error = it.message ?: "紀錄格式有誤" }.isSuccess
+                                }, initialWater = calculationWater, launchKey = calculationLaunch.toString())
+                            2 -> RecipesScreen(data, !state.busy, save = { persist(it) }, report = { state.error = it }, catalog = cat,
+                                use = { row, water ->
+                                    pageState.removeState(1); calculationLaunch++; calculationWater = water
+                                    calculationId = row.id; calculationForm = row.json.optString("selectedHarvestForm"); tab = 1
                                 })
-                            2 -> RecipesScreen(data, !state.busy, save = { persist(it) }, report = { state.error = it })
                             3 -> CountdownScreen(data, !state.busy) { recordSection = 0; tab = 4 }
                             4 -> Column {
                                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

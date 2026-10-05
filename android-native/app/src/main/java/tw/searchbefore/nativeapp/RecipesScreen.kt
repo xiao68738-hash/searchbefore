@@ -18,13 +18,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import org.json.JSONObject
 
-@Composable fun RecipesScreen(data: JSONObject, enabled: Boolean, save: (JSONObject) -> Unit, report: (String) -> Unit) {
+@Composable fun RecipesScreen(data: JSONObject, enabled: Boolean, save: (JSONObject) -> Unit, report: (String) -> Unit,
+    catalog: Catalog? = null, use: ((UsageRow, String) -> Unit)? = null) {
     var query by rememberSaveable { mutableStateOf("") }
     var selected by remember { mutableStateOf<Pair<Int, JSONObject>?>(null) }
     var deleting by remember { mutableStateOf<Pair<Int, JSONObject>?>(null) }
     var batch by rememberSaveable { mutableStateOf(false) }
     var batchWater by rememberSaveable { mutableStateOf("1") }
     var batchTanks by rememberSaveable { mutableStateOf("1") }
+    var usingRecipe by rememberSaveable { mutableStateOf("") }
     val rows = Recipes.rows(data)
     val focus = LocalFocusManager.current
     val done = KeyboardActions(onDone = { focus.clearFocus() })
@@ -59,10 +61,21 @@ import org.json.JSONObject
                         }
                     }
                     if (recipe.optString("note").isNotBlank()) Text(recipe.optString("note"))
+                    if(catalog != null && use != null) OutlinedButton(enabled = enabled, onClick = { focus.clearFocus(); usingRecipe = recipe.toString() }) { Text("核對原登記並使用") }
                     TextButton(enabled = enabled && amount != null, onClick = { selected = index to recipe }) { Text("調整水量／商品名／備註") }
                     TextButton(enabled = enabled, onClick = { deleting = index to recipe }) { Text("刪除此配方") }
                 }
             }
+        }
+    }
+    if(usingRecipe.isNotEmpty() && catalog != null && use != null) {
+        val recipe = JSONObject(usingRecipe)
+        RecipeUseDialog(recipe, catalog, enabled, dismiss = { usingRecipe = "" }) { id, form ->
+            runCatching {
+                require(Recipes.rows(data).any { NativeSync.canonical(it) == NativeSync.canonical(recipe) }) { "配方已被修改或刪除，請重新開啟" }
+                RecipeUse.launch(recipe, catalog, id, form)
+            }.onSuccess { (row, water) -> usingRecipe = ""; use(row, water) }
+                .onFailure { report(it.message ?: "配方無法帶入，請重新查詢") }
         }
     }
     selected?.let { (index, recipe) ->

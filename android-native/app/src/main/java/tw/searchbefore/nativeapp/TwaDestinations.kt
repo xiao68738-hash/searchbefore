@@ -20,13 +20,18 @@ import java.time.YearMonth
 import java.time.temporal.ChronoUnit
 
 /** Reuse validated dilution rules, never invent a ratio or save an actual-use record on navigation. */
-@Composable internal fun CalculationScreen(row: UsageRow?, enabled: Boolean, choose: () -> Unit, saveRecipe: (UsageRow, String) -> Unit) {
-    var water by rememberSaveable(row?.id) { mutableStateOf("1") }
-    var tanks by rememberSaveable(row?.id) { mutableStateOf("1") }
-    var areaMode by rememberSaveable(row?.id) { mutableStateOf(false) }
-    var area by rememberSaveable(row?.id) { mutableStateOf("") }
-    var areaUnitName by rememberSaveable(row?.id) { mutableStateOf(AreaUnit.SQUARE_METER.name) }
+@Composable internal fun CalculationScreen(row: UsageRow?, enabled: Boolean, choose: () -> Unit, saveRecipe: (UsageRow, String) -> Unit,
+    data: JSONObject? = null, record: ((UsageRow, String, String, ApplicationDetails, Boolean) -> Boolean)? = null,
+    initialWater: String = "1", launchKey: String = "") {
+    val sessionKey = "${row?.id}:${row?.json?.optString("selectedHarvestForm")}:$launchKey"
+    var water by rememberSaveable(sessionKey) { mutableStateOf(initialWater) }
+    var tanks by rememberSaveable(sessionKey) { mutableStateOf("1") }
+    var areaMode by rememberSaveable(sessionKey) { mutableStateOf(false) }
+    var area by rememberSaveable(sessionKey) { mutableStateOf("") }
+    var areaUnitName by rememberSaveable(sessionKey) { mutableStateOf(AreaUnit.SQUARE_METER.name) }
+    var recording by rememberSaveable(sessionKey) { mutableStateOf(false) }
     val areaUnit = AreaUnit.valueOf(areaUnitName)
+    val draft = row?.let { if(areaMode) CalculationRecording.area(it, water, area, areaUnit) else CalculationRecording.tanks(it, water, tanks) }
     val focus = LocalFocusManager.current
     val done = KeyboardActions(onDone = { focus.clearFocus() })
     LazyColumn(Modifier.testTag("calculationList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
@@ -92,8 +97,17 @@ import java.time.temporal.ChronoUnit
                 if(note.isNotBlank() && note != "-") item { Info("使用注意事項", note) }
                 item { Text("常用配方只保存每桶水量與該筆用法，不保存本次桶數、面積或估算總量。", style = MaterialTheme.typography.bodySmall) }
                 item { Button(enabled = enabled && (if(areaMode) areaAmounts(row, water, area, areaUnit) != null else amounts != null), onClick = { saveRecipe(row, water) }, modifier = Modifier.fillMaxWidth()) { Text("存成常用配方") } }
+                if(data != null && record != null) item {
+                    OutlinedButton(enabled = enabled && draft != null, onClick = { focus.clearFocus(); recording = true }, modifier = Modifier.fillMaxWidth()) { Text("帶入實際施藥確認") }
+                    Text("僅開啟待確認表單，不會因計算而自動儲存。", style = MaterialTheme.typography.bodySmall)
+                }
             } else item { Info("此用法不提供稀釋計算", "特殊施用方式或採收型態不適用／待核對，請依原登記及產品標示操作。") }
             item { OutlinedButton(enabled = enabled, onClick = choose, modifier = Modifier.fillMaxWidth()) { Text("返回查詢／紀錄實際用藥") } }
+        }
+    }
+    if(recording && row != null && draft != null && data != null && record != null) {
+        CalculationRecordDialog(row, data, draft, enabled, dismiss = { recording = false }) { date, plot, details, confirmed ->
+            record(row, date, plot, details, confirmed)
         }
     }
 }
