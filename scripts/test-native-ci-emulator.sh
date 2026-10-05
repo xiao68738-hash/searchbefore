@@ -67,6 +67,17 @@ timeout 12m "$adb" -s "$serial" shell am instrument -w \
   tw.searchbefore.app.nativepreview.test/androidx.test.runner.AndroidJUnitRunner 2>&1 | tee "$evidence/instrumentation.txt"
 instrument_status=${PIPESTATUS[0]}
 set -e
+# Explicit allowlist: never upload app storage, backups, AVD files, logs with environment
+# details, APKs or Firebase configuration. All screens below contain public/synthetic data.
+mkdir -p "$evidence/public-evidence"
+cp "$evidence/instrumentation.txt" "$evidence/public-evidence/instrumentation.txt"
+for screen in synthetic/area-range.png synthetic/recipe-batch.png \
+  public-query/home.png public-query/beet-armyworm.png public-query/armyworm-group.png public-query/registered-use.png; do
+  if "$adb" -s "$serial" shell run-as tw.searchbefore.app.nativepreview test -f "cache/native-validation/$screen"; then
+    "$adb" -s "$serial" exec-out run-as tw.searchbefore.app.nativepreview cat "cache/native-validation/$screen" \
+      >"$evidence/public-evidence/$(basename "$screen")"
+  fi
+done
 "$adb" -s "$serial" logcat -d -b events >"$evidence/system-events.txt"
 if grep -E 'am_anr.*(com.android.systemui|tw.searchbefore.app.nativepreview)' "$evidence/system-events.txt"; then
   echo 'System/App ANR invalidates the UI acceptance run'; exit 1;
