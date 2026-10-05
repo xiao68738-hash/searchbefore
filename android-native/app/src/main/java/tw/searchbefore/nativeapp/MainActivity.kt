@@ -130,7 +130,8 @@ class MainActivity : ComponentActivity() {
                                 pageState.removeState(1); calculationWater = "1"; calculationLaunch++
                                 calculationId = row.id; calculationForm = row.json.optString("selectedHarvestForm"); tab = 1
                             }, saveRecipe = { row, water ->
-                                runCatching { Recipes.add(requireNotNull(state.data), row, water) }.onSuccess { persist(it) }.onFailure { state.error = it.message ?: "配方無法儲存" }
+                                runCatching { if(row.canCalculate) Recipes.add(requireNotNull(state.data), row, water)
+                                    else Recipes.addReference(requireNotNull(state.data), row) }.onSuccess { persist(it) }.onFailure { state.error = it.message ?: "配方／用途收藏無法儲存" }
                             }) { row, date, plotId, details ->
                                 runCatching { Backup.appendRecord(requireNotNull(state.data), row, date, plotId, details) }
                                     .onSuccess { persist(it) }.onFailure { state.error = it.message ?: "紀錄格式有誤" }
@@ -507,7 +508,10 @@ class MainActivity : ComponentActivity() {
                 Text("只依此筆稀釋倍數換算，仍須遵守登記用量及產品標示。", style = MaterialTheme.typography.bodySmall)
                 OutlinedButton(enabled = enabled && row.amount(water) != null, onClick = { onRecipe(water) }) { Text("存成常用配方") }
             }
-        } else Text("此用法不提供自動稀釋計算，請依產品標示操作。")
+        } else {
+            Text("此用法不提供自動稀釋計算，請依產品標示操作。")
+            OutlinedButton(enabled = enabled && !row.formExcluded, onClick = { onRecipe("") }) { Text("收藏此用途") }
+        }
         OutlinedButton(enabled = enabled && !row.formExcluded, onClick = onRecord, modifier = Modifier.fillMaxWidth()) { Text("紀錄用藥") }
     }
 }

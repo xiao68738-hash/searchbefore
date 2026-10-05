@@ -7,6 +7,14 @@ internal data class RecipeUseOption(val row: UsageRow, val formLabel: String)
 /** Saved recipes are references, not current registration authority. Never pick the first/name-only match. */
 internal object RecipeUse {
     fun options(recipe: JSONObject, catalog: Catalog): List<RecipeUseOption> {
+        if(Recipes.referenceOnly(recipe)) return emptyList()
+        return referenceOptions(recipe, catalog).filter { option ->
+            val row = option.row
+            row.canCalculate && !row.usage.optBoolean("isSpecial") && !row.json.optBoolean("seed")
+        }
+    }
+
+    fun referenceOptions(recipe: JSONObject, catalog: Catalog): List<RecipeUseOption> {
         val crop = recipe.optString("crop")
         val pest = recipe.optString("pest")
         val name = recipe.optString("agent")
@@ -19,10 +27,7 @@ internal object RecipeUse {
                 if(original.json.optJSONObject("cropForms")?.has(id) == true)
                     RecipeUseOption(original.withHarvestForm(id), label) else null
             }
-        }.filter { option ->
-            val row = option.row
-            row.canCalculate && !row.formExcluded && !row.usage.optBoolean("isSpecial") && !row.json.optBoolean("seed")
-        }
+        }.filterNot { it.row.formExcluded }
     }
 
     fun water(recipe: JSONObject, row: UsageRow): String? = recipe.optString("water").takeIf {

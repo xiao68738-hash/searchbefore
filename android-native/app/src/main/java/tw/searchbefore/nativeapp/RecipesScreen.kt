@@ -27,12 +27,13 @@ import org.json.JSONObject
     var batchWater by rememberSaveable { mutableStateOf("1") }
     var batchTanks by rememberSaveable { mutableStateOf("1") }
     var usingRecipe by rememberSaveable { mutableStateOf("") }
+    var viewingReference by rememberSaveable { mutableStateOf("") }
     val rows = Recipes.rows(data)
     val focus = LocalFocusManager.current
     val done = KeyboardActions(onDone = { focus.clearFocus() })
     LazyColumn(Modifier.testTag("recipesList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
         item { Text("常用配方", style = MaterialTheme.typography.headlineSmall) }
-        item { Text("配方是先前保存的換算設定，不會自動產生施藥紀錄。使用前仍須核對當時登記及產品標示；本頁資料只在本機與 JSON 備份中。") }
+        item { Text("配方與用途收藏是先前保存的參考，不會自動產生施藥紀錄。使用前仍須核對現行登記及產品標示；本頁資料只在本機與 JSON 備份中。") }
         item { OutlinedTextField(value = query, onValueChange = { query = it.take(120) }, label = { Text("搜尋作物、藥劑或商品名") }, modifier = Modifier.fillMaxWidth()) }
         if(rows.isNotEmpty()) item { FilterChip(selected = batch, enabled = enabled, onClick = { batch = !batch }, label = { Text("多筆獨立換算") }) }
         if(batch) {
@@ -42,7 +43,7 @@ import org.json.JSONObject
             item { OutlinedTextField(batchTanks, { batchTanks = it.take(5) }, label = { Text("各配方分別試算桶數") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done), keyboardActions = done, singleLine = true, modifier = Modifier.fillMaxWidth()) }
         }
-        if (rows.isEmpty()) item { Text("在查詢結果展開配藥計算後，按「存成常用配方」。") }
+        if (rows.isEmpty()) item { Text("在配藥計算按「存成常用配方」；沒有稀釋計算的用法可在查詢結果按「收藏此用途」。") }
         itemsIndexed(rows) { index, recipe ->
             if (query.isBlank() || listOf("crop", "agent", "brand").any { recipe.optString(it).contains(query.trim()) }) {
                 BrandCard {
@@ -50,24 +51,32 @@ import org.json.JSONObject
                     Text(recipe.optString("agent"), style = MaterialTheme.typography.titleLarge)
                     if (recipe.optString("brand").isNotEmpty()) Text("商品名：${recipe.optString("brand")}")
                     val amount = Recipes.amount(recipe, recipe.optString("water"))
-                    Text(if(amount == null) "此舊配方資料不完整，不提供自動換算；請回原登記查詢。" else "${recipe.optString("water")} 公升水 → $amount ${Recipes.unit(recipe)} 製品")
+                    val reference = Recipes.referenceOnly(recipe)
+                    Text(if(reference) "用途收藏／未提供稀釋換算，請核對現行原登記。" else if(amount == null) "保存水量無效，請調整後重新核對。" else "${recipe.optString("water")} 公升水 → $amount ${Recipes.unit(recipe)} 製品")
+                    if(reference) recipe.optJSONObject("nativeUsage")?.let { usage ->
+                        Text("保存時用途：${usage.optString("label")} ${usage.optString("value")}")
+                        if(usage.optString("detail").isNotBlank()) Text(usage.getString("detail"))
+                    }
                     if(batch) {
                         HorizontalDivider()
                         val estimate = recipeBatchAmounts(recipe, batchWater, batchTanks)
-                        if(estimate == null) Text("本筆無法試算：請核對水量、整數桶數與配方倍數／單位。", color = MaterialTheme.colorScheme.error)
+                        if(reference) Text("用途收藏不參與水量與桶數換算。")
+                        else if(estimate == null) Text("本筆無法試算：請核對水量、整數桶數與配方倍數／單位。", color = MaterialTheme.colorScheme.error)
                         else {
                             Text("獨立試算：每桶 ${estimate.perTank} ${Recipes.unit(recipe)}")
                             Text("本筆合計：${estimate.agentTotal} ${Recipes.unit(recipe)}／${estimate.waterTotal} 公升水", style = MaterialTheme.typography.titleMedium)
                         }
                     }
                     if (recipe.optString("note").isNotBlank()) Text(recipe.optString("note"))
-                    if(catalog != null && use != null) OutlinedButton(enabled = enabled, onClick = { focus.clearFocus(); usingRecipe = recipe.toString() }) { Text("核對原登記並使用") }
-                    TextButton(enabled = enabled && amount != null, onClick = { selected = index to recipe }) { Text("調整水量／商品名／備註") }
+                    if(reference && catalog != null) OutlinedButton(enabled = enabled, onClick = { focus.clearFocus(); viewingReference = recipe.toString() }) { Text("查看現行用途與注意事項") }
+                    else if(catalog != null && use != null) OutlinedButton(enabled = enabled, onClick = { focus.clearFocus(); usingRecipe = recipe.toString() }) { Text("核對原登記並使用") }
+                    TextButton(enabled = enabled, onClick = { selected = index to recipe }) { Text(if(reference) "調整商品名／備註" else "調整水量／商品名／備註") }
                     TextButton(enabled = enabled, onClick = { deleting = index to recipe }) { Text("刪除此配方") }
                 }
             }
         }
     }
+    if(viewingReference.isNotEmpty() && catalog != null) RecipeReferenceDialog(JSONObject(viewingReference), catalog) { viewingReference = "" }
     if(usingRecipe.isNotEmpty() && catalog != null && use != null) {
         val recipe = JSONObject(usingRecipe)
         RecipeUseDialog(recipe, catalog, enabled, dismiss = { usingRecipe = "" }) { id, form ->
@@ -85,9 +94,12 @@ import org.json.JSONObject
         var error by remember { mutableStateOf("") }
         AlertDialog(onDismissRequest = { selected = null }, title = { Text(recipe.optString("agent")) }, text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("保存倍數：${recipe.optString("dil")}；不更改原配方倍數。")
-                OutlinedTextField(value = water, onValueChange = { water = it.take(16) }, label = { Text("每桶水量（公升）") })
-                Text(Recipes.amount(recipe, water)?.let { "製品用量：$it ${Recipes.unit(recipe)}" } ?: "水量無效或換算量過小，請核對量具。")
+                if(Recipes.referenceOnly(recipe)) Text("只修改收藏商品名與備註；不填入倍數或水量，不產生施藥紀錄。")
+                else {
+                    Text("保存倍數：${recipe.optString("dil")}；不更改原配方倍數。")
+                    OutlinedTextField(value = water, onValueChange = { water = it.take(16) }, label = { Text("每桶水量（公升）") })
+                    Text(Recipes.amount(recipe, water)?.let { "製品用量：$it ${Recipes.unit(recipe)}" } ?: "水量無效或換算量過小，請核對量具。")
+                }
                 OutlinedTextField(value = brand, onValueChange = { brand = it.take(120) }, label = { Text("商品名（可留空，須與原清單相符）") })
                 recipe.optJSONArray("brands")?.let { a -> if(a.length() > 0) Text((0 until a.length()).joinToString("、") { a.getString(it) }) }
                 OutlinedTextField(value = note, onValueChange = { note = it.take(2000) }, label = { Text("備註") })

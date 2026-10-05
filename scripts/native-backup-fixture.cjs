@@ -18,6 +18,9 @@ function migrationFixture() {
     farmRecords:Object.entries(details).map(([type,detail],i)=>({...farm.createRecord({plotId:type==='equipmentMaintenance'?'':'plot_1',type,date,details:detail,createdAt:stamp,operator:'匿名測試者',notes:'僅往返測試'},()=> 'farm_'+i),updatedAt:stamp})),
     recipes:[1,2].map(n=>({crop:'蔥',pest:'測試害蟲',agent:'僅測試配方 '+n,dil:1000,phi:n===1?7:null,water:20,unit:n===1?'毫升':'公克',moa:'TEST',dosePerHa:1.2,doseRaw:'1.2',note:'不得當成真實用藥',brands:['測試品牌'],brand:'測試品牌'}))};
   raw.farmRecords.find(r=>r.type==='harvest').safetyCheck={status:'unknown',safeDate:'',daysRemaining:null,recordCount:2,checkedAt:stamp};
+  raw.recipes.push({crop:'豌豆',pest:'測試對象',agent:'僅測試用途收藏',dil:0,water:0,unit:'依原用途',phi:null,
+    nativeReference:true,nativeCatalogId:'test_seed_reference',harvestForm:'',nativeUsage:{label:'用途',value:'種子處理',detail:'TEST_ONLY',canCalculateDilution:false},
+    nativeRegistrationNote:'非真實用藥',brands:['測試商品'],brand:'',note:'只供往返測試'});
   const expected=farm.readBackup(farm.buildBackup(raw,'TEST'));
   return {input:farm.buildBackup(expected,'TEST'),expected};
 }

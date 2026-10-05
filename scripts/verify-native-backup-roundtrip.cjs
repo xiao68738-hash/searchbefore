@@ -13,4 +13,4 @@ for(const key of ['records','fieldPlots','farmRecords']) {
   });
 }
 assert.deepEqual(actual,expected);
-console.log('PASS: web → Kotlin native import/export → web; 2 plots, 2 use records, all 6 farm types, 2 recipes and supported metadata preserved. Synthetic data only.');
+console.log('PASS: web → Kotlin native import/export → web; 2 plots, 2 use records, all 6 farm types, 2 recipes, 1 special-use reference and supported metadata preserved. Synthetic data only.');
