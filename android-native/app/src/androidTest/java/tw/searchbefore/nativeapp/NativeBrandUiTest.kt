@@ -140,8 +140,8 @@ class NativeBrandUiTest {
         val selected = mutableListOf<String>()
         compose.setContent { SearchBeforeTheme { Column(Modifier.width(320.dp).verticalScroll(rememberScrollState())) {
             FirstUseGuide { dismissed = true }
-            SearchChip("夜蛾類", "20 筆用法") { selected.add("夜蛾類") }
-            SearchChip("甜菜夜蛾", "1 筆用法") { selected.add("甜菜夜蛾") }
+            SearchChip("夜蛾類", detail = "20 筆用法") { selected.add("夜蛾類") }
+            SearchChip("甜菜夜蛾", detail = "1 筆用法") { selected.add("甜菜夜蛾") }
         } } }
         compose.onNodeWithText("第一次使用，只要三步").assertIsDisplayed()
         compose.onNodeWithText("我知道怎麼用了").performScrollTo().performClick()

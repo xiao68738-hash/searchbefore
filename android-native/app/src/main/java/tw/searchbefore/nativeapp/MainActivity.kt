@@ -378,7 +378,7 @@ class MainActivity : ComponentActivity() {
                     OutlinedButton(onClick = { chooseCrop(aliasCrop, aliasForm) }) { Text("查看登記作物：$aliasCrop" + if(aliasForm.isNotEmpty()) "／$aliasForm" else "") }
                 } }
                 if(matches.isNotEmpty()) item { FlowRow(horizontalArrangement = Arrangement.spacedBy(9.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                    matches.take(shown).forEach { c -> SearchChip(c, "${catalog.pests(c).size} 項") { chooseCrop(c) } }
+                    matches.take(shown).forEach { c -> SearchChip(c, detail = "${catalog.pests(c).size} 項") { chooseCrop(c) } }
                 } }
                 if (matches.size > shown) item { TextButton(onClick = { shown += 30 }) { Text("顯示更多作物") } }
                 if(cropSuggestions.isNotEmpty()) item { Text("你是不是想找？請自行確認作物名稱，不會自動選取。") }
@@ -445,7 +445,7 @@ class MainActivity : ComponentActivity() {
                     if(pestQuery.isNotBlank()) item { Text("${pests.size} 項；分類相關結果按原登記分列，不代表用藥可互用。分類對照尚非完整清單。") }
                     if(pests.isEmpty()) item { Text("查無符合的直接登記項目，可改查原病蟲害名稱。") }
                     item { FlowRow(horizontalArrangement = Arrangement.spacedBy(9.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                        pests.forEach { p -> SearchChip(p, "${catalog.exact(crop, p).size} 筆用法" + catalog.pestLabel(pestQuery, p)?.takeIf { it.isNotEmpty() }?.let { "\n$it" }.orEmpty(), modifier = Modifier.testTag("pest:$p")) { pest = p } }
+                        pests.forEach { p -> SearchChip(p, detail = "${catalog.exact(crop, p).size} 筆用法" + catalog.pestLabel(pestQuery, p)?.takeIf { it.isNotEmpty() }?.let { "\n$it" }.orEmpty(), modifier = Modifier.testTag("pest:$p")) { pest = p } }
                     } }
                 }
             } else {
