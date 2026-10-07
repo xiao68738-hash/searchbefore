@@ -23,15 +23,15 @@ class NativeQueryParityTest {
     }
     private fun crop(value: String) {
         ready()
-        reveal(hasText("作物名稱，例如：蔥")).performTextInput(value)
-        compose.onNodeWithText("作物名稱，例如：蔥").performImeAction()
+        reveal(hasTestTag("catalogSearch")).performTextInput(value)
+        compose.onNodeWithTag("catalogSearch").performImeAction()
         reveal(hasText(value) and hasClickAction() and !hasSetTextAction()).performClick()
     }
     @Test fun taxonomyFilterKeepsOriginalPestAndPhiFilterSurvivesRecreation() {
         crop("蔥")
         reveal(hasText("篩選病蟲害或分類，例：夜蛾科")).performTextInput("夜蛾科")
         compose.onNodeWithText("篩選病蟲害或分類，例：夜蛾科").performImeAction()
-        reveal(hasText("甜菜夜蛾　1 筆登記用法")).performClick()
+        reveal(hasTestTag("pest:甜菜夜蛾")).performClick()
         compose.onNodeWithText("蔥 × 甜菜夜蛾").assertIsDisplayed()
         reveal(hasText("≤ 3 天")).performClick()
         compose.onNodeWithText("自選天數").performScrollTo().performClick()
@@ -54,7 +54,7 @@ class NativeQueryParityTest {
         // Find the actual registration; don't manufacture a pesticide record.
         val catalog = Catalog(compose.activity.assets.open("catalog.json").bufferedReader().use { it.readText() })
         val registration = catalog.rows.first { it.crop == "豌豆" && it.name == "脫克松" }
-        reveal(hasText("${registration.pest}　${catalog.exact("豌豆", registration.pest).size} 筆登記用法")).performClick()
+        reveal(hasTestTag("pest:${registration.pest}")).performClick()
         compose.onNodeWithText("脫克松").assertDoesNotExist()
         reveal(hasText("展開特殊施用方式", substring = true) and hasClickAction()).performClick()
         reveal(hasText("脫克松")).assertIsDisplayed()
@@ -63,13 +63,13 @@ class NativeQueryParityTest {
     }
     @Test fun overviewSearchAndReverseLookupRetainDrugScope() {
         crop("蔥")
-        reveal(hasText("作物用藥總覽") and hasClickAction()).performClick()
+        reveal(hasText("收合總覽") and hasClickAction()).assertExists()
         reveal(hasText("篩選藥劑或病蟲害")).performTextInput("畢芬寧")
         compose.onNodeWithText("篩選藥劑或病蟲害").performImeAction()
         reveal(hasText("畢芬寧") and !hasSetTextAction()).assertIsDisplayed()
         reveal(hasText("以藥劑找作物") and hasClickAction()).performClick()
-        reveal(hasText("普通名稱或商品名")).performTextInput("脫克松")
-        compose.onNodeWithText("普通名稱或商品名").performImeAction()
+        reveal(hasTestTag("catalogSearch")).performTextInput("脫克松")
+        compose.onNodeWithTag("catalogSearch").performImeAction()
         reveal(hasTestTag("agentCrop:脫克松:豌豆")).performClick()
         reveal(hasText("脫克松｜豌豆 ×", substring = true) and hasClickAction()).performClick()
         reveal(hasText("目前只看：脫克松")).assertIsDisplayed()

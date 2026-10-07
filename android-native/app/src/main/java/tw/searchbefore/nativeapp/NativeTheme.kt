@@ -44,17 +44,17 @@ internal fun nativeColors(preferences: DisplayPreferences): ColorScheme {
         error = Color(0xFFFFB5A9), onError = Color(0xFF571A12),
         errorContainer = Color(0xFF512820), onErrorContainer = Color(0xFFFFDAD3)
     ) else lightColorScheme(
-            primary = Color(0xFF2E6B3F), onPrimary = Color.White,
-            primaryContainer = Color(0xFFE7EFE4), onPrimaryContainer = Color(0xFF183528),
-            secondary = Color(0xFF52634F), onSecondary = Color.White,
-            secondaryContainer = Color(0xFFFCEAD8), onSecondaryContainer = Color(0xFF85420F),
-            background = Color(0xFFF7F4EB), onBackground = Color(0xFF22301F),
-            surface = Color.White, onSurface = Color(0xFF22301F),
+            primary = Color(0xFF2F7448), onPrimary = Color.White,
+            primaryContainer = Color(0xFFE2EFE5), onPrimaryContainer = Color(0xFF184C31),
+            secondary = Color(0xFF68756B), onSecondary = Color.White,
+            secondaryContainer = Color(0xFFFFF0DF), onSecondaryContainer = Color(0xFF99500F),
+            background = Color(0xFFF5F2E9), onBackground = Color(0xFF183528),
+            surface = Color(0xFFFFFDF8), onSurface = Color(0xFF183528),
             surfaceContainerLowest = Color.White, surfaceContainerLow = Color(0xFFFAF9F4),
             surfaceContainer = Color(0xFFF5F2E9), surfaceContainerHigh = Color(0xFFEEF1E9),
             surfaceContainerHighest = Color.White, surfaceTint = Color(0xFF2E6B3F),
-            surfaceVariant = Color(0xFFEEF1E9), onSurfaceVariant = Color(0xFF52634F),
-            outline = Color(0xFF7B8578), outlineVariant = Color(0xFFE1DDCF),
+            surfaceVariant = Color(0xFFF0ECDF), onSurfaceVariant = Color(0xFF68756B),
+            outline = Color(0xFF7B8578), outlineVariant = Color(0xFFDDD8CA),
             error = Color(0xFF9E3026), onError = Color.White,
             errorContainer = Color(0xFFFFEDE6), onErrorContainer = Color(0xFF75271F)
         )
@@ -89,19 +89,22 @@ internal fun nativeColors(preferences: DisplayPreferences): ColorScheme {
     }
 }
 
-@Composable fun BrandHeader(enabled: Boolean, compact: Boolean = false, migration: () -> Unit) {
-    Row(Modifier.fillMaxWidth().testTag("brandHeader").background(Color(0xFF17331F)).padding(horizontal = 18.dp, vertical = if(compact) 4.dp else 12.dp), verticalAlignment = Alignment.CenterVertically,
+@Composable fun BrandHeader(enabled: Boolean, compact: Boolean = false, announcement: () -> Unit) {
+    Row(Modifier.fillMaxWidth().testTag("brandHeader").background(Color(0xFF184C31)).padding(horizontal = 20.dp, vertical = if(compact) 4.dp else 10.dp), verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         Column(Modifier.weight(1f)) {
-            Text(if(compact || LocalDensity.current.fontScale > 1.25f) "噴前查" else "噴前查 SearchBefore", color = Color.White, fontFamily = FontFamily.Serif,
-                fontSize = 21.sp, lineHeight = 29.sp, fontWeight = FontWeight.Bold)
-            if(!compact) Text("查詢 × 計算 × 田間紀錄", color = Color(0xFFD2DECF), fontSize = 12.sp)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("噴前查", color = Color.White, fontFamily = FontFamily.Serif,
+                    fontSize = 21.sp, lineHeight = 29.sp, fontWeight = FontWeight.Bold)
+                if(!compact && LocalDensity.current.fontScale <= 1.25f) Text("SearchBefore", color = Color.White,
+                    fontSize = 13.sp, fontWeight = FontWeight.Bold)
+            }
+            if(!compact) Text("查詢 × 計算 × 田間紀錄", color = Color(0xFFD2DECF), fontSize = 11.sp, lineHeight = 17.sp)
         }
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(releaseIdentityLabel(BuildConfig.DEBUG, BuildConfig.VERSION_NAME), color = Color(0xFFD2DECF), fontSize = 11.sp)
-            OutlinedButton(enabled = enabled, onClick = migration, contentPadding = PaddingValues(horizontal = 10.dp),
+            OutlinedButton(enabled = enabled, onClick = announcement, contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                 border = BorderStroke(1.dp, Color(0xFFABBFA8)), colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)) {
-                Text("舊版資料移轉", fontSize = 12.sp)
+                Text("公告", fontSize = 12.sp)
             }
         }
     }
@@ -159,8 +162,8 @@ internal fun nativeColors(preferences: DisplayPreferences): ColorScheme {
             Surface(Modifier.weight(1f).selectable(mode == index, role = Role.Tab, onClick = { change(index) }),
                 shape = RoundedCornerShape(12.dp), color = if(mode == index) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
                 border = BorderStroke(if(mode == index) 1.5.dp else 1.dp, if(mode == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)) {
-                Box(Modifier.padding(horizontal = 8.dp, vertical = 14.dp), contentAlignment = Alignment.Center) {
-                    Text(title, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = if(mode == index) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant)
+                Box(Modifier.heightIn(min = 48.dp).padding(horizontal = 8.dp, vertical = 10.dp), contentAlignment = Alignment.Center) {
+                    Text(title, fontSize = 14.5.sp, fontWeight = FontWeight.Bold, color = if(mode == index) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
@@ -168,16 +171,18 @@ internal fun nativeColors(preferences: DisplayPreferences): ColorScheme {
 }
 
 @Composable internal fun SafetyNotice() {
-    Surface(shape = RoundedCornerShape(16.dp), color = MaterialTheme.colorScheme.secondaryContainer, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)) {
+    val dark = MaterialTheme.colorScheme.background.red < .3f
+    Surface(shape = RoundedCornerShape(17.dp), color = if(dark) Color(0xFF332813) else Color(0xFFFFF3CD), border = BorderStroke(1.dp, if(dark) Color(0xFF5A4A20) else Color(0xFFD9B64C))) {
         Text("安全提醒：本工具是查詢與自主紀錄輔助。實際用藥、稀釋倍數及安全採收期，請以產品標示與主管機關最新公告為準。",
-            Modifier.padding(16.dp), color = MaterialTheme.colorScheme.onSecondaryContainer, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+            Modifier.padding(horizontal = 15.dp, vertical = 13.dp), color = if(dark) Color(0xFFF0C878) else Color(0xFF5F4500), fontSize = 13.sp, lineHeight = 20.sp, fontWeight = FontWeight.Bold)
     }
 }
 
 @Composable internal fun QueryStep(number: Int, title: String) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text("$number", color = MaterialTheme.colorScheme.primary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-        Text(title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+        Text("$number", color = MaterialTheme.colorScheme.primary, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+        Text(title, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f, fill = false))
+        HorizontalDivider(Modifier.weight(1f), color = MaterialTheme.colorScheme.outlineVariant)
     }
 }
 

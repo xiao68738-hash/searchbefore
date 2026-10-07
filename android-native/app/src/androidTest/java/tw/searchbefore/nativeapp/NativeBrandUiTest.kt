@@ -110,21 +110,21 @@ class NativeBrandUiTest {
         }
     }
 
-    @Test fun compactChromeKeepsMigrationAndAllSixAccessibleTargetsAtLargeText() {
-        var migrated = false
+    @Test fun compactChromeKeepsAnnouncementAndAllSixAccessibleTargetsAtLargeText() {
+        var announced = false
         var selected = -1
         compose.setContent {
             val density = LocalDensity.current.density
             CompositionLocalProvider(LocalDensity provides Density(density, 1.5f)) {
                 SearchBeforeTheme { Column {
-                    BrandHeader(true, compact = true) { migrated = true }
+                    BrandHeader(true, compact = true) { announced = true }
                     TwaNavigation(0, true, compact = true) { selected = it }
                 } }
             }
         }
         compose.onNodeWithText("噴前查").assertIsDisplayed()
-        compose.onNodeWithText("舊版資料移轉").assertIsDisplayed().performClick()
-        compose.runOnIdle { org.junit.Assert.assertTrue(migrated) }
+        compose.onNodeWithText("公告").assertIsDisplayed().performClick()
+        compose.runOnIdle { org.junit.Assert.assertTrue(announced) }
         listOf("查詢", "計算", "配方", "倒數", "紀錄", "個人").forEachIndexed { index, title ->
             compose.onNodeWithText(title).assertIsDisplayed().assertHeightIsAtLeast(48.dp).performClick()
             compose.runOnIdle { assertEquals(index, selected) }
@@ -133,5 +133,20 @@ class NativeBrandUiTest {
         val navigationBounds = compose.onNodeWithTag("mainNavigation").getUnclippedBoundsInRoot()
         org.junit.Assert.assertTrue(headerBounds.bottom - headerBounds.top <= 96.dp)
         org.junit.Assert.assertTrue(navigationBounds.bottom - navigationBounds.top <= 64.dp)
+    }
+
+    @Test fun guideAndWrappingChoicesKeepTouchTargetsAndSeparateRegistrationNames() {
+        var dismissed = false
+        val selected = mutableListOf<String>()
+        compose.setContent { SearchBeforeTheme { Column(Modifier.width(320.dp).verticalScroll(rememberScrollState())) {
+            FirstUseGuide { dismissed = true }
+            SearchChip("夜蛾類", "20 筆用法") { selected.add("夜蛾類") }
+            SearchChip("甜菜夜蛾", "1 筆用法") { selected.add("甜菜夜蛾") }
+        } } }
+        compose.onNodeWithText("第一次使用，只要三步").assertIsDisplayed()
+        compose.onNodeWithText("我知道怎麼用了").performScrollTo().performClick()
+        compose.onNodeWithText("夜蛾類").performScrollTo().assertHeightIsAtLeast(48.dp).performClick()
+        compose.onNodeWithText("甜菜夜蛾").performScrollTo().performClick()
+        compose.runOnIdle { org.junit.Assert.assertTrue(dismissed); assertEquals(listOf("夜蛾類", "甜菜夜蛾"), selected) }
     }
 }

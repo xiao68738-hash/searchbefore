@@ -13,12 +13,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import org.json.JSONObject
 
-@Composable internal fun ReportScopeFields(data: JSONObject, scope: ReportScope, enabled: Boolean, change: (ReportScope) -> Unit) {
+@Composable internal fun ReportScopeFields(data: JSONObject, scope: ReportScope, enabled: Boolean, showKinds: Boolean = true, change: (ReportScope) -> Unit) {
     val focus = LocalFocusManager.current
     Text("閱讀用報表範圍", style = MaterialTheme.typography.titleMedium)
     Text("以下篩選只影響 CSV／Excel／PDF；完整 JSON 備份仍包含全部紀錄。", style = MaterialTheme.typography.bodySmall)
     PlotPicker(Backup.plots(data), scope.plotId, "全部田區與未指定紀錄", enabled) { change(scope.copy(plotId = it)) }
-    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    if(showKinds) Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         ReportScope.kinds.forEach { (key, label) -> FilterChip(selected = scope.kind == key, enabled = enabled,
             onClick = { change(scope.copy(kind = key)) }, label = { Text(label) }) }
     }

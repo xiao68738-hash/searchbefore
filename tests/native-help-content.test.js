@@ -14,4 +14,14 @@ assert.match(help.guides.find(g=>g.id==='guide-phi.html').blocks.join('\n'),/看
 assert.match(help.guides.find(g=>g.id==='guide-phi.html').blocks.join('\n'),/田區與作物/);
 assert.equal(text('<p>A&amp;B</p><script>PRIVATE</script><style>HIDDEN</style><p>&#x4E00;&#20108;</p>'),'A&B\n\n一二');
 assert.match(help.feedbackEmail,/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+const source=require('node:fs').readFileSync(path.join(root,'index.html'),'utf8');
+const announcementBlock=source.match(/const ANNOUNCE=\[([\s\S]*?)\];/)[1];
+assert.equal(help.announcements.length,Array.from(announcementBlock.matchAll(/\{date:/g)).length);
+for(const item of help.announcements){
+  assert.deepEqual(Object.keys(item),['date','version','title','body']);
+  assert.match(item.date,/^\d{4}-\d{2}-\d{2}$/);
+  assert.ok(item.title.length>0&&item.body.length>0);
+  assert.doesNotMatch(item.body,/<script|<iframe|onclick=/);
+  assert.ok(announcementBlock.includes(item.date)&&announcementBlock.includes(item.title));
+}
 console.log('Native offline guides: four source-hashed text-only articles, safety warnings and public feedback configuration preserved.');

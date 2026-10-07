@@ -22,6 +22,12 @@ function buildHelp(root){
   const config=fs.readFileSync(path.join(root,'service-config.js'),'utf8');
   const feedbackEmail=config.match(/feedbackEmail:\s*"([^"\r\n]+)"/)?.[1]||'';
   if(feedbackEmail&&!/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(feedbackEmail))throw new Error('Invalid public feedback address');
-  return {guides,feedbackEmail};
+  const home=fs.readFileSync(path.join(root,'index.html'),'utf8');
+  const announcementSource=home.match(/const ANNOUNCE=\[([\s\S]*?)\];/)?.[1];
+  if(!announcementSource)throw new Error('Announcement structure changed');
+  // Parse string-only repository entries, never execute JavaScript or copy HTML.
+  const announcements=Array.from(announcementSource.matchAll(/\{date:"([^"\r\n]+)",version:"([^"\r\n]+)",title:"([^"\r\n]+)",body:"([^"\r\n]+)"(?=,|\})/g),m=>({date:m[1],version:m[2],title:text(m[3]),body:text(m[4])}));
+  if(!announcements.length || announcements.length!==Array.from(announcementSource.matchAll(/\{date:/g)).length)throw new Error('Announcement parser needs review');
+  return {guides,feedbackEmail,announcements};
 }
 module.exports={buildHelp,text,files};

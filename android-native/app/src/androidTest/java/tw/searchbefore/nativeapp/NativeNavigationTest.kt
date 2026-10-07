@@ -27,7 +27,7 @@ class NativeNavigationTest {
         compose.onNodeWithText("個人", useUnmergedTree = true).assertIsDisplayed()
         val header = compose.onNodeWithTag("brandHeader").fetchSemanticsNode().boundsInRoot
         org.junit.Assert.assertEquals("Scrolled results must not paint over the fixed brand header",
-            android.graphics.Color.rgb(23, 51, 31), bitmap.getPixel(header.left.toInt() + 4, header.center.y.toInt()))
+            android.graphics.Color.rgb(24, 76, 49), bitmap.getPixel(header.left.toInt() + 4, header.center.y.toInt()))
         File(folder, name).outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
     @Test fun darkSystemBarsHaveDarkBackgroundAndLightIcons() {
@@ -66,13 +66,13 @@ class NativeNavigationTest {
     }
     @Test fun exactRegistrationAndRelatedLinkRemainSeparate() {
         ready()
-        compose.onNodeWithTag("queryList").performScrollToNode(hasText("作物名稱，例如：蔥"))
-        compose.onNodeWithText("作物名稱，例如：蔥").performTextInput("蔥")
-        compose.onNodeWithText("作物名稱，例如：蔥").performImeAction()
+        compose.onNodeWithTag("queryList").performScrollToNode(hasTestTag("catalogSearch"))
+        compose.onNodeWithTag("catalogSearch").performTextInput("蔥")
+        compose.onNodeWithTag("catalogSearch").performImeAction()
         compose.onNodeWithTag("queryList").performScrollToNode(hasText("蔥") and hasClickAction() and !hasSetTextAction())
         compose.onNode(hasText("蔥") and hasClickAction() and !hasSetTextAction()).performClick()
-        compose.onNodeWithTag("queryList").performScrollToNode(hasText("甜菜夜蛾　1 筆登記用法"))
-        compose.onNodeWithText("甜菜夜蛾　1 筆登記用法").performClick()
+        compose.onNodeWithTag("queryList").performScrollToNode(hasTestTag("pest:甜菜夜蛾"))
+        compose.onNodeWithTag("pest:甜菜夜蛾").performClick()
         compose.onNodeWithText("蔥 × 甜菜夜蛾").assertIsDisplayed()
         capturePublicQuery("beet-armyworm.png")
         compose.onNodeWithTag("queryList").performScrollToNode(hasText("也要看看蔥 × 夜蛾類用藥嗎？"))
@@ -100,7 +100,7 @@ class NativeNavigationTest {
         compose.onNodeWithText("安全採收期倒數").assertExists()
         capturePublicQuery("countdown-empty.png")
         compose.onNodeWithText("紀錄", useUnmergedTree = true).performClick()
-        compose.onNodeWithText("農務", useUnmergedTree = true).performClick()
+        compose.onNodeWithText("農務與設備紀錄").performScrollTo().performClick()
         compose.onNodeWithText("新增農務紀錄").assertExists()
         capturePublicQuery("farm-empty.png")
         compose.onNodeWithText("配方", useUnmergedTree = true).performClick()
@@ -112,19 +112,19 @@ class NativeNavigationTest {
         compose.activityRule.scenario.recreate()
         compose.waitUntil(timeoutMillis = 60000) { compose.onAllNodesWithText("你的資料").fetchSemanticsNodes().isNotEmpty() }
         compose.onNodeWithText("紀錄", useUnmergedTree = true).performClick()
-        compose.onNodeWithText("用藥與田區").performClick()
+        compose.onNodeWithText("田區新增／田區管理").performScrollTo().performClick()
         compose.onNodeWithText("新增田區／種植批次").assertExists()
         capturePublicQuery("records-empty.png")
     }
     @Test fun queryScopeSurvivesTabSwitchAndCalculatorUsesExactRegistration() {
         ready()
-        compose.onNodeWithTag("queryList").performScrollToNode(hasText("作物名稱，例如：蔥"))
-        compose.onNodeWithText("作物名稱，例如：蔥").performTextInput("蔥")
-        compose.onNodeWithText("作物名稱，例如：蔥").performImeAction()
+        compose.onNodeWithTag("queryList").performScrollToNode(hasTestTag("catalogSearch"))
+        compose.onNodeWithTag("catalogSearch").performTextInput("蔥")
+        compose.onNodeWithTag("catalogSearch").performImeAction()
         compose.onNodeWithTag("queryList").performScrollToNode(hasText("蔥") and hasClickAction() and !hasSetTextAction())
         compose.onNode(hasText("蔥") and hasClickAction() and !hasSetTextAction()).performClick()
-        compose.onNodeWithTag("queryList").performScrollToNode(hasText("甜菜夜蛾　1 筆登記用法"))
-        compose.onNodeWithText("甜菜夜蛾　1 筆登記用法").performClick()
+        compose.onNodeWithTag("queryList").performScrollToNode(hasTestTag("pest:甜菜夜蛾"))
+        compose.onNodeWithTag("pest:甜菜夜蛾").performClick()
         compose.onNodeWithTag("queryList").performScrollToNode(hasText("配藥計算"))
         compose.onNodeWithText("配藥計算").performClick()
         compose.onNodeWithText("蔥 × 甜菜夜蛾").assertExists()
@@ -138,6 +138,8 @@ class NativeNavigationTest {
     }
     @Test fun migrationGuideIsOptionalAndNeverStartsLoginOrImportByItself() {
         ready()
+        compose.onNodeWithText("個人", useUnmergedTree = true).performClick()
+        compose.onNodeWithTag("personalList").performScrollToNode(hasText("舊版資料移轉"))
         compose.onNodeWithText("舊版資料移轉").performClick()
         compose.onNodeWithText("把舊版紀錄帶過來").assertIsDisplayed()
         compose.onNodeWithText("前往個人頁").performScrollTo()
