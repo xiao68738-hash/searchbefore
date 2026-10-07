@@ -33,6 +33,8 @@ class NativeQueryParityTest {
         compose.onNodeWithText("篩選病蟲害或分類，例：夜蛾科").performImeAction()
         reveal(hasTestTag("pest:甜菜夜蛾")).performClick()
         compose.onNodeWithText("蔥 × 甜菜夜蛾").assertIsDisplayed()
+        reveal(hasText("≤ 21 天")).performClick()
+        reveal(hasText("≤ 21 天")).assertIsSelected()
         reveal(hasText("≤ 3 天")).performClick()
         compose.onNodeWithText("自選天數").performScrollTo().performClick()
         compose.onNodeWithText("自選採收期（1～365 天）").performTextReplacement("366")

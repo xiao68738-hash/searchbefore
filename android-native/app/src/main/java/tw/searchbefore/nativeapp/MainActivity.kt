@@ -36,7 +36,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.core.view.WindowCompat
 import androidx.core.net.toUri
@@ -411,8 +413,8 @@ class MainActivity : ComponentActivity() {
             }
         } else {
             item { TextButton(onClick = { goBack() }) { Text("返回上一層") } }
-            item { QueryStep(if(pest.isEmpty()) 2 else 3, if(pest.isNotEmpty()) "查看登記用法" else if(overview) "作物用藥總覽" else "選病蟲害") }
-            item { Text(if (pest.isBlank()) crop else "$crop × $pest", style = MaterialTheme.typography.headlineSmall) }
+            item { Text(if (pest.isBlank()) crop else "$crop × $pest", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer) }
+            item { QueryStep(if(pest.isEmpty()) 2 else 4, if(pest.isNotEmpty()) "登記藥劑" else "已登記用藥總覽（${catalog.overview(crop).size} 種）") }
             if(catalog.forms(crop).isNotEmpty()) item {
                 Text("先確認採收部位；未註明不代表適用，所有原登記仍保留供核對。")
                 Column {
@@ -423,12 +425,12 @@ class MainActivity : ComponentActivity() {
             if (pest.isBlank()) {
                 item { OutlinedButton(onClick = { overview = !overview }) { Text(if (overview) "收合總覽" else "展開已登記用藥總覽") } }
                 if (overview) {
-                    item { Text("依藥劑名稱整理原登記防治對象。點選對象查看各筆用法；不同劑型、含量或採收部位不代表可互用。") }
+                    item { Text("依藥劑名稱整理原登記防治對象。點選對象查看各筆用法；不同劑型、含量或採收部位不代表可互用。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     item { OutlinedTextField(overviewQuery, { overviewQuery = it.take(120) }, label = { Text("篩選藥劑或病蟲害") },
                         singleLine = true, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() })) }
                     val entries = catalog.filteredOverview(crop, overviewQuery)
-                    item { Text("${entries.size} 種藥劑；依原登記防治對象數排序，不代表優先推薦。") }
+                    item { Text("${entries.size} 種藥劑；依原登記防治對象數排序，不代表優先推薦。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                     if(entries.isEmpty()) item { Text("查無符合的已登記藥劑或病蟲害。") }
                     items(entries.take(overviewShown), key = { it.key }) { (name, rows) ->
                         CropOverviewCard(name, rows.map { it.pest }, notices = overviewResidueNotices(rows, harvestForm)) { pest = it }
@@ -453,13 +455,13 @@ class MainActivity : ComponentActivity() {
                 val rows = QueryFilters.registrations(original, agentScope, phiMax.takeIf { it > 0 })
                     .sortedBy { if(it.formExcluded) 2 else if(it.json.optString("formCategory") == "matched") 0 else 1 }
                 val sections = QueryFilters.sections(rows)
-                item { Text("僅列此作物 × 此防治對象原登記，不合併相關分類。") }
+                item { Text("僅列此作物 × 此防治對象原登記，不合併相關分類。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 if(agentScope.isNotEmpty()) item {
                     Info("目前只看：$agentScope", "以下僅列這個普通名稱在本作物／防治對象的原登記；仍須核對劑型、含量與商品標示。")
                     TextButton(onClick = { agentScope = "" }) { Text("查看此作物／防治對象的全部藥劑") }
                 }
                 item { key(crop, pest, agentScope) { PhiFilterBar(phiMax) { phiMax = it } } }
-                item { Text("一般用法 ${sections.ordinary.size} 筆・特殊用法 ${sections.special.size} 筆・不符或待確認 ${sections.excluded.size} 筆") }
+                item { Text("一般用法 ${sections.ordinary.size} 筆・特殊用法 ${sections.special.size} 筆・不符或待確認 ${sections.excluded.size} 筆", style = MaterialTheme.typography.bodySmall) }
                 if(rows.isEmpty()) item { Text("沒有符合目前篩選的登記用法。可改選「全部」，不代表其他藥劑可使用。") }
                 items(sections.ordinary.take(shown), key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = { water -> saveRecipe(row, water) }, onCalculate = { onCalculate(row) }, rotation = rotationHistory[row.json.optString("moa").trim().uppercase()], onRecord = { recording = row; plotId = Backup.defaultPlot(data, row.crop); date = LocalDate.now().toString(); details = ApplicationDetails() }) }
                 if (sections.ordinary.size > shown) item { TextButton(onClick = { shown += 20 }) { Text("顯示更多用法") } }
@@ -515,7 +517,7 @@ class MainActivity : ComponentActivity() {
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable internal fun CropOverviewCard(name: String, pests: List<String>, notices: List<String> = emptyList(), onPest: (String) -> Unit) {
-    BrandCard(Modifier.testTag("cropOverviewCard")) {
+    BrandCard(Modifier.testTag("cropOverviewCard"), compact = true) {
         Text(name, style = MaterialTheme.typography.titleMedium)
         if(notices.isNotEmpty()) {
             notices.forEach { ResidueNotice(it) }
@@ -532,10 +534,12 @@ class MainActivity : ComponentActivity() {
 @Composable internal fun UsageCard(row: UsageRow, enabled: Boolean, onRecipe: (String) -> Unit, onRecord: () -> Unit, onCalculate: (() -> Unit)? = null, rotation: JSONObject? = null) {
     var calculate by rememberSaveable(row.id) { mutableStateOf(false) }
     var water by rememberSaveable(row.id) { mutableStateOf("1") }
-    BrandCard {
+    var savingRecipe by rememberSaveable(row.id) { mutableStateOf(false) }
+    var recipeWater by rememberSaveable(row.id) { mutableStateOf("20") }
+    BrandCard(compact = true) {
         if(row.formExcluded) Text("此型態不適用或待核對：${row.json.optString("formReason")}。保留原登記供查閱，不提供一鍵計算或記錄。", color = MaterialTheme.colorScheme.error)
-        Text(row.name, style = MaterialTheme.typography.headlineMedium)
-        Text("${row.json.optString("content")} ${row.json.optString("form")}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(row.name, fontSize = 26.sp, lineHeight = 34.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
+        Text("${row.json.optString("content")} ${row.json.optString("form")}", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         BrandNames(row)
         RegistrationTags(row.json.optString("formKind"), row.json.optString("moa"))
         if(rotation != null) Info("輪用提醒", "${rotation.optString("date")} 曾記錄相同作用機制（${row.json.optString("moa")}）：${rotation.optString("agent")}。\n此處彙整近 30 天同作物各田區的紀錄；請核對實際田區與輪用安排，不代表已產生抗藥性。")
@@ -569,7 +573,19 @@ class MainActivity : ComponentActivity() {
             OutlinedButton(enabled = enabled && !row.formExcluded, onClick = { onRecipe("") }) { Text("收藏此用途") }
         }
         OutlinedButton(enabled = enabled && !row.formExcluded, onClick = onRecord, modifier = Modifier.fillMaxWidth()) { Text("紀錄用藥") }
+        if(row.canCalculate && !row.formExcluded) OutlinedButton(enabled = enabled, onClick = { savingRecipe = true }, modifier = Modifier.fillMaxWidth()) { Text("存入配方") }
+        Text("有明確安全採收期的紀錄才會建立倒數。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
+    if(savingRecipe) AlertDialog(onDismissRequest = { savingRecipe = false }, title = { Text("存入配方") }, text = {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("${row.crop} × ${row.pest}｜${row.name}")
+            Text("保存此筆原登記與預設每桶水量，可在配方中修改；不會建立實際施藥紀錄。", style = MaterialTheme.typography.bodyMedium)
+            OutlinedTextField(recipeWater, { recipeWater = it.take(16) }, label = { Text("配方每桶水量（公升）") }, singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal))
+            Text(row.amount(recipeWater)?.let { "每桶藥劑製品用量：$it ${row.unit}" } ?: "請輸入有效水量。")
+        }
+    }, confirmButton = { TextButton(enabled = enabled && row.amount(recipeWater) != null, onClick = { onRecipe(recipeWater); savingRecipe = false }) { Text("確認存入配方") } },
+        dismissButton = { TextButton(onClick = { savingRecipe = false }) { Text("取消") } })
 }
 
 @Composable fun PlotPicker(plots: List<JSONObject>, selected: String, emptyLabel: String, enabled: Boolean, select: (String) -> Unit) {

@@ -53,7 +53,9 @@ internal fun nativeColors(preferences: DisplayPreferences): ColorScheme {
             surfaceContainerLowest = Color.White, surfaceContainerLow = Color(0xFFFAF9F4),
             surfaceContainer = Color(0xFFF5F2E9), surfaceContainerHigh = Color(0xFFEEF1E9),
             surfaceContainerHighest = Color.White, surfaceTint = Color(0xFF2E6B3F),
-            surfaceVariant = Color(0xFFF0ECDF), onSurfaceVariant = Color(0xFF68756B),
+            // Web's #68756B on this paper panel is only 4.09:1. Keep the hue,
+            // slightly deepen secondary text so normal-size labels remain readable.
+            surfaceVariant = Color(0xFFF0ECDF), onSurfaceVariant = Color(0xFF606D63),
             outline = Color(0xFF7B8578), outlineVariant = Color(0xFFDDD8CA),
             error = Color(0xFF9E3026), onError = Color.White,
             errorContainer = Color(0xFFFFEDE6), onErrorContainer = Color(0xFF75271F)
@@ -186,11 +188,11 @@ internal fun nativeColors(preferences: DisplayPreferences): ColorScheme {
     }
 }
 
-@Composable fun BrandCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
+@Composable fun BrandCard(modifier: Modifier = Modifier, compact: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
     Card(modifier.fillMaxWidth(), colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)) {
-        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp), content = content)
+        Column(Modifier.padding(if(compact) 14.dp else 18.dp), verticalArrangement = Arrangement.spacedBy(if(compact) 8.dp else 12.dp), content = content)
     }
 }
 
@@ -231,12 +233,14 @@ internal fun nativeColors(preferences: DisplayPreferences): ColorScheme {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable internal fun RegistrationTags(kind: String, moa: String) {
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    val dark = MaterialTheme.colorScheme.background.red < .3f
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         if(kind.isNotBlank()) Surface(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.secondaryContainer, contentColor = MaterialTheme.colorScheme.onSecondaryContainer) {
             Text(kind, Modifier.padding(horizontal = 8.dp, vertical = 3.dp), fontWeight = FontWeight.Bold, fontSize = 13.sp)
         }
-        if(moa.isNotBlank() && moa != "-") Surface(shape = RoundedCornerShape(6.dp), color = MaterialTheme.colorScheme.primaryContainer, contentColor = MaterialTheme.colorScheme.onPrimaryContainer) {
+        if(moa.isNotBlank() && moa != "-") Surface(shape = RoundedCornerShape(6.dp), color = if(dark) Color(0xFF3D304B) else Color(0xFFF0EAF5), contentColor = if(dark) Color(0xFFE7D6F6) else Color(0xFF654A7A)) {
             Text(moa, Modifier.padding(horizontal = 8.dp, vertical = 3.dp), fontWeight = FontWeight.Bold, fontSize = 13.sp)
         }
     }

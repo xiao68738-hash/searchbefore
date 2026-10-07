@@ -39,11 +39,12 @@ import androidx.compose.ui.unit.sp
 }
 
 /** Wrapping chips match the web density but retain Android's 48dp touch targets. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable internal fun SearchChip(label: String, modifier: Modifier = Modifier, detail: String = "", selected: Boolean = false, onClick: () -> Unit) {
     Surface(onClick = onClick, modifier = modifier, shape = RoundedCornerShape(12.dp),
         color = if(selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, if(selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant)) {
-        Column(Modifier.heightIn(min = 48.dp).padding(horizontal = 15.dp, vertical = 11.dp), verticalArrangement = Arrangement.Center) {
+        FlowRow(Modifier.heightIn(min = 48.dp).padding(horizontal = 12.dp, vertical = 11.dp), horizontalArrangement = Arrangement.spacedBy(5.dp), verticalArrangement = Arrangement.Center) {
             Text(label, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
             if(detail.isNotEmpty()) Text(detail, fontSize = 12.sp, lineHeight = 18.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
