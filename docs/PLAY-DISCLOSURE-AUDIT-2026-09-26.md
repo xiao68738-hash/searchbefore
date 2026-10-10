@@ -5,6 +5,16 @@
 - 原帳號復原已完成：經使用者同意後，完整備份、空白本機登入原帳號、匯入、伺服器同步與重開後逐欄核對均完成，沒有繞過 owner 保護。下方 ownerConflict 不再是目前狀態。
 - 五項商店變更已經使用者授權提交，Console 仍審查中；並非正式版本上架。SDK 分類與正式放行仍獨立核對。
 
+### 本日 SDK 與線上 TWA 實查
+
+- 重新成功解析 `releaseRuntimeClasspath`，不是只讀 build.gradle：Auth 24.2.0、Firestore 26.6.0、Common 22.2.1、Credentials 1.3.0、GoogleID 1.1.1、Play Services Auth 21.1.1。Analytics／Crashlytics／Installations／Performance 解析項目為 0。首頁／水量 UI 改動未新增任何依賴。
+- `NativeCloud.kt` 只使用 Google ID token 登入；登入本身不讀寫田間資料。同步另受同意、UID 與請求逐階段檢查保護；Firestore 僅記憶體快取。Manifest 無位置、相機、聯絡人或廣告 ID 權限。這是程式／依賴覆核，不是完整網路流量或 Google Play Services 內部稽核。
+- [Firebase 官方揭露](https://firebase.google.com/docs/android/play-data-disclosure)仍列 Auth 的 IP／user agent／App ID，以及 Firestore 的 user agent 與登入 UID。user agent 的裝置／版本中繼資料不等於零資料；也不能把專案共用 App ID 直接等同個別安裝識別碼。IP 是否屬位置類別須看有無位置推導用途，不憑字串自動勾選。
+- **新增實際發現：** 線上 `searchbefore.tw` 的 DOM 已載入 `pagead2.googlesyndication.com/pagead/js/adsbygoogle.js` 及 `show_ads_impl_fy2021.js`；本機 `index.html` 亦有無條件 AdSense script。原生無廣告 SDK 不代表仍使用網站的 TWA 無廣告處理。
+- [Play 資料安全說明](https://support.google.com/googleplay/android-developer/answer/10787469?hl=en)要求涵蓋目前散布版本的收集／分享總和。因此不能僅根據原生 SDK 清單替整個 App 聲明結案。
+- 使用者已明確同意先停用廣告載入並知悉收益影響。首頁／五個指南頁的 script 與帳戶 meta 已移除，版本升至 0.3.10.1；PR151 已合併（cc58da5），Pages 部署 38068859572 成功。全部 JavaScript 測試及 36 個發布成品檢查通過。HTTP 實查首頁、五指南、隱私頁及 sw.js 均 200／無廣告載入碼；瀏覽器經「立即更新」後顯示 0.3.10.1，DOM adScripts=[]。未清除網站資料。公開政策證據：releases/native-v11-20261010/screenshots/website-ads-disabled-20261011.png。
+- 保留被動 ads.txt，未修改登入、同步或紀錄；未更改 Play 資料安全表單或發布正式 AAB。歷史廣告處理與未更新快取不能當作不存在。原生介面 CI 38067877011 另已通過 Android 16 的 78 項公開／合成 UI 測試，不能當作新 AAB 已發布。
+
 ## 2026-10-10 晚間最終覆核（優先於下方早先狀態）
 
 - PR150 已合併部署；公開 privacy.html 與 delete-account.html 已實讀 HTTP 200、10/10 新版。下方「尚未部署」只屬本日較早紀錄。
