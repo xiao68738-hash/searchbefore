@@ -565,6 +565,17 @@
     pestRelation: pestRelation,
     isParentOf: isParentOf,
     pestSearchMatch: pestSearchMatch,
+    // Build-time data for the native matcher; return copies, never mutable source maps.
+    pestSearchRules: function () {
+      return {
+        aliases: Object.fromEntries(PEST_ALIASES),
+        ambiguous: Array.from(AMBIGUOUS_PEST_NAMES),
+        official: Object.fromEntries(Array.from(OFFICIAL_PEST_GROUPS, ([k,v])=>[k,Array.from(v)])),
+        scientific: Object.fromEntries(Array.from(SCIENTIFIC_PEST_GROUPS, ([k,v])=>[k,Array.from(v)])),
+        groups: SEARCH_GROUPS.slice(), known: Array.from(KNOWN_PEST_NAMES),
+        queryTerms: GROUP_QUERY_TERMS.map(([k,v])=>[k,v.slice()])
+      };
+    },
     relatedPests: relatedPests,
     relatedPestRegistrations: relatedPestRegistrations,
     SEED_RE: SEED_RE,
