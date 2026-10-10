@@ -17,9 +17,9 @@ android {
         minSdk 24
         targetSdk 36
         // Production-shaped candidate; distribution still requires the explicit signing gate.
-        // Play highest observed code was 10 on 2026-10-10. This does not authorize rollout.
-        versionCode 11
-        versionName "1.1.5"
+        // Play v11 is already installed. Preserve its artifact; use a new code for this candidate.
+        versionCode 12
+        versionName "1.1.6"
         resValue "string", "app_name", "噴前查"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
