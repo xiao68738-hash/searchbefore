@@ -4,6 +4,15 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class NativeFeedbackTest {
+    @Test fun registrationContextUsesOnlyBoundedPublicFields() {
+        val json = org.json.JSONObject().put("id", "TEST_ID").put("crop", "TEST_CROP").put("pest", "TEST_PEST")
+            .put("name", "TEST_AGENT").put("notes", "PRIVATE_SENTINEL").put("operator", "PRIVATE_SENTINEL")
+            .put("content", "x".repeat(2000)).put("form", "SC").put("selectedHarvestForm", "TEST_FORM")
+        val before = json.toString(); val context = NativeFeedback.registrationContext(UsageRow(json))
+        assertTrue(context.contains("登記識別：TEST_ID")); assertTrue(context.contains("TEST_CROP"))
+        assertFalse(context.contains("PRIVATE_SENTINEL")); assertTrue(context.length <= 1000)
+        assertEquals(before, json.toString())
+    }
     @Test fun draftContainsOnlyExplicitDescriptionAndPublicVersions() {
         assertEquals("【操作問題】\nTEST_DESCRIPTION\n———\n原生 App vTEST_APP · 資料 TEST_DATA",
             NativeFeedback.body("操作問題", " TEST_DESCRIPTION ", "TEST_APP", "TEST_DATA"))

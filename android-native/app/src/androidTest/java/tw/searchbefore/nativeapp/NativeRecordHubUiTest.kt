@@ -15,6 +15,29 @@ import org.junit.Test
 class NativeRecordHubUiTest {
     @get:Rule val compose = createComposeRule()
 
+    @Test fun defaultPlotSummaryUsesExactPlotAndRoutesUnknownSafetyWithoutMutation() {
+        val data = Backup.empty().put("activePlotId", "a")
+        data.getJSONArray("fieldPlots").put(org.json.JSONObject().put("id", "a").put("crop", "TEST_PLOT"))
+        data.getJSONArray("records").put(org.json.JSONObject().put("id", "test-use").put("plotId", "a")
+            .put("date", "2026-01-01").put("phi", org.json.JSONObject.NULL).put("agent", "TEST_AGENT"))
+        val before = data.toString(); var countdowns = 0; val destinations = mutableListOf<Int>()
+        compose.setContent { SearchBeforeTheme { Column(Modifier.width(320.dp)) {
+            RecordHub(data, true, openCountdown = { countdowns++ }) { destinations.add(it) }
+        } } }
+        compose.onNodeWithText("TEST_PLOT").assertIsDisplayed()
+        compose.onNodeWithText("用藥 1・農務 0").assertExists()
+        compose.onNodeWithText("先核對採收期").performScrollTo().performClick()
+        compose.runOnIdle { assertEquals(1, countdowns); assertEquals(0, destinations.size); assertEquals(before, data.toString()) }
+    }
+
+    @Test fun emptyHubOffersCreatePlotWithoutClaimingSafeHarvest() {
+        val calls = mutableListOf<Int>()
+        compose.setContent { SearchBeforeTheme { RecordHub(Backup.empty(), true) { calls.add(it) } } }
+        compose.onNodeWithText("先建立一個田區").assertIsDisplayed()
+        compose.onNodeWithText("建立田區").performScrollTo().performClick()
+        compose.runOnIdle { assertEquals(listOf(0), calls) }
+    }
+
     @Test fun webEntryPointsNavigateWithoutChangingRecords() {
         val data = Backup.empty()
         val original = data.toString()

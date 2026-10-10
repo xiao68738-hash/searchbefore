@@ -161,7 +161,7 @@ class MainActivity : ComponentActivity() {
                             3 -> CountdownScreen(data, !state.busy, exportCalendar = { plot ->
                                 calendarExportPlot = plot; exportCalendar.launch("噴前查等待期提醒_${LocalDate.now()}.ics")
                             }) { recordSection = 0; tab = 4 }
-                            4 -> if(recordSection == -1) RecordHub(data, !state.busy) { recordSection = it } else Column {
+                            4 -> if(recordSection == -1) RecordHub(data, !state.busy, openCountdown = { tab = 3 }) { recordSection = it } else Column {
                                 BackHandler { recordSection = -1 }
                                 TextButton(onClick = { recordSection = -1 }) { Text("← 返回紀錄首頁") }
                                 if(recordSection == 2) TimelineScreen(data, !state.busy) { farm -> recordSection = if(farm) 1 else 0 }
@@ -463,7 +463,7 @@ class MainActivity : ComponentActivity() {
                 item { key(crop, pest, agentScope) { PhiFilterBar(phiMax) { phiMax = it } } }
                 item { Text("一般用法 ${sections.ordinary.size} 筆・特殊用法 ${sections.special.size} 筆・不符或待確認 ${sections.excluded.size} 筆", style = MaterialTheme.typography.bodySmall) }
                 if(rows.isEmpty()) item { Text("沒有符合目前篩選的登記用法。可改選「全部」，不代表其他藥劑可使用。") }
-                items(sections.ordinary.take(shown), key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = { water -> saveRecipe(row, water) }, onCalculate = { onCalculate(row) }, rotation = rotationHistory[row.json.optString("moa").trim().uppercase()], onRecord = { recording = row; plotId = Backup.defaultPlot(data, row.crop); date = LocalDate.now().toString(); details = ApplicationDetails() }) }
+                items(sections.ordinary.take(shown), key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = { water -> saveRecipe(row, water) }, onCalculate = { onCalculate(row) }, rotation = rotationHistory[row.json.optString("moa").trim().uppercase()], onRecord = { recording = row; plotId = Backup.defaultPlot(data, row.crop); date = LocalDate.now().toString(); details = ApplicationDetails() }, feedback = { RegistrationFeedbackEntry(catalog, row, enabled) }) }
                 if (sections.ordinary.size > shown) item { TextButton(onClick = { shown += 20 }) { Text("顯示更多用法") } }
                 if(sections.special.isNotEmpty()) {
                     item { OutlinedButton(onClick = { showSpecial = !showSpecial }, modifier = Modifier.fillMaxWidth()) {
@@ -471,14 +471,14 @@ class MainActivity : ComponentActivity() {
                     } }
                     if(showSpecial) {
                         item { Info("特殊施用方式，與一般噴施分開", "包含種子處理、撒布、原液等用途；不提供稀釋計算，請依原登記方式與產品標示操作。") }
-                        items(sections.special, key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = { water -> saveRecipe(row, water) }, rotation = rotationHistory[row.json.optString("moa").trim().uppercase()], onRecord = { recording = row; plotId = Backup.defaultPlot(data, row.crop); date = LocalDate.now().toString(); details = ApplicationDetails() }) }
+                        items(sections.special, key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = { water -> saveRecipe(row, water) }, rotation = rotationHistory[row.json.optString("moa").trim().uppercase()], onRecord = { recording = row; plotId = Backup.defaultPlot(data, row.crop); date = LocalDate.now().toString(); details = ApplicationDetails() }, feedback = { RegistrationFeedbackEntry(catalog, row, enabled) }) }
                     }
                 }
                 if(sections.excluded.isNotEmpty()) {
                     item { OutlinedButton(onClick = { showExcluded = !showExcluded }, modifier = Modifier.fillMaxWidth()) {
                         Text("${if(showExcluded) "收合" else "展開"}型態不符或待確認（${sections.excluded.size} 筆）")
                     } }
-                    if(showExcluded) items(sections.excluded, key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = {}, onRecord = {}) }
+                    if(showExcluded) items(sections.excluded, key = { it.id }) { row -> UsageCard(row, enabled, onRecipe = {}, onRecord = {}, feedback = { RegistrationFeedbackEntry(catalog, row, enabled) }) }
                 }
                 item { Text("資料供查詢參考，實際用法請核對產品標示與主管機關最新公告。", style = MaterialTheme.typography.bodySmall) }
                 if (catalog.related(crop, pest).isNotEmpty()) item {
@@ -531,7 +531,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@Composable internal fun UsageCard(row: UsageRow, enabled: Boolean, onRecipe: (String) -> Unit, onRecord: () -> Unit, onCalculate: (() -> Unit)? = null, rotation: JSONObject? = null) {
+@Composable internal fun UsageCard(row: UsageRow, enabled: Boolean, onRecipe: (String) -> Unit, onRecord: () -> Unit, onCalculate: (() -> Unit)? = null, rotation: JSONObject? = null, feedback: (@Composable () -> Unit)? = null) {
     var calculate by rememberSaveable(row.id) { mutableStateOf(false) }
     var water by rememberSaveable(row.id) { mutableStateOf("1") }
     var savingRecipe by rememberSaveable(row.id) { mutableStateOf(false) }
@@ -575,6 +575,7 @@ class MainActivity : ComponentActivity() {
         OutlinedButton(enabled = enabled && !row.formExcluded, onClick = onRecord, modifier = Modifier.fillMaxWidth()) { Text("紀錄用藥") }
         if(row.canCalculate && !row.formExcluded) OutlinedButton(enabled = enabled, onClick = { savingRecipe = true }, modifier = Modifier.fillMaxWidth()) { Text("存入配方") }
         Text("有明確安全採收期的紀錄才會建立倒數。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        feedback?.invoke()
     }
     if(savingRecipe) AlertDialog(onDismissRequest = { savingRecipe = false }, title = { Text("存入配方") }, text = {
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

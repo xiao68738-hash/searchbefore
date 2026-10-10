@@ -49,10 +49,14 @@ import androidx.compose.ui.unit.dp
 }
 
 /** Only the caller's public catalog selection is offered; never access history or local records. */
-@Composable internal fun NativeFeedbackEntry(catalog: Catalog, enabled: Boolean, publicContext: String = "") {
+@Composable internal fun RegistrationFeedbackEntry(catalog: Catalog, row: UsageRow, enabled: Boolean) {
+    NativeFeedbackEntry(catalog, enabled, NativeFeedback.registrationContext(row), "回報此筆資料問題")
+}
+
+@Composable internal fun NativeFeedbackEntry(catalog: Catalog, enabled: Boolean, publicContext: String = "", label: String = if(publicContext.isEmpty()) "意見回饋／回報問題" else "回報這個查詢的問題") {
     val context = LocalContext.current
     var feedback by rememberSaveable(publicContext) { mutableStateOf(false) }
-    OutlinedButton(enabled = enabled, onClick = { feedback = true }) { Text(if(publicContext.isEmpty()) "意見回饋／回報問題" else "回報這個查詢的問題") }
+    OutlinedButton(enabled = enabled, onClick = { feedback = true }) { Text(label) }
     if(feedback) FeedbackDialog(catalog.version, enabled, { feedback = false }, copied = { body ->
         val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText("噴前查回饋", body))

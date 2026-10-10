@@ -51,4 +51,20 @@ class NativeCardActionsUiTest {
         compose.onNodeWithText("收藏此用途").performScrollTo().assertIsNotEnabled()
         compose.onNodeWithText("紀錄用藥").performScrollTo().assertIsNotEnabled()
     }
+
+    @Test fun individualFeedbackCanOpenAndCancelWithoutSavingOrSending() {
+        val row = row(excluded = true); val before = row.json.toString()
+        val catalog = Catalog(JSONObject().put("dataVersion", "TEST").put("rows", org.json.JSONArray())
+            .put("related", JSONObject()).toString())
+        compose.setContent { SearchBeforeTheme { Column(Modifier.verticalScroll(rememberScrollState())) {
+            UsageCard(row, true, { fail("must not save") }, { fail("must not record") },
+                feedback = { RegistrationFeedbackEntry(catalog, row, true) })
+        } } }
+        compose.onNodeWithText("回報此筆資料問題").performScrollTo().performClick()
+        compose.onNodeWithTag("includePublicQuery").performScrollTo().assertIsOff()
+        compose.onNodeWithText("複製回饋內容").assertIsNotEnabled()
+        compose.onNodeWithText("取消").performClick()
+        compose.onNodeWithTag("includePublicQuery").assertDoesNotExist()
+        compose.runOnIdle { assertEquals(before, row.json.toString()) }
+    }
 }
