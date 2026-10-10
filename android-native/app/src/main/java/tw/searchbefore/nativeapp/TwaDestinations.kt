@@ -23,7 +23,7 @@ import java.time.temporal.ChronoUnit
 @OptIn(ExperimentalLayoutApi::class)
 @Composable internal fun CalculationScreen(row: UsageRow?, enabled: Boolean, choose: () -> Unit, saveRecipe: (UsageRow, String) -> Unit,
     data: JSONObject? = null, record: ((UsageRow, String, String, ApplicationDetails, Boolean) -> Boolean)? = null,
-    initialWater: String = "1", launchKey: String = "") {
+    initialWater: String = "20", launchKey: String = "") {
     val sessionKey = "${row?.id}:${row?.json?.optString("selectedHarvestForm")}:$launchKey"
     var water by rememberSaveable(sessionKey) { mutableStateOf(initialWater) }
     var tanks by rememberSaveable(sessionKey) { mutableStateOf("1") }
@@ -38,7 +38,25 @@ import java.time.temporal.ChronoUnit
     LazyColumn(Modifier.testTag("calculationList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
         item { QueryStep(1, "配藥計算") }
         if(row == null) {
-            item { Info("先選擇一筆登記用法", "請從查詢結果的藥劑卡按「配藥計算」，帶入該作物與病蟲害的登記倍數。不會自行假設倍數。") }
+            item { BrandCard {
+                Text("尚未選擇藥劑 — 請先到「查詢」從藥劑卡帶入登記倍數。")
+                OutlinedTextField("", {}, readOnly = true, label = { Text("稀釋倍數（倍）") },
+                    placeholder = { Text("由查詢結果帶入") }, modifier = Modifier.fillMaxWidth())
+                Text("稀釋倍數鎖定為登記資料，請先從查詢結果帶入藥劑。", style = MaterialTheme.typography.bodySmall)
+                OutlinedTextField(water, { water = it.take(16) }, enabled = enabled, label = { Text("每桶水量（公升）") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done), keyboardActions = done, singleLine = true, modifier = Modifier.fillMaxWidth())
+                WaterPresets(water, enabled) { water = it; focus.clearFocus() }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(selected = !areaMode, enabled = enabled, onClick = { areaMode = false }, label = { Text("用桶數算") })
+                    FilterChip(selected = areaMode, enabled = enabled, onClick = { areaMode = true }, label = { Text("按面積換算") })
+                }
+                if(!areaMode) OutlinedTextField(tanks, { tanks = it.take(6) }, enabled = enabled, label = { Text("本次桶數（整數）") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done), keyboardActions = done, singleLine = true, modifier = Modifier.fillMaxWidth())
+                else Text("每公頃用藥量取自原登記；選藥後才能依登記範圍換算面積。")
+                Text("請先從查詢結果帶入藥劑與登記稀釋倍數", style = MaterialTheme.typography.titleMedium)
+                Button(enabled = false, onClick = {}, modifier = Modifier.fillMaxWidth()) { Text("存成常用配方") }
+                OutlinedButton(enabled = false, onClick = {}, modifier = Modifier.fillMaxWidth()) { Text("帶入實際施藥確認") }
+            } }
             item { Button(enabled = enabled, onClick = choose, modifier = Modifier.fillMaxWidth()) { Text("前往查詢選藥") } }
         } else {
             item { BrandCard {
@@ -53,13 +71,7 @@ import java.time.temporal.ChronoUnit
                 item { QueryStep(2, "輸入每桶水量") }
                 item { OutlinedTextField(water, { water = it.take(16) }, label = { Text("每桶水量（公升）") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done), keyboardActions = done, singleLine = true, modifier = Modifier.fillMaxWidth()) }
-                item { FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("背負桶 16L" to "16", "20L" to "20", "25L" to "25", "100L" to "100",
-                        "動力桶 500L" to "500", "噴藥車 400L" to "400", "噴藥車 1000L" to "1000").forEach { (label, liters) ->
-                        FilterChip(selected = water == liters, enabled = enabled,
-                            onClick = { water = liters; focus.clearFocus() }, label = { Text(label) })
-                    }
-                } }
+                item { WaterPresets(water, enabled) { water = it; focus.clearFocus() } }
                 item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(selected = !areaMode, enabled = enabled, onClick = { areaMode = false }, label = { Text("用桶數算") })
                     FilterChip(selected = areaMode, enabled = enabled, onClick = { areaMode = true }, label = { Text("按面積換算") })
@@ -118,6 +130,16 @@ import java.time.temporal.ChronoUnit
     if(recording && row != null && draft != null && data != null && record != null) {
         CalculationRecordDialog(row, data, draft, enabled, dismiss = { recording = false }) { date, plot, details, confirmed ->
             record(row, date, plot, details, confirmed)
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable private fun WaterPresets(water: String, enabled: Boolean, change: (String) -> Unit) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        listOf("背負桶 16L" to "16", "20L" to "20", "25L" to "25", "100L" to "100",
+            "動力桶 500L" to "500", "噴藥車 400L" to "400", "噴藥車 1000L" to "1000").forEach { (label, liters) ->
+            FilterChip(selected = water == liters, enabled = enabled, onClick = { change(liters) }, label = { Text(label) })
         }
     }
 }

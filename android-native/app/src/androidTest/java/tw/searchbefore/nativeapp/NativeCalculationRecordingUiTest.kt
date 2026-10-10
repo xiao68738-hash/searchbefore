@@ -63,7 +63,7 @@ class NativeCalculationRecordingUiTest {
         compose.runOnIdle { assertNull(actual) }
         compose.onNodeWithTag("confirmActualApplication").performScrollTo().performClick()
         compose.onNodeWithText("確認並儲存實際用藥").performClick()
-        compose.runOnIdle { assertEquals(ApplicationDetails(water = "1"), actual) }
+        compose.runOnIdle { assertEquals(ApplicationDetails(water = "20"), actual) }
     }
     @Test fun overlongBucketCountIsRejectedInsteadOfSilentlyTruncated() {
         var saves = 0
@@ -92,6 +92,20 @@ class NativeCalculationRecordingUiTest {
         reveal("動力桶 500L").assertIsSelected()
         reveal("每桶水量（公升）").assertTextContains("500")
         compose.runOnIdle { assertEquals(0, saves) }
+    }
+    @Test fun noRegistrationShowsInputsButNeverComputesOrSaves() {
+        var saves = 0; var choices = 0
+        val restoration = StateRestorationTester(compose)
+        restoration.setContent { SearchBeforeTheme { CalculationScreen(null, true, { choices++ }, { _, _ -> saves++ }, Backup.empty(),
+            record = { _, _, _, _, _ -> saves++; true }) } }
+        reveal("每桶水量（公升）").assertTextContains("20")
+        reveal("背負桶 16L").performClick()
+        restoration.emulateSavedInstanceStateRestore()
+        reveal("每桶水量（公升）").assertTextContains("16")
+        reveal("存成常用配方").assertIsNotEnabled()
+        reveal("帶入實際施藥確認").assertIsNotEnabled()
+        reveal("前往查詢選藥").performClick()
+        compose.runOnIdle { assertEquals(0, saves); assertEquals(1, choices) }
     }
     @Test fun futureDateAndFailedSaveKeepTheFormWithoutLosingInput() {
         var calls = 0

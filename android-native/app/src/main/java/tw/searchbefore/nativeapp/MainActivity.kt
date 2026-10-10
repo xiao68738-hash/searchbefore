@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
                 var recordSection by rememberSaveable { mutableIntStateOf(-1) }
                 var calculationId by rememberSaveable { mutableStateOf("") }
                 var calculationForm by rememberSaveable { mutableStateOf("") }
-                var calculationWater by rememberSaveable { mutableStateOf("1") }
+                var calculationWater by rememberSaveable { mutableStateOf("20") }
                 var calculationLaunch by rememberSaveable { mutableIntStateOf(0) }
                 var reportFrom by rememberSaveable { mutableStateOf("") }
                 var reportTo by rememberSaveable { mutableStateOf("") }
@@ -137,7 +137,7 @@ class MainActivity : ComponentActivity() {
                         val data = state.data
                         if (cat != null && data != null) pageState.SaveableStateProvider(tab) { when (tab) {
                             0 -> QueryScreen(cat, data, !state.busy, openPersonal = { tab = 5 }, onCalculate = { row ->
-                                pageState.removeState(1); calculationWater = "1"; calculationLaunch++
+                                pageState.removeState(1); calculationWater = "20"; calculationLaunch++
                                 calculationId = row.id; calculationForm = row.json.optString("selectedHarvestForm"); tab = 1
                             }, saveRecipe = { row, water ->
                                 runCatching { if(row.canCalculate) Recipes.add(requireNotNull(state.data), row, water)
@@ -195,12 +195,8 @@ class MainActivity : ComponentActivity() {
                                 })
                             }
                             5 -> LazyColumn(Modifier.testTag("personalList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
-                                item { QueryStep(1, "個人與資料管理") }
-                                item { Text(releaseIdentityLabel(BuildConfig.DEBUG, BuildConfig.VERSION_NAME), style = MaterialTheme.typography.bodySmall) }
-                                item { OutlinedButton(enabled = !state.busy, onClick = { migrationHelp = true }) { Text("舊版資料移轉") } }
-                                item { Info("你的資料", "預設儲存在此裝置。Google 登入不等於同意上傳；只有明確開啟同步後，才可與同帳號雲端紀錄合併。登出不會刪除本機紀錄。") }
-                                item { Info("本機資料概況", "${data.getJSONArray("fieldPlots").length()} 個田區　${data.getJSONArray("records").length()} 筆用藥\n${data.getJSONArray("farmRecords").length()} 筆農務　${data.getJSONArray("recipes").length()} 個配方\n配方與顯示偏好不會同步到雲端。") }
-                                item { QueryStep(2, "帳號與雲端同步") }
+                                item { DisplaySettings(state.displayPreferences, !state.busy, state::setDisplayPreferences) }
+                                item { Text("帳號與資料備份", style = MaterialTheme.typography.titleLarge) }
                                 item { Info("Google 登入", if (state.signedIn) "目前帳號：${state.accountLabel}" else if (state.configured) "未登入，仍可使用本機查詢、紀錄與備份。" else "此安裝包尚未加入原生 Firebase 設定，登入暫不可用。") }
                                 item {
                                     if (state.signedIn) OutlinedButton(enabled = !state.busy, onClick = state::signOut) { Text("登出 Google") }
@@ -237,7 +233,9 @@ class MainActivity : ComponentActivity() {
                                 item { OutlinedButton(enabled = !state.busy, onClick = { importBackup.launch(arrayOf("application/json", "text/plain")) }) { Text("匯入網站／APP 的 JSON 備份") } }
                                 item { Text("匯入前會確認，並在本機保留上一份資料。授權、登入狀態與雲端同步同意不會匯入。") }
                                 item { OutlinedButton(enabled = !state.busy && state.hasRecovery, onClick = state::readRecovery) { Text("回復匯入前的資料") } }
-                                item { QueryStep(4, "通知與閱讀設定") }
+                                item { OutlinedButton(enabled = !state.busy, onClick = { migrationHelp = true }) { Text("舊版資料移轉") } }
+                                item { Info("本機資料概況", "${data.getJSONArray("fieldPlots").length()} 個田區　${data.getJSONArray("records").length()} 筆用藥\n${data.getJSONArray("farmRecords").length()} 筆農務　${data.getJSONArray("recipes").length()} 個配方\n配方與顯示偏好不會同步到雲端。") }
+                                item { Text("通知", style = MaterialTheme.typography.titleLarge) }
                                 item {
                                     Info("本機紀錄提醒", "${state.reminderStatus}\n每天至多提醒一次：核對近期未確認或接近等待期的紀錄；不保證可採收／殘留合格。鎖定畫面不放作物、藥劑或帳號；不會因開啟通知而同步資料。匯入或登出會關閉提醒。")
                                     OutlinedButton(enabled = !state.busy, onClick = {
@@ -251,8 +249,9 @@ class MainActivity : ComponentActivity() {
                                         else startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, "package:$packageName".toUri()))
                                     }) { Text("系統通知設定") }
                                 }
-                                item { DisplaySettings(state.displayPreferences, !state.busy, state::setDisplayPreferences) }
+                                item { Text("回饋與支持", style = MaterialTheme.typography.titleLarge) }
                                 item { NativeHelpCard(cat, !state.busy) }
+                                item { Text(releaseIdentityLabel(BuildConfig.DEBUG, BuildConfig.VERSION_NAME), style = MaterialTheme.typography.bodySmall) }
                                 item { Text("資料版本 ${cat.version}\n資料來源：農業部農藥開放資料。僅列所選作物的原登記，不自動延伸到相似作物或作物群組。未列出不代表可使用；依產品標示及最新公告為準。") }
                             }
                         } }

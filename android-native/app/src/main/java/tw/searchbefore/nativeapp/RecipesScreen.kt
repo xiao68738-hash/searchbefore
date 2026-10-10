@@ -32,9 +32,11 @@ import org.json.JSONObject
     val focus = LocalFocusManager.current
     val done = KeyboardActions(onDone = { focus.clearFocus() })
     LazyColumn(Modifier.testTag("recipesList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
-        item { Text("常用配方", style = MaterialTheme.typography.headlineSmall) }
-        item { Text("配方與用途收藏是先前保存的參考，不會自動產生施藥紀錄。使用前仍須核對現行登記及產品標示；本頁資料只在本機與 JSON 備份中。") }
-        item { OutlinedTextField(value = query, onValueChange = { query = it.take(120) }, label = { Text("搜尋作物、藥劑或商品名") }, modifier = Modifier.fillMaxWidth()) }
+        item { Text("我的常用配方", style = MaterialTheme.typography.headlineSmall) }
+        if(rows.isNotEmpty()) {
+            item { Text("配方與用途收藏是先前保存的參考，不會自動產生施藥紀錄。使用前仍須核對現行登記及產品標示；本頁資料只在本機與 JSON 備份中。") }
+            item { OutlinedTextField(value = query, onValueChange = { query = it.take(120) }, label = { Text("搜尋作物、藥劑或商品名") }, modifier = Modifier.fillMaxWidth()) }
+        }
         if(rows.isNotEmpty()) item { FilterChip(selected = batch, enabled = enabled, onClick = { batch = !batch }, label = { Text("多筆獨立換算") }) }
         if(batch) {
             item { Info("依目前篩選逐筆試算", "以下各配方分別套用同一水量與桶數，不代表一起施用或可以混配，也不加總不同藥劑。舊配方不是最新登記證明，請回查詢核對；不更動保存水量或施藥紀錄。") }
@@ -43,7 +45,10 @@ import org.json.JSONObject
             item { OutlinedTextField(batchTanks, { batchTanks = it.take(6) }, label = { Text("各配方分別試算桶數") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done), keyboardActions = done, singleLine = true, modifier = Modifier.fillMaxWidth()) }
         }
-        if (rows.isEmpty()) item { Text("在配藥計算按「存成常用配方」；沒有稀釋計算的用法可在查詢結果按「收藏此用途」。") }
+        if (rows.isEmpty()) item { BrandCard {
+            Text("還沒有配方", style = MaterialTheme.typography.titleMedium)
+            Text("在「查詢」或「計算」按「存成常用配方」就會出現在這裡；沒有稀釋計算的用法可在查詢結果按「收藏此用途」。")
+        } }
         itemsIndexed(rows) { index, recipe ->
             if (query.isBlank() || listOf("crop", "agent", "brand").any { recipe.optString(it).contains(query.trim()) }) {
                 BrandCard {
