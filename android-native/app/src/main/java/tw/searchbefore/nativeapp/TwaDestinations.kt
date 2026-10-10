@@ -20,6 +20,7 @@ import java.time.YearMonth
 import java.time.temporal.ChronoUnit
 
 /** Reuse validated dilution rules, never invent a ratio or save an actual-use record on navigation. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable internal fun CalculationScreen(row: UsageRow?, enabled: Boolean, choose: () -> Unit, saveRecipe: (UsageRow, String) -> Unit,
     data: JSONObject? = null, record: ((UsageRow, String, String, ApplicationDetails, Boolean) -> Boolean)? = null,
     initialWater: String = "1", launchKey: String = "") {
@@ -52,6 +53,13 @@ import java.time.temporal.ChronoUnit
                 item { QueryStep(2, "輸入每桶水量") }
                 item { OutlinedTextField(water, { water = it.take(16) }, label = { Text("每桶水量（公升）") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal, imeAction = ImeAction.Done), keyboardActions = done, singleLine = true, modifier = Modifier.fillMaxWidth()) }
+                item { FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf("背負桶 16L" to "16", "20L" to "20", "25L" to "25", "100L" to "100",
+                        "動力桶 500L" to "500", "噴藥車 400L" to "400", "噴藥車 1000L" to "1000").forEach { (label, liters) ->
+                        FilterChip(selected = water == liters, enabled = enabled,
+                            onClick = { water = liters; focus.clearFocus() }, label = { Text(label) })
+                    }
+                } }
                 item { Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     FilterChip(selected = !areaMode, enabled = enabled, onClick = { areaMode = false }, label = { Text("用桶數算") })
                     FilterChip(selected = areaMode, enabled = enabled, onClick = { areaMode = true }, label = { Text("按面積換算") })

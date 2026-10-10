@@ -77,6 +77,22 @@ class NativeCalculationRecordingUiTest {
         reveal("帶入實際施藥確認").assertIsEnabled()
         compose.runOnIdle { assertEquals(0, saves) }
     }
+    @Test fun waterPresetsOnlyChangeCalculationAndSurviveRestoration() {
+        var saves = 0
+        val restoration = StateRestorationTester(compose)
+        restoration.setContent { SearchBeforeTheme { CalculationScreen(row(), true, {}, { _, _ -> saves++ }, Backup.empty(),
+            record = { _, _, _, _, _ -> saves++; true }) } }
+        reveal("背負桶 16L").performClick()
+        reveal("每桶水量（公升）").assertTextContains("16")
+        reveal("20L").performClick()
+        reveal("每桶水量（公升）").assertTextContains("20")
+        reveal("動力桶 500L").performClick()
+        reveal("每桶水量（公升）").assertTextContains("500")
+        restoration.emulateSavedInstanceStateRestore()
+        reveal("動力桶 500L").assertIsSelected()
+        reveal("每桶水量（公升）").assertTextContains("500")
+        compose.runOnIdle { assertEquals(0, saves) }
+    }
     @Test fun futureDateAndFailedSaveKeepTheFormWithoutLosingInput() {
         var calls = 0
         val row = row(); val draft = CalculationRecording.tanks(row, "20", "1")!!

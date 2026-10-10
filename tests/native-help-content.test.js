@@ -25,3 +25,17 @@ for(const item of help.announcements){
   assert.ok(announcementBlock.includes(item.date)&&announcementBlock.includes(item.title));
 }
 console.log('Native offline guides: four source-hashed text-only articles, safety warnings and public feedback configuration preserved.');
+
+// Public native home copy must not silently drift from the TWA feature descriptions.
+const fs=require('node:fs');
+const nativeHome=fs.readFileSync(path.join(root,'android-native/app/src/main/java/tw/searchbefore/nativeapp/NativeHome.kt'),'utf8');
+const featureBlock=nativeHome.match(/internal val homeFeatures = listOf\(([\s\S]*?)\n\)/)[1];
+const features=Array.from(featureBlock.matchAll(/"([^"]+)" to "([^"]+)"/g),m=>[m[1],m[2]]);
+assert.equal(features.length,7);
+for(const [title,description] of features){
+  assert.ok(source.includes(title),`Missing TWA feature title: ${title}`);
+  assert.ok(source.includes(description),`Native feature description differs: ${title}`);
+}
+const nativeHelp=fs.readFileSync(path.join(root,'android-native/app/src/main/java/tw/searchbefore/nativeapp/NativeHelp.kt'),'utf8');
+for(const guide of help.guides) assert.ok(nativeHelp.includes(`"${guide.id}" ->`),`Missing home guide subtitle: ${guide.id}`);
+console.log('Native home: seven TWA feature descriptions and all four guide IDs aligned.');

@@ -16,6 +16,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/** Same public feature descriptions as the TWA home. No account or record access. */
+internal val homeFeatures = listOf(
+    "登記但不得檢出提醒" to "對人工確認的精確作物與藥劑組合顯示殘留檢驗提醒；相似名稱、群組或查無資料不會自動判定。",
+    "雙向合法用藥查詢" to "可依作物與病蟲害找藥，也可由藥劑反查實際登記作物；逐筆顯示倍數與安全採收期。",
+    "配藥換算" to "把藥劑倍數帶入水量、桶數或面積，快速算出現場需要的實際用量。",
+    "施藥紀錄與安全採收連動" to "完成施藥後留下紀錄，依同田區全部用藥判斷最晚可採日；資料不足時不誤顯示可採收。",
+    "農務與設備管理" to "整理栽培、施肥、採收、資材與施藥紀錄，也可一次登錄多筆設備保養、維修、校正或清潔作業。",
+    "履歷整理與多格式匯出" to "依日期與田區整理紀錄，匯出 Excel、PDF 或 CSV，方便自行保存、查閱與後續登打。",
+    "本機備份與選用雲端" to "預設只存在這台裝置，可下載 JSON 完整備份；明確同意後才會同步部分田間資料。"
+)
+
+@Composable internal fun HomeFeatureCard(title: String, description: String) {
+    Surface(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface, border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)) {
+        Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
+            Text(title, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onPrimaryContainer)
+            Text(description, fontSize = 14.sp, lineHeight = 22.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
 /** TWA's three-step introduction. Dismissal is local UI preference, never cloud data. */
 @Composable internal fun FirstUseGuide(dismiss: () -> Unit) {
     Surface(Modifier.fillMaxWidth().testTag("firstUseGuide"), shape = RoundedCornerShape(21.dp),

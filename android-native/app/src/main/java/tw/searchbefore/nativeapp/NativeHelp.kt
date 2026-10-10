@@ -15,11 +15,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
-@Composable internal fun NativeHelpCard(catalog: Catalog, enabled: Boolean) {
+@Composable internal fun NativeHelpCard(catalog: Catalog, enabled: Boolean, home: Boolean = false) {
     val context = LocalContext.current
     var guideId by rememberSaveable { mutableStateOf("") }
     var message by rememberSaveable { mutableStateOf("") }
@@ -27,9 +30,29 @@ import androidx.compose.ui.unit.dp
         runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri())) }.onFailure { message = "無法開啟瀏覽器，請連網後再試。" }
     }
     BrandCard {
-        Text("使用指南與回饋", style = MaterialTheme.typography.titleMedium)
+        if(home) Text("農藥使用知識", style = MaterialTheme.typography.bodySmall)
+        Text(if(home) "施藥前先弄懂的四件事" else "使用指南與回饋", style = MaterialTheme.typography.titleMedium)
         Text("指南文字隨此版本提供，可離線閱讀；最新內容及圖解請至原網頁核對。")
-        catalog.guides.forEach { guide -> OutlinedButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = { guideId = guide.getString("id") }) { Text(guide.getString("title")) } }
+        catalog.guides.forEachIndexed { index, guide ->
+            OutlinedButton(enabled = enabled, modifier = Modifier.fillMaxWidth(), onClick = { guideId = guide.getString("id") }) {
+                if(home) Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text((index + 1).toString().padStart(2, '0'), fontWeight = FontWeight.Bold)
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(guide.getString("title"), fontWeight = FontWeight.Bold)
+                        val detail = when(guide.getString("id")) {
+                            "guide-label.html" -> "先核對作物、防治對象、倍數與採收期"
+                            "guide-dilution.html" -> "用一桶水示範單位與公式，不靠猜"
+                            "guide-phi.html" -> "從最後一次施藥重新核對可採日期"
+                            "guide-ppe.html" -> "人、天氣、器材與周邊環境一次檢查"
+                            else -> ""
+                        }
+                        if(detail.isNotEmpty()) Text(detail, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    Text("›")
+                } else Text(guide.getString("title"))
+            }
+        }
         NativeFeedbackEntry(catalog, enabled)
         Text("免登記植物保護資材", style = MaterialTheme.typography.titleMedium)
         Text("另查官方公告。這不是所選作物／病蟲害的登記用藥清單；不依名稱或病害分類推定全部適用，也不提供共用倍數。")

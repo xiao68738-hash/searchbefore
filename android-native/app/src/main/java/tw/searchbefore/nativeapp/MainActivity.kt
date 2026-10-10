@@ -500,7 +500,9 @@ class MainActivity : ComponentActivity() {
                 Text("不登入也能查詢、計算與保留本機紀錄。登入與雲端同步分開選擇；請到個人頁查看目前帳號和同步狀態。", style = MaterialTheme.typography.bodyMedium)
                 OutlinedButton(enabled = enabled, onClick = openPersonal) { Text("帳號與備份設定") }
             } }
-            item { NativeHelpCard(catalog, enabled) }
+            item { Text("核心功能", style = MaterialTheme.typography.titleMedium) }
+            items(homeFeatures) { (title, description) -> HomeFeatureCard(title, description) }
+            item { NativeHelpCard(catalog, enabled, home = true) }
         }
         item { Text("資料來源：農業部農藥開放資料。\n本工具僅供查詢參考，實際使用以產品標示及最新公告為準。\n${releaseIdentityLabel(BuildConfig.DEBUG, BuildConfig.VERSION_NAME)}・資料版本 ${catalog.version}",
             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
