@@ -31,7 +31,7 @@ assert.match(combined, /https:\/\/searchbefore\.tw\/privacy\.html/);
 assert.match(combined, /https:\/\/searchbefore\.tw\/delete-account\.html/);
 assert.match(combined, /https:\/\/searchbefore\.tw\/about\.html/);
 assert.match(combined, /噴前查 SearchBefore/);
-assert.match(combined, /ca-pub-1085605483379036/);
+assert.doesNotMatch(combined, /pagead\d*\.googlesyndication\.com|adsbygoogle\s*[.(\[]|google-adsense-account|doubleclick\.net/i, "Release must not load advertising scripts");
 assert.match(combined, /https:\/\/searchbefore\.tw\/guides\.html/);
 
 for (const name of ["account.js", "cloud-sync.js", "crop-forms.js", "export-formats.js", "farm-records.js", "field-summary.js", "form-ocr-ui.js", "form-ocr.js", "mrl-status.js", "pinyin-pro.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"]) {

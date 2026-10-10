@@ -16,7 +16,7 @@ for (const name of pages) {
   const canonical = `https://searchbefore.tw/${name}`;
   assert.match(html, new RegExp(`<link rel="canonical" href="${canonical.replaceAll(".", "\\.")}">`), `${name} 缺少正式 canonical`);
   assert.match(html, /<meta name="description" content="[^"]{35,}">/, `${name} 缺少具體摘要`);
-  assert.match(html, /ca-pub-1085605483379036/, `${name} 缺少 AdSense 發布商代碼`);
+  assert.doesNotMatch(html, /adsbygoogle|googlesyndication|google-adsense-account/i, `${name} 不應再載入廣告程式`);
   assert.match(html, /噴前查編輯/, `${name} 缺少內容負責單位`);
   assert.match(html, /2026-08-07/, `${name} 缺少複核日期`);
   assert.doesNotMatch(html, /Lorem ipsum|提升生產力|卓越的用戶體驗|百分之百安全|保證安全/i);
