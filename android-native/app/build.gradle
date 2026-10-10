@@ -17,9 +17,9 @@ android {
         minSdk 24
         targetSdk 36
         // Production-shaped candidate; distribution still requires the explicit signing gate.
-        // Play highest observed code was 9 on 2026-09-26. This does not authorize rollout.
-        versionCode 10
-        versionName "1.1.4"
+        // Play highest observed code was 10 on 2026-10-10. This does not authorize rollout.
+        versionCode 11
+        versionName "1.1.5"
         resValue "string", "app_name", "噴前查"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
