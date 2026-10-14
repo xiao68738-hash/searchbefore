@@ -1,0 +1,27 @@
+const assert = require('node:assert/strict');
+(async () => {
+  const {normalizePermit, validatePermits, validateDetails, validateScopeCoverage, comparePermits, detailUrl, fetchPermitList} = await import('../scripts/pesticide-source-lib.mjs');
+  const raw = {'許可證字':'農藥製','許可證號':'00001','中文名稱':'測試'};
+  const row = normalizePermit(raw);
+  assert.equal(validatePermits([raw], 1).length, 1);
+  assert.throws(() => validatePermits([raw, raw], 1), /重複/);
+  assert.throws(() => validatePermits([{}], 1));
+  assert.deepEqual(comparePermits([row], [{...row}]), {added:[],removed:[],changed:[]});
+  assert.deepEqual(comparePermits([row], [{...row,revocationType:'廢止'}]).changed[0].fields, ['revocationType']);
+  assert.equal(comparePermits([], [row]).added.length, 1);
+  assert.equal(comparePermits([row], []).removed.length, 1);
+  assert.throws(() => comparePermits([row,row], [row]));
+  const permit = {...raw,'農藥使用範圍':'https://data.moa.gov.tw/Service/OpenData/FromM/PesticideDetail.aspx?lno=1'};
+  assert.throws(() => validateDetails([permit], {}), /缺漏/);
+  assert.throws(() => validateDetails([permit], {'農藥製-00001':{__error:'timeout'}}), /失敗/);
+  assert.throws(() => validateDetails([permit], {'農藥製-00001':[{}]}), /欄位/);
+  validateDetails([permit], {'農藥製-00001':[]});
+  assert.throws(() => validateScopeCoverage({'農藥製-00001':[]}), /覆蓋異常/);
+  assert.throws(() => validateScopeCoverage({'a':[{}]}, 2, 1), /覆蓋異常/);
+  assert.deepEqual(validateScopeCoverage({'a':[{}], 'b':[]}, 1, 1), {rows:1,nonempty:1});
+  assert.equal(detailUrl('https://data.moa.gov.tw/Service/OpenData/FromM/PesticideDetail.aspx?lno=1').includes('lno=1'), true);
+  for (const url of ['http://data.moa.gov.tw/Service/OpenData/FromM/PesticideDetail.aspx','https://evil.test/','https://data.moa.gov.tw.evil.test/','https://a:b@data.moa.gov.tw/Service/OpenData/FromM/PesticideDetail.aspx','https://data.moa.gov.tw/other']) assert.throws(() => detailUrl(url));
+  await assert.rejects(fetchPermitList(async () => ({ok:true,json:async()=>({error:'denied'})})), /陣列/);
+  await assert.rejects(fetchPermitList(async () => ({ok:true,json:async()=>[raw]}), 1), /分頁重複/);
+  console.log('pesticide source: validation, complete-pagination, diff and official-origin guards passed');
+})().catch(error => { console.error(error); process.exitCode=1; });

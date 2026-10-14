@@ -53,7 +53,7 @@
       <h2 id="input-title">載入測試資料</h2>
       <label>表單照片（可多選）<input id="image-input" type="file" accept="image/*" multiple></label>
       <label>既有 OCR JSON（可選）<input id="json-input" type="file" accept="application/json,.json"></label>
-      <p class="hint">若沒有 JSON，仍可直接輸入候選與人工答案。照片不會寫入專案。</p>
+      <p class="hint">新照片不會沿用示例答案。匯入 JSON 後，請在各案例選取對應照片。只計算已人工核對欄位，空白誤判另計；本頁分數不是獨立盲測或整體準確率。離開前請匯出保存。</p>
       <div class="actions">
         <button id="export" type="button">匯出核對 JSON</button>
         <button id="reset" class="secondary" type="button">清除本頁資料</button>
@@ -63,12 +63,14 @@
 
     <section id="cases" class="cases" aria-live="polite"></section>
   </main>
+  <script src="ocr-review-model.js"></script>
   <script>
     (() => {
       "use strict";
       const casesEl = document.getElementById("cases");
       const messageEl = document.getElementById("message");
       const state = { cases: [] };
+      const model = window.OcrReviewModel;
       const demoFields = [
         { key: "date", label: "日期", candidate: "未可靠辨識", truth: "7/14", status: "needs-fix", note: "Windows OCR 未讀出手寫值；人工確認" },
         { key: "materialName", label: "資材名稱", candidate: "未可靠辨識", truth: "蘇力菌", status: "needs-fix", note: "Windows OCR 未讀出手寫值；人工確認" },
@@ -87,17 +89,15 @@
         return String(value ?? "").replace(/[&<>\"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[char]));
       }
       function metricFor(fields) {
-        const evaluated = fields.filter(field => field.truth !== "" || field.candidate !== "");
-        const exact = evaluated.filter(field => field.candidate === field.truth).length;
-        const rate = evaluated.length ? Math.round((exact / evaluated.length) * 100) : 0;
-        return `${exact}/${evaluated.length} 欄 exact（${rate}%）`;
+        const score = model.score(fields);
+        return `已核對非空欄 ${score.exact}/${score.nonblank} 完全符合；空白誤判 ${score.blankFalsePositives}/${score.blank}；未核對 ${score.unknown} 欄`;
       }
       function render() {
         casesEl.innerHTML = state.cases.map((item, caseIndex) => `
           <article class="case" data-case-index="${caseIndex}">
             <div class="case-head"><h2>${escapeHtml(item.title)}</h2><small>${escapeHtml(item.imageName || "尚未選取照片")}</small></div>
             <div class="case-grid">
-              <div class="preview">${item.imageUrl ? `<img src="${item.imageUrl}" alt="${escapeHtml(item.title)} 預覽">` : `<div class="empty">請在上方選取照片<br>照片只會留在此分頁</div>`}</div>
+              <div><label>選取本案例的對應照片<input type="file" accept="image/jpeg,image/png,image/webp" data-role="case-image"></label><div class="preview">${item.imageUrl ? `<img src="${item.imageUrl}" alt="${escapeHtml(item.title)} 預覽">` : `<div class="empty">尚未綁定照片<br>請核對案例與檔名後選取</div>`}</div></div>
               <div>
                 <div class="table-wrap"><table><thead><tr><th>欄位</th><th>OCR 候選</th><th>人工答案</th><th>狀態</th><th>備註</th></tr></thead><tbody>
                   ${item.fields.map((field, fieldIndex) => `<tr data-field-index="${fieldIndex}">
@@ -127,7 +127,7 @@
       }
       function downloadJson() {
         syncFromDom();
-        const payload = { schemaVersion: 1, exportedAt: new Date().toISOString(), localOnly: true, cases: state.cases.map(item => ({ ...item, imageUrl: "", imageName: item.imageName })) };
+        const payload = { schemaVersion: 1, exportedAt: new Date().toISOString(), localOnly: true, productionEligible: false, independentHoldoutVerified: false, cases: state.cases.map(item => ({ ...item, imageUrl: "", imageName: item.imageName, metrics: model.score(item.fields) })) };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
@@ -137,37 +137,34 @@
         messageEl.textContent = "已產生核對 JSON；請自行保存到 private/，不要提交原始照片。";
       }
       function applyImages(files) {
-        [...files].forEach((file, index) => {
-          const target = state.cases[index] || makeCase(`case-${state.cases.length + 1}`, file.name, []);
-          if (!state.cases[index]) state.cases.push(target);
-          if (target.imageUrl) URL.revokeObjectURL(target.imageUrl);
-          target.imageUrl = URL.createObjectURL(file);
-          target.imageName = file.name;
-          if (!target.fields.length) target.fields = demoFields.map(field => ({ ...field, truth: "", status: "unknown", note: "" }));
-        });
+        if (!files.length) return;
+        if (files.length > 100 || [...files].some(file => !validImage(file))) { messageEl.textContent = '最多 100 張 JPEG／PNG／WebP，每張不超過 20 MB。'; return; }
+        if (!confirm('建立新照片案例會取代本頁資料；未匯出的修正將遺失。確定繼續？')) return;
+        releaseImages();
+        state.cases = [...files].map((file, index) => ({ ...makeCase(`case-${index + 1}`, `照片 ${index + 1}`, blankFields()), imageUrl: URL.createObjectURL(file), imageName: file.name }));
         render();
         messageEl.textContent = `${files.length} 張照片已載入本機預覽。`;
       }
+      function blankFields() { return demoFields.map(field => ({ ...field, candidate: '', truth: '', status: 'unknown', note: '' })); }
+      function validImage(file) { return ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) && file.size <= 20 * 1024 * 1024; }
+      function releaseImages() { state.cases.forEach(item => { if (item.imageUrl) URL.revokeObjectURL(item.imageUrl); }); }
       function applyJson(file) {
+        if (file.size > 5 * 1024 * 1024) { messageEl.textContent = 'JSON 不得超過 5 MB。'; return; }
         const reader = new FileReader();
         reader.onload = () => {
           try {
             const parsed = JSON.parse(reader.result);
             const imported = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.cases) ? parsed.cases : [parsed]);
-            imported.forEach((item, index) => {
-              const target = state.cases[index] || makeCase(item.id || `case-${index + 1}`, item.title || item.sourceImage || `匯入案例 ${index + 1}`, []);
-              if (!state.cases[index]) state.cases.push(target);
-              target.id = item.id || target.id;
-              target.title = item.title || target.title;
-              target.imageName = item.imageName || item.sourceImage || target.imageName;
-              const importedFields = (item.fields || []).map(field => ({ key: field.key || field.label || "field", label: field.label || field.key || "欄位", candidate: field.candidate || field.prediction || "", truth: field.truth || field.groundTruth || "", status: field.status || "unknown", note: field.note || "" }));
-              if (importedFields.length) {
-                target.fields = importedFields;
-              } else if (item.text) {
-                if (!target.fields.length) target.fields = demoFields.map(field => ({ ...field, truth: "", status: "unknown", note: "" }));
-                target.fields.push({ key: "fullText", label: "整頁 OCR 文字", candidate: item.text, truth: "", status: "unknown", note: "由匯入的 OCR JSON 產生；請改以欄位 crop 核對" });
-              }
+            if (!imported.length || imported.length > 100) throw Error('需要 1 至 100 個案例');
+            const next = imported.map((item, index) => {
+              if (!item || typeof item !== 'object') throw Error('案例格式錯誤');
+              const target = makeCase(String(item.id || `case-${index + 1}`), String(item.title || `匯入案例 ${index + 1}`), []);
+              target.imageName = String(item.imageName || item.sourceImage || '');
+              target.fields = model.fields(item.fields || (item.text ? [{ key: 'fullText', label: '整頁文字（請拆欄核對）', candidate: item.text }] : blankFields()));
+              return target;
             });
+            if (!confirm('匯入將取代本頁資料並解除照片綁定，避免不同表單答案誤配。已保存修正並繼續？')) return;
+            releaseImages(); state.cases = next;
             render();
             messageEl.textContent = `已匯入 ${imported.length} 個案例；請逐欄確認。`;
           } catch (error) { messageEl.textContent = `JSON 讀取失敗：${error.message}`; }
@@ -177,7 +174,28 @@
       document.getElementById("image-input").addEventListener("change", event => applyImages(event.target.files));
       document.getElementById("json-input").addEventListener("change", event => { if (event.target.files[0]) applyJson(event.target.files[0]); });
       document.getElementById("export").addEventListener("click", downloadJson);
-      document.getElementById("reset").addEventListener("click", () => { state.cases = [makeCase("form13", "NAF 表 13｜使用者確認示例")]; render(); messageEl.textContent = "已清除本頁資料。"; });
+      casesEl.addEventListener('input', () => {
+        syncFromDom();
+        casesEl.querySelectorAll('[data-case-index]').forEach(article => {
+          const item = state.cases[Number(article.dataset.caseIndex)];
+          const badges = article.querySelectorAll('.metric');
+          badges[0].textContent = metricFor(item.fields);
+          badges[1].textContent = `狀態需人工確認：${item.fields.filter(field => field.status !== 'confirmed').length} 欄`;
+        });
+      });
+      casesEl.addEventListener('change', event => {
+        if (event.target.dataset.role !== 'case-image') return;
+        const file = event.target.files[0];
+        if (!file) return;
+        if (!validImage(file)) { messageEl.textContent = '請選取 20 MB 以下的 JPEG／PNG／WebP。'; return; }
+        syncFromDom();
+        const target = state.cases[Number(event.target.closest('[data-case-index]').dataset.caseIndex)];
+        if (!confirm(`請確認這張照片對應「${target.title}」，不是另一份表單；本案例答案會保留。`)) return;
+        if (target.imageUrl) URL.revokeObjectURL(target.imageUrl);
+        target.imageUrl = URL.createObjectURL(file); target.imageName = file.name;
+        render();
+      });
+      document.getElementById("reset").addEventListener("click", () => { if (!confirm('清除未匯出的核對資料？')) return; releaseImages(); state.cases = [makeCase("form13", "NAF 表 13｜使用者確認示例")]; render(); messageEl.textContent = "已清除本頁資料。"; });
       render();
     })();
   </script>

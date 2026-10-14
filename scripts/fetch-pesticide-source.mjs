@@ -27,9 +27,15 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { validatePermits, detailUrl, validateScopeCoverage } from './pesticide-source-lib.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.join(DIR, "..", "mrl-data", "source-cache");
+const args = process.argv.slice(2);
+if (args.length && (args.length !== 2 || !['--fresh-out', '--resume-out'].includes(args[0]))) throw Error('用法：node scripts/fetch-pesticide-source.mjs [--fresh-out 新快照目錄 | --resume-out 續抓目錄]');
+const freshMode = args[0] === '--fresh-out';
+const OUT = args.length ? path.resolve(args[1]) : path.join(DIR, "..", "mrl-data", "source-cache");
+if (freshMode && fs.existsSync(OUT)) throw Error('全新抓取需要尚不存在的目錄；舊快取不覆寫');
+if (args[0] === '--resume-out' && !fs.existsSync(path.join(OUT, 'permits.json'))) throw Error('續抓需要已存在的許可證清單');
 const LIST_URL = "https://data.moa.gov.tw/Service/OpenData/FromM/PesticideData.aspx";
 const PAGE = 5_000;
 const CONCURRENCY = 6;
@@ -43,7 +49,7 @@ async function getJson(url, attempts = 3) {
     const c = new AbortController();
     const timer = setTimeout(() => c.abort(), 45_000);
     try {
-      const r = await fetch(url, { signal: c.signal });
+      const r = await fetch(url, { signal: c.signal, redirect: 'error' });
       if (!r.ok) throw new Error("HTTP " + r.status);
       return await r.json();
     } catch (e) {
@@ -64,15 +70,16 @@ async function fetchList() {
   if (fs.existsSync(cached)) {
     const rows = JSON.parse(fs.readFileSync(cached, "utf8"));
     if (rows.length > 1000) {
-      console.log(`許可證清單:沿用快取 ${rows.length} 筆`);
-      return rows;
+      console.log(`許可證清單:沿用快取 ${rows.length} 筆；這是續抓，不是最新資料檢查。完整更新請用 --fresh-out 新目錄。`);
+      return validatePermits(rows);
     }
     console.log(`快取只有 ${rows.length} 筆,重新抓取`);
   }
   const all = [];
   for (let skip = 0; ; skip += PAGE) {
     const page = await getJson(`${LIST_URL}?$top=${PAGE}&$skip=${skip}`);
-    const rows = Array.isArray(page) ? page : (page.Data || []);
+    if (!Array.isArray(page)) throw Error('官方端點未回傳陣列，不可當成最後一頁');
+    const rows = page;
     all.push(...rows);
     process.stdout.write(`\r許可證清單:${all.length} 筆`);
     if (rows.length < PAGE) break;
@@ -83,6 +90,7 @@ async function fetchList() {
   if (!all.length || !("農藥使用範圍" in all[0])) {
     throw new Error("回傳缺少「農藥使用範圍」欄位,端點可能已變更");
   }
+  validatePermits(all);
   fs.writeFileSync(cached, JSON.stringify(all), "utf8");
   return all;
 }
@@ -106,8 +114,9 @@ async function fetchDetails(permits) {
     while (queue.length) {
       const p = queue.shift();
       try {
-        const rows = await getJson(String(p["農藥使用範圍"]));
-        store[keyOf(p)] = Array.isArray(rows) ? rows : (rows.Data || []);
+        const rows = await getJson(detailUrl(String(p["農藥使用範圍"])));
+        if (!Array.isArray(rows)) throw Error('使用範圍不是陣列，不得轉成空白成功');
+        store[keyOf(p)] = rows;
       } catch (e) {
         failed++;
         store[keyOf(p)] = { __error: String(e.message).slice(0, 120) };
@@ -132,15 +141,22 @@ const details = await fetchDetails(permits);
 const errors = Object.values(details).filter(v => v && v.__error).length;
 const scopeRows = Object.values(details)
   .filter(v => Array.isArray(v)).reduce((n, v) => n + v.length, 0);
+let coverageError = '';
+try { validateScopeCoverage(details); } catch (error) { coverageError = error.message; }
 
 fs.writeFileSync(path.join(OUT, "meta.json"), JSON.stringify({
-  retrievedAt: new Date().toISOString(),
+  runCompletedAt: new Date().toISOString(),
+  freshSnapshot: freshMode,
+  warning: freshMode ? '獨立全新快照；仍需差異檢核，不自動發布' : '續抓快取，完成時間不代表所有內容的抓取時間',
   listUrl: LIST_URL,
   permits: permits.length,
   detailsFetched: Object.keys(details).length,
   scopeRows,
-  errors
+  errors,
+  coverageError,
+  complete: errors === 0 && !coverageError
 }, null, 2), "utf8");
 
 console.log(`\n許可證 ${permits.length} 張｜使用範圍 ${scopeRows} 列｜失敗 ${errors} 筆`);
-if (errors) console.log("⚠️ 有失敗項目,重跑本腳本會只補抓失敗的部分");
+if (errors) { console.log("⚠️ 有失敗項目，不可當成完整更新。"); process.exitCode = 1; }
+if (coverageError) { console.error(coverageError); process.exitCode = 1; }

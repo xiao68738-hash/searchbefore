@@ -38,6 +38,9 @@ class NativeState(application: Application) : AndroidViewModel(application) {
     val syncEnabled get() = document?.optBoolean("syncEnabled") == true && document?.optString("ownerUid") == cloud.auth?.currentUser?.uid
     val ownerConflict get() = document?.optString("ownerUid").orEmpty().let { it.isNotEmpty() && signedIn && it != cloud.auth?.currentUser?.uid }
     val lastSyncAt get() = document?.optString("lastSyncAt").orEmpty()
+    private var syncRunning by mutableStateOf(false)
+    private var syncFailed by mutableStateOf(false)
+    val syncStatus by derivedStateOf { SyncStatus.present(document, signedIn, ownerConflict, syncEnabled, syncRunning, syncFailed) }
     val remindersEnabled get() = document?.optBoolean("remindersEnabled") == true
     var reminderStatus by mutableStateOf(""); private set
     private val store = NativeStore(application)
@@ -186,6 +189,9 @@ class NativeState(application: Application) : AndroidViewModel(application) {
         error = if (enable) "已同意同步。按「立即同步」才會合併此帳號的雲端紀錄。" else "已關閉同步，雲端既有紀錄與本機資料均保留。"
     }
     fun synchronize() = task("同步未完成，不能視為雲端備份成功。本機資料已保留；部分上傳可能已完成，可安全重試。") {
+        syncRunning = true
+        syncFailed = true
+        try {
         check(syncEnabled && !ownerConflict)
         val uid = requireNotNull(cloud.auth?.currentUser?.uid)
         val generation = session.get()
@@ -194,9 +200,11 @@ class NativeState(application: Application) : AndroidViewModel(application) {
             cloud.synchronize(snapshot, uid) { session.get() == generation }
         }
         check(session.get() == generation && cloud.auth.currentUser?.uid == uid)
-        commit(result)
+        commit(SyncStatus.receipt(result))
+        syncFailed = false
         undoData = null
         error = "已完成與伺服器的紀錄同步。配方不會上傳雲端，請用完整 JSON 備份移轉；顯示設定僅留在本機，不含在匯出備份中。"
+        } finally { syncRunning = false }
     }
     fun refreshReminders() {
         if (document == null) return

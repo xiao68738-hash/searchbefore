@@ -23,11 +23,18 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 /* 轉換規則抽在 data-rules.mjs,由 tests/data-rules.test.js 單元測試 */
 import { text, keyOf, isActive, makeEntry, sameUsage } from "./data-rules.mjs";
+import { validatePermits, validateDetails, validateScopeCoverage } from './pesticide-source-lib.mjs';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(DIR, "..");
-const CACHE = path.join(ROOT, "mrl-data", "source-cache");
-const WRITE = process.argv.includes("--write");
+const args = process.argv.slice(2);
+let sourceDir;
+for (let i = 0; i < args.length; i++) {
+  if (args[i] === '--source-dir' && args[i + 1]) sourceDir = args[++i];
+  else if (args[i] !== '--write') throw Error('用法：[--source-dir 快照目錄] [--write]');
+}
+const CACHE = sourceDir ? path.resolve(sourceDir) : path.join(ROOT, "mrl-data", "source-cache");
+const WRITE = args.includes("--write");
 
 for (const f of ["permits.json", "details.json"]) {
   if (!fs.existsSync(path.join(CACHE, f))) {
@@ -38,6 +45,9 @@ for (const f of ["permits.json", "details.json"]) {
 
 const permits = JSON.parse(fs.readFileSync(path.join(CACHE, "permits.json"), "utf8"));
 const details = JSON.parse(fs.readFileSync(path.join(CACHE, "details.json"), "utf8"));
+validatePermits(permits);
+validateDetails(permits, details);
+validateScopeCoverage(details);
 
 const DATA = {};
 let usedPermits = 0, skippedRevoked = 0, skippedNoDetail = 0, rows = 0;
@@ -88,7 +98,7 @@ console.log(`許可證 ${permits.length} 張:採用 ${usedPermits}、已廢止 $
 console.log(`使用範圍 ${rows} 列 → 作物 ${crops}｜作物×病蟲害 ${pairs}｜藥劑 ${entries}`);
 
 fs.writeFileSync(path.join(CACHE, "DATA.built.json"), JSON.stringify(DATA), "utf8");
-console.log(`\n已產生 mrl-data/source-cache/DATA.built.json`);
+console.log(`\n已產生 ${path.join(CACHE, 'DATA.built.json')}`);
 
 if (WRITE) {
   const idx = path.join(ROOT, "index.html");

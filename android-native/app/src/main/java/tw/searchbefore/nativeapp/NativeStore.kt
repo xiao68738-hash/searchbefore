@@ -57,6 +57,9 @@ object NativeDocument {
         val tombs = input.getJSONObject("tombstones")
         NativeSync.validateJournal(tombs)
         out.put("tombstones", JSONObject(tombs.toString()))
+        val receipt = input.optString("lastSyncedFingerprint")
+        // Old installations have no receipt: keep their data and show 'needs confirmation'.
+        if (Regex("^[a-f0-9]{64}$").matches(receipt)) out.put("lastSyncedFingerprint", receipt)
         out.put("displayPrefs", DisplayPreferences.read(input.optJSONObject("displayPrefs")).encode())
         return out
     }
@@ -65,7 +68,10 @@ object NativeDocument {
         next.put("data", Backup.parse(Backup.encode(data)))
         NativeSync.journalChanges(document, next)
         // Import/restore is local only. It must not silently upload or delete existing cloud data.
-        if (importing) next.put("syncEnabled", false).put("lastSyncAt", "").put("remindersEnabled", false)
+        if (importing) {
+            next.put("syncEnabled", false).put("lastSyncAt", "").put("remindersEnabled", false)
+            next.remove("lastSyncedFingerprint")
+        }
         return parse(encode(next))
     }
 }
