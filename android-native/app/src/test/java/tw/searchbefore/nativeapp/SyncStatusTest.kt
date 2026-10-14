@@ -42,4 +42,13 @@ class SyncStatusTest {
         assertFalse(d.has("lastSyncedFingerprint"))
         assertEquals("test-owner", d.getString("ownerUid"))
     }
+    @Test fun statusDoesNotApplyCloudUploadLimitsOrCrashOnInvalidState() {
+        val d = synced()
+        val large = JSONObject().put("id", "oversized").put("note", "x".repeat(100001))
+        d.getJSONObject("data").getJSONArray("farmRecords").put(large)
+        assertEquals("有本機變更待同步", status(d))
+        assertTrue(runCatching { NativeSync.validateItem(large) }.isFailure)
+        val malformed = synced().put("data", JSONObject())
+        assertEquals("有本機變更待同步", status(malformed))
+    }
 }

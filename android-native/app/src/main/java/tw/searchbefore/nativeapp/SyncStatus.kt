@@ -9,8 +9,11 @@ object SyncStatus {
     fun fingerprint(document: JSONObject): String {
         val content = JSONObject()
         for (key in NativeSync.collections) {
-            val rows = NativeSync.localRows(document, key).sortedBy { it.getString("id") }
-            content.put(key, org.json.JSONArray(rows))
+            // Status rendering must not run cloud size/merge validation: a locally
+            // valid row may exceed the upload limit and still must remain viewable.
+            val rows = NativeSync.rows(document.getJSONObject("data").getJSONArray(key)).sortedBy { it.getString("id") }
+            val deleted = NativeSync.rows(document.getJSONObject("tombstones").optJSONArray(key) ?: org.json.JSONArray()).sortedBy { it.getString("id") }
+            content.put(key, JSONObject().put("rows", org.json.JSONArray(rows)).put("deleted", org.json.JSONArray(deleted)))
         }
         return MessageDigest.getInstance("SHA-256").digest(NativeSync.canonical(content).toByteArray(Charsets.UTF_8))
             .joinToString("") { "%02x".format(it.toInt() and 255) }
@@ -26,7 +29,7 @@ object SyncStatus {
         failed -> Presentation("上次同步未完成", "本機資料保留；部分上傳可能已完成，請確認網路後重試。")
         document.optString("lastSyncedFingerprint").isEmpty() || document.optString("lastSyncAt").isEmpty() ->
             Presentation("待確認雲端備份", "請按立即同步確認目前內容；舊的同步時間不能證明之後的修改已上傳。")
-        document.optString("lastSyncedFingerprint") != fingerprint(document) ->
+        document.optString("lastSyncedFingerprint") != runCatching { fingerprint(document) }.getOrNull() ->
             Presentation("有本機變更待同步", "本機紀錄或刪除標記已變更。請按立即同步；不會自動上傳。")
         else -> Presentation("本機紀錄與上次同步完成時一致", "這不是即時雲端查詢；另一台裝置有修改時，請再同步。範圍為田區、用藥、農務及刪除標記，不含配方與顯示偏好。")
     }
