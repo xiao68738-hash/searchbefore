@@ -23,6 +23,6 @@
     "terser": "^5.43.1"
   },
   "dependencies": {
-    "pinyin-pro": "^3.18.2"
+    "pinyin-pro": "^3.29.5"
   }
 }
