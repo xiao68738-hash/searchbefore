@@ -197,6 +197,7 @@ class MainActivity : ComponentActivity() {
                             5 -> LazyColumn(Modifier.testTag("personalList"), verticalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 16.dp)) {
                                 item { DisplaySettings(state.displayPreferences, !state.busy, state::setDisplayPreferences) }
                                 item { Text("帳號與資料備份", style = MaterialTheme.typography.titleLarge) }
+                                item { Info(state.syncStatus.title, state.syncStatus.detail) }
                                 item { Info("Google 登入", if (state.signedIn) "目前帳號：${state.accountLabel}" else if (state.configured) "未登入，仍可使用本機查詢、紀錄與備份。" else "此安裝包尚未加入原生 Firebase 設定，登入暫不可用。") }
                                 item {
                                     if (state.signedIn) OutlinedButton(enabled = !state.busy, onClick = state::signOut) { Text("登出 Google") }

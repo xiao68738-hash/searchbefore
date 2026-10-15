@@ -17,7 +17,16 @@ New-Item -ItemType Directory -Path $logDir | Out-Null
 Start-Transcript -Path (Join-Path $logDir 'execution.txt') | Out-Null
 try {
     Write-Output "Target=$serial; only preview/test APKs; evidence=$logDir"
-    Get-FileHash -Algorithm SHA256 -LiteralPath $apks | Format-List
+    # Some minimal PowerShell hosts do not expose Get-FileHash. Use the same
+    # SHA-256 algorithm directly and dispose streams before installing APKs.
+    foreach ($apk in $apks) {
+        $stream = [System.IO.File]::OpenRead($apk)
+        $hasher = [System.Security.Cryptography.SHA256]::Create()
+        try {
+            $digest = [BitConverter]::ToString($hasher.ComputeHash($stream)).Replace('-', '').ToLowerInvariant()
+            Write-Output "SHA256=$digest; path=$apk"
+        } finally { $hasher.Dispose(); $stream.Dispose() }
+    }
     & $adb -s $serial shell getprop ro.build.version.sdk
     & $adb -s $serial shell wm size
     & $adb -s $serial shell wm density

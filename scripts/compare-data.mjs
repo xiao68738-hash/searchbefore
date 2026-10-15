@@ -23,7 +23,9 @@ const DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(DIR, "..");
 const FULL = process.argv.includes("--full");
 
-const builtPath = path.join(ROOT, "mrl-data", "source-cache", "DATA.built.json");
+const sourceArg = process.argv.indexOf('--source-dir');
+if (sourceArg >= 0 && !process.argv[sourceArg + 1]) throw Error('--source-dir 缺少路徑');
+const builtPath = path.join(sourceArg >= 0 ? path.resolve(process.argv[sourceArg + 1]) : path.join(ROOT, "mrl-data", "source-cache"), "DATA.built.json");
 if (!fs.existsSync(builtPath)) {
   console.error("缺少 DATA.built.json,請先執行:node scripts/build-data.mjs");
   process.exit(1);

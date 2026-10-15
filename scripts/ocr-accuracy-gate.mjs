@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
+import { accuracyGate } from './ocr-accuracy-policy.mjs';
 
-// This gate deliberately treats the independent holdout as authoritative. It
-// prevents a train-set score, a single corrected photo, or a template-transfer
-// experiment from being reported as the product's overall accuracy.
+// This report aggregates historical diagnostics, never certifies a new blind test.
+// Merely adding an evidence-metadata file cannot turn reused scores into unseen data.
 const [privateRootArg, outputArg] = process.argv.slice(2);
 if (!privateRootArg || !outputArg) {
   throw new Error("Usage: node scripts/ocr-accuracy-gate.mjs <private-root> <output.json>");
@@ -37,8 +37,8 @@ const lanes = {
     lane("Microsoft TrOCR handwritten baseline", read("trocr-naf-text-crops-v1.json"), "text", "exactFieldRate", "corpus", "evaluatedFieldCount"),
   ],
   structure: [
-    lane("Independent holdout local recovery", read("holdout-local-recovery-b-2026-09-09.json"), "structure", "cellF1", "corpus", "evaluatedDocumentCount"),
-    lane("Independent holdout edge v12", read("holdout-edge-v12-official-score-2026-09-09.json"), "structure", "cellF1", "corpus", "evaluatedDocumentCount"),
+    lane("Historical validation local recovery (reused)", read("holdout-local-recovery-b-2026-09-09.json"), "structure", "cellF1", "corpus", "evaluatedDocumentCount"),
+    lane("Historical validation edge v12 (reused)", read("holdout-edge-v12-official-score-2026-09-09.json"), "structure", "cellF1", "corpus", "evaluatedDocumentCount"),
   ],
 };
 
@@ -48,20 +48,19 @@ const realFormSampleCount = realForm?.metrics?.fieldCount ?? realForm?.corpus?.e
 
 const independentText = lanes.text.find(item => item.name === "Microsoft TrOCR handwritten baseline");
 const independentStructure = lanes.structure[0];
+// Historical scores are diagnostic only. No independence/language/count inferred from filenames.
+const evidence = read('independent-traditional-chinese-evidence.json');
 const gate = {
-  target: 0.5,
-  independentTextExactFieldRateAtLeast50: independentText.metric !== null && independentText.metric >= 0.5,
-  independentStructureCellF1AtLeast50: independentStructure.metric !== null && independentStructure.metric >= 0.5,
-  realFormExactFieldRateAtLeast50: realFieldRate !== null && realFieldRate >= 0.5,
-  minimumRealFieldSampleCountMet: realFormSampleCount !== null && realFormSampleCount >= 30,
+  ...accuracyGate({textRate:independentText.metric, structureRate:independentStructure.metric, realRate:realFieldRate, evidence}),
+  historicalScoresOnly: true,
+  overallPass: false
 };
-gate.overallPass = Object.values(gate).every(value => value === true || typeof value === "number");
 
 const report = {
   schemaVersion: 1,
   generatedAt: new Date().toISOString(),
   purpose: "Research-only OCR accuracy gate; not a production claim.",
-  definition: "Pass requires independent text exact-field rate and independent holdout structure Cell F1 >= 50%, plus >=30 real reviewed fields/forms meeting the same threshold.",
+  definition: "Research gate only: rates >=50% plus explicit unseen/frozen-split evidence and at least 30 distinct reviewed real zh-Hant handwritten forms; fields are not forms. Historical repeatedly viewed validation is not a blind holdout. Not permission to release.",
   lanes,
   realReviewed: { available: Boolean(realForm), sampleCount: realFormSampleCount, exactFieldRate: realFieldRate },
   gate,
