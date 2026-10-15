@@ -20,7 +20,7 @@
   "devDependencies": {
     "esbuild": "^0.25.8",
     "html-minifier-terser": "^7.2.0",
-    "terser": "^5.43.1"
+    "terser": "^5.51.2"
   },
   "dependencies": {
     "pinyin-pro": "^3.18.2"
