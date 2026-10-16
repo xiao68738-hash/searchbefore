@@ -26,11 +26,15 @@
     .cases { display: grid; gap: 18px; margin-top: 18px; }
     .case-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
     .case-grid { display: grid; grid-template-columns: minmax(280px, .9fr) minmax(0, 1.1fr); gap: 18px; margin-top: 14px; }
+    .case, .case-grid > div { min-width: 0; }
     .preview { min-height: 260px; display: grid; place-items: center; padding: 10px; border: 1px dashed #acb8aa; border-radius: 12px; background: #f2f4ed; }
     .preview img { max-width: 100%; max-height: 620px; object-fit: contain; border-radius: 8px; }
     .preview .empty { color: var(--muted); text-align: center; }
     .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 680px; }
+    table { width: 100%; border-collapse: collapse; min-width: 840px; }
+    td select { min-width: 112px; }
+    td textarea { min-width: 128px; }
+    td small { overflow-wrap: anywhere; }
     th, td { padding: 9px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
     th { color: var(--muted); font-size: .86rem; }
     td input, td textarea, td select { margin: 0; }
@@ -96,18 +100,23 @@
         casesEl.innerHTML = state.cases.map((item, caseIndex) => `
           <article class="case" data-case-index="${caseIndex}">
             <div class="case-head"><h2>${escapeHtml(item.title)}</h2><small>${escapeHtml(item.imageName || "尚未選取照片")}</small></div>
-            <div class="actions"><button class="secondary" type="button" data-role="form13-template">建立表 13 完整空白模板</button></div>
+            <div class="actions"><button class="secondary" type="button" data-role="form13-template" aria-expanded="false" aria-controls="template-confirm-${caseIndex}">建立表 13 完整空白模板</button></div>
+            <div class="notice" id="template-confirm-${caseIndex}" data-role="template-confirm" role="group" aria-label="確認取代表 13 欄位" hidden>
+              <p>僅適用 6 區、每區 5 列的表 13。此動作會取代本案例所有欄位與答案；照片保留。請先匯出，確定建立全未核對的 156 欄？</p>
+              <div class="actions"><button class="secondary" type="button" data-role="template-cancel">取消，保留原欄位</button><button type="button" data-role="template-accept">確認取代為 156 欄</button></div>
+            </div>
             <div class="case-grid">
               <div><label>選取本案例的對應照片<input type="file" accept="image/jpeg,image/png,image/webp" data-role="case-image"></label><div class="preview">${item.imageUrl ? `<img src="${item.imageUrl}" alt="${escapeHtml(item.title)} 預覽">` : `<div class="empty">尚未綁定照片<br>請核對案例與檔名後選取</div>`}</div></div>
               <div>
                 <label>顯示分區<select data-role="group-filter"><option value="">全部分區（${item.fields.length} 欄）</option>${[...new Set(item.fields.map(field => field.group).filter(Boolean))].map(group => `<option value="${escapeHtml(group)}">${escapeHtml(group)}</option>`).join('')}</select></label>
-                <div class="table-wrap"><table><thead><tr><th>欄位</th><th>OCR 候選</th><th>人工答案</th><th>狀態</th><th>備註</th></tr></thead><tbody>
+                <p class="hint">表格可左右滑動；分區只影響畫面，匯出仍包含全部欄位。</p>
+                <div class="table-wrap" tabindex="0" role="region" aria-label="${escapeHtml(item.title)} 核對表格，可左右滑動"><table><thead><tr><th>欄位</th><th>OCR 候選</th><th>人工答案</th><th>狀態</th><th>備註</th></tr></thead><tbody>
                   ${item.fields.map((field, fieldIndex) => `<tr data-field-index="${fieldIndex}">
                     <td><strong>${escapeHtml(field.label)}</strong><br><small>${escapeHtml(field.group || '')} ${escapeHtml(field.key)}</small></td>
-                    <td><label class="sr-only">${escapeHtml(field.label)} OCR 候選</label><textarea data-role="candidate">${escapeHtml(field.candidate)}</textarea></td>
-                    <td><label class="sr-only">${escapeHtml(field.label)} 人工答案</label><textarea data-role="truth">${escapeHtml(field.truth)}</textarea></td>
-                    <td><label class="sr-only">${escapeHtml(field.label)} 狀態</label><select data-role="status"><option value="confirmed" ${field.status === "confirmed" ? "selected" : ""}>正確</option><option value="needs-fix" ${field.status === "needs-fix" ? "selected" : ""}>需修正</option><option value="unknown" ${field.status === "unknown" ? "selected" : ""}>不確定</option></select></td>
-                    <td><label class="sr-only">${escapeHtml(field.label)} 備註</label><textarea data-role="note">${escapeHtml(field.note)}</textarea></td>
+                    <td><textarea aria-label="${escapeHtml(field.group || '')} ${escapeHtml(field.label)} OCR 候選" data-role="candidate">${escapeHtml(field.candidate)}</textarea></td>
+                    <td><textarea aria-label="${escapeHtml(field.group || '')} ${escapeHtml(field.label)} 人工答案" data-role="truth">${escapeHtml(field.truth)}</textarea></td>
+                    <td><select aria-label="${escapeHtml(field.group || '')} ${escapeHtml(field.label)} 狀態" data-role="status"><option value="confirmed" ${field.status === "confirmed" ? "selected" : ""}>正確</option><option value="needs-fix" ${field.status === "needs-fix" ? "selected" : ""}>需修正</option><option value="unknown" ${field.status === "unknown" ? "selected" : ""}>不確定</option></select></td>
+                    <td><textarea aria-label="${escapeHtml(field.group || '')} ${escapeHtml(field.label)} 備註" data-role="note">${escapeHtml(field.note)}</textarea></td>
                   </tr>`).join("")}
                 </tbody></table></div>
                 <div class="metrics"><span class="metric">${metricFor(item.fields)}</span><span class="metric">狀態需人工確認：${item.fields.filter(field => field.status !== "confirmed").length} 欄</span></div>
@@ -192,10 +201,26 @@
         });
       });
       casesEl.addEventListener('click', event => {
-        if (event.target.dataset.role !== 'form13-template') return;
+        const role = event.target.dataset.role;
+        if (!['form13-template', 'template-cancel', 'template-accept'].includes(role)) return;
+        const article = event.target.closest('[data-case-index]');
+        const panel = article.querySelector('[data-role="template-confirm"]');
+        const trigger = article.querySelector('[data-role="form13-template"]');
+        if (role === 'form13-template') {
+          panel.hidden = false;
+          trigger.setAttribute('aria-expanded', 'true');
+          panel.querySelector('[data-role="template-cancel"]').focus();
+          return;
+        }
+        if (role === 'template-cancel') {
+          panel.hidden = true;
+          trigger.setAttribute('aria-expanded', 'false');
+          trigger.focus();
+          return;
+        }
+        if (panel.hidden) return;
         syncFromDom();
-        const target = state.cases[Number(event.target.closest('[data-case-index]').dataset.caseIndex)];
-        if (!confirm('僅適用 6 區、每區 5 列的表 13。此動作會取代本案例所有欄位與答案；照片保留。請先匯出，確定建立全未核對的 156 欄？')) return;
+        const target = state.cases[Number(article.dataset.caseIndex)];
         target.fields = model.form13Fields();
         state.dirty = true;
         render();
