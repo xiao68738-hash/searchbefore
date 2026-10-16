@@ -16,6 +16,25 @@ assert.equal(model.fields([{status:'invented'}])[0].status,'unknown');
 assert.throws(()=>model.fields({}));
 assert.throws(()=>model.fields(Array(501).fill({})));
 assert.throws(()=>model.fields([{truth:{}}]));
+assert.throws(()=>model.fields([{key:'same'},{key:'same'}]), /重複/);
+assert.throws(()=>model.fields([{key:'  '}]), /空白/);
+assert.throws(()=>model.fields([{group:{}}]));
+const template = model.form13Fields();
+assert.equal(template.length,156);
+assert.equal(new Set(template.map(field=>field.key)).size,156);
+assert.equal(new Set(template.map(field=>field.group)).size,6);
+for (const group of new Set(template.map(field=>field.group))) {
+  const panel = template.filter(field=>field.group===group);
+  assert.equal(panel.length,26);
+  assert.equal(panel.filter(field=>field.key.includes('.header.')).length,6);
+  assert.equal(panel.filter(field=>/\.r[1-5]\./.test(field.key)).length,20);
+}
+assert.ok(template.every(field=>field.status==='unknown' && field.truth==='' && field.candidate===''));
+assert.equal(model.score(template).reviewed,0);
+assert.equal(model.score(template).exactRate,null);
+assert.deepEqual(model.fields(JSON.parse(JSON.stringify(template))),template);
+template[0].truth='must not leak';
+assert.equal(model.form13Fields()[0].truth,'');
 const html = fs.readFileSync(path.join(__dirname,'../dev/ocr-manual-review.html'),'utf8');
 assert.ok(html.includes('blankFields()'));
 assert.ok(html.includes('independentHoldoutVerified: false'));
@@ -24,16 +43,19 @@ assert.ok(!/\bfetch\s*\(|XMLHttpRequest|sendBeacon|https?:\/\//.test(html));
 for (const block of html.matchAll(/<script>([\s\S]*?)<\/script>/g)) new vm.Script(block[1]);
 // Exercise the page event handlers without any browser network or private files.
 const nodes = new Map();
+const windowHandlers = {};
+let exported;
 const node = id => {
   if (!nodes.has(id)) nodes.set(id, {innerHTML:'',textContent:'',handlers:{},addEventListener(event,fn){this.handlers[event]=fn;},querySelectorAll(){return [];}});
   return nodes.get(id);
 };
 const sandbox = {
-  window:{OcrReviewModel:model},
-  document:{getElementById:node,querySelectorAll:()=>[]},
+  window:{OcrReviewModel:model,addEventListener(event,fn){windowHandlers[event]=fn;}},
+  document:{getElementById:node,querySelectorAll:()=>[],createElement:()=>({click(){}})},
   confirm:()=>true,
   URL:{createObjectURL:()=> 'blob:local-test',revokeObjectURL:()=>{}},
-  FileReader:class {readAsText(file){this.result=file.contents;this.onload();}}
+  FileReader:class {readAsText(file){this.result=file.contents;this.onload();}},
+  Blob:class {constructor(parts){exported=JSON.parse(parts.join(''));}}
 };
 vm.createContext(sandbox);
 vm.runInContext([...html.matchAll(/<script>([\s\S]*?)<\/script>/g)][0][1],sandbox);
@@ -46,4 +68,46 @@ assert.ok(!node('cases').innerHTML.includes('blob:local-test'), 'JSON import mus
 assert.ok(!node('cases').innerHTML.includes('https://evil.test'));
 assert.ok(node('cases').innerHTML.includes('&lt;script&gt;'));
 assert.ok(!node('cases').innerHTML.includes('<img onerror'));
-console.log('OCR manual review: unreviewed fields excluded, blank false positives separate, numeric zero preserved, limits and offline script checked');
+const article = {dataset:{caseIndex:'0'}};
+const templateEvent = {target:{dataset:{role:'form13-template'},closest:()=>article}};
+node('cases').handlers.click(templateEvent);
+assert.ok(node('cases').innerHTML.includes('p6.r5.remainingAmount'));
+assert.ok(node('cases').innerHTML.includes('全部分區（156 欄）'));
+assert.ok(!node('cases').innerHTML.includes('&lt;script&gt;'), 'template replacement must not retain old truth');
+let prevented=0;
+const leave = () => windowHandlers.beforeunload({preventDefault(){prevented++;}});
+leave(); assert.equal(prevented,1,'unsaved template warns before leaving');
+node('export').handlers.click();
+assert.equal(exported.cases[0].fields.length,156);
+assert.equal(exported.geometryVerified,false);
+assert.equal(exported.independentHoldoutVerified,false);
+assert.equal(exported.cases[0].metrics.reviewed,0);
+leave(); assert.equal(prevented,1,'completed export clears dirty state');
+// Exercise editing, reconfirming, filtering and exporting, including hidden rows.
+const values = {candidate:{value:'蘇力菌'},truth:{value:'蘇力菌'},status:{value:'confirmed'},note:{value:''}};
+const row = {dataset:{fieldIndex:'0'},querySelector(selector){return values[selector.match(/"(.+)"/)[1]];}};
+article.querySelectorAll = selector => selector==='[data-field-index]' ? [row] : [{textContent:''},{textContent:''}];
+sandbox.document.querySelectorAll = () => [article];
+node('cases').querySelectorAll = () => [article];
+node('cases').handlers.input({target:{dataset:{role:'truth'},closest:()=>row}});
+assert.equal(values.status.value,'unknown','editing a reviewed answer requires review again');
+node('export').handlers.click();
+assert.equal(exported.cases[0].metrics.reviewed,0);
+values.status.value='confirmed';
+node('cases').handlers.input({target:{dataset:{role:'status'}}});
+node('cases').handlers.change({target:{dataset:{role:'group-filter'},value:'區 6（右下）',closest:()=>article}});
+assert.equal(row.hidden,true);
+node('export').handlers.click();
+assert.equal(exported.cases[0].fields.length,156,'filtering must not drop hidden fields from export');
+assert.equal(exported.cases[0].metrics.exact,1);
+assert.equal(exported.cases[0].metrics.unknown,155);
+assert.equal(exported.cases[0].fields[0].group,'區 1（左上）');
+values.candidate.value='changed prediction';
+node('cases').handlers.input({target:{dataset:{role:'candidate'},closest:()=>row}});
+assert.equal(values.status.value,'unknown','editing a prediction also invalidates review');
+leave(); assert.equal(prevented,2);
+sandbox.confirm=()=>false;
+const beforeCancel=node('cases').innerHTML;
+node('cases').handlers.click(templateEvent);
+assert.equal(node('cases').innerHTML,beforeCancel,'cancel keeps existing case');
+console.log('OCR manual review: 156 logical cells, per-panel filtering, loss warning, review invalidation, safe roundtrip and no inflated scoring passed');
