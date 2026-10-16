@@ -26,11 +26,15 @@
     .cases { display: grid; gap: 18px; margin-top: 18px; }
     .case-head { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; flex-wrap: wrap; }
     .case-grid { display: grid; grid-template-columns: minmax(280px, .9fr) minmax(0, 1.1fr); gap: 18px; margin-top: 14px; }
+    .case, .case-grid > div { min-width: 0; }
     .preview { min-height: 260px; display: grid; place-items: center; padding: 10px; border: 1px dashed #acb8aa; border-radius: 12px; background: #f2f4ed; }
     .preview img { max-width: 100%; max-height: 620px; object-fit: contain; border-radius: 8px; }
     .preview .empty { color: var(--muted); text-align: center; }
     .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 680px; }
+    table { width: 100%; border-collapse: collapse; min-width: 840px; }
+    td select { min-width: 112px; }
+    td textarea { min-width: 128px; }
+    td small { overflow-wrap: anywhere; }
     th, td { padding: 9px 8px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
     th { color: var(--muted); font-size: .86rem; }
     td input, td textarea, td select { margin: 0; }
@@ -53,7 +57,7 @@
       <h2 id="input-title">載入測試資料</h2>
       <label>表單照片（可多選）<input id="image-input" type="file" accept="image/*" multiple></label>
       <label>既有 OCR JSON（可選）<input id="json-input" type="file" accept="application/json,.json"></label>
-      <p class="hint">新照片不會沿用示例答案。匯入 JSON 後，請在各案例選取對應照片。只計算已人工核對欄位，空白誤判另計；本頁分數不是獨立盲測或整體準確率。離開前請匯出保存。</p>
+      <p class="hint">新照片不會沿用示例答案。匯入 JSON 後，請在各案例選取對應照片。表 13 模板提供 6 區 ×（6 項基本資料＋5 列 × 4 欄），共 156 欄；請先確認照片版型符合。這是台灣資材表單，不是公開英文 NAF 資料集。空白也須人工確認，本頁分數不是獨立盲測或整體準確率。</p>
       <div class="actions">
         <button id="export" type="button">匯出核對 JSON</button>
         <button id="reset" class="secondary" type="button">清除本頁資料</button>
@@ -69,7 +73,7 @@
       "use strict";
       const casesEl = document.getElementById("cases");
       const messageEl = document.getElementById("message");
-      const state = { cases: [] };
+      const state = { cases: [], dirty: false };
       const model = window.OcrReviewModel;
       const demoFields = [
         { key: "date", label: "日期", candidate: "未可靠辨識", truth: "7/14", status: "needs-fix", note: "Windows OCR 未讀出手寫值；人工確認" },
@@ -83,7 +87,7 @@
       function makeCase(id, title, fields = demoFields) {
         return { id, title, imageUrl: "", imageName: "", fields: fields.map(field => ({ ...field })) };
       }
-      state.cases.push(makeCase("form13", "NAF 表 13｜使用者確認示例"));
+      state.cases.push(makeCase("form13", "表 13｜歷史使用者確認示例（非新盲測）"));
 
       function escapeHtml(value) {
         return String(value ?? "").replace(/[&<>\"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[char]));
@@ -96,16 +100,23 @@
         casesEl.innerHTML = state.cases.map((item, caseIndex) => `
           <article class="case" data-case-index="${caseIndex}">
             <div class="case-head"><h2>${escapeHtml(item.title)}</h2><small>${escapeHtml(item.imageName || "尚未選取照片")}</small></div>
+            <div class="actions"><button class="secondary" type="button" data-role="form13-template" aria-expanded="false" aria-controls="template-confirm-${caseIndex}">建立表 13 完整空白模板</button></div>
+            <div class="notice" id="template-confirm-${caseIndex}" data-role="template-confirm" role="group" aria-label="確認取代表 13 欄位" hidden>
+              <p>僅適用 6 區、每區 5 列的表 13。此動作會取代本案例所有欄位與答案；照片保留。請先匯出，確定建立全未核對的 156 欄？</p>
+              <div class="actions"><button class="secondary" type="button" data-role="template-cancel">取消，保留原欄位</button><button type="button" data-role="template-accept">確認取代為 156 欄</button></div>
+            </div>
             <div class="case-grid">
               <div><label>選取本案例的對應照片<input type="file" accept="image/jpeg,image/png,image/webp" data-role="case-image"></label><div class="preview">${item.imageUrl ? `<img src="${item.imageUrl}" alt="${escapeHtml(item.title)} 預覽">` : `<div class="empty">尚未綁定照片<br>請核對案例與檔名後選取</div>`}</div></div>
               <div>
-                <div class="table-wrap"><table><thead><tr><th>欄位</th><th>OCR 候選</th><th>人工答案</th><th>狀態</th><th>備註</th></tr></thead><tbody>
+                <label>顯示分區<select data-role="group-filter"><option value="">全部分區（${item.fields.length} 欄）</option>${[...new Set(item.fields.map(field => field.group).filter(Boolean))].map(group => `<option value="${escapeHtml(group)}">${escapeHtml(group)}</option>`).join('')}</select></label>
+                <p class="hint">表格可左右滑動；分區只影響畫面，匯出仍包含全部欄位。</p>
+                <div class="table-wrap" tabindex="0" role="region" aria-label="${escapeHtml(item.title)} 核對表格，可左右滑動"><table><thead><tr><th>欄位</th><th>OCR 候選</th><th>人工答案</th><th>狀態</th><th>備註</th></tr></thead><tbody>
                   ${item.fields.map((field, fieldIndex) => `<tr data-field-index="${fieldIndex}">
-                    <td><strong>${escapeHtml(field.label)}</strong><br><small>${escapeHtml(field.key)}</small></td>
-                    <td><label class="sr-only">${escapeHtml(field.label)} OCR 候選</label><textarea data-role="candidate">${escapeHtml(field.candidate)}</textarea></td>
-                    <td><label class="sr-only">${escapeHtml(field.label)} 人工答案</label><textarea data-role="truth">${escapeHtml(field.truth)}</textarea></td>
-                    <td><label class="sr-only">${escapeHtml(field.label)} 狀態</label><select data-role="status"><option value="confirmed" ${field.status === "confirmed" ? "selected" : ""}>正確</option><option value="needs-fix" ${field.status === "needs-fix" ? "selected" : ""}>需修正</option><option value="unknown" ${field.status === "unknown" ? "selected" : ""}>不確定</option></select></td>
-                    <td><label class="sr-only">${escapeHtml(field.label)} 備註</label><textarea data-role="note">${escapeHtml(field.note)}</textarea></td>
+                    <td><strong>${escapeHtml(field.label)}</strong><br><small>${escapeHtml(field.group || '')} ${escapeHtml(field.key)}</small></td>
+                    <td><textarea aria-label="${escapeHtml(field.group || '')} ${escapeHtml(field.label)} OCR 候選" data-role="candidate">${escapeHtml(field.candidate)}</textarea></td>
+                    <td><textarea aria-label="${escapeHtml(field.group || '')} ${escapeHtml(field.label)} 人工答案" data-role="truth">${escapeHtml(field.truth)}</textarea></td>
+                    <td><select aria-label="${escapeHtml(field.group || '')} ${escapeHtml(field.label)} 狀態" data-role="status"><option value="confirmed" ${field.status === "confirmed" ? "selected" : ""}>正確</option><option value="needs-fix" ${field.status === "needs-fix" ? "selected" : ""}>需修正</option><option value="unknown" ${field.status === "unknown" ? "selected" : ""}>不確定</option></select></td>
+                    <td><textarea aria-label="${escapeHtml(field.group || '')} ${escapeHtml(field.label)} 備註" data-role="note">${escapeHtml(field.note)}</textarea></td>
                   </tr>`).join("")}
                 </tbody></table></div>
                 <div class="metrics"><span class="metric">${metricFor(item.fields)}</span><span class="metric">狀態需人工確認：${item.fields.filter(field => field.status !== "confirmed").length} 欄</span></div>
@@ -127,14 +138,15 @@
       }
       function downloadJson() {
         syncFromDom();
-        const payload = { schemaVersion: 1, exportedAt: new Date().toISOString(), localOnly: true, productionEligible: false, independentHoldoutVerified: false, cases: state.cases.map(item => ({ ...item, imageUrl: "", imageName: item.imageName, metrics: model.score(item.fields) })) };
+        const payload = { schemaVersion: 1, exportedAt: new Date().toISOString(), localOnly: true, productionEligible: false, independentHoldoutVerified: false, geometryVerified: false, cases: state.cases.map(item => ({ ...item, imageUrl: "", imageName: item.imageName, fields: model.fields(item.fields), metrics: model.score(item.fields) })) };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
         link.download = `ocr-manual-review-${new Date().toISOString().slice(0, 10)}.json`;
         link.click();
         URL.revokeObjectURL(link.href);
-        messageEl.textContent = "已產生核對 JSON；請自行保存到 private/，不要提交原始照片。";
+        state.dirty = false;
+        messageEl.textContent = "已產生核對 JSON；請確認下載成功並保存到 private/，不要提交原始照片。本頁不自動保存。";
       }
       function applyImages(files) {
         if (!files.length) return;
@@ -142,6 +154,7 @@
         if (!confirm('建立新照片案例會取代本頁資料；未匯出的修正將遺失。確定繼續？')) return;
         releaseImages();
         state.cases = [...files].map((file, index) => ({ ...makeCase(`case-${index + 1}`, `照片 ${index + 1}`, blankFields()), imageUrl: URL.createObjectURL(file), imageName: file.name }));
+        state.dirty = true;
         render();
         messageEl.textContent = `${files.length} 張照片已載入本機預覽。`;
       }
@@ -164,7 +177,7 @@
               return target;
             });
             if (!confirm('匯入將取代本頁資料並解除照片綁定，避免不同表單答案誤配。已保存修正並繼續？')) return;
-            releaseImages(); state.cases = next;
+            releaseImages(); state.cases = next; state.dirty = false;
             render();
             messageEl.textContent = `已匯入 ${imported.length} 個案例；請逐欄確認。`;
           } catch (error) { messageEl.textContent = `JSON 讀取失敗：${error.message}`; }
@@ -174,7 +187,11 @@
       document.getElementById("image-input").addEventListener("change", event => applyImages(event.target.files));
       document.getElementById("json-input").addEventListener("change", event => { if (event.target.files[0]) applyJson(event.target.files[0]); });
       document.getElementById("export").addEventListener("click", downloadJson);
-      casesEl.addEventListener('input', () => {
+      casesEl.addEventListener('input', event => {
+        if (!['candidate', 'truth', 'status', 'note'].includes(event.target.dataset.role)) return;
+        // Editing a reviewed answer or prediction invalidates that review decision.
+        if (['candidate', 'truth'].includes(event.target.dataset.role)) event.target.closest('[data-field-index]').querySelector('[data-role="status"]').value = 'unknown';
+        state.dirty = true;
         syncFromDom();
         casesEl.querySelectorAll('[data-case-index]').forEach(article => {
           const item = state.cases[Number(article.dataset.caseIndex)];
@@ -183,7 +200,39 @@
           badges[1].textContent = `狀態需人工確認：${item.fields.filter(field => field.status !== 'confirmed').length} 欄`;
         });
       });
+      casesEl.addEventListener('click', event => {
+        const role = event.target.dataset.role;
+        if (!['form13-template', 'template-cancel', 'template-accept'].includes(role)) return;
+        const article = event.target.closest('[data-case-index]');
+        const panel = article.querySelector('[data-role="template-confirm"]');
+        const trigger = article.querySelector('[data-role="form13-template"]');
+        if (role === 'form13-template') {
+          panel.hidden = false;
+          trigger.setAttribute('aria-expanded', 'true');
+          panel.querySelector('[data-role="template-cancel"]').focus();
+          return;
+        }
+        if (role === 'template-cancel') {
+          panel.hidden = true;
+          trigger.setAttribute('aria-expanded', 'false');
+          trigger.focus();
+          return;
+        }
+        if (panel.hidden) return;
+        syncFromDom();
+        const target = state.cases[Number(article.dataset.caseIndex)];
+        target.fields = model.form13Fields();
+        state.dirty = true;
+        render();
+        messageEl.textContent = '已建立 156 個未核對欄位；請選分區逐欄核對。沒有自動判定空白，也沒有產生 OCR 結果或圖片座標。';
+      });
       casesEl.addEventListener('change', event => {
+        if (event.target.dataset.role === 'group-filter') {
+          const article = event.target.closest('[data-case-index]');
+          const item = state.cases[Number(article.dataset.caseIndex)];
+          article.querySelectorAll('[data-field-index]').forEach(row => { row.hidden = Boolean(event.target.value) && item.fields[Number(row.dataset.fieldIndex)].group !== event.target.value; });
+          return;
+        }
         if (event.target.dataset.role !== 'case-image') return;
         const file = event.target.files[0];
         if (!file) return;
@@ -193,9 +242,11 @@
         if (!confirm(`請確認這張照片對應「${target.title}」，不是另一份表單；本案例答案會保留。`)) return;
         if (target.imageUrl) URL.revokeObjectURL(target.imageUrl);
         target.imageUrl = URL.createObjectURL(file); target.imageName = file.name;
+        state.dirty = true;
         render();
       });
-      document.getElementById("reset").addEventListener("click", () => { if (!confirm('清除未匯出的核對資料？')) return; releaseImages(); state.cases = [makeCase("form13", "NAF 表 13｜使用者確認示例")]; render(); messageEl.textContent = "已清除本頁資料。"; });
+      window.addEventListener('beforeunload', event => { if (!state.dirty) return; event.preventDefault(); event.returnValue = ''; });
+      document.getElementById("reset").addEventListener("click", () => { if (!confirm('清除未匯出的核對資料？')) return; releaseImages(); state.cases = [makeCase("form13", "表 13｜歷史使用者確認示例（非新盲測）")]; state.dirty = false; render(); messageEl.textContent = "已清除本頁資料。"; });
       render();
     })();
   </script>
