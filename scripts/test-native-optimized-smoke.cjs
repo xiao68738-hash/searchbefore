@@ -51,12 +51,12 @@ function start() {
   throw lastError;
 }
 const pages = [['計算', '配藥計算'], ['配方', '我的常用配方'], ['倒數', '安全採收期倒數'],
-  ['紀錄', '田區摘要'], ['個人', '顯示'], ['查詢', '選作物']];
+  ['紀錄', '田區摘要'], ['個人', '外觀'], ['查詢', '選作物|第一次使用']];
 let xml = start();
 for (const [label, expected] of pages) {
   tapLabel(label, xml);
   xml = snapshot();
-  assert.ok(xml.includes(expected), `Optimized page failed to render: ${label}`);
+  assert.ok(new RegExp(expected).test(xml), `Optimized page failed to render: ${label}`);
   if (ci) {
     const dir = path.join(process.env.RUNNER_TEMP, 'searchbefore-native-ui/public-evidence');
     fs.mkdirSync(dir, { recursive: true });

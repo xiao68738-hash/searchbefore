@@ -31,8 +31,12 @@ async function listFiles(directory, prefix = "") {
   }
   return files;
 }
-const actual = (await listFiles(outDir)).sort();
-assert.deepEqual(actual, expected, "dist 只能包含網站執行必要檔案");
+export async function validatePublicationFiles(directory) {
+  const files = (await listFiles(directory)).sort();
+  assert.deepEqual(files, expected, "dist 只能包含網站執行必要檔案");
+  return files;
+}
+const actual = await validatePublicationFiles(outDir);
 assert.ok(actual.every(name => !/\.(?:md|map)$/i.test(name)), "不得發布文件或 Source Map");
 assert.equal((await readFile(path.join(outDir, "CNAME"), "utf8")).trim(), "searchbefore.tw");
 assert.deepEqual(JSON.parse(await readFile(path.join(outDir, ".well-known/assetlinks.json"), "utf8")),

@@ -26,7 +26,7 @@ assert.deepEqual(uses, [
 assert.match(read('scripts/build-release.mjs'), /const hostingFiles = \["CNAME", "\.nojekyll", "\.well-known\/assetlinks.json"\]/);
 assert.match(read('scripts/check-release.mjs'), /isSymbolicLink/);
 assert.match(read('scripts/check-release.mjs'), /info.nlink === 1/);
-assert.match(read('scripts/check-release.mjs'), /assert.deepEqual\(actual, expected/);
+assert.match(read('scripts/check-release.mjs'), /assert.deepEqual\(files, expected/);
 assert.match(read('scripts/package-pages.mjs'), /\.\.\.releaseFiles/);
 assert.match(read('scripts/package-pages.mjs'), /assert.deepEqual\(members, releaseFiles/);
 console.log('Pages deployment: checked dist only, scoped permissions, explicit migration gate and hosting files.');
