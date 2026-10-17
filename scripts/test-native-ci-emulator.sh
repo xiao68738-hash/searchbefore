@@ -92,3 +92,12 @@ if [[ $instrument_status != 0 ]] || ! grep -Eq '^OK \([0-9]+ tests?\)' "$evidenc
   echo 'UI suite failed or incomplete; no release is authorized'; exit 1;
 fi
 echo 'Public/synthetic UI suite passed. This does not verify Play login, private cloud data or production readiness.'
+
+# In-place upgrade on this disposable synthetic emulator only. The target has no
+# test hooks, is not debuggable, and is never copied into uploaded artifacts.
+"$adb" -s "$serial" install -r android-native/app/build/outputs/apk/optimizedPreview/app-optimizedPreview.apk
+node scripts/test-native-optimized-smoke.cjs --ci --serial "$serial" | tee "$evidence/public-evidence/optimized-smoke.txt"
+"$adb" -s "$serial" logcat -d -b events >"$evidence/optimized-events.txt"
+if grep -E 'am_anr.*(com.android.systemui|tw.searchbefore.app.nativepreview)' "$evidence/optimized-events.txt"; then
+  echo 'Optimized System/App ANR invalidates acceptance'; exit 1;
+fi

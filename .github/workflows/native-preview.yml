@@ -10,6 +10,10 @@ on:
       - 'scripts/export-native-*.cjs'
       - 'scripts/native-backup-fixture.cjs'
       - 'scripts/verify-native-backup-roundtrip.cjs'
+      - 'scripts/verify-native-optimized.cjs'
+      - 'scripts/test-native-optimized-smoke.cjs'
+      - 'scripts/native-ui-target.cjs'
+      - 'tests/native-ui-target.test.js'
       - 'scripts/build-android-native.ps1'
       - 'scripts/build-android-native-internal.ps1'
       - 'scripts/start-native-validation-emulator.ps1'
@@ -71,10 +75,15 @@ jobs:
         run: bash android-twa/gradlew -p android-native --no-daemon :app:testDebugUnitTest :app:assembleDebug :app:lintDebug :app:assembleDebugAndroidTest
       - name: Web to Kotlin to web full-backup roundtrip (synthetic only)
         run: node scripts/verify-native-backup-roundtrip.cjs
+      - name: Build a non-debuggable optimized APK using offline-only fixture resources
+        run: |
+          bash android-twa/gradlew -p android-native --no-daemon -PnativeOptimizationFixture=true :app:testOptimizedPreviewUnitTest :app:lintOptimizedPreview :app:assembleOptimizedPreview
+          node scripts/verify-native-optimized.cjs --fixture
       - name: Merged manifest security baseline and negative regression tests
         run: |
           java scripts/VerifyNativeManifest.java --self-test
           java scripts/VerifyNativeManifest.java debug android-native/app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml
+          java scripts/VerifyNativeManifest.java optimizedPreview android-native/app/build/intermediates/merged_manifests/optimizedPreview/processOptimizedPreviewManifest/AndroidManifest.xml
       - name: Candidate ELF boundary regression tests (synthetic only)
         run: java scripts/VerifyNativeBundle.java --self-test
       - name: Install isolated Android 16 test image

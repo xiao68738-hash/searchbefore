@@ -31,6 +31,7 @@ const jsFiles = [
 const imageFiles = ["brand-lockup.png", "brand-logo-120.png", "brand-logo-transparent.png", "icon-180.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 const vendorFiles = ["pinyin-pro.js"];
 const publicFiles = ["guide.css", "ads.txt", "robots.txt", "sitemap.xml"];
+const hostingFiles = ["CNAME", ".nojekyll", ".well-known/assetlinks.json"];
 
 await rm(outDir, { recursive: true, force: true });
 await mkdir(outDir, { recursive: true });
@@ -82,6 +83,12 @@ for (const name of vendorFiles) {
 }
 
 for (const name of publicFiles) {
+  await copyFile(path.join(root, name), path.join(outDir, name));
+}
+
+// Explicit files only: never copy .well-known/README.md or the repository root.
+for (const name of hostingFiles) {
+  await mkdir(path.dirname(path.join(outDir, name)), { recursive: true });
   await copyFile(path.join(root, name), path.join(outDir, name));
 }
 

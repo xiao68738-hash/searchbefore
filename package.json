@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node tests/run-all.js",
     "build": "node scripts/build-release.mjs",
-    "release:check": "npm run test && npm run build && node scripts/check-release.mjs",
+    "release:check": "npm run test && npm run build && node scripts/check-release.mjs && node scripts/test-release-isolation.mjs",
     "firebase:login": "npx --yes firebase-tools@15.24.0 login",
     "security:headers": "node scripts/check-security-headers.mjs",
     "data:check-pesticides": "node scripts/check-pesticide-update.mjs",

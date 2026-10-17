@@ -1,0 +1,14 @@
+const assert = require('node:assert/strict');
+const {tapPoint} = require('../scripts/native-ui-target.cjs');
+const pkg = 'tw.searchbefore.app.nativepreview';
+const label = `<node text="計算" package="${pkg}" enabled="true" clickable="false" bounds="[0,0][0,0]" />`;
+const parent = inner => `<node text="" package="${pkg}" enabled="true" clickable="true" bounds="[120,1408][240,1491]">${inner}</node>`;
+assert.deepEqual(tapPoint(parent(label), pkg, '計算'), [180,1450]);
+assert.deepEqual(tapPoint(parent(`<node package="${pkg}" enabled="true" clickable="false">${label}</node>`),pkg,'計算'), [180,1450]);
+assert.throws(()=>tapPoint(label,pkg,'計算'),/No visible clickable/);
+assert.throws(()=>tapPoint(parent(label+label),pkg,'計算'),/Expected one/);
+assert.throws(()=>tapPoint(parent(label).replace('enabled="true"','enabled="false"'),pkg,'計算'),/Disabled/);
+assert.throws(()=>tapPoint(parent(label).replace('[120,1408][240,1491]','[0,0][0,0]'),pkg,'計算'),/Invisible/);
+assert.throws(()=>tapPoint(parent(label).replace(`package="${pkg}"`,'package="other"'),pkg,'計算'),/No visible clickable/);
+assert.throws(()=>tapPoint(parent(label),pkg,'個人'),/Expected one/);
+console.log('Native UI target: observed clickable ancestor, zero-bounds labels, duplicate/disabled/foreign targets fail closed.');

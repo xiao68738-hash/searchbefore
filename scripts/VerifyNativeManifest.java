@@ -79,9 +79,12 @@ class VerifyNativeManifest {
         require(data.getAttributes().getLength() == 3, "Additional auth URI attributes");
     }
     static void verify(String xml, boolean debug) throws Exception {
+        verify(xml, debug, debug);
+    }
+    static void verify(String xml, boolean debug, boolean previewPackage) throws Exception {
         var root = parse(xml);
         require(root.getTagName().equals("manifest"), "Not an Android manifest");
-        String pkg = PACKAGE + (debug ? ".nativepreview" : "");
+        String pkg = PACKAGE + (previewPackage ? ".nativepreview" : "");
         require(root.getAttribute("package").equals(pkg), "Wrong variant package");
         var sdk = one(root, "uses-sdk");
         require(a(sdk, "minSdkVersion").equals("24") && a(sdk, "targetSdkVersion").equals("36"), "SDK policy changed; review compatibility first");
@@ -170,6 +173,7 @@ class VerifyNativeManifest {
             verify(good.replace("android:protectionLevel=\"signature\"", "android:protectionLevel=\"" + level + "\""), false);
         String debug = good.replace(PACKAGE, PACKAGE + ".nativepreview").replace("<application ", "<application android:debuggable=\"true\" ");
         verify(debug.replace("</application>", "<activity android:name=\"androidx.compose.ui.tooling.PreviewActivity\" android:exported=\"true\"/></application>"), true);
+        verify(good.replace(PACKAGE, PACKAGE + ".nativepreview"), false, true);
         var bad = List.of(
             good.replace("android:allowBackup=\"false\"", "android:allowBackup=\"true\""),
             good.replace("android:fullBackupContent=\"false\"", ""),
@@ -210,19 +214,29 @@ class VerifyNativeManifest {
             boolean rejected = false;
             try { verify(bad.get(i), false); } catch (SecurityException | SAXException expected) { rejected = true; }
             require(rejected, "Negative manifest test did not fail: " + i);
+            rejected = false;
+            try { verify(bad.get(i).replace(PACKAGE, PACKAGE + ".nativepreview"), false, true); }
+            catch (SecurityException | SAXException expected) { rejected = true; }
+            require(rejected, "Optimized preview negative manifest test did not fail: " + i);
         }
         boolean variantRejected = false;
         try { verify(debug, false); } catch (SecurityException expected) { variantRejected = true; }
         require(variantRejected, "Debug must not be accepted as release");
-        System.out.println("PASS: 4 valid manifests and " + (bad.size() + 1) + " rejected unsafe/malformed/variant fixtures.");
+        variantRejected = false;
+        try { verify(debug, false, true); } catch (SecurityException expected) { variantRejected = true; }
+        require(variantRejected, "Debug must not be accepted as optimized preview");
+        variantRejected = false;
+        try { verify(good, false, true); } catch (SecurityException expected) { variantRejected = true; }
+        require(variantRejected, "Production package must not be accepted as optimized preview");
+        System.out.println("PASS: 5 valid manifests and " + (bad.size() * 2 + 3) + " rejected unsafe/malformed/variant fixtures.");
     }
     public static void main(String[] args) throws Exception {
         if (args.length == 1 && args[0].equals("--self-test")) { selfTest(); return; }
-        if (args.length != 2 || !Set.of("debug", "release").contains(args[0]))
-            throw new IllegalArgumentException("Usage: VerifyNativeManifest.java debug|release generated-manifest.xml OR --self-test");
+        if (args.length != 2 || !Set.of("debug", "release", "optimizedPreview").contains(args[0]))
+            throw new IllegalArgumentException("Usage: VerifyNativeManifest.java debug|release|optimizedPreview generated-manifest.xml OR --self-test");
         Path source = Path.of(args[1]);
         require(Files.size(source) <= 1024 * 1024, "Manifest exceeds expected size");
-        verify(Files.readString(source), args[0].equals("debug"));
+        verify(Files.readString(source), args[0].equals("debug"), !args[0].equals("release"));
         System.out.println("PASS: " + args[0] + " generated manifest permission/component/backup/network baseline. Not a runtime or Play acceptance test.");
     }
 }
