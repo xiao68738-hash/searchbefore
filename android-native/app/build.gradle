@@ -128,10 +128,8 @@ tasks.register(taskName) {
             values = nativeFirebaseValues(config, production)
         }
         def xml = new StringWriter()
-        // FirebaseOptions and Credential Manager look these up by name at runtime.
-        def attributes = ['xmlns:tools': 'http://schemas.android.com/tools']
-        if (values) attributes['tools:keep'] = values.keySet().collect { "@string/${it}" }.join(',')
-        new groovy.xml.MarkupBuilder(xml).resources(attributes) {
+        // Runtime-looked-up resource names are retained by the shared res/raw keep file.
+        new groovy.xml.MarkupBuilder(xml).resources {
             values.each { key, value -> string(name: key, translatable: "false", value) }
         }
         output.setText(xml.toString(), "UTF-8")
@@ -152,8 +150,7 @@ tasks.register("nativeOptimizationFixture") {
         def output = new File(destination.get().asFile, 'values/firebase.xml')
         output.parentFile.mkdirs()
         def xml = new StringWriter()
-        new groovy.xml.MarkupBuilder(xml).resources(['xmlns:tools': 'http://schemas.android.com/tools',
-            'tools:keep': values.keySet().collect { "@string/${it}" }.join(',')]) {
+        new groovy.xml.MarkupBuilder(xml).resources {
             values.each { key, value -> string(name: key, translatable: "false", value) }
         }
         output.setText(xml.toString(), 'UTF-8')

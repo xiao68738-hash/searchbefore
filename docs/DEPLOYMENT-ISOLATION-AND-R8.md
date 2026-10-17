@@ -51,6 +51,9 @@ mechanism for information committed to that public repository.
 - Dynamic Firebase resource names are explicitly retained. Check the APK with
   `node scripts/verify-native-optimized.cjs` (`ANDROID_HOME` required), not only
   generated XML. `--fixture` additionally verifies the offline CI project marker.
+  The five-name rule is in `res/raw/keep_tw_searchbefore_firebase.xml`; putting
+  `tools:keep` on the generated values XML did not retain `default_web_client_id`
+  in the 2026-10-17 real and synthetic APKs, and both were rejected before install.
 - Run `VerifyNativeManifest.java optimizedPreview` on the generated merged
   manifest. It uses the preview package identity but the strict non-debuggable
   component, permission, backup and cleartext policy; debug tooling is rejected.
@@ -72,3 +75,4 @@ mechanism for information committed to that public repository.
 
 References: [GitHub Pages custom workflows](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages),
 [Android R8 configuration](https://developer.android.com/topic/performance/app-optimization/enable-app-optimization).
+See also [Android resource keep files](https://developer.android.com/topic/performance/app-optimization/customize-which-resources-to-keep).
