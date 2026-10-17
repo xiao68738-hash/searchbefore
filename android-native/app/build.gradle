@@ -4,6 +4,7 @@ plugins {
     id "org.jetbrains.kotlin.plugin.compose"
 }
 def internalCandidate = providers.gradleProperty("nativeInternalCandidate").orNull == "true"
+def optimizationFixture = providers.gradleProperty("nativeOptimizationFixture").orNull == "true"
 def signingPath = System.getenv("SEARCHBEFORE_KEYSTORE_PATH")
 def signingAlias = System.getenv("SEARCHBEFORE_KEY_ALIAS")
 def signingStorePassword = System.getenv("SEARCHBEFORE_STORE_PASSWORD")
@@ -40,12 +41,26 @@ android {
             resValue "string", "app_name", "噴前查・原生預覽"
         }
         release { minifyEnabled false; signingConfig signingConfigs.release }
+        // Exercise a genuinely optimized/non-debuggable APK without changing release signing.
+        optimizedPreview {
+            initWith release
+            applicationIdSuffix ".nativepreview"
+            versionNameSuffix "-optimized-preview-NOT-FOR-PLAY"
+            signingConfig signingConfigs.debug
+            debuggable false
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt')
+            matchingFallbacks = ['release']
+            resValue "string", "app_name", "噴前查・最佳化驗收"
+        }
     }
     buildFeatures { compose true; buildConfig true }
     lint { warningsAsErrors true }
     sourceSets.main.res.srcDir(layout.buildDirectory.dir("generated/branding/res"))
     sourceSets.debug.res.srcDir(layout.buildDirectory.dir("generated/firebase/res"))
     sourceSets.release.res.srcDir(layout.buildDirectory.dir("generated/firebase-production/res"))
+    sourceSets.optimizedPreview.res.srcDir(layout.buildDirectory.dir(optimizationFixture ? "generated/firebase-optimization-fixture/res" : "generated/firebase/res"))
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -113,9 +128,9 @@ tasks.register(taskName) {
             values = nativeFirebaseValues(config, production)
         }
         def xml = new StringWriter()
-        // FirebaseOptions.fromResource reads project_id dynamically; keep the SDK resource explicitly.
+        // FirebaseOptions and Credential Manager look these up by name at runtime.
         def attributes = ['xmlns:tools': 'http://schemas.android.com/tools']
-        if (values) attributes['tools:keep'] = '@string/project_id'
+        if (values) attributes['tools:keep'] = values.keySet().collect { "@string/${it}" }.join(',')
         new groovy.xml.MarkupBuilder(xml).resources(attributes) {
             values.each { key, value -> string(name: key, translatable: "false", value) }
         }
@@ -125,9 +140,29 @@ tasks.register(taskName) {
 }
 registerNativeFirebase("nativeFirebase", "firebase-preview.json", "generated/firebase/res", false)
 registerNativeFirebase("nativeFirebaseProduction", "firebase-production.json", "generated/firebase-production/res", true)
+
+tasks.register("nativeOptimizationFixture") {
+    def destination = layout.buildDirectory.dir("generated/firebase-optimization-fixture/res")
+    outputs.dir(destination)
+    doLast {
+        // This project ID deliberately cannot enable NativeCloud; no real account or cloud writes.
+        def values = [google_app_id: '1:123456789012:android:0000000000000000000000',
+            google_api_key: 'synthetic_key_not_for_network_0123456789', project_id: 'demo-optimization-only',
+            gcm_defaultSenderId: '123456789012', default_web_client_id: '123-synthetic.apps.googleusercontent.com']
+        def output = new File(destination.get().asFile, 'values/firebase.xml')
+        output.parentFile.mkdirs()
+        def xml = new StringWriter()
+        new groovy.xml.MarkupBuilder(xml).resources(['xmlns:tools': 'http://schemas.android.com/tools',
+            'tools:keep': values.keySet().collect { "@string/${it}" }.join(',')]) {
+            values.each { key, value -> string(name: key, translatable: "false", value) }
+        }
+        output.setText(xml.toString(), 'UTF-8')
+    }
+}
 tasks.configureEach {
     if (name == "preDebugBuild") dependsOn("nativeFirebase", "checkNativeFirebaseConfig")
     if (name == "preReleaseBuild") dependsOn("nativeFirebaseProduction", "checkNativeFirebaseConfig")
+    if (name == "preOptimizedPreviewBuild") dependsOn(optimizationFixture ? "nativeOptimizationFixture" : "nativeFirebase", "checkNativeFirebaseConfig")
 }
 // Default release builds remain blocked. Explicit candidate builds do NOT authorize production rollout.
 // Play track selection is a separate Console action; this is not a technical track restriction on the AAB.

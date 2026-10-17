@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readdir, readFile, stat } from "node:fs/promises";
+import { readdir, readFile, stat, lstat } from "node:fs/promises";
 import path from "node:path";
 import vm from "node:vm";
 import { fileURLToPath } from "node:url";
@@ -8,15 +8,35 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(scriptDir, "..");
 const outDir = path.join(root, "dist");
 const expected = [
+  ".nojekyll", ".well-known/assetlinks.json", "CNAME",
   "about.html", "account.js", "ads.txt", "brand-lockup.png", "cloud-sync.js", "delete-account.html", "brand-logo-120.png", "brand-logo-transparent.png", "crop-forms.js", "export-formats.js", "farm-records.js", "form-ocr-ui.js", "form-ocr.js", "guide.css", "guide-dilution.html", "guide-label.html", "guide-phi.html", "guide-ppe.html", "guides.html", "icon-180.png", "icon-192.png", "icon-512.png",
   "icon-maskable-512.png", "index.html", "manifest.webmanifest", "mrl-status.js", "privacy.html", "robots.txt", "sitemap.xml",
   "field-summary.js",
   "pinyin-pro.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"
 ].sort();
 
-const actual = (await readdir(outDir)).sort();
+async function listFiles(directory, prefix = "") {
+  const files = [];
+  for (const name of await readdir(directory)) {
+    const full = path.join(directory, name);
+    const info = await lstat(full);
+    assert.ok(!info.isSymbolicLink(), `發布產物不得含連結：${prefix}${name}`);
+    if (info.isDirectory()) {
+      assert.equal(`${prefix}${name}`, ".well-known", "發布產物含未允許的目錄");
+      files.push(...await listFiles(full, `${prefix}${name}/`));
+    } else {
+      assert.ok(info.isFile() && info.nlink === 1, "發布產物必須為一般單一連結檔案");
+      files.push(`${prefix}${name}`);
+    }
+  }
+  return files;
+}
+const actual = (await listFiles(outDir)).sort();
 assert.deepEqual(actual, expected, "dist 只能包含網站執行必要檔案");
 assert.ok(actual.every(name => !/\.(?:md|map)$/i.test(name)), "不得發布文件或 Source Map");
+assert.equal((await readFile(path.join(outDir, "CNAME"), "utf8")).trim(), "searchbefore.tw");
+assert.deepEqual(JSON.parse(await readFile(path.join(outDir, ".well-known/assetlinks.json"), "utf8")),
+  JSON.parse(await readFile(path.join(root, ".well-known/assetlinks.json"), "utf8")), "保留既有 Android 網站連結設定，不擅改簽章");
 
 const textFiles = actual.filter(name => /\.(?:html|js|css|txt|xml|webmanifest)$/i.test(name));
 let combined = "";
@@ -80,3 +100,4 @@ const sizes = [];
 for (const name of actual) sizes.push({ name, bytes: (await stat(path.join(outDir, name))).size });
 const total = sizes.reduce((sum, item) => sum + item.bytes, 0);
 console.log(`✓ 發布成品檢查通過：${actual.length} 個檔案，共 ${(total / 1024 / 1024).toFixed(2)} MB`);
+export { actual as releaseFiles };

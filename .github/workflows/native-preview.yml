@@ -10,6 +10,8 @@ on:
       - 'scripts/export-native-*.cjs'
       - 'scripts/native-backup-fixture.cjs'
       - 'scripts/verify-native-backup-roundtrip.cjs'
+      - 'scripts/verify-native-optimized.cjs'
+      - 'scripts/test-native-optimized-smoke.cjs'
       - 'scripts/build-android-native.ps1'
       - 'scripts/build-android-native-internal.ps1'
       - 'scripts/start-native-validation-emulator.ps1'
@@ -71,6 +73,10 @@ jobs:
         run: bash android-twa/gradlew -p android-native --no-daemon :app:testDebugUnitTest :app:assembleDebug :app:lintDebug :app:assembleDebugAndroidTest
       - name: Web to Kotlin to web full-backup roundtrip (synthetic only)
         run: node scripts/verify-native-backup-roundtrip.cjs
+      - name: Build a non-debuggable optimized APK using offline-only fixture resources
+        run: |
+          bash android-twa/gradlew -p android-native --no-daemon -PnativeOptimizationFixture=true :app:testOptimizedPreviewUnitTest :app:lintOptimizedPreview :app:assembleOptimizedPreview
+          node scripts/verify-native-optimized.cjs --fixture
       - name: Merged manifest security baseline and negative regression tests
         run: |
           java scripts/VerifyNativeManifest.java --self-test

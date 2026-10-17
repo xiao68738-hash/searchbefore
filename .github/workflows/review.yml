@@ -26,4 +26,6 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
       - name: Run regression suite
-        run: npm test
+        run: npm run release:check
+      - name: Verify exact Pages archive including Android association
+        run: node scripts/package-pages.mjs "$RUNNER_TEMP/artifact.tar"
