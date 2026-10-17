@@ -51,6 +51,9 @@ mechanism for information committed to that public repository.
 - Dynamic Firebase resource names are explicitly retained. Check the APK with
   `node scripts/verify-native-optimized.cjs` (`ANDROID_HOME` required), not only
   generated XML. `--fixture` additionally verifies the offline CI project marker.
+- Run `VerifyNativeManifest.java optimizedPreview` on the generated merged
+  manifest. It uses the preview package identity but the strict non-debuggable
+  component, permission, backup and cleartext policy; debug tooling is rejected.
 - CI builds with `-PnativeOptimizationFixture=true`; the fixture project ID cannot
   pass NativeCloud's project check. No account, real Firebase file or cloud writes
   are involved. CI first runs the existing full debug instrumentation suite, then

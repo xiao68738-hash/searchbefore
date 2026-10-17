@@ -83,6 +83,7 @@ jobs:
         run: |
           java scripts/VerifyNativeManifest.java --self-test
           java scripts/VerifyNativeManifest.java debug android-native/app/build/intermediates/merged_manifests/debug/processDebugManifest/AndroidManifest.xml
+          java scripts/VerifyNativeManifest.java optimizedPreview android-native/app/build/intermediates/merged_manifests/optimizedPreview/processOptimizedPreviewManifest/AndroidManifest.xml
       - name: Candidate ELF boundary regression tests (synthetic only)
         run: java scripts/VerifyNativeBundle.java --self-test
       - name: Install isolated Android 16 test image

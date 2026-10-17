@@ -15,4 +15,5 @@ const ci = read('.github/workflows/native-preview.yml');
 assert.ok(ci.includes("- 'scripts/VerifyNativeManifest.java'"));
 assert.ok(ci.includes('java scripts/VerifyNativeManifest.java --self-test'));
 assert.ok(ci.includes('java scripts/VerifyNativeManifest.java debug android-native/app/build/intermediates/merged_manifests/debug/'));
+assert.ok(ci.includes('java scripts/VerifyNativeManifest.java optimizedPreview android-native/app/build/intermediates/merged_manifests/optimizedPreview/'));
 console.log('Native manifest gate: wired into debug/internal builders and CI, failure exits required. Java behavior tests run in native CI.');
