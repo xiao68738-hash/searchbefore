@@ -12,6 +12,8 @@ on:
       - 'scripts/verify-native-backup-roundtrip.cjs'
       - 'scripts/verify-native-optimized.cjs'
       - 'scripts/test-native-optimized-smoke.cjs'
+      - 'scripts/native-ui-target.cjs'
+      - 'tests/native-ui-target.test.js'
       - 'scripts/build-android-native.ps1'
       - 'scripts/build-android-native-internal.ps1'
       - 'scripts/start-native-validation-emulator.ps1'

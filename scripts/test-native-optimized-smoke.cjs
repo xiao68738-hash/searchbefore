@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { execFileSync } = require('node:child_process');
+const { tapPoint } = require('./native-ui-target.cjs');
 const args = process.argv.slice(2);
 const ci = args.includes('--ci');
 const serialIndex = args.indexOf('--serial');
@@ -27,18 +28,9 @@ function snapshot() {
   assert.ok(xml.includes(`package="${pkg}"`), 'Target app is not visible; no coordinate guess');
   return xml;
 }
-function nodes(xml) {
-  return [...xml.matchAll(/<node\b([^>]+)>/g)].map(match => Object.fromEntries(
-    [...match[1].matchAll(/([\w-]+)="([^"]*)"/g)].map(attr => [attr[1], attr[2]])));
-}
 function tapLabel(label, xml) {
-  const matches = nodes(xml).filter(node => node.package === pkg && (node.text === label || node['content-desc'] === label));
-  assert.equal(matches.length, 1, `Expected one visible navigation target: ${label}`);
-  const bounds = matches[0].bounds.match(/^\[(\d+),(\d+)\]\[(\d+),(\d+)\]$/);
-  assert.ok(bounds, 'Missing target bounds');
-  const [, x1, y1, x2, y2] = bounds.map(Number);
-  assert.ok(x2 > x1 && y2 > y1, 'Invisible target');
-  run('shell', 'input', 'tap', String(Math.round((x1 + x2) / 2)), String(Math.round((y1 + y2) / 2)));
+  const [x, y] = tapPoint(xml, pkg, label);
+  run('shell', 'input', 'tap', String(x), String(y));
 }
 function start() {
   run('shell', 'am', 'force-stop', pkg);
