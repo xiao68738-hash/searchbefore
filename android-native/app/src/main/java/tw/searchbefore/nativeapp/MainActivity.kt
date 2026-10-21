@@ -334,15 +334,15 @@ class MainActivity : ComponentActivity() {
     val rotationHistory = remember(data, crop, today) { if(crop.isEmpty()) emptyMap() else RotationHistory.latestByCode(data, crop, today) }
     val queryListState = rememberLazyListState()
     val focusManager = LocalFocusManager.current
-    val scopeKey = org.json.JSONArray(listOf(mode, crop, pest, overview)).toString()
+    val scopeKey = org.json.JSONArray(listOf(mode, crop, pest)).toString()
     var lastScope by rememberSaveable { mutableStateOf(scopeKey) }
     fun chooseCrop(value: String, form: String = "") {
-        crop = value; harvestForm = form; pest = ""; overview = true; agentScope = ""
+        crop = value; harvestForm = form; pest = ""; overview = false; agentScope = ""
         recent = (listOf(value) + recent).distinct().take(6)
         homePreferences.edit { putString("recentCrops", org.json.JSONArray(recent).toString()) }
         focusManager.clearFocus()
     }
-    // Reset on a genuinely different registration, not when returning from another tab.
+    // Reset on a different registration, not on tab return or toggling the optional overview.
     LaunchedEffect(scopeKey) {
         if(lastScope != scopeKey) { queryListState.scrollToItem(0); lastScope = scopeKey }
     }
@@ -414,7 +414,7 @@ class MainActivity : ComponentActivity() {
         } else {
             item { TextButton(onClick = { goBack() }) { Text("返回上一層") } }
             item { Text(if (pest.isBlank()) crop else "$crop × $pest", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onPrimaryContainer) }
-            item { QueryStep(if(pest.isEmpty()) 2 else 4, if(pest.isNotEmpty()) "登記藥劑" else "已登記用藥總覽（${catalog.overview(crop).size} 種）") }
+            item { QueryStep(if(pest.isEmpty()) 2 else 3, if(pest.isNotEmpty()) "登記藥劑" else "選病蟲害（共 ${catalog.pests(crop).size} 項）") }
             if(catalog.forms(crop).isNotEmpty()) item {
                 Text("先確認採收部位；未註明不代表適用，所有原登記仍保留供核對。")
                 Column {
@@ -423,6 +423,19 @@ class MainActivity : ComponentActivity() {
                 }
             }
             if (pest.isBlank()) {
+                run {
+                    item { OutlinedTextField(pestQuery, { pestQuery = it.take(120) }, label = { Text("篩選病蟲害或分類，例：夜蛾科") },
+                        singleLine = true, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() })) }
+                    val pests = catalog.pests(crop).filter { catalog.pestLabel(pestQuery, it) != null }
+                        .sortedByDescending { catalog.exact(crop, it).size }
+                    if(pestQuery.isNotBlank()) item { Text("${pests.size} 項；分類相關結果按原登記分列，不代表用藥可互用。分類對照尚非完整清單。") }
+                    if(pests.isEmpty()) item { Text("查無符合的直接登記項目，可改查原病蟲害名稱。") }
+                    item { FlowRow(horizontalArrangement = Arrangement.spacedBy(9.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                        pests.forEach { p -> SearchChip(p, detail = "${catalog.exact(crop, p).size} 筆用法" + catalog.pestLabel(pestQuery, p)?.takeIf { it.isNotEmpty() }?.let { "\n$it" }.orEmpty(), modifier = Modifier.testTag("pest:$p")) { pest = p } }
+                    } }
+                }
+                item { Text("已登記用藥總覽（${catalog.overview(crop).size} 種）", style = MaterialTheme.typography.titleMedium) }
                 item { OutlinedButton(onClick = { overview = !overview }) { Text(if (overview) "收合總覽" else "展開已登記用藥總覽") } }
                 if (overview) {
                     item { Text("依藥劑名稱整理原登記防治對象。點選對象查看各筆用法；不同劑型、含量或採收部位不代表可互用。", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
@@ -436,19 +449,6 @@ class MainActivity : ComponentActivity() {
                         CropOverviewCard(name, rows.map { it.pest }, notices = overviewResidueNotices(rows, harvestForm)) { pest = it }
                     }
                     if(entries.size > overviewShown) item { TextButton(onClick = { overviewShown += 10 }) { Text("再顯示 10 種") } }
-                }
-                item { QueryStep(3, "選病蟲害（共 ${catalog.pests(crop).size} 項）") }
-                run {
-                    item { OutlinedTextField(pestQuery, { pestQuery = it.take(120) }, label = { Text("篩選病蟲害或分類，例：夜蛾科") },
-                        singleLine = true, modifier = Modifier.fillMaxWidth(), keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() })) }
-                    val pests = catalog.pests(crop).filter { catalog.pestLabel(pestQuery, it) != null }
-                        .sortedByDescending { catalog.exact(crop, it).size }
-                    if(pestQuery.isNotBlank()) item { Text("${pests.size} 項；分類相關結果按原登記分列，不代表用藥可互用。分類對照尚非完整清單。") }
-                    if(pests.isEmpty()) item { Text("查無符合的直接登記項目，可改查原病蟲害名稱。") }
-                    item { FlowRow(horizontalArrangement = Arrangement.spacedBy(9.dp), verticalArrangement = Arrangement.spacedBy(9.dp)) {
-                        pests.forEach { p -> SearchChip(p, detail = "${catalog.exact(crop, p).size} 筆用法" + catalog.pestLabel(pestQuery, p)?.takeIf { it.isNotEmpty() }?.let { "\n$it" }.orEmpty(), modifier = Modifier.testTag("pest:$p")) { pest = p } }
-                    } }
                 }
             } else {
                 val original = catalog.exact(crop, pest).map { it.withHarvestForm(harvestForm) }

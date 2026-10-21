@@ -2,6 +2,9 @@ package tw.searchbefore.nativeapp
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.test.platform.app.InstrumentationRegistry
+import android.graphics.Bitmap
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
 
@@ -26,6 +29,17 @@ class NativeQueryParityTest {
         reveal(hasTestTag("catalogSearch")).performTextInput(value)
         compose.onNodeWithTag("catalogSearch").performImeAction()
         reveal(hasText(value) and hasClickAction() and !hasSetTextAction()).performClick()
+    }
+    private fun capturePublicQuery(name: String) {
+        compose.waitForIdle()
+        compose.onNodeWithTag("brandHeader").assertIsDisplayed()
+        compose.onNodeWithText("個人", useUnmergedTree = true).assertIsDisplayed()
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        instrumentation.waitForIdleSync()
+        android.os.SystemClock.sleep(250)
+        val bitmap = requireNotNull(instrumentation.uiAutomation.takeScreenshot())
+        val folder = File(instrumentation.targetContext.cacheDir, "native-validation/public-query").apply { mkdirs() }
+        File(folder, name).outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
     @Test fun taxonomyFilterKeepsOriginalPestAndPhiFilterSurvivesRecreation() {
         crop("蔥")
@@ -65,6 +79,9 @@ class NativeQueryParityTest {
     }
     @Test fun overviewSearchAndReverseLookupRetainDrugScope() {
         crop("蔥")
+        reveal(hasText("篩選病蟲害或分類，例：夜蛾科")).assertIsDisplayed()
+        compose.onNodeWithText("篩選藥劑或病蟲害").assertDoesNotExist()
+        reveal(hasText("展開已登記用藥總覽") and hasClickAction()).performClick()
         reveal(hasText("收合總覽") and hasClickAction()).assertExists()
         reveal(hasText("篩選藥劑或病蟲害")).performTextInput("畢芬寧")
         compose.onNodeWithText("篩選藥劑或病蟲害").performImeAction()
@@ -77,6 +94,35 @@ class NativeQueryParityTest {
         reveal(hasText("目前只看：脫克松")).assertIsDisplayed()
         reveal(hasText("查看此作物／防治對象的全部藥劑")).performClick()
         compose.onNodeWithText("目前只看：脫克松").assertDoesNotExist()
+    }
+    @Test fun overviewIsOptionalAndNewCropStartsCollapsed() {
+        crop("蔥")
+        reveal(hasText("篩選病蟲害或分類，例：夜蛾科")).assertIsDisplayed()
+        compose.onNodeWithText("篩選藥劑或病蟲害").assertDoesNotExist()
+        capturePublicQuery("pest-first-crop.png")
+        reveal(hasText("展開已登記用藥總覽") and hasClickAction()).assertIsDisplayed()
+        capturePublicQuery("pest-first-collapsed.png")
+        reveal(hasText("展開已登記用藥總覽") and hasClickAction()).performClick()
+        reveal(hasText("篩選藥劑或病蟲害")).performTextInput("畢芬寧")
+        compose.onNodeWithText("篩選藥劑或病蟲害").performImeAction()
+        compose.activityRule.scenario.recreate()
+        ready()
+        reveal(hasText("篩選藥劑或病蟲害")).assertTextContains("畢芬寧")
+        reveal(hasText("畢芬寧") and !hasSetTextAction()).assertIsDisplayed()
+        capturePublicQuery("pest-first-overview-filtered.png")
+        reveal(hasText("收合總覽") and hasClickAction()).performClick()
+        compose.onNodeWithText("篩選藥劑或病蟲害").assertDoesNotExist()
+        reveal(hasTestTag("pest:夜蛾類")).performClick()
+        compose.onNodeWithText("蔥 × 夜蛾類").assertIsDisplayed()
+        reveal(hasText("返回上一層") and hasClickAction()).performClick()
+        reveal(hasText("展開已登記用藥總覽") and hasClickAction()).assertExists()
+        reveal(hasText("展開已登記用藥總覽") and hasClickAction()).performClick()
+        reveal(hasText("以作物找藥") and hasClickAction()).performClick()
+        crop("豌豆")
+        reveal(hasText("篩選病蟲害或分類，例：夜蛾科")).assertIsDisplayed()
+        reveal(hasText("展開已登記用藥總覽") and hasClickAction()).assertExists()
+        compose.onNodeWithText("篩選藥劑或病蟲害").assertDoesNotExist()
+        capturePublicQuery("pest-first-new-crop-collapsed.png")
     }
     @Test fun invalidReportScopeDisablesReportsButNotCompleteBackup() {
         ready()

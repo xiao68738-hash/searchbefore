@@ -73,6 +73,8 @@ mkdir -p "$evidence/public-evidence"
 cp "$evidence/instrumentation.txt" "$evidence/public-evidence/instrumentation.txt"
 for screen in synthetic/area-range.png synthetic/recipe-batch.png \
   public-query/home.png public-query/beet-armyworm.png public-query/armyworm-group.png public-query/registered-use.png \
+  public-query/pest-first-crop.png public-query/pest-first-collapsed.png \
+  public-query/pest-first-overview-filtered.png public-query/pest-first-new-crop-collapsed.png \
   public-query/calculation-empty.png public-query/countdown-empty.png public-query/farm-empty.png \
   public-query/recipes-empty.png public-query/personal-home.png public-query/records-empty.png \
   reports/synthetic-report.pdf reports/synthetic-report.xlsx reports/synthetic-report-page1.png \
