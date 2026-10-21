@@ -10,16 +10,40 @@ const { pathToFileURL } = require("node:url");
   const mod = await import(pathToFileURL(path.resolve(__dirname, "..", "scripts", "data-rules.mjs")).href);
   const { parsePhi, moaOf, isActive, keyOf, sameUsage, makeEntry, noteOf } = mod;
 
-  /* ── noteOf:安全警語優先於施用說明 ──
-     官方分「注意事項」(138 列,安全警語如「鐵具腐蝕性」)與
-     「備註」(92,773 列,施用方式)。只讀備註會讓 92 列失去警語。 */
-  assert.equal(noteOf({ "注意事項": "鐵具腐蝕性", "備註": "標示加註對鐵具腐蝕性" }), "鐵具腐蝕性",
-    "兩者皆有值時取注意事項,安全警語優先");
+  /* ── noteOf:安全警語優先顯示，但不得捨棄施用說明 ── */
+  assert.equal(noteOf({ "注意事項": "鐵具腐蝕性", "備註": "標示加註對鐵具腐蝕性" }), "鐵具腐蝕性\n備註：標示加註對鐵具腐蝕性",
+    "兩者皆有值時必須保留，安全警語排最前");
   assert.equal(noteOf({ "注意事項": "", "備註": "本試驗加展著劑CS-7，3000倍。" }), "本試驗加展著劑CS-7，3000倍。");
   assert.equal(noteOf({ "注意事項": "鐵具腐蝕性", "備註": "" }), "鐵具腐蝕性",
     "只有注意事項時不可漏掉");
   assert.equal(noteOf({ "注意事項": "-", "備註": "施用說明" }), "施用說明", "「-」視為無值");
   assert.equal(noteOf({}), "");
+  assert.equal(noteOf({ "注意事項": "同一原文", "備註": "同一原文" }), "同一原文");
+  assert.equal(noteOf({ "注意事項": "—", "備註": "－", "施藥方法": "--" }), "");
+  assert.equal(noteOf({ "施藥方法": " 浸種 " }), "施藥方法：浸種");
+  assert.equal(noteOf({ "注意事項": "不可噴灑", "備註": "僅限播種前", "施藥方法": "浸種" }),
+    "不可噴灑\n備註：僅限播種前\n施藥方法：浸種");
+  // 空白倍數不是缺資料錯誤；不能把方法、用量或備註中的數字當作倍數。
+  const seed = makeEntry({ "中文名稱": "測試成分" }, {
+    "稀釋倍數": "-", "每公頃使用用藥量": "每公斤種子 3 公克", "施藥方法": "浸種",
+    "注意事項": "不可噴灑", "備註": "僅限播種前"
+  });
+  assert.equal(seed.dilution, "-");
+  assert.equal(seed.dose, "每公斤種子 3 公克");
+  assert.equal(seed.phi, null);
+  assert.ok(seed.note.includes("不可噴灑") && seed.note.includes("僅限播種前") && seed.note.includes("浸種"));
+  const soil = makeEntry({ "中文名稱": "測試成分" }, {
+    "稀釋倍數": "-", "每公頃使用用藥量": "每公斤種子 3 公克", "施藥方法": "土壤處理",
+    "注意事項": "不可噴灑", "備註": "僅限播種前"
+  });
+  assert.equal(sameUsage(seed, soil), false, "方法不同不得因其他欄位相同而被合併");
+  assert.equal(sameUsage(seed, { ...seed, bl: ["另一廠牌"] }), true);
+  const queryAids = require("../query-aids.js");
+  assert.equal(queryAids.usagePresentation(seed).kind, "seed_treatment");
+  assert.equal(queryAids.usagePresentation(seed).canCalculateDilution, false);
+  const numeric = makeEntry({}, { "稀釋倍數": "1000", "施藥方法": "葉面噴施" });
+  assert.equal(queryAids.usagePresentation(numeric).value, "1000 倍");
+  assert.equal(numeric.note, "施藥方法：葉面噴施");
 
   /* ── parsePhi:null 與 0 絕不可混淆 ── */
   assert.equal(parsePhi("18日"), 18);
