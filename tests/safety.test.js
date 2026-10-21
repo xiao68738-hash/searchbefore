@@ -37,6 +37,16 @@ test("輪作天數不會誤當安全採收期", () => {
   assert.equal(safety.phiFromNote("與非核准作物輪作期間為30天，以免蓄積殘留。"), null);
 });
 
+test("不同來源欄位的採收警語不得把種植前天數變成採收期", () => {
+  const note = "1.限播種前使用。2.僅適用於包葉菜類。3.採收時剝去之外葉不得使用，應予燬棄\n施藥方法：種植前3天，畦上撒佈1次，然後再以鐵耙拌土約5CM";
+  assert.equal(safety.effectivePhi({phi:null,note}).phi, null);
+  assert.equal(safety.effectivePhi({phi:7,note}).phi, 7);
+  assert.equal(safety.phiFromNote("採收時除去外葉\n備註：種植前3天施用"), null);
+  assert.equal(safety.phiFromNote("採收前7天停止用藥\n施藥方法：種植前30天"), 7);
+  assert.equal(safety.phiFromNote("注意腐蝕性\n備註：採收前9天停止用藥\n施藥方法：採收前15天停止施藥"), 15,
+    "方法欄本身明確寫停藥期時仍須保留較長限制，不能一律忽略方法");
+});
+
 test("採收日採施藥日不計、隔日起算的保守規則", () => {
   const date = safety.safeHarvestDate("2026-07-01", 3);
   assert.equal(date.getFullYear(), 2026);

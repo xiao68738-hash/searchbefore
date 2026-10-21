@@ -23,14 +23,19 @@
    * 這可能比實際標示更保守，但不會把較長的設施栽培天數漏掉。
    */
   function phiFromNote(note) {
-    const text = normalizeDigits(note);
-    if (!/(採收|收穫|停止施藥|停止用藥|設施栽培)/.test(text)) return null;
     const values = [];
-    const re = /(\d{1,3})\s*天/g;
-    let match;
-    while ((match = re.exec(text))) {
-      const n = Number(match[1]);
-      if (n >= 0 && n <= 365) values.push(n);
+    // data-rules preserves official fields with explicit boundaries. Do not
+    // join a harvest warning in one field to planting/application days in
+    // another. Existing unlabelled notes keep their previous interpretation.
+    const sections = normalizeDigits(note).split(/\r?\n(?=備註：|施藥方法：)/);
+    for (const text of sections) {
+      if (!/(採收|收穫|停止施藥|停止用藥|設施栽培)/.test(text)) continue;
+      const re = /(\d{1,3})\s*天/g;
+      let match;
+      while ((match = re.exec(text))) {
+        const n = Number(match[1]);
+        if (n >= 0 && n <= 365) values.push(n);
+      }
     }
     return values.length ? Math.max.apply(null, values) : null;
   }

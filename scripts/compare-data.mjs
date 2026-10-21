@@ -13,7 +13,8 @@
    1. 完整比對:以「除 bl 外的所有欄位」為鍵,得出真正消失/新增的筆數
    2. 欄位診斷:只在兩邊該群組都恰好一筆時才逐欄比較,避免配錯對
 
-   用法:node scripts/compare-data.mjs [--full] */
+   用法:node scripts/compare-data.mjs [--full] [--source-dir 快照目錄]
+   報告寫在被比對的快照旁；隔離快照不得回寫正式快取。 */
 
 import fs from "node:fs";
 import path from "node:path";
@@ -36,10 +37,10 @@ const html = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
 const i = html.indexOf("const DATA=") + "const DATA=".length;
 const cur = JSON.parse(html.slice(i, html.indexOf("\n", i)).trim().replace(/;$/, ""));
 
-const FIELDS = ["dilution", "phi", "dose", "times", "moa", "note"];
+const FIELDS = ["dilution", "phi", "phiText", "dose", "times", "moa", "note"];
 const fullKey = (c, p, e) =>
-  [c, p, e.name, e.form, e.content, ...FIELDS.map(f => String(e[f] ?? ""))].join("|");
-const groupKey = (c, p, e) => [c, p, e.name, e.form, e.content].join("|");
+  JSON.stringify([c, p, e.name, e.form, e.content, ...FIELDS.map(f => String(e[f] ?? ""))]);
+const groupKey = (c, p, e) => JSON.stringify([c, p, e.name, e.form, e.content]);
 
 function walk(d, fn) {
   for (const c of Object.keys(d))
@@ -124,8 +125,9 @@ const nPhi = report("phi", "安全採收期(直接改變倒數結果)", 20);
 const nDil = report("dilution", "稀釋倍數", 15);
 
 const out = { generatedAt: new Date().toISOString(), scale: { cur: a, next: b }, identical, gone, added, ambiguous, changed };
-fs.writeFileSync(path.join(ROOT, "mrl-data", "source-cache", "DATA.diff.json"), JSON.stringify(out, null, 1), "utf8");
-console.log("\n完整報告:mrl-data/source-cache/DATA.diff.json");
+const reportPath = path.join(path.dirname(builtPath), "DATA.diff.json");
+fs.writeFileSync(reportPath, JSON.stringify(out, null, 1), "utf8");
+console.log(`\n完整報告:${reportPath}`);
 
 console.log(nPhi + nDil
   ? `\n⚠️ 採收期 ${nPhi} 筆、稀釋倍數 ${nDil} 筆有變動,寫入前務必抽驗官方標示。`

@@ -83,19 +83,23 @@ export function sameUsage(a, b) {
     (a.phiText || "") === (b.phiText || "");
 }
 
-/* 備註欄:官方分成「注意事項」與「備註」兩個欄位。
-
-   「注意事項」全資料只有 138 列有值,內容是「鐵具腐蝕性」這類安全警語;
-   「備註」有 92,773 列,多為施用方式說明。兩者皆有值的 46 列中,
-   現行 DATA 取的是「注意事項」—— 安全警語優先於施用說明,這是對的,
-   所以沿用同樣的優先順序。
-
-   只讀「備註」會讓那 92 列只有注意事項的紀錄失去警語,而且不會有
-   任何錯誤訊息。 */
+/* 保留三個官方欄位；安全警語排最前，不代表可以丟掉其他用法限制。
+   沿用 note 讓網頁和原生版的既有讀取器都能顯示完整內容。
+   施藥方法固定帶欄名，不從藥名、劑型或空白倍數推測用途。
+   sameUsage 比較完整 note，因此不同施藥方法不會被合併。 */
 export function noteOf(detail) {
-  const caution = text(detail["注意事項"]);
-  if (caution && caution !== "-") return caution;
-  return text(detail["備註"]);
+  const meaningful = value => {
+    const s = text(value);
+    return /^[-－—–]+$/.test(s) ? "" : s;
+  };
+  const caution = meaningful(detail["注意事項"]);
+  const remark = meaningful(detail["備註"]);
+  const method = meaningful(detail["施藥方法"]);
+  const parts = [];
+  if (caution) parts.push(caution);
+  if (remark && remark !== caution) parts.push(caution ? `備註：${remark}` : remark);
+  if (method) parts.push(`施藥方法：${method}`);
+  return parts.join("\n");
 }
 
 /* 由許可證與一列使用範圍組出 DATA 的項目。
