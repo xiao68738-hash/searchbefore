@@ -220,10 +220,11 @@ h2.step .cnt{letter-spacing:0;color:var(--green);font-weight:900}
 .chip.mut{background:var(--mut-bg);border-color:transparent;box-shadow:none;font-size:14px;min-height:40px;padding:8px 13px;color:var(--green);font-weight:700}
 
 /* 作物本位的已登記用藥總覽：手機上以藥劑為列，避免寬表格難以閱讀。 */
+#pestBlock{scroll-margin-top:110px} /* 選作物後，病蟲害標題不要被固定頁首遮住。 */
 .crop-overview{margin-top:18px;padding-top:2px}
 .crop-overview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .crop-overview-head .step{margin:0 0 5px}
-.crop-overview-toggle{flex:none;font-family:inherit;border:0;background:var(--mut-bg);color:var(--green);border-radius:10px;padding:8px 11px;font-size:13px;font-weight:900;cursor:pointer}
+.crop-overview-toggle{flex:none;min-height:44px;font-family:inherit;border:0;background:var(--mut-bg);color:var(--green);border-radius:10px;padding:8px 11px;font-size:13px;font-weight:900;cursor:pointer}
 .crop-overview-body{margin-top:11px}
 .crop-overview-summary{font-size:12.5px;color:var(--ink-soft);margin:0 2px 9px;line-height:1.55}
 .crop-overview-card{background:#fff;border:1px solid var(--line);border-radius:13px;box-shadow:var(--shadow);padding:12px 13px;margin-bottom:9px}
@@ -992,30 +993,31 @@ nav button.on{color:var(--green)}
         <div class="chips" id="formChips"></div>
         <div class="hint">同一作物不同收穫型態的登記藥劑可能不同。分組只依備註「明確文字」,備註未註明的不會自動歸類;不選擇則全部顯示。</div>
       </div>
-      <div class="crop-overview" id="cropOverviewBlock" style="display:none">
-        <div class="crop-overview-head">
-          <div>
-            <h2 class="step"><b>2</b>已登記用藥總覽 <span class="cnt" id="cropOverviewCount"></span></h2>
-            <div class="hint">依普通名稱整合同一作物的防治對象，方便先看一支藥涵蓋哪些病蟲害；點選病蟲害可查看完整登記用法。</div>
-          </div>
-          <button class="crop-overview-toggle" id="cropOverviewToggle" type="button" aria-expanded="true" onclick="toggleCropOverview()">收合總覽</button>
-        </div>
-        <div class="crop-overview-body" id="cropOverviewBody">
-          <div class="search"><input id="cropOverviewSearch" placeholder="篩選藥劑或病蟲害" autocomplete="off" oninput="overviewShow=10;renderCropOverview(this.value)"></div>
-          <div class="crop-overview-summary" id="cropOverviewSummary"></div>
-          <div id="cropOverviewList"></div>
-        </div>
-      </div>
       <div id="pestBlock" style="display:none">
-        <h2 class="step"><b>3</b>選病蟲害 <span class="cnt" id="pestTotal"></span></h2>
+        <h2 class="step"><b>2</b>選病蟲害 <span class="cnt" id="pestTotal"></span></h2>
         <div class="hint" id="coverLine" style="margin:-4px 2px 9px"></div>
         <div class="search" id="pestSearchWrap" style="display:none"><input id="pestSearch" placeholder="篩選病蟲害或分類，例：夜蛾科、鱗翅目" autocomplete="off"></div>
         <div class="hint" id="pestSearchNote" role="status"></div>
         <div class="chips" id="pestChips"></div>
       </div>
+      <div class="crop-overview" id="cropOverviewBlock" style="display:none">
+        <div class="crop-overview-head">
+          <div>
+            <h2 class="step">已登記用藥總覽 <span class="cnt" id="cropOverviewCount"></span></h2>
+            <div class="hint">想先看這個作物有哪些藥劑？可展開總覽。</div>
+          </div>
+          <button class="crop-overview-toggle" id="cropOverviewToggle" type="button" aria-expanded="false" aria-controls="cropOverviewBody" onclick="toggleCropOverview()">展開總覽</button>
+        </div>
+        <div class="crop-overview-body" id="cropOverviewBody" hidden>
+          <div class="hint">依普通名稱整合同一作物的防治對象；點選病蟲害可查看完整登記用法。不同防治對象的用法仍分開列示，不代表可以互用。</div>
+          <div class="search"><input id="cropOverviewSearch" placeholder="篩選藥劑或病蟲害" autocomplete="off" oninput="overviewShow=10;renderCropOverview(this.value)"></div>
+          <div class="crop-overview-summary" id="cropOverviewSummary"></div>
+          <div id="cropOverviewList"></div>
+        </div>
+      </div>
       <div id="agentBlock" style="display:none">
         <div class="agent-context" id="agentContext"></div>
-        <h2 class="step"><b>4</b>登記藥劑 <span class="cnt" id="agentCount"></span></h2>
+        <h2 class="step"><b>3</b>登記藥劑 <span class="cnt" id="agentCount"></span></h2>
         <div class="phi-filter" id="phiFilter" style="display:none">
           <span class="phi-label">採收期篩選</span>
           <button class="sel" onclick="setPhiFilter(this,0)">全部</button>
@@ -1436,7 +1438,7 @@ const DATA={"木瓜":{"白粉病":[{"name":"快得保淨","form":"WP","content":
 /* ═══ 維護區:改這裡就好 ═══════════════════════════════
    APP_VERSION:每次更新資料或功能時往上加
    ANNOUNCE:公告(新的放最上面,date 改了紅點會自動亮) */
-const APP_VERSION="0.3.10.1";
+const APP_VERSION="0.3.10.2";
 const DATA_VERSION="2026-07-21"; // 農藥資料抓取年月
 const ANNOUNCE=[
  {date:"2026-09-12",version:"0.3.9.9",title:"殘留提醒改為作物別標籤",body:"已複核組合在藥劑名稱旁顯示作物別殘留提醒，並提供可展開的核對依據。可使用僅指依該筆登記用途與產品標示使用；未完成部位或分類確認者仍標待確認，未標示不代表檢驗合格。"},
@@ -2003,9 +2005,9 @@ function pickCrop(c,form){
   CUR=u.M;
   const levels=u.levels;
   document.getElementById("cropOverviewBlock").style.display="block";
-  document.getElementById("cropOverviewBody").hidden=false;
-  document.getElementById("cropOverviewToggle").textContent="收合總覽";
-  document.getElementById("cropOverviewToggle").setAttribute("aria-expanded","true");
+  document.getElementById("cropOverviewBody").hidden=true;
+  document.getElementById("cropOverviewToggle").textContent="展開總覽";
+  document.getElementById("cropOverviewToggle").setAttribute("aria-expanded","false");
   document.getElementById("cropOverviewSearch").value="";
   overviewShow=10;
   renderCropOverview("");
@@ -2017,7 +2019,7 @@ function pickCrop(c,form){
   document.getElementById("pestSearchWrap").style.display=pests.length?"block":"none";
   document.getElementById("pestSearch").value="";
   renderPests("");
-  document.getElementById("cropOverviewBlock").scrollIntoView({behavior:"smooth",block:"start"});
+  document.getElementById("pestBlock").scrollIntoView({behavior:"smooth",block:"start"});
 }
 function pestSearchMatchSafe(query,pest){
   if(window.PQC_AIDS&&typeof PQC_AIDS.pestSearchMatch==="function")return PQC_AIDS.pestSearchMatch(query,pest);
