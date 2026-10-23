@@ -30,8 +30,8 @@ assert.ok(html.indexOf('<script src="./safety.js"></script>') < html.indexOf("co
 assert.ok(html.indexOf('<script src="./farm-records.js"></script>') < html.indexOf("const DATA="), "farm-records.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./export-formats.js"></script>') < html.indexOf("const DATA="), "export-formats.js 必須在主程式前載入");
 assert.ok(html.indexOf('<script src="./field-summary.js"></script>') < html.indexOf("const DATA="), "field-summary.js 必須在主程式前載入");
-assert.match(html, /const APP_VERSION="0\.3\.10\.2"/);
-assert.match(sw, /const CACHE_VERSION = "v0\.3\.10\.2-pest-first-query-2026-10-21"/);
+assert.match(html, /const APP_VERSION="0\.3\.10\.4"/);
+assert.match(sw, /const CACHE_VERSION = "v0\.3\.10\.4-balcony-2026-10-24"/);
 assert.match(html, /function usagePresentationSafe\(agent\)/);
 assert.match(html, /typeof PQC_AIDS\.usagePresentation==="function"/);
 assert.equal((html.match(/PQC_AIDS\.usagePresentation\(/g)||[]).length,1,"只有相容層可以直接呼叫 usagePresentation");
@@ -170,7 +170,7 @@ assert.match(html, /用藥歷史／匯出用藥紀錄/);
 assert.match(html, /function openRecordHub\(section\)/);
 assert.match(html, /function showRecordHub\(\)/);
 assert.match(html, /id="navSearch" onclick="go\('search',this\)"/);
-assert.match(html, /function openHomeOnLaunch\(\)\{\s*go\("search",document\.getElementById\("navSearch"\)\);\s*\}/);
+assert.match(html, /function openHomeOnLaunch\(\)\{\s*if\(window\.PQC_BALCONY&&PQC_BALCONY\.home\(\)\)return;\s*go\("search",document\.getElementById\("navSearch"\)\);\s*\}/);
 assert.match(html, /renderPlotRecordBox\(\);openHomeOnLaunch\(\);/);
 assert.match(html, /id="supportLink"[^>]*rel="noopener noreferrer"/);
 assert.match(html, /id="supportLink50"[^>]*rel="noopener noreferrer"/);
@@ -231,7 +231,7 @@ assert.match(html, /class="record-hub-back-icon" aria-hidden="true">←<\/span>/
 assert.match(html, /\.record-hub-back-icon\{[^}]*font-size:27px/);
 assert.match(sw, /"\.\/guides\.html"/);
 assert.match(sw, /const cacheKey = isAppEntry \? "\.\/" : `\.\$\{url\.pathname\}`/, "指南導覽必須使用自己的快取鍵，不可誤回首頁");
-assert.match(sw, /v0\.3\.10\.2-pest-first-query/);
+assert.match(sw, /v0\.3\.10\.4-balcony/);
 assert.match(sw, /"\.\/query-aids\.js"/);
 assert.match(sw, /"\.\/pinyin-pro\.js"/);
 assert.ok(html.indexOf('<script src="./pinyin-pro.js"></script>') < html.indexOf('<script src="./query-aids.js"></script>'), "拼音核心必須在搜尋輔助前載入");
