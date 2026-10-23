@@ -10,7 +10,7 @@ const outDir = path.join(root, "dist");
 
 const htmlFiles = [
   "index.html", "about.html", "privacy.html", "delete-account.html", "guides.html",
-  "guide-label.html", "guide-dilution.html", "guide-phi.html", "guide-ppe.html"
+  "guide-label.html", "guide-dilution.html", "guide-phi.html", "guide-ppe.html", "guide-query.html"
 ];
 const jsFiles = [
   "service-config.js",
@@ -22,6 +22,9 @@ const jsFiles = [
   "farm-records.js",
   "crop-forms.js",
   "query-aids.js",
+  "experience-mode.js",
+  "balcony.js",
+  "plant-photos.js",
   "form-ocr.js",
   "form-ocr-ui.js",
   "export-formats.js",
@@ -30,7 +33,7 @@ const jsFiles = [
 ];
 const imageFiles = ["brand-lockup.png", "brand-logo-120.png", "brand-logo-transparent.png", "icon-180.png", "icon-192.png", "icon-512.png", "icon-maskable-512.png"];
 const vendorFiles = ["pinyin-pro.js"];
-const publicFiles = ["guide.css", "ads.txt", "robots.txt", "sitemap.xml"];
+const publicFiles = ["guide.css", "balcony.css", "ads.txt", "robots.txt", "sitemap.xml"];
 
 await rm(outDir, { recursive: true, force: true });
 await mkdir(outDir, { recursive: true });

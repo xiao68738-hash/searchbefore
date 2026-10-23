@@ -1,0 +1,102 @@
+/* Simple-mode plant home. Scoped styling; original screens and safety dialogs stay intact. */
+body.balcony-open {background:#f7f5ef!important;overflow:auto!important;padding:0!important}
+body.balcony-open:before {display:none!important}
+#balconyHome {padding:0;margin:0;max-width:none;width:100%;min-height:100dvh}
+body.balcony-open #app {display:none!important}
+#balconyHome,#balconyDialog,#balconyReturn {--bal-ink:#23493c;--bal-muted:#626e64;--bal-border:#dddcd1;--bal-paper:#f7f5ef;color:var(--bal-ink);font-family:"Noto Sans TC","Microsoft JhengHei",sans-serif;font-size:16px;line-height:1.6}
+#balconyHome *,#balconyDialog * {box-sizing:border-box}
+#balconyHome button,#balconyDialog button,#balconyReturn {font:inherit;cursor:pointer;min-height:48px;border-radius:14px;transition:background .15s}
+#balconyHome button:focus-visible,#balconyDialog :focus-visible,#balconyReturn:focus-visible {outline:3px solid #a45b30;outline-offset:3px}
+#balconyHome h1,#balconyHome h2,#balconyDialog h2,#balconyDialog h3 {color:var(--bal-ink);margin:0;font-weight:750}
+.bal-shell {max-width:940px;margin:0 auto;padding:22px 28px 48px}
+#balconyHome .bal-header {display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;background:transparent;padding:0;border:0;box-shadow:none;position:static}
+.bal-brand {display:flex;align-items:center;gap:9px;color:var(--bal-ink);text-decoration:none;font-weight:800;white-space:nowrap}
+.bal-brand img {width:34px;height:38px;object-fit:contain}
+.bal-brand span {font-size:12px;font-weight:500;border-left:1px solid #cdd2c8;padding-left:10px}
+.bal-prototype-note {font-size:12px;color:var(--bal-muted);letter-spacing:.04em;border-top:1px solid var(--bal-border);padding-top:10px}
+.bal-hero {position:relative;padding:38px 0 32px}
+.bal-eyebrow {color:#757e64;font-size:13px;letter-spacing:.17em}
+#balconyHome h1 {font-size:40px;line-height:1.36;letter-spacing:.035em;margin:12px 0}
+.bal-hero p {color:var(--bal-muted);font-size:16px;margin:16px 0 0}
+.bal-hero-line {position:absolute;right:15px;top:54px;width:100px;height:125px;border:1px solid #bcc5ae;border-radius:50% 50% 0 0;transform:rotate(17deg);opacity:.5}
+.bal-hero-line:after {content:"";position:absolute;inset:10px;border:1px solid #bcc5ae;border-radius:50% 50% 0 0}
+.bal-section-title {display:flex;align-items:center;justify-content:space-between;gap:8px}
+.bal-section-title h2 {font-size:20px!important}
+.bal-section-title h2 span {font-size:13px;font-weight:500;color:var(--bal-muted);margin-left:6px}
+#balconyHome .bal-add {background:#ebeadd;border:0;padding:8px 15px;color:var(--bal-ink);font-size:14px;font-weight:700}
+.bal-filters {display:flex;gap:8px;overflow:auto;padding:14px 0 18px}
+#balconyHome .bal-filters button {border:1px solid #d9ddd1;border-radius:30px;background:transparent;color:var(--bal-muted);padding:7px 17px;font-size:14px;white-space:nowrap}
+#balconyHome .bal-filters button[aria-pressed=true] {color:white;background:var(--bal-ink);border-color:var(--bal-ink)}
+.bal-plants {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.bal-plant {background:#fffefa;border:1px solid var(--bal-border);border-radius:22px;padding:22px;box-shadow:0 5px 16px #31473704;min-width:0}
+.bal-plant-top {display:flex;justify-content:space-between;gap:12px;align-items:center}
+.bal-location {font-size:12px;color:var(--bal-muted);letter-spacing:.05em}
+#balconyHome .bal-plant h2 {font-size:28px;overflow-wrap:anywhere;margin-top:4px}
+.bal-plant-top p {margin:0;font-size:14px;color:var(--bal-muted)}
+.bal-illustration {flex-shrink:0;background:#edf0e5;color:#5f7e50;width:82px;height:90px;border-radius:45px 45px 18px 18px;padding:5px}
+.bal-illustration svg {width:100%;height:100%}
+.bal-latest {color:var(--bal-muted);font-size:13px;border-top:1px solid #eeeee5;margin:18px 0 14px;padding-top:12px;overflow-wrap:anywhere}
+.bal-card-actions {display:flex;gap:12px;align-items:center;justify-content:space-between}
+#balconyHome .bal-primary,#balconyDialog .bal-primary {border:0;color:#fff;background:#315b46;font-weight:700;padding:11px 22px}
+#balconyHome .bal-primary:hover,#balconyDialog .bal-primary:hover {background:#234735}
+#balconyHome .bal-text,#balconyDialog .bal-text {border:0;background:transparent;color:var(--bal-ink);padding:8px;font-size:14px;font-weight:600}
+.bal-empty {grid-column:1/-1;text-align:center;border:1px dashed #b8c4af;border-radius:22px;padding:32px 18px;background:#f0f1e7}
+.bal-empty .bal-illustration {margin:0 auto 18px}
+.bal-empty p {font-size:15px;color:var(--bal-muted);margin:12px 0 24px}
+.bal-help {margin-top:24px;border-radius:18px;background:#ececdf;padding:20px 22px}
+.bal-help p {color:var(--bal-muted);font-size:14px;margin:5px 0}
+.bal-help .bal-text {padding-left:0!important}
+.bal-footnote {font-size:12px;color:var(--bal-muted);line-height:1.9;margin:20px 4px;max-width:650px}
+#balconyStatus {color:var(--bal-ink);font-size:14px}
+#balconyDialog {border:1px solid var(--bal-border);border-radius:24px;padding:26px;width:min(480px,calc(100% - 24px));max-height:88dvh;overflow:auto;background:#fffefa;box-shadow:0 25px 80px #142b3133;margin:auto}
+#balconyDialog::backdrop {background:#1c302a73;backdrop-filter:blur(3px)}
+.bal-dialog-head {display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+#balconyDialog h2 {font-size:22px;line-height:1.5;overflow-wrap:anywhere}
+#balconyDialog .bal-close {border:0;background:#eef0e6;font-size:26px;min-width:48px;color:var(--bal-ink)}
+#balconyDialog label {display:block;font-size:14px;font-weight:700;margin-top:16px}
+#balconyDialog input,#balconyDialog select,#balconyDialog textarea {display:block;width:100%;padding:12px 14px;font:inherit;font-size:16px;line-height:1.5;background:#fff;color:#23493c;border:1px solid #c7cec0;border-radius:12px;margin-top:6px;min-height:48px}
+#balconyDialog textarea {min-height:110px;resize:vertical}
+#balconyDialog input::placeholder,#balconyDialog textarea::placeholder {color:#73796e;font-weight:400}
+.bal-more {margin-top:18px;font-size:14px}
+.bal-more summary {padding:12px 0;cursor:pointer}
+.bal-form-note {font-size:13px;color:var(--bal-muted);line-height:1.85;margin:16px 0}
+.bal-full {width:100%;margin-top:10px}
+.bal-error {color:#a4392c;white-space:pre-line;font-size:14px}
+.bal-subtitle {color:var(--bal-muted);font-size:14px;margin:4px 0 22px}
+.bal-activities {display:grid;gap:12px}
+#balconyDialog .bal-activities button {position:relative;text-align:left;background:#f2f3ea;border:1px solid #dde3d5;border-radius:16px;padding:18px 40px 18px 18px;color:var(--bal-ink)}
+.bal-activities b {display:block;font-size:20px;margin-bottom:3px}
+.bal-activities span {font-size:13px;color:var(--bal-muted)}
+.bal-activities i {position:absolute;right:18px;top:26px;font-style:normal}
+.bal-secondary-actions {display:flex;justify-content:space-between;flex-wrap:wrap;margin-top:16px}
+.bal-two {display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.bal-timeline {border-left:1px solid #cbd4c1;margin:16px 0 24px 5px;padding-left:20px}
+.bal-timeline article {position:relative;padding-bottom:24px;overflow-wrap:anywhere}
+.bal-timeline article:before {content:"";position:absolute;left:-25px;top:8px;width:8px;height:8px;border-radius:50%;background:#7e946a}
+.bal-timeline time {font-size:12px;color:var(--bal-muted)}
+#balconyDialog .bal-timeline h3 {font-size:17px;margin:4px 0}
+.bal-timeline p {font-size:14px;margin:0;white-space:pre-wrap}
+#balconyReturn {position:fixed;bottom:85px;right:16px;z-index:20000;background:#315b46;color:#fff;border:2px solid #fff;padding:10px 18px;box-shadow:0 3px 12px #0003}
+#balconyReturn[hidden],#balconyHome[hidden] {display:none!important}
+@media(max-width:600px) {.bal-shell{padding:18px 20px 30px}.bal-plants{grid-template-columns:1fr}.bal-hero{padding:28px 0}.bal-hero-line{width:65px;height:95px;right:6px;top:65px;opacity:.3}#balconyHome h1{font-size:32px}.bal-hero p{font-size:14px}.bal-brand span{display:none}.bal-plant{padding:18px}.bal-header{margin-bottom:10px}}
+@media(prefers-reduced-motion:reduce) {#balconyHome *,#balconyDialog *{transition:none!important;scroll-behavior:auto!important}}
+.bal-photo-button {border:0;background:transparent;color:var(--bal-ink);padding:0;flex-shrink:0;display:grid;gap:4px;justify-items:center}
+.bal-photo-caption {font-size:12px;color:var(--bal-muted)}
+.bal-photo-button .bal-illustration {display:block;overflow:hidden;padding:0}
+.bal-photo-button .bal-illustration svg {padding:5px}
+.bal-photo-button img {width:100%;height:100%;object-fit:cover}
+.bal-photo-preview {background:#eef0e7;border-radius:16px;min-height:130px;display:grid;place-items:center;padding:12px;text-align:center;color:var(--bal-muted)}
+.bal-photo-preview img {max-width:100%;max-height:270px;object-fit:contain;border-radius:10px}
+#balPhotoStatus {font-size:14px;white-space:pre-wrap}
+#balconyDialog button:disabled {opacity:.5;cursor:default}
+html[data-theme="dark"] body.balcony-open {background:#171e18!important}
+html[data-theme="dark"] #balconyHome,html[data-theme="dark"] #balconyDialog {--bal-ink:#e5ecd9;--bal-muted:#b1bca8;--bal-border:#48533f;--bal-paper:#171e18;color-scheme:dark}
+html[data-theme="dark"] .bal-plant,html[data-theme="dark"] #balconyDialog {background:#222b20}
+html[data-theme="dark"] .bal-help,html[data-theme="dark"] .bal-empty,html[data-theme="dark"] .bal-photo-preview,html[data-theme="dark"] #balconyDialog .bal-activities button,html[data-theme="dark"] #balconyHome .bal-add,html[data-theme="dark"] #balconyDialog .bal-close {background:#303b2b;color:var(--bal-ink)}
+html[data-theme="dark"] #balconyDialog input,html[data-theme="dark"] #balconyDialog select,html[data-theme="dark"] #balconyDialog textarea {background:#171e18;color:var(--bal-ink);border-color:#67765d}
+html[data-theme="dark"] #balconyHome .bal-filters button[aria-pressed=true] {background:#395d43;color:#fff;border-color:#768b66}
+html[data-theme="dark"] .bal-error {color:#ffb5a1}
+html[data-theme="dark"] .bal-eyebrow {color:#becba5}
+html[data-contrast="high"] #balconyHome,html[data-contrast="high"] #balconyDialog {--bal-muted:#354c3a;--bal-border:#75876d}
+html[data-contrast="high"][data-theme="dark"] #balconyHome,html[data-contrast="high"][data-theme="dark"] #balconyDialog {--bal-muted:#dde5d5;--bal-border:#aab99a}
+html[data-contrast="high"] .bal-plant {border-width:2px}

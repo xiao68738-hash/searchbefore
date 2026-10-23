@@ -16,6 +16,7 @@
 <meta name="twitter:card" content="summary">
 <link rel="manifest" href="./manifest.webmanifest">
 <meta name="theme-color" content="#2E6B3F">
+<link rel="stylesheet" href="./balcony.css">
 <link rel="icon" href="./icon-192.png">
 <link rel="apple-touch-icon" href="./icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -221,6 +222,20 @@ h2.step .cnt{letter-spacing:0;color:var(--green);font-weight:900}
 
 /* 作物本位的已登記用藥總覽：手機上以藥劑為列，避免寬表格難以閱讀。 */
 #pestBlock{scroll-margin-top:110px} /* 選作物後，病蟲害標題不要被固定頁首遮住。 */
+.experience-mode,.query-tools{border:1px solid var(--line,#d8d5c8);border-radius:16px;padding:12px;margin:12px 0;background:var(--surface,#fff)}
+.experience-mode summary,.query-tools summary,.multi-crop-tools summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700;gap:8px}
+.experience-mode summary::before,.query-tools summary::before,.multi-crop-tools summary::before{content:'＋';font-size:1.2em}
+.experience-mode[open]>summary::before,.query-tools[open]>summary::before,.multi-crop-tools[open]>summary::before{content:'−'}
+.experience-options{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.experience-options button{flex:1;min-width:72px;min-height:48px;border:1px solid var(--green);border-radius:12px;background:var(--surface,#fff);color:var(--green);font:inherit;font-weight:700}
+.experience-options button[aria-pressed="true"]{background:var(--green);color:#fff}
+html[data-theme="dark"] .experience-options button[aria-pressed="true"]{color:#16281A}
+.experience-links{display:flex;gap:16px;flex-wrap:wrap;margin:8px 2px;font-size:.9rem}
+.experience-links a{color:var(--green);padding:8px 0;text-underline-offset:3px}
+.multi-crop-tools{margin:8px 0}
+html[data-use-mode="simple"] #homeGuide,html[data-use-mode="simple"] #homeCards{display:none}
+html[data-use-mode="simple"] #scr-search .search input{min-height:54px;font-size:1.08rem}
+html[data-use-mode="simple"] #scr-search .chip{min-height:48px;font-size:1.05rem}
 .crop-overview{margin-top:18px;padding-top:2px}
 .crop-overview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .crop-overview-head .step{margin:0 0 5px}
@@ -969,12 +984,28 @@ nav button.on{color:var(--green)}
   <main>
     <!-- 查詢 -->
     <section class="screen active" id="scr-search">
+      <details class="experience-mode" id="experienceMode">
+        <summary id="experienceLabel">查詢模式：標準</summary>
+        <div class="experience-options" role="group" aria-label="選擇查詢操作模式">
+          <button type="button" data-use-mode="simple" aria-pressed="false">簡易</button>
+          <button type="button" data-use-mode="standard" aria-pressed="true">標準</button>
+          <button type="button" data-use-mode="complete" aria-pressed="false">完整</button>
+        </div>
+        <p class="hint" id="experienceHint">調整查詢頁的工具多寡；資料與安全提醒相同。</p>
+        <p class="hint">可隨時切換，不會清除紀錄。這是此瀏覽器的偏好，不會同步改動其他裝置。</p>
+        <p class="hint" id="experienceStatus" role="status" aria-live="polite"></p>
+      </details>
+      <div class="experience-links"><a href="./guide-query.html">第一次查詢？看操作教學</a><a href="./guides.html">用藥安全指南</a></div>
       <div id="homeGuide"></div>
       <div class="safety-banner" role="note">安全提醒：本工具是查詢與自主紀錄輔助。實際用藥、稀釋倍數及安全採收期，請以產品標示與主管機關最新公告為準。</div>
+      <details class="query-tools" id="queryTools" open>
+        <summary>更多查詢工具／切換查法</summary>
       <div class="qmode" role="tablist" aria-label="查詢方式">
         <button id="qmodeCrop" class="on" role="tab" aria-selected="true" onclick="setQueryMode('crop')">以作物找藥</button>
         <button id="qmodeAgent" role="tab" aria-selected="false" onclick="setQueryMode('agent')">以藥劑找作物</button>
       </div>
+        <details class="multi-crop-tools" id="multiCropTools"><summary>多作物工具</summary><button class="chip mut" onclick="openDual()">多種作物聯合防治</button></details>
+      </details>
       <div id="agentModeBlock" style="display:none">
         <h2 class="step"><b>1</b>輸入藥劑名或商品名</h2>
         <div class="search"><input id="agentSearch" placeholder="例:納乃得、賽洛寧,或直接打商品名" autocomplete="off" oninput="agentSuggest(this.value)"></div>
@@ -987,7 +1018,6 @@ nav button.on{color:var(--green)}
       <div class="search"><input id="cropSearch" placeholder="輸入作物名,例:草莓、番茄、萵苣" autocomplete="off"></div>
       <div class="chips" id="recentCrops"></div>
       <div class="chips" id="cropResults" style="margin-top:9px"></div>
-      <div style="margin-top:12px"><button class="chip mut" onclick="openDual()">多種作物聯合防治</button></div>
       <div id="formBlock" style="display:none">
         <div class="form-ask" id="formPrompt"></div>
         <div class="chips" id="formChips"></div>
@@ -1377,7 +1407,7 @@ nav button.on{color:var(--green)}
       </div>
       </div>
     </div>
-    <p class="entry-note">田間資料預設只保存在這台裝置；登入後仍需主動開啟，才會同步指定資料。實際用藥請以產品標示與主管機關最新公告為準。<br><a href="./about.html">應用程式介紹</a> ・ <a href="./privacy.html">隱私權政策</a></p>
+    <p class="entry-note">田間資料預設只保存在這台裝置；登入後仍需主動開啟，才會同步指定資料。實際用藥請以產品標示與主管機關最新公告為準。<br><a href="./guide-query.html">第一次查詢教學</a> ・ <a href="./guides.html">用藥安全指南</a><br><a href="./about.html">應用程式介紹</a> ・ <a href="./privacy.html">隱私權政策</a></p>
   </div>
 </div>
 
@@ -1429,6 +1459,7 @@ window.addEventListener("load",function(){
 <script src="./crop-forms.js"></script>
 <script src="./pinyin-pro.js"></script>
 <script src="./query-aids.js"></script>
+<script src="./experience-mode.js"></script>
 <script src="./form-ocr.js"></script>
 <script src="./form-ocr-ui.js"></script>
 <script src="./export-formats.js"></script>
@@ -1438,7 +1469,7 @@ const DATA={"木瓜":{"白粉病":[{"name":"快得保淨","form":"WP","content":
 /* ═══ 維護區:改這裡就好 ═══════════════════════════════
    APP_VERSION:每次更新資料或功能時往上加
    ANNOUNCE:公告(新的放最上面,date 改了紅點會自動亮) */
-const APP_VERSION="0.3.10.2";
+const APP_VERSION="0.3.10.4";
 const DATA_VERSION="2026-07-21"; // 農藥資料抓取年月
 const ANNOUNCE=[
  {date:"2026-09-12",version:"0.3.9.9",title:"殘留提醒改為作物別標籤",body:"已複核組合在藥劑名稱旁顯示作物別殘留提醒，並提供可展開的核對依據。可使用僅指依該筆登記用途與產品標示使用；未完成部位或分類確認者仍標待確認，未標示不代表檢驗合格。"},
@@ -1573,6 +1604,7 @@ if(window.PQC_SYNC)PQC_SYNC.attach({host:{
     if(typeof renderRecords==="function")renderRecords();
     if(typeof renderPlotRecordBox==="function")renderPlotRecordBox();
     if(window.PQC_ACCOUNT)PQC_ACCOUNT.render();
+    if(window.PQC_BALCONY)PQC_BALCONY.refresh();
   }catch(e){}},
   toast:function(m){if(typeof toast==="function")toast(m)}
 }});
@@ -1588,6 +1620,7 @@ function renderBackupNote(){
   el.textContent=synced
     ?"用藥、田間作業與田區會備份到你的 Google 帳號，換手機登入後可取回。常用配方與偏好設定仍只存在這台裝置，需要靠備份檔保存。"
     :"用藥、田間作業、田區與配方只存在這台裝置。建議定期下載備份檔，換手機或清除瀏覽器資料前尤其重要。";
+  el.textContent+=" 植物照片只存此瀏覽器，不包含在雲端同步或 JSON 紀錄備份；請在植物照片視窗另外下載留存。";
 }
 if(window.PQC_SYNC)PQC_SYNC.onStatus(renderBackupNote);
 renderBackupNote();
@@ -1772,6 +1805,7 @@ let recent=store.get("recentCrops")||[];
 
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("show");clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove("show"),2300)}
 function go(id,btn){
+  if(window.PQC_BALCONY)PQC_BALCONY.leave();
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
   document.getElementById("scr-"+id).classList.add("active");
   document.querySelectorAll("nav button").forEach(b=>b.classList.remove("on"));
@@ -1833,6 +1867,7 @@ function openFieldSummaryAction(code){
   openRecordHub("farm");
 }
 function openHomeOnLaunch(){
+  if(window.PQC_BALCONY&&PQC_BALCONY.home())return;
   go("search",document.getElementById("navSearch"));
 }
 function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;")}
@@ -2536,6 +2571,7 @@ function completeEntryWithGoogle(){
 function openEntryGate(){
   document.body.classList.add("entry-open");
   document.getElementById("onboard").classList.add("open");
+  if(window.PQC_BALCONY)PQC_BALCONY.leave();
   if(window.PQC_ACCOUNT)window.PQC_ACCOUNT.render();
 }
 openEntryGate();
@@ -3696,6 +3732,7 @@ function setQueryMode(m){
   document.getElementById("qmodeAgent").setAttribute("aria-selected",String(isAgent));
   document.getElementById("cropModeBlock").style.display=isAgent?"none":"";
   document.getElementById("agentModeBlock").style.display=isAgent?"":"none";
+  if(window.PQC_EXPERIENCE)window.PQC_EXPERIENCE.refresh();
   renderHome();
   if(isAgent){ensureAgentIndex();document.getElementById("agentSearch").focus()}
 }
@@ -4356,5 +4393,7 @@ window.__appReady=true;
 const loadFailureBanner=document.getElementById("loadFailureBanner");
 if(loadFailureBanner)loadFailureBanner.remove();
 </script>
+<script src="./plant-photos.js"></script>
+<script src="./balcony.js"></script>
 </body>
 </html>

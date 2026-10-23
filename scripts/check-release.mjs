@@ -11,6 +11,7 @@ const expected = [
   "about.html", "account.js", "ads.txt", "brand-lockup.png", "cloud-sync.js", "delete-account.html", "brand-logo-120.png", "brand-logo-transparent.png", "crop-forms.js", "export-formats.js", "farm-records.js", "form-ocr-ui.js", "form-ocr.js", "guide.css", "guide-dilution.html", "guide-label.html", "guide-phi.html", "guide-ppe.html", "guides.html", "icon-180.png", "icon-192.png", "icon-512.png",
   "icon-maskable-512.png", "index.html", "manifest.webmanifest", "mrl-status.js", "privacy.html", "robots.txt", "sitemap.xml",
   "field-summary.js",
+  "experience-mode.js", "guide-query.html", "balcony.js", "balcony.css", "plant-photos.js",
   "pinyin-pro.js", "query-aids.js", "safety.js", "service-config.js", "sw.js", "web-support-config.js"
 ].sort();
 
