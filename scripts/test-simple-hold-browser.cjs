@@ -33,7 +33,10 @@ function check(value,label){assert.ok(value,label);checks.push(label);}
    await page.reload();
    check(await page.locator('.btn-guest').isVisible(),width+'/'+mode+': login choice retained');
    await page.locator('.btn-guest').click();
+   // The existing announcement opens after a delayed startup callback.
+   await page.waitForTimeout(700);
    if(await page.locator('#annModal.open').count())await page.locator('#annModal button[onclick="closeAnn()"]').first().click();
+   check(await page.locator('#annModal').isHidden(),width+'/'+mode+': startup announcement dismissed');
    check(await page.locator('#scr-search').isVisible(),width+'/'+mode+': original query opens');
    check(await page.locator('#experienceMode,#balconyHome,#balconyDialog,#balconyReturn').count()===0,width+'/'+mode+': no held UI mounted');
    check(!requests.some(url=>/\/(?:balcony|plant-photos|experience-mode)\.(?:js|css)$/.test(url)),width+'/'+mode+': held modules not loaded');
