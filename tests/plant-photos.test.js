@@ -16,7 +16,11 @@ assert.equal(api.signature(new TextEncoder().encode('<svg>'),'image/jpeg'),false
 assert.equal(api.signature(Uint8Array.from([137,80,78,71,13,10,26,10]),'image/png'),true);
 assert.equal(api.signature(new TextEncoder().encode('RIFFxxxxWEBP'),'image/webp'),true);
 const root=path.resolve(__dirname,'..');
-for(const file of ['balcony.js','balcony.css','plant-photos.js'])for(const list of ['index.html','sw.js','scripts/build-release.mjs','scripts/check-release.mjs'])assert.ok(fs.readFileSync(path.join(root,list),'utf8').includes(file),list+' packages '+file);
+// Keep recoverable modules, but do not load any new UI into the public entry point.
+for(const file of ['balcony.js','balcony.css','plant-photos.js']) {
+  assert.ok(!fs.readFileSync(path.join(root,'index.html'),'utf8').includes('./'+file), 'public entry must not load '+file);
+  for(const list of ['sw.js','scripts/build-release.mjs','scripts/check-release.mjs'])assert.ok(fs.readFileSync(path.join(root,list),'utf8').includes(file),list+' preserves '+file);
+}
 const photoSource=fs.readFileSync(path.join(root,'plant-photos.js'),'utf8');
 assert.doesNotMatch(photoSource,/fetch\(|XMLHttpRequest|firebase|localStorage\.setItem|readAsDataURL/);
 assert.match(fs.readFileSync(path.join(root,'privacy.html'),'utf8'),/照片不會傳送至雲端或 OCR/);

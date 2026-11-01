@@ -15,8 +15,8 @@ assert.equal(mode.write(unavailable,'complete'),false);
 assert.equal(memory.size,1);
 const root = path.resolve(__dirname,'..');
 const index = fs.readFileSync(path.join(root,'index.html'),'utf8');
-assert.ok(index.includes('id="experienceMode"'));
-assert.ok(index.includes('./experience-mode.js'));
+assert.ok(!index.includes('id="experienceMode"'), 'mode picker is not publicly mounted during hold');
+assert.ok(!index.includes('<script src="./experience-mode.js"'), 'saved simple preference cannot activate held UI');
 assert.ok(index.includes('./guide-query.html'));
 for(const file of ['experience-mode.js','guide-query.html']) {
   assert.ok(fs.readFileSync(path.join(root,'sw.js'),'utf8').includes(file));
