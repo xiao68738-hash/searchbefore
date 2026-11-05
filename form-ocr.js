@@ -286,18 +286,43 @@
     }).map(function (item) { return Object.freeze(item); }));
   }
 
-  function findAmounts(text) {
+  // Read a complete numeric token before validating it. Matching only a valid
+  // suffix would turn "1,000" into 0 or "1.2.3" into 2.3.
+  function numericAmountCandidates(text, requireUnit) {
     const source = normalizeText(text);
     const units = ALLOWED_UNITS.map(function (unit) {
       return unit.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     }).join("|");
-    const pattern = new RegExp("(\\d+(?:\\.\\d+)?)\\s*(" + units + ")", "g");
+    const unitPattern = new RegExp("^\\s*(" + units + ")(?![A-Za-z])");
+    const pattern = /\d[\d.,]*|\.\d[\d.,]*/g;
     const out = [];
     let match;
     while ((match = pattern.exec(source))) {
-      out.push(Object.freeze({ value: Number(match[1]), unit: match[2], sourceText: match[0], confidence: 0.86 }));
+      const token = match[0];
+      if (!/^(?:\d+(?:\.\d+)?|\d{1,3}(?:,\d{3})+(?:\.\d+)?|\.\d+)$/.test(token)) continue;
+      const before = source.slice(Math.max(0, match.index - 32), match.index);
+      const tail = source.slice(pattern.lastIndex);
+      const unitMatch = unitPattern.exec(tail);
+      if (requireUnit && !unitMatch) continue;
+      const after = tail.slice(unitMatch ? unitMatch[0].length : 0);
+      // Signed values, ranges, dates, fractions and scientific notation need
+      // manual interpretation; never silently extract one positive endpoint.
+      if (/[\dA-Za-z.]$/.test(before) || (/,$/.test(before) && !/[^\d.,\s],$/.test(before)) ||
+          /[+\-−/～~至–—]$/.test(before.trimEnd()) ||
+          /\d$/.test(before.trimEnd()) || (!unitMatch && /^\d/.test(after.trimStart())) ||
+          /^[\dA-Za-z.]/.test(after) || /^[+\-−/～~至–—%]/.test(after.trimStart())) continue;
+      const value = Number(token.replace(/,/g, ""));
+      if (!Number.isFinite(value) || value > Number.MAX_SAFE_INTEGER) continue;
+      out.push({ value, unit: unitMatch ? unitMatch[1] : null,
+        sourceText: token + (unitMatch ? unitMatch[0] : "") });
     }
     return Object.freeze(out);
+  }
+
+  function findAmounts(text) {
+    return Object.freeze(numericAmountCandidates(text, true).map(function (item) {
+      return Object.freeze(Object.assign({}, item, { confidence: 0.86 }));
+    }));
   }
 
   function findSafetyIntervals(text) {
@@ -487,19 +512,20 @@
     const source = normalizeDateLikeTokens(text);
     const out = [];
     const seen = new Set();
-    const pattern = /(?:^|[^\d/.\-])(\d{1,2})\s*[/.-]\s*(\d{1,2})(?!\s*[/.-]\s*\d)/g;
+    const pattern = /(^|[^\d/.\-])(\d{1,2})\s*[/.-]\s*(\d{1,2})(?!\d|\s*[/.-]\s*\d)/g;
     let match;
     while ((match = pattern.exec(source))) {
-      const month = Number(match[1]);
-      const day = Number(match[2]);
-      if (month < 1 || month > 12 || day < 1 || day > 31) continue;
+      const month = Number(match[2]);
+      const day = Number(match[3]);
+      // A leap-year calendar keeps 2/29 pending until the year is confirmed.
+      if (month < 1 || month > 12 || day < 1 || day > new Date(Date.UTC(2000, month, 0)).getUTCDate()) continue;
       const value = String(month).padStart(2, "0") + "/" + String(day).padStart(2, "0");
       if (seen.has(value)) continue;
       seen.add(value);
       out.push(Object.freeze({
         value,
-        sourceText: match[0].trim(),
-        sourceIndex: match.index + (match[0].length - match[0].trimStart().length),
+        sourceText: match[0].slice(match[1].length),
+        sourceIndex: match.index + match[1].length,
         confidence: 0.68,
         partial: true,
         requiresYearConfirmation: true
@@ -888,18 +914,10 @@
 
   function ledgerAmountCandidates(row, cells) {
     const text = normalizeText(cells.map(function (cell) { return cell.text; }).join(" "));
-    const units = ALLOWED_UNITS.map(function (unit) {
-      return unit.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    }).join("|");
-    const pattern = new RegExp("(?:^|[^\\d])([0-9]+(?:\\.[0-9]+)?)(?:\\s*(" + units + "))?(?=$|[^\\d])", "g");
-    const out = [];
-    let match;
-    while ((match = pattern.exec(text))) {
-      const value = Number(match[1]);
-      if (!Number.isFinite(value)) continue;
-      const confidence = cells.length ? Math.min.apply(null, cells.map(function (cell) { return cell.confidence; })) : 0;
-      out.push(ledgerEvidenceCandidate(value, confidence, row, cells, match[0].trim(), match[2] || null));
-    }
+    const confidence = cells.length ? Math.min.apply(null, cells.map(function (cell) { return cell.confidence; })) : 0;
+    const out = numericAmountCandidates(text, false).map(function (item) {
+      return ledgerEvidenceCandidate(item.value, confidence, row, cells, item.sourceText, item.unit);
+    });
     return Object.freeze(out.slice(0, MAX_FIELD_CANDIDATES));
   }
 
